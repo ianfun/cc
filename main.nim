@@ -9,10 +9,7 @@ proc test(testLex = false) =
         if testLex:
             stdout.writeLine("\e[4;46m" & showToken(p) & "\e[0m")
             nextTok(p)
-        else:
-            declaration(p)
-        break
+        declaration(p)
         p.err = false
     closeParser(p)
-
 test(false)

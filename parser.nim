@@ -42,6 +42,10 @@ proc conditional_expression*(p: var Parser): Expr
 
 proc assignment_expression*(p: var Parser): Expr
 
+proc parse_initializer_list*(p: var Parser): Expr
+
+proc parse_parameter_type_list*(p: var Parser): seq[(string, CType)]
+
 # ================ type ====================
 
 proc declaration*(p: var Parser)
@@ -69,7 +73,9 @@ proc parse_declarator*(p: var Parser, base: CType): (string, CType)
 # abstract decorator has no name
 # for example: static int        (*)(int, char)
 #               base-type      abstact-decorator
-proc parase_abstract_decorator*(p: var Parser, base: CType): CType
+proc parse_abstract_decorator*(p: var Parser, base: CType; strict = true): (string, CType)
+
+proc parse_direct_abstract_declarator*(p: var Parser, base: CType, strict: bool): (string, CType)
 
 # type-name: specifier-qualifier-list optional<abstract_decorator>
 # proc parse_type_name*(p: var Parser): CType
@@ -88,6 +94,8 @@ proc parse_struct_union*(p: var Parser, t: Token): CType
 #              enum { ... }
 #              enum State { ... }
 proc parse_enum*(p: var Parser): CType
+
+proc parse_static_assert*(p: var Parser)
 
 # ==================  statement =================
 
@@ -315,23 +323,37 @@ proc parse_declarator*(p: var Parser, base: CType): (string, CType) =
         parse_type_qualifier_list(p, ty)
     return parse_direct_declarator(p, ty)
 
-proc parse_direct_declarator*(p: var Parser, base: CType): (string, CType) =
+proc parse_abstract_decorator*(p: var Parser, base: CType; strict=true): (string, CType) =
+    var ty = base
+    while p.tok == TMul:
+        consume(p)
+        ty = CType(tags: TYINVALID, spec: TYPOINTER, p: ty)
+        parse_type_qualifier_list(p, ty)
+    result = parse_direct_abstract_declarator(p, ty, strict)
+    if strict == false and result[1] == nil:
+        echo "hint: fill hole, none strict"
+        result[1] = base
+
+proc parse_direct_abstract_declarator*(p: var Parser, base: CType, strict: bool): (string, CType) =
     case p.tok:
     of TIdentifier:
-        result = (p.val.sval, base) # ok, we are done
-        consume(p)
-        return result
+        if strict:
+            return ("", nil)
+        else:
+            result = (p.val.sval, base)
+            consume(p)
+            return result
     of TLbracket:
         consume(p)
-        result = parse_declarator(p, base)
+        result = parse_direct_abstract_declarator(p, base, strict)
         if p.tok != TRbracket:
             p.parse_error("expect ')'")
             return ("", nil)
         return result
     else:
-        let d = parse_direct_declarator(p, base)
-        if d[1] == nil:
-            return ("", nil)
+        var d: (string, CType) = ("", nil)
+        if p.tok notin {TLSquareBrackets, TLbracket}:
+           d = parse_direct_abstract_declarator(p, base, strict)
         case p.tok:
         of TLSquareBrackets: # int arr[5], int arr[*], int arr[static 5], int arr[static const 5], int arr[const static 5], int arr2[static const restrict 5]
             consume(p) # eat ]
@@ -342,7 +364,7 @@ proc parse_direct_declarator*(p: var Parser, base: CType): (string, CType) =
                 p.error("expect ']'")
                 p.note("the syntax is:\n\tint arr[*]")
                 return ("", nil)
-              return 
+              return (d[0], ty)
             if p.tok == Kstatic:
                consume(p)
                ty.tags = ty.tags or TYSTATIC
@@ -360,11 +382,93 @@ proc parse_direct_declarator*(p: var Parser, base: CType): (string, CType) =
             consume(p) # eat ]
             return (d[0], ty)
         of TLbracket:
-            # direct-declarator ( parameter-type-list )
-            # direct-declarator ( identifier-listopt )
+            # direct-abstract-declaratoropt ( parameter-type-listopt )
             discard
         else:
             return ("", nil)
+
+proc parse_initializer_list*(p: var Parser): Expr =
+    if p.tok != TLcurlyBracket:
+        return assignment_expression(p)
+    result = Expr(k: EInitializer_list)
+    consume(p)
+    if p.tok == TRcurlyBracket:
+        consume(p)
+        return result
+    while true:
+        if p.tok == TLcurlyBracket:
+            let e = parse_initializer_list(p)
+            if e == nil:
+                return nil
+            result.inits.add(e)
+            if p.tok == TComma:
+                consume(p)
+            if p.tok != TRcurlyBracket:
+                p.parse_error("expect '}'")
+            consume(p)
+        else:
+            let e = assignment_expression(p)
+            if e == nil:
+                p.error("expect expression")
+                return nil
+            result.inits.add(e)
+        if p.tok == TComma:
+            consume(p)
+            if p.tok == TRcurlyBracket:
+                break
+        else:
+            break
+
+proc parse_declarator_start*(p: var Parser, base: CType): (string, CType) =
+    case p.tok:
+    of TIdentifier:
+        result = (p.val.sval, base) # ok, we are done
+        consume(p)
+        return result
+    of TLbracket:
+        consume(p)
+        result = parse_declarator(p, base)
+        if p.tok != TRbracket:
+            p.parse_error("expect ')'")
+            return ("", nil)
+        return result
+    else:
+        return parse_direct_declarator(p, base)
+
+proc parse_direct_declarator*(p: var Parser, base: CType): (string, CType) =
+    case p.tok:
+    of TLSquareBrackets: # int arr[5], int arr[*], int arr[static 5], int arr[static const 5], int arr[const static 5], int arr2[static const restrict 5]
+        consume(p) # eat ]
+        var ty = CType(tags: TYINVALID, spec: TYARRAY, arrsize: -1, arrtype: base)
+        if p.tok == TMul: # int arr[*]
+          consume(p)
+          if p.tok != TRSquareBrackets:
+            p.error("expect ']'")
+            p.note("the syntax is:\n\tint arr[*]")
+            return ("", nil)
+          return (d[0], ty)
+        if p.tok == Kstatic:
+           consume(p)
+           ty.tags = ty.tags or TYSTATIC
+           parse_type_qualifier_list(p, ty)
+        else:
+            parse_type_qualifier_list(p, ty)
+            if p.tok == Kstatic:
+                ty.tags = ty.tags or TYSTATIC
+                consume(p)
+        let e = assignment_expression(p)
+        ty.arrsize = eval_const_expression(e)
+        if p.tok != TRSquareBrackets:
+          p.error("expect ']'")
+          return ("", nil)
+        consume(p) # eat ]
+        return (d[0], ty)
+    of TLbracket:
+        # direct-declarator ( parameter-type-list )
+        # direct-declarator ( identifier-listopt )
+        discard
+    else:
+        base
 
 proc parse_struct_declarator(p: var Parser, base: CType): (string, CType) =
     if p.tok == TColon:
@@ -391,9 +495,6 @@ proc parse_struct_declarator(p: var Parser, base: CType): (string, CType) =
             return ("", CType(tags: TYINVALID, spec: TYBITFIELD, bittype: d[1], bitsize: bitsize))
         return d
 
-proc parase_abstract_decorator*(p: var Parser, base: CType): CType =
-    return nil
-
 proc parse_struct_union*(p: var Parser, t: Token): CType =
     consume(p) # eat struct/union
     var name = ""
@@ -411,9 +512,13 @@ proc parse_struct_union*(p: var Parser, t: Token): CType =
         result = CType(tags: TYINVALID, spec: TYUNION, sname: name)
     consume(p)
     if p.tok != TRcurlyBracket:
-        while true: # TODO: static assert
+        while true:
+            if p.tok == K_Static_assert:
+                parse_static_assert(p)
+                if p.tok == TRcurlyBracket:
+                    break
+                continue
             var base = parse_specifier_qualifier_list(p)
-
             if base == nil:
                 p.parse_error("expect specifier-qualifier-list")
                 return nil
@@ -478,6 +583,26 @@ proc parse_enum*(p: var Parser): CType =
     putenumdef(p, result)
     return result
 
+proc parse_parameter_type_list*(p: var Parser): seq[(string, CType)] =
+    while true:
+        var base = parse_declaration_specifiers(p)
+        if base == nil:
+            return default(typeof(result))
+        let res = parse_abstract_decorator(p, base, false)
+        if res[1] == nil:
+            return default(typeof(result))
+        result.add(res)
+        if p.tok == TRbracket:
+            break
+        if p.tok == TComma:
+            consume(p)
+        if p.tok == PPEllipsis:
+            result.add(("", nil))
+            consume(p)
+            break
+        elif p.tok == TRbracket:
+            break
+
 proc parse_declaration_specifiers*(p: var Parser): CType =
     ## TODO: _Alignas
     case p.tok:
@@ -496,33 +621,56 @@ proc parse_declaration_specifiers*(p: var Parser): CType =
             p.parse_error("type expected")
             return nil
 
+proc parse_static_assert*(p: var Parser) =
+    consume(p)
+    if p.tok != TLbracket:
+        p.parse_error("expect '('")
+        return
+    consume(p)
+    let e = constant_expression(p)
+    let ok = eval_const_expression_bool(e)
+    if p.tok == TRbracket: # no message
+        if ok == false:
+            p.error("static assert failed!")
+        consume(p)
+        p.note("static assert with no message")
+    elif p.tok == TComma:
+        consume(p)
+        if p.tok != TStringLit:
+            p.parse_error("expect string literal in static assert")
+            return
+        if ok == false:
+            p.error(p.val.sval)
+        consume(p)
+    else:
+        p.parse_error("expect ',' or ')'")
+        return
+    if p.tok != TSemicolon:
+        p.error("expect ';'")
+    consume(p)
+
 proc declaration*(p: var Parser) =
     if p.tok == K_Static_assert:
-        consume(p)
-        if p.tok != TLbracket:
-            p.parse_error("expect '('")
-            return
-        consume(p)
-        let e = constant_expression(p)
-        let ok = eval_const_expression_bool(e)
-        if p.tok == TRbracket: # no message
-            if ok == false:
-                p.error("static assert failed!")
-            consume(p)
-            p.note("static assert with no message")
-        elif p.tok == TComma:
-            consume(p)
-            if p.tok != TStringLit:
-                p.parse_error("expect string literal in static assert")
-                return
-            if ok == false:
-                p.error(p.val.sval)
-            consume(p)
-        else:
-            p.parse_error("expect ',' or ')'")
-            return
+        parse_static_assert(p)
     else:
-        echo p.tok
+        var base = parse_declaration_specifiers(p)
+        while true:
+            if p.tok == TSemicolon:
+                consume(p)
+                p.warning("declaration does not declare anything")
+                break
+            let (name, ty) = parse_declarator(p, base)
+            echo name, " => ", ty
+            putsymtype(p, name, ty)
+            if p.tok == TAssign:
+                consume(p)
+                let init = parse_initializer_list(p)
+                echo " init => ",init
+            if p.tok == TComma:
+                consume(p)
+            elif p.tok == TSemicolon:
+                consume(p)
+                break
 
 proc cast_expression*(p: var Parser): Expr =
     case p.tok:

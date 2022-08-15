@@ -61,8 +61,8 @@ type Token* = enum
   TCharLit="<char>",
   TIdentifier="<identifier>",
   TStringLit="<string>",
-  TPPNumber, # pp-token => pp-number, used by preprocessor
-  PPEllipsis,
+  TPPNumber="<pp-number>", # pp-token => pp-number, used by preprocessor
+  PPEllipsis="...",
   TEOF="<EOF>"
 
 const tyCounter = CacheCounter"tyCounter"
@@ -273,7 +273,9 @@ type
       of SStructDecl, SUnionDecl, SEnumDecl:
         stype*: CType
     ExprKind* = enum
-      EBin, EUnary, EPostFix, EIntLit, ECharLit, EFloatLit, EStringLit, ESizeOf, EVar, ECondition, ECast, ECall, ESubscript, EAlignof, EGeneric
+      EBin, EUnary, EPostFix, EIntLit, ECharLit, EFloatLit, EStringLit, 
+      ESizeOf, EVar, ECondition, ECast, ECall, ESubscript, 
+      EAlignof, EGeneric, EInitializer_list
     Expr* = ref object
       case k*: ExprKind
       of EBin:
@@ -301,10 +303,11 @@ type
         castval*: Expr
       of ECall, ESubscript:
         left*, right*: Expr
+      of EInitializer_list:
+        inits*: seq[Expr]
       of EGeneric:
         selectexpr*: Expr
         selectors*: seq[(Expr, Expr)] # CType is nil if default!
-
 
 const
   CSkip* = {' ', '\t', '\f', '\v'} # space, tab, new line, form feed
@@ -417,6 +420,8 @@ proc `$`*(e: Expr): string =
     $e.left & '(' & $e.right & ')'
   of EGeneric:
     "_Generic(" & $e.selectexpr & (var s: string;for (tp, e) in e.selectors: s.add($tp & ':' & $e & ',');s) & ')'
+  of EInitializer_list:
+    "{" & $e.inits & "}"
 
 proc show*(s: seq[PPToken]): string =
   for tok in s:

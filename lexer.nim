@@ -283,7 +283,6 @@ proc readFloatLit(p: var Parser, intPart: float = 0.0) =
     var e = 0
     while true:
         inc e
-        eat(p)
         if p.c notin {'0'..'9'}:
             if p.c in {'L', 'l', 'F', 'f'}:
                 eat(p) # TODO: mark as float
@@ -311,6 +310,7 @@ proc readFloatLit(p: var Parser, intPart: float = 0.0) =
                 eat(p)
             break
         p.val.fval += float(int(p.c) - '0'.int) / pow(10.0, float(e))
+        eat(p)
 
 proc readNumberLit(p: var Parser) =
     p.tok = TNumberLit
@@ -359,6 +359,7 @@ proc readNumberLit(p: var Parser) =
               return
             eat(p)
         of '.': # float
+          eat(p)
           readFloatLit(p)
         else:
           return # zero
@@ -746,7 +747,16 @@ proc nextTok*(p: var Parser) =
         case p.c:
         of '.':
             if p.flags == PFNormal:
-                readFloatLit(p)
+                eat(p) # first
+                if p.c == '.':
+                    eat(p) # second
+                    if p.c != '.':
+                        p.parse_error("'..' is invalid token, do you mean '...'?")
+                        return
+                    eat(p) # third
+                    make_tok(p, PPEllipsis)    
+                else:
+                    readFloatLit(p)
             else:
                 eat(p) # first '.'
                 if p.c == '.':

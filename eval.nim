@@ -4,7 +4,7 @@ proc eval_const_expression*(e: Expr): int =
   1
 
 proc eval_const_expression_bool*(e: Expr): bool =
-  false
+  true
 
 #[
 proc eval*(e: Expr): CValue {.raises: [EvalError].} =
