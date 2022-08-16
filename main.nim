@@ -1,10 +1,14 @@
 import "."/[token, lexer, parser]
 
 proc test(testLex = false) =
-    var p: Parser
-    reset(p)
-    stdinParser(p)
-    nextTok(p)
-    discard translation_unit(p)
-    closeParser(p)
+    var p = newParser()
+    reset()
+    stdinParser()
+    nextTok()
+    while true:
+        let e = expression()
+        if e == nil:
+            break
+        echo e
+    closeParser()
 test(false)

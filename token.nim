@@ -62,6 +62,9 @@ type Token* = enum
   TStringLit="<string>",
   TPPNumber="<pp-number>", # pp-token => pp-number, used by preprocessor
   PPEllipsis="...",
+  PPSharp="#",
+  PPSharpSharp="#",
+  PPVAARGS="__VA_ARGS__",
   TEOF="<EOF>"
 
 const tyCounter = CacheCounter"tyCounter"
@@ -191,7 +194,7 @@ type
         f*: float
       of TVIVal:
         i*: int
-    Parser* = object
+    Parser* = ref object
       err*: bool
       fstack*: seq[Stream]
       pathstack*: seq[string]
@@ -209,7 +212,7 @@ type
       ppstack*: seq[uint8]
       ok*: bool
       onces*: HashSet[string]
-      fs_read*: proc (p: var Parser)
+      fs_read*: proc ()
       # 6.2.3 Name spaces of identifiers
       lables*: seq[TableRef[string, (int, Location)]]
       tags*: seq[TableRef[string, (CType, Location)]]
@@ -338,6 +341,14 @@ type
         selectexpr*: Expr
         selectors*: seq[(Expr, Expr)] # CType is nil if default!
 
+var p*: Parser = nil
+
+proc setParser*(a: var Parser) =
+  p = a
+
+proc getParser*(): var Parser = 
+  p
+
 const
   CSkip* = {' ', '\t', '\f', '\v'} # space, tab, new line, form feed
   KwStart* = Kauto
@@ -358,7 +369,7 @@ proc addTag*(a: uint32, dst: var string) =
   if bool(a and TYTHREAD_LOCAL): dst.add("_Thread_local ")
   if bool(a and TYTYPEDEF): dst.add("typedef ")
 
-proc getTokenV*(p: var Parser): TokenV = 
+proc getTokenV*(): TokenV = 
   case p.tok:
   of TIdentifier:
     TokenV(tags: TVSVal, s: p.val.sval, t: p.tok)
@@ -530,7 +541,7 @@ proc `$`*(a: CType): string =
 var
   gkeywordtable* = initTable[string, Token](int(KwEnd) - int(KwStart) + 1)
 
-proc tokenToPPToken*(p: var Parser): PPToken =
+proc tokenToPPToken*(): PPToken =
   PPToken(s: p.val.sval, tok: p.tok)
 
 proc show*(c: char): string =
@@ -591,7 +602,7 @@ proc show*(s: seq[PPToken]): string =
         result &= $tok.tok
     result &= ' '
 
-proc showToken*(p: var Parser): string =
+proc showToken*(): string =
   case p.tok:
   of TNumberLit: "number => " & $p.val.ival
   of TCharLit: "char => " & show(char(p.val.ival))
@@ -607,28 +618,28 @@ proc showToken*(p: var Parser): string =
 proc `$`*(loc: Location): string =
   $loc.line & ':' & $loc.col
 
-proc warning*(p: var Parser, msg: string) =
+proc warning*(msg: string) =
   stderr.writeLine("\e[33m" & p.filename & ": " & $p.line & '.' & $p.col & ": warning: " & msg & "\e[0m")
 
-proc error*(p: var Parser, msg: string) =
+proc error*(msg: string) =
     p.tok = TNul
     if p.err == false:
       stderr.writeLine("\e[31m" & p.filename & ": " & $p.line & '.' & $p.col & ": error: " & msg & "\e[0m")
       p.err = true
 
-proc type_error*(p: var Parser, msg: string) =
+proc type_error*(msg: string) =
     p.tok = TNul
     if p.err == false:
       stderr.writeLine("\e[35m" & p.filename & ": " & $p.line & '.' & $p.col & ": type error: " & msg & "\e[0m")
       p.err = true
 
-proc parse_error*(p: var Parser, msg: string) =
+proc parse_error*(msg: string) =
     p.tok = TNul
     if p.err == false:
       stderr.writeLine("\e[34m" & p.filename & ": " & $p.line & '.' & $p.col & ": parse error: " & msg & "\e[0m")
       p.err = true
 
-proc note*(p: var Parser, msg: string) =
+proc note*(msg: string) =
     stderr.writeLine("\e[32mnote: " & msg & "\e[0m")
     p.err = true
 
@@ -662,7 +673,7 @@ proc unsafe_utf8_codepoint*(s: cstring): (Codepoint, int) =
     else: # 1 byte
       (s[0].Codepoint, 1)
 
-proc writeUTF8toUTF32*(p: var Parser) =
+proc writeUTF8toUTF32*() =
   # TODO: reserve 3 more bytes to prevent bad utf8 terminate access overflow
   p.val.utf32.setLen 0
   var i = 0
@@ -673,8 +684,8 @@ proc writeUTF8toUTF32*(p: var Parser) =
     p.val.utf32.add(codepoint)
     i += length
 
-proc writeUTF8toUTF16*(p: var Parser) =
-  writeUTF8toUTF32(p)
+proc writeUTF8toUTF16*() =
+  writeUTF8toUTF32()
   p.val.utf16.setLen 0
   for codepoint in p.val.utf32:
     var c = codepoint
@@ -764,26 +775,26 @@ proc ppMacroEq(a, b: PPMacro): bool =
   tokensEq(a.tokens, b.tokens) and
   (if a.funcmacro: (a.ivarargs == b.ivarargs) else: true)
 
-proc macro_define*(p: var Parser, name: string, m: PPMacro) =
+proc macro_define*(name: string, m: PPMacro) =
   if name in p.macros:
     if ppMacroEq(p.macros[name], m):
-      p.warning("macro " & name & " redefined")
+      warning("macro " & name & " redefined")
   p.macros[name] = m
 
-proc macro_defined*(p: var Parser, name: string): bool =
+proc macro_defined*(name: string): bool =
   p.macros.contains(name)
 
-proc macro_undef*(p: var Parser, name: string) =
+proc macro_undef*(name: string) =
   p.macros.del(name)
 
-proc macro_find*(p: var Parser, name: string): PPMacro =
+proc macro_find*(name: string): PPMacro =
   p.macros.getOrDefault(name, nil)
 
-proc resetLine*(p: var Parser) =
+proc resetLine*() =
     p.col = 1
     inc p.line
 
-proc fs_read*(p: var Parser) =
+proc fs_read*() =
     if p.fstack.len == 0:
         p.c = '\0'
     else:
@@ -793,14 +804,14 @@ proc fs_read*(p: var Parser) =
             p.path = p.pathstack.pop()
             p.filename = p.filenamestack.pop()
             fd.close()
-            fs_read(p) # tail call
+            fs_read() # tail call
         elif p.c == '\r':
-          resetLine(p)
+          resetLine()
           p.c = p.fstack[^1].readChar()
           if p.c == '\n':
             p.c = p.fstack[^1].readChar()
 
-proc fs_read_stdin*(p: var Parser) =
+proc fs_read_stdin*() =
     if p.fstack.len == 0:
         stdout.write(">>> ")
         try:
@@ -816,19 +827,19 @@ proc fs_read_stdin*(p: var Parser) =
         fd.close()
         p.filename = p.filenamestack.pop()
         p.path = p.pathstack.pop()
-        fs_read_stdin(p) # tail call
+        fs_read_stdin() # tail call
     elif p.c == '\r':
-      resetLine(p)
+      resetLine()
       p.c = p.fstack[^1].readChar()
       if p.c == '\n':
         p.c = p.fstack[^1].readChar()
 
-proc stdinParser*(p: var Parser) =
+proc stdinParser*() =
   p.filename = "<stdin>"
   p.path = "/dev/stdin"
   p.fs_read = fs_read_stdin
 
-proc reset*(p: var Parser) =
+proc reset*() =
   p.tok = TNul
   p.col = 1
   p.line = 1
@@ -853,134 +864,139 @@ proc reset*(p: var Parser) =
   p.lables.add(newTable[string, typeof(p.lables[0][""])]())
   p.tokenq = initDeque[TokenV]()
 
-proc addString*(p: var Parser, s: string, filename: string) =
+proc newParser*(): Parser =
+  result = Parser()
+  setParser(result)
+  reset()
+
+proc addString*(s: string, filename: string) =
   p.fstack.add(newStringStream(s))
   p.filenamestack.add(p.filename)
   p.pathstack.add(p.path)
   p.filename = (filename) # copy
   p.path = (filename) # copy
 
-proc addFile*(p: var Parser, fd: File, filename: string) =
+proc addFile*(fd: File, filename: string) =
   p.fstack.add(newFileStream(fd))
   p.filenamestack.add(p.filename)
   p.pathstack.add(p.path)
   p.filename = (filename) # copy
   p.path = (filename) # copy
 
-proc closeParser*(p: var Parser) =
+proc closeParser*() =
   for fd in p.fstack:
     fd.close()
 
-proc getTag(p: var Parser, name: string): (CType, Location) =
+proc getTag(name: string): (CType, Location) =
   for i in countdown(len(p.tags)-1, 0):
     result = p.tags[i].getOrDefault(name, (nil, Location()))
     if result[0] != nil:
       return result
 
-proc gettypedef*(p: var Parser, name: string): (CType, Location) =
+proc gettypedef*(name: string): (CType, Location) =
   for i in countdown(len(p.typedefs)-1, 0):
     result = p.typedefs[i].getOrDefault(name, (nil, Location()))
     if result[0] != nil:
       return result
 
-proc getLabel*(p: var Parser, name: string): (int, Location) =
+proc getLabel*(name: string): (int, Location) =
   for i in countdown(len(p.lables)-1, 0):
     result = p.lables[i].getOrDefault(name, (-1, Location()))
     if result[0] != -1:
       return result
   return (-1, Location())
 
-proc putLable*(p: var Parser, name: string, t: int) =
-    let (l, loc) = getLabel(p, name)
+proc putLable*(name: string, t: int) =
+    let (l, loc) = getLabel(name)
     if  l != -1:
-      p.error("duplicate label: " & name)
-      p.note(name & "was defined at " & $loc)
+      error("duplicate label: " & name)
+      note(name & "was defined at " & $loc)
       return
     p.lables[^1][name] = (t, Location(line: p.line, col: p.col))
 
-proc getstructdef*(p: var Parser, name: string): CType =
-    let res = getTag(p, name)
+proc getstructdef*(name: string): CType =
+    let res = getTag(name)
     result = res[0]
     if result == nil:
-        p.type_error("variable has incomplete type `struct " & name & '`')
-        p.note("in forward references of `struct " & name & '`')
-        p.note("add struct definition before use")
+        type_error("variable has incomplete type `struct " & name & '`')
+        note("in forward references of `struct " & name & '`')
+        note("add struct definition before use")
     elif result.spec != TYSTRUCT:
-        p.type_error(name & " is not a struct")
+        type_error(name & " is not a struct")
 
-proc putstructdef*(p: var Parser, t: CType) =
-    let (o, loc) = getTag(p, t.sname)
+proc putstructdef*(t: CType) =
+    let (o, loc) = getTag(t.sname)
     if o != nil:
-        p.error("struct " & t.sname & " aleady defined")
-        p.note(o.sname & "was defined at " & $loc)
+        error("struct " & t.sname & " aleady defined")
+        note(o.sname & "was defined at " & $loc)
     else:
         p.tags[^1][t.sname] = (t, Location(line: p.line, col: p.col))
 
-proc getenumdef*(p: var Parser, name: string): CType =
-    let res = getTag(p, name)
+proc getenumdef*(name: string): CType =
+    let res = getTag(name)
     result = res[0]
     if result == nil:
-        p.type_error("variable has incomplete type `enum " & name & '`')
-        p.note("in forward references of `enum " & name & '`')
-        p.note("add struct definition before use")
+        type_error("variable has incomplete type `enum " & name & '`')
+        note("in forward references of `enum " & name & '`')
+        note("add struct definition before use")
     elif result.spec != TYENUM:
-        p.type_error(name & " is not a enum")
+        type_error(name & " is not a enum")
 
-proc putenumdef*(p: var Parser, t: CType) =
-    let (o, loc) = getTag(p, t.ename)
+proc putenumdef*(t: CType) =
+    let (o, loc) = getTag(t.ename)
     if o != nil:
-        p.error("enum " & t.ename & " aleady defined")
-        p.note(o.ename & "was defined at " & $loc)
+        error("enum " & t.ename & " aleady defined")
+        note(o.ename & "was defined at " & $loc)
     else:
         p.tags[^1][t.ename] = (t, Location(line: p.line, col: p.col))
 
-proc getuniondef*(p: var Parser, name: string): CType =
-    let res = getTag(p, name)
+proc getuniondef*(name: string): CType =
+    let res = getTag(name)
     result = res[0]
     if result == nil:
-        p.type_error("variable has incomplete type `union " & name & '`')
-        p.note("in forward references of `union " & name & '`')
-        p.note("add union definition before use")
+        type_error("variable has incomplete type `union " & name & '`')
+        note("in forward references of `union " & name & '`')
+        note("add union definition before use")
     elif result.spec != TYUNION:
-        p.type_error(name & " is not a union")
+        type_error(name & " is not a union")
 
-proc putuniondef*(p: var Parser, t: CType) =
-    let o = getTag(p, t.sname)
+proc putuniondef*(t: CType) =
+    let o = getTag(t.sname)
     if o[0] != nil:
-        p.error("`union` " & t.sname & " aleady defined")
-        p.note(o[0].sname & "was defined at " & $o[1])
+        error("`union` " & t.sname & " aleady defined")
+        note(o[0].sname & "was defined at " & $o[1])
     else:
         p.tags[^1][t.sname] = (t, Location(line: p.line, col: p.col))
 
-proc getsymtype*(p: var Parser, name: string): CType =
-  result = gettypedef(p, name)[0]
+proc getsymtype*(name: string): CType =
+  result = gettypedef(name)[0]
 
 # typedef, symbol
-proc putsymtype*(p: var Parser, name: string, t: CType) =
-  let ty = getsymtype(p, name)
+proc putsymtype*(name: string, t: CType) =
+  let ty = getsymtype(name)
   if ty != nil:
-    p.error(name & " redeclared")
+    error(name & " redeclared")
     return
   p.typedefs[^1][name] = (t, Location(line: p.line, col: p.col))
 
-proc enterBlock*(p: var Parser) =
+proc enterBlock*() =
   p.typedefs.add(newTable[string, typeof(p.typedefs[0][""])]())
   p.tags.add(newTable[string, typeof(p.tags[0][""])]())
   p.lables.add(newTable[string, typeof(p.lables[0][""])]())
 
-proc leaveBlock*(p: var Parser) =
+proc leaveBlock*() =
   discard p.typedefs.pop()
   discard p.tags.pop()
   discard p.lables.pop()
 
-proc checkOnce*(p: var Parser, filename: string): bool =
+proc checkOnce*(filename: string): bool =
     return p.onces.contains(filename)
 
-proc addOnce*(p: var Parser) =
+proc addOnce*() =
     p.onces.incl p.path
 
-proc addInclude*(p: var Parser, filename: string): bool =
-    if checkOnce(p, filename) == true:
+proc addInclude*(filename: string): bool =
+    if checkOnce(filename) == true:
         return true
     let s = newFileStream(filename)
     if s == nil:
