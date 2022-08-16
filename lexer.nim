@@ -5,10 +5,13 @@ C's lexer - export nextTok function
 import token
 import std/[unicode, math]
 
-proc isalnum(c: char): bool =
+proc putToken*(p: var Parser, k: PPToken) = 
+    discard
+
+proc isalnum*(c: char): bool =
     return c in {'A'..'Z', 'a'..'z', '0'..'9'}
 
-proc lowleveleat(p: var Parser) =
+proc lowleveleat*(p: var Parser) =
     # LF, CR LF, CR is ok
     p.fs_read(p)
     inc p.col
@@ -16,7 +19,7 @@ proc lowleveleat(p: var Parser) =
         resetLine(p)
 
 
-proc do_eat(p: var Parser) =
+proc do_eat*(p: var Parser) =
     lowleveleat(p)
     if p.c == '/':
         lowleveleat(p)

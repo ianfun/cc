@@ -25,14 +25,14 @@ type Token* = enum
   Kgoto="goto", Kif="if", Kinline="inline", 
   Kint="int", Kchar="char", Klong="long", 
   Kregister="register", Krestrict="restrict", 
-  Lreturn="return", Kshort="short", Kelse="else", 
+  Kreturn="return", Kshort="short", Kelse="else", 
   Kenum="enum", Kextern="extern", Kdouble="double", 
   Kdo="do", Kdefault="default", Kfloat="float",
   Ksigned="signed", Ksizeof="sizeof", Kstatic="static", 
-  Kstruct="struct", Kswitch="switch", 
-  Ktypedef="typedef", Kunion="union", 
+  Kstruct="struct", Kswitch="switch", Kcase="case",
+  Ktypedef="typedef", Kunion="union", Kcontinue="continue",
   Kunsigned="unsigned", Kvoid="void", Kvolatile="volatile", 
-  Kwhile="while", Kconst="const",
+  Kwhile="while", Kconst="const", Kbreak="break",
   K_Alignas="_Alignas", K_Alignof="_Alignof", K_Atomic="_Atomic", 
   K_Bool="_Bool", K_Complex="Complex", 
   K_Decimal128="_Decimal128", K_Decimal32="_Decimal32", 
@@ -86,6 +86,7 @@ const # optional type tags
   TYREGISTER* = make_ty()
   TYTHREAD_LOCAL* = make_ty()
   TYTYPEDEF* = make_ty()
+  TYEXPR* = make_ty() # internal flag
 
 const # basic types
   TYVOID* = make_ty()
@@ -227,7 +228,7 @@ type
       of TYFUNCTION:
         fname*: string
         ret*: CType
-        params*: seq[CType]
+        params*: seq[(string, CType)]
       of TYARRAY: # static parameter...
         arrsize*: int
         arrtype*: CType
@@ -237,34 +238,38 @@ type
       CsDouble, CsFloat,
       CsUTF8, CsUTF16, CsUTF32
     StmtKind* = enum
-      SCompound, SGoto, SContinue, SBreak, SReturn, SExpr, SLabled, SIf, 
+      SSemicolon, SCompound, SGoto, SContinue, SBreak, SReturn, SExpr, SLabled, SIf, 
       SDoWhile, SWhile, SFor, SSwitch, SStructDecl, SUnionDecl, SEnumDecl, 
-      SVarDecl, SStaticAssertDecl
+      SVarDecl, SStaticAssertDecl, SDefault, SCase
     StmtList* = seq[Stmt] # compound_stmt, { body }
     Stmt* = ref object
       case k*: StmtKind
       of SCompound:
-        stmts: StmtList
-      of SBreak, SContinue:
+        stmts*: StmtList
+      of SDefault:
+        default_stmt*: Stmt
+      of Scase:
+        case_expr*: Expr
+        case_stmt*: Stmt
+      of SBreak, SContinue, SSemicolon:
         discard
       of SExpr, SReturn:
         exprbody*: Expr
       of SGoto:
-        location*: string
-      of SLabled: # labeled-statement
-        tag*: range[0..2] # 0: normal, 1: case, 2: default
-        lable*: string
+        location*: int
+      of SLabled:
+        label*: int
         labledstmt*: Stmt
       of SIf:
         iftest*: Expr
-        ifbody*: StmtList
-        elsebody*: StmtList
+        ifbody*: Stmt
+        elsebody*: Stmt
       of SDoWhile, SWhile, SSwitch:
         test*: Expr
-        body*: StmtList
+        body*: Stmt
       of SFor:
         forinit*, forcond*, forincl*: Expr
-        forbody*: StmtList
+        forbody*: Stmt
       of SStaticAssertDecl:
         assertexpr*: Expr
         msg*: string
@@ -315,7 +320,7 @@ const
   KwEnd* = K_Thread_local
 
 proc addTag*(a: uint32, dst: var string) =
-  if bool(a and TYAUTO): dst.add("auto ")
+# if bool(a and TYAUTO): dst.add("auto ")
   if bool(a and TYCONST): dst.add("const ")
   if bool(a and TYRESTRICT): dst.add("restrict ")
   if bool(a and TYVOLATILE): dst.add("volatile ")
@@ -329,6 +334,104 @@ proc addTag*(a: uint32, dst: var string) =
   if bool(a and TYTHREAD_LOCAL): dst.add("_Thread_local ")
   if bool(a and TYTYPEDEF): dst.add("typedef ")
 
+proc `$`*(a: Stmt): string
+
+proc `$`*(e: Expr): string
+
+proc `$`*(a: CType): string
+
+proc joinShow5*(a: seq[Stmt]): string =
+    result = ""
+    for i in a:
+        result.add($i)
+        result.add(' ')
+
+proc joinShow4*(a: seq[(string, int)]): string =
+    if len(a) == 0:
+        return ""
+    result = "\n\t"
+    for i in 0..<(len(a)-1):
+        result.add(a[i][0])
+        result.add('=')
+        result.add($a[i][1])
+        result.add(", ")
+    result.add(a[^1][0] & '=' & $a[^1][1] & '\n')
+
+proc joinShow3*[A, B](a: seq[(A, B)]): string =
+    if len(a) == 0:
+        return ""
+    result = "\n\t"
+    for i in 0..<(len(a)-1):
+        result.add($a[i][1])
+        result.add(' ')
+        result.add($a[i][0])
+        result.add(";\n\t")
+    result.add($a[^1][1] & ' ' & $a[^1][0] & ";\n")
+
+proc joinShow2*[A, B](a: seq[(A, B)]): string =
+    if len(a) == 0:
+        return ""
+    for i in 0..<(len(a)-1):
+        result.add($a[i][1])
+        result.add(' ')
+        result.add($a[i][0])
+        result.add(", ")
+    result.add($a[^1][1] & ' ' & $a[^1][0])
+
+proc joinShow*[T](a: seq[T]): string =
+    if len(a) == 0:
+        return ""
+    for i in 0..<(len(a)-1):
+        result.add($i)
+        result.add(' ')
+    result.add($a[^1])
+
+proc `$`*(a: Stmt): string =
+  if a == nil:
+    return "<nil>"
+  case a.k:
+  of SCompound:
+    '{' & joinShow5(a.stmts) & '}'
+  of SDefault:
+    "default: " & $a.default_stmt
+  of Scase:
+    "case " & $a.case_expr & ':' & $a.case_stmt
+  of SBreak:
+    "break;"
+  of SContinue:
+    "continue;"
+  of SSemicolon:
+    ";"
+  of SExpr:
+    $a.exprbody
+  of SReturn:
+    if a.exprbody == nil:
+      "return;"
+    else:
+      "return " & $a.exprbody & ';'
+  of SGoto:
+    "goto " & $a.location & ';'
+  of SLabled:
+    $a.label & ':' & $a.labledstmt
+  of SIf:
+    "if (" & $a.iftest & ") {" & $a.ifbody & (if a.elsebody==nil: "" else: '{' & $a.elsebody & '}')
+  of SWhile:
+    "while (" & $a.test & ") {" & $a.body & '}'
+  of SSwitch:
+    "switch (" & $a.test & ") {" & $a.body & '}'
+  of SDoWhile:
+    "do {" & $a.body & "} while (" & $a.test & ");"
+  of SFor:
+    "for (" & (if a.forinit==nil: "" else: $a.forinit) & ';' & 
+    (if a.forcond==nil: "" else: $a.forcond) & ';' &
+    (if a.forincl==nil: "" else: $a.forincl) & ')' &
+    $a.forbody
+  of SStaticAssertDecl:
+    "_Static_assert(" & $a.assertexpr & a.msg & ");"
+  of SVarDecl:
+    "<declaration>"
+  of SStructDecl, SUnionDecl, SEnumDecl:
+    "<some declaration>"
 
 proc `$`*(a: CType): string =
   if a == nil:
@@ -356,13 +459,13 @@ proc `$`*(a: CType): string =
       if s.len > 0:
         result.add(s)
   of TYENUM:
-    result.add("enum " & a.ename & $a.eelems)
+    result.add("enum " & a.ename & '{' & joinShow4(a.eelems) & '}')
   of TYFUNCTION:
-    result.add('(' & $(a.ret) & "(*)(" & $a.params & "))")
+    result.add($a.ret & a.fname & " (" & joinShow2(a.params) & ')')
   of TYSTRUCT:
-    result.add("struct " & a.sname & " {" & $a.selems & ')')
+    result.add("struct " & a.sname & " {" & joinShow3(a.selems) & '}')
   of TYUNION:
-    result.add("union " & a.sname & " {" & $a.selems & ')')
+    result.add("union " & a.sname & " {" & joinShow3(a.selems) & '}')
   of TYBITFIELD:
     result.add($a.bittype & " : " &  $a.bitsize)
   of TYPOINTER: # format style: (int *const)
@@ -705,7 +808,7 @@ proc getTag(p: var Parser, name: string): CType =
     if result != nil:
       return result
 
-proc gettypedef(p: var Parser, name: string): CType =
+proc gettypedef*(p: var Parser, name: string): CType =
   for i in (len(p.typedefs)-1) .. 0:
     result = p.typedefs[i].getOrDefault(name, nil)
     if result != nil:
@@ -727,7 +830,7 @@ proc getstructdef*(p: var Parser, name: string): CType =
         p.type_error("variable has incomplete type `struct " & name & '`')
         p.note("in forward references of `struct " & name & '`')
         p.note("add struct definition before use")
-    elif result.spec != TYUNION:
+    elif result.spec != TYSTRUCT:
         p.type_error(name & " is not a struct")
 
 proc putstructdef*(p: var Parser, t: CType) =
@@ -774,6 +877,10 @@ proc getsymtype*(p: var Parser, name: string): CType =
 
 # typedef, symbol
 proc putsymtype*(p: var Parser, name: string, t: CType) =
+  let ty = getsymtype(p, name)
+  if ty != nil:
+    p.error(name & " redeclared")
+    return
   p.typedefs[^1][name] = t
 
 proc enterBlock*(p: var Parser) =
