@@ -3,10 +3,7 @@ C's lexer - export nextTok function
 ]##
 
 import token
-import std/[unicode, math]
-
-proc putToken*(p: var Parser, k: PPToken) = 
-    discard
+import std/[unicode, math, deques]
 
 proc isalnum*(c: char): bool =
     return c in {'A'..'Z', 'a'..'z', '0'..'9'}
@@ -923,3 +920,23 @@ proc nextTok*(p: var Parser) =
           p.warning("invalid token: " & show(p.c))
 
         eat(p)
+
+proc putToken*(p: var Parser) = 
+    p.tokenq.addLast(getTokenV(p))
+
+proc getToken*(p: var Parser) =
+    if len(p.tokenq) == 0:
+        nextTok(p)
+    else:
+        let v = p.tokenq.popFirst()
+        p.tok = v.t
+        case v.tags:
+        of TVNormal:
+            discard
+        of TVIVal:
+            p.val.ival = v.i
+        of TVFval:
+            p.val.fval = v.f
+        of TVSVal:
+            p.val.sval = v.s
+

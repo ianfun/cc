@@ -1,10 +1,9 @@
-import std/[streams, tables, times, sets, macrocache]
+import std/[streams, tables, times, sets, macrocache, deques]
 
 type
-    InputError* = object of CatchableError
-    LexerError* = object of InputError
-    ParseError* = object of InputError
-    EvalError* = object of InputError
+  Location = object
+    line: int
+    col: int
 
 type Token* = enum
   TNul=0,
@@ -179,9 +178,24 @@ type
         discard
     ParseFlags* = enum
       PFNormal=1, PFPP=2
+    TokenVTags* = enum
+      TVNormal, TVSVal, TVIVal, TVFval
+    TokenV* = object
+      t*: Token
+      case tags*: TokenVTags
+      of TVNormal:
+        discard
+      of TVSVal:
+        s*: string
+      of TVFval:
+        f*: float
+      of TVIVal:
+        i*: int
     Parser* = object
       err*: bool
       fstack*: seq[Stream]
+      pathstack*: seq[string]
+      filenamestack*: seq[string]
       tok*: Token
       line*: int
       col*: int
@@ -189,7 +203,7 @@ type
       c*: char
       lastc*: uint16
       filename*: string
-      path*: string
+      path*: string # the real path
       macros*: Table[string, PPMacro]
       flags*: ParseFlags
       ppstack*: seq[uint8]
@@ -197,9 +211,10 @@ type
       onces*: HashSet[string]
       fs_read*: proc (p: var Parser)
       # 6.2.3 Name spaces of identifiers
-      lables*: seq[TableRef[string, int]]
-      tags*: seq[TableRef[string, CType]]
-      typedefs*: seq[TableRef[string, CType]]
+      lables*: seq[TableRef[string, (int, Location)]]
+      tags*: seq[TableRef[string, (CType, Location)]]
+      typedefs*: seq[TableRef[string, (CType, Location)]]
+      tokenq*: Deque[TokenV]
     CTypeSpec* = enum
       TYPRIM,
       TYPOINTER,
@@ -240,10 +255,14 @@ type
     StmtKind* = enum
       SSemicolon, SCompound, SGoto, SContinue, SBreak, SReturn, SExpr, SLabled, SIf, 
       SDoWhile, SWhile, SFor, SSwitch, SStructDecl, SUnionDecl, SEnumDecl, 
-      SVarDecl, SStaticAssertDecl, SDefault, SCase
+      SVarDecl, SStaticAssertDecl, SDefault, SCase, SFunction, SVarDecl1
     StmtList* = seq[Stmt] # compound_stmt, { body }
     Stmt* = ref object
       case k*: StmtKind
+      of SFunction:
+        funcname*: string
+        functy*: CType
+        funcbody*: Stmt
       of SCompound:
         stmts*: StmtList
       of SDefault:
@@ -256,9 +275,9 @@ type
       of SExpr, SReturn:
         exprbody*: Expr
       of SGoto:
-        location*: int
+        location*: string
       of SLabled:
-        label*: int
+        label*: string
         labledstmt*: Stmt
       of SIf:
         iftest*: Expr
@@ -268,13 +287,17 @@ type
         test*: Expr
         body*: Stmt
       of SFor:
-        forinit*, forcond*, forincl*: Expr
+        forinit*: Stmt
+        forcond*, forincl*: Expr
         forbody*: Stmt
       of SStaticAssertDecl:
         assertexpr*: Expr
         msg*: string
+      of SVarDecl1:
+        var1name*: string
+        var1type*: CType
       of SVarDecl:
-        discard
+        vars*: seq[(string, CType, Expr)]
       of SStructDecl, SUnionDecl, SEnumDecl:
         stype*: CType
     ExprKind* = enum
@@ -303,6 +326,7 @@ type
         cleft*, cright*: Expr
       of ESizeOf, EAlignof:
         sizeofx*: Expr
+        sizeofty*: CType
       of ECast:
         casttype*: Expr
         castval*: Expr
@@ -334,11 +358,34 @@ proc addTag*(a: uint32, dst: var string) =
   if bool(a and TYTHREAD_LOCAL): dst.add("_Thread_local ")
   if bool(a and TYTYPEDEF): dst.add("typedef ")
 
+proc getTokenV*(p: var Parser): TokenV = 
+  case p.tok:
+  of TIdentifier:
+    TokenV(tags: TVSVal, s: p.val.sval, t: p.tok)
+  of TNumberLit, TCharLit:
+    TokenV(tags: TVIVal, i: p.val.ival, t: p.tok)
+  of TFloatLit:
+    TokenV(tags: TVFval, f: p.val.fval, t: p.tok)
+  else:
+    TokenV(tags: TVNormal, t: p.tok)
+
 proc `$`*(a: Stmt): string
 
 proc `$`*(e: Expr): string
 
 proc `$`*(a: CType): string
+
+proc joinShow6*(a: seq[(string, CType, Expr)]): string =
+    result = ""
+    for i in 0..<len(a):
+        result.add(a[i][0])
+        result.add(": ")
+        result.add($a[i][1])
+        if a[i][2] != nil:
+          result.add('=')
+          result.add($a[i][2])
+        if i < (len(a)-1):
+          result.add(", ")
 
 proc joinShow5*(a: seq[Stmt]): string =
     result = ""
@@ -390,6 +437,12 @@ proc `$`*(a: Stmt): string =
   if a == nil:
     return "<nil>"
   case a.k:
+  of SFunction:
+    "Function " & a.funcname & " : " & $a.functy & $a.funcbody
+  of SVarDecl1:
+    "<SVarDecl1>"
+  of SVarDecl:
+    joinShow6(a.vars)
   of SCompound:
     '{' & joinShow5(a.stmts) & '}'
   of SDefault:
@@ -410,9 +463,9 @@ proc `$`*(a: Stmt): string =
     else:
       "return " & $a.exprbody & ';'
   of SGoto:
-    "goto " & $a.location & ';'
+    "goto " & a.location & ';'
   of SLabled:
-    $a.label & ':' & $a.labledstmt
+    a.label & ':' & $a.labledstmt
   of SIf:
     "if (" & $a.iftest & ") {" & $a.ifbody & (if a.elsebody==nil: "" else: '{' & $a.elsebody & '}')
   of SWhile:
@@ -428,8 +481,6 @@ proc `$`*(a: Stmt): string =
     $a.forbody
   of SStaticAssertDecl:
     "_Static_assert(" & $a.assertexpr & a.msg & ");"
-  of SVarDecl:
-    "<declaration>"
   of SStructDecl, SUnionDecl, SEnumDecl:
     "<some declaration>"
 
@@ -494,6 +545,8 @@ proc show*(c: char): string =
     result.add('>')
 
 proc `$`*(e: Expr): string =
+  if e == nil:
+    return "<nil>"
   case e.k:
   of EBin:
     '(' & $e.lhs & ' ' & $e.bop & ' ' & $e.rhs & ')'
@@ -512,9 +565,9 @@ proc `$`*(e: Expr): string =
   of ECondition:
     $e.cond & '?' & $e.cleft & ':' & $e.cright
   of EAlignof:
-    "_Alignof(" & $e.sizeofx & ')'
+    "_Alignof(" & (if e.sizeofx != nil: $e.sizeofx else: $e.sizeofty)  & ')'
   of ESizeOf:
-    "sizeof(" & $e.sizeofx & ')'
+    "sizeof(" & (if e.sizeofx != nil: $e.sizeofx else: $e.sizeofty) & ')'
   of ECast:
     $e.casttype & '(' & $e.castval & ')'
   of ESubscript:
@@ -550,6 +603,9 @@ proc showToken*(p: var Parser): string =
       "token => " & show(chr(int(p.tok)))
     else:
       "keyword => " & $p.tok
+
+proc `$`*(loc: Location): string =
+  $loc.line & ':' & $loc.col
 
 proc warning*(p: var Parser, msg: string) =
   stderr.writeLine("\e[33m" & p.filename & ": " & $p.line & '.' & $p.col & ": warning: " & msg & "\e[0m")
@@ -734,6 +790,8 @@ proc fs_read*(p: var Parser) =
         p.c = p.fstack[^1].readChar()
         if p.c == '\0':
             let fd = p.fstack.pop()
+            p.path = p.pathstack.pop()
+            p.filename = p.filenamestack.pop()
             fd.close()
             fs_read(p) # tail call
         elif p.c == '\r':
@@ -750,10 +808,14 @@ proc fs_read_stdin*(p: var Parser) =
         except IOError:
           p.c = '\0'
           return
+        p.filenamestack.add(p.filename)
+        p.pathstack.add(p.path)
     p.c = p.fstack[^1].readChar()
     if p.c == '\0':
         let fd = p.fstack.pop()
         fd.close()
+        p.filename = p.filenamestack.pop()
+        p.path = p.pathstack.pop()
         fs_read_stdin(p) # tail call
     elif p.c == '\r':
       resetLine(p)
@@ -777,6 +839,8 @@ proc reset*(p: var Parser) =
   p.ok = true
   p.ppstack.setLen 0
   p.fstack.setLen 0
+  p.filenamestack.setLen 0
+  p.pathstack.setLen 0
   p.filename.setLen 0
   p.path.setLen 0
   p.onces.clear()
@@ -784,17 +848,22 @@ proc reset*(p: var Parser) =
   p.tags.setLen 0
   p.typedefs.setLen 0
   p.lables.setLen 0
-  p.tags.add(newTable[string, CType]())
-  p.typedefs.add(newTable[string, CType]())
-  p.lables.add(newTable[string, int]())
+  p.tags.add(newTable[string, typeof(p.tags[0][""])]())
+  p.typedefs.add(newTable[string, typeof(p.typedefs[0][""])]())
+  p.lables.add(newTable[string, typeof(p.lables[0][""])]())
+  p.tokenq = initDeque[TokenV]()
 
 proc addString*(p: var Parser, s: string, filename: string) =
   p.fstack.add(newStringStream(s))
+  p.filenamestack.add(p.filename)
+  p.pathstack.add(p.path)
   p.filename = (filename) # copy
   p.path = (filename) # copy
 
 proc addFile*(p: var Parser, fd: File, filename: string) =
   p.fstack.add(newFileStream(fd))
+  p.filenamestack.add(p.filename)
+  p.pathstack.add(p.path)
   p.filename = (filename) # copy
   p.path = (filename) # copy
 
@@ -802,30 +871,36 @@ proc closeParser*(p: var Parser) =
   for fd in p.fstack:
     fd.close()
 
-proc getTag(p: var Parser, name: string): CType =
-  for i in (len(p.tags)-1) .. 0:
-    result = p.tags[i].getOrDefault(name, nil)
-    if result != nil:
+proc getTag(p: var Parser, name: string): (CType, Location) =
+  for i in countdown(len(p.tags)-1, 0):
+    result = p.tags[i].getOrDefault(name, (nil, Location()))
+    if result[0] != nil:
       return result
 
-proc gettypedef*(p: var Parser, name: string): CType =
-  for i in (len(p.typedefs)-1) .. 0:
-    result = p.typedefs[i].getOrDefault(name, nil)
-    if result != nil:
+proc gettypedef*(p: var Parser, name: string): (CType, Location) =
+  for i in countdown(len(p.typedefs)-1, 0):
+    result = p.typedefs[i].getOrDefault(name, (nil, Location()))
+    if result[0] != nil:
       return result
 
-proc getLabel*(p: var Parser, name: string): int =
-  result = -1
-  for i in (len(p.lables)-1) .. 0:
-    result = p.lables[i].getOrDefault(name, -1)
-    if result != -1:
+proc getLabel*(p: var Parser, name: string): (int, Location) =
+  for i in countdown(len(p.lables)-1, 0):
+    result = p.lables[i].getOrDefault(name, (-1, Location()))
+    if result[0] != -1:
       return result
+  return (-1, Location())
 
 proc putLable*(p: var Parser, name: string, t: int) =
-    p.lables[^1][name] = t
+    let (l, loc) = getLabel(p, name)
+    if  l != -1:
+      p.error("duplicate label: " & name)
+      p.note(name & "was defined at " & $loc)
+      return
+    p.lables[^1][name] = (t, Location(line: p.line, col: p.col))
 
 proc getstructdef*(p: var Parser, name: string): CType =
-    result = getTag(p, name)
+    let res = getTag(p, name)
+    result = res[0]
     if result == nil:
         p.type_error("variable has incomplete type `struct " & name & '`')
         p.note("in forward references of `struct " & name & '`')
@@ -834,14 +909,16 @@ proc getstructdef*(p: var Parser, name: string): CType =
         p.type_error(name & " is not a struct")
 
 proc putstructdef*(p: var Parser, t: CType) =
-    let o = getTag(p, t.sname)
+    let (o, loc) = getTag(p, t.sname)
     if o != nil:
         p.error("struct " & t.sname & " aleady defined")
+        p.note(o.sname & "was defined at " & $loc)
     else:
-        p.tags[^1][t.sname] = t
+        p.tags[^1][t.sname] = (t, Location(line: p.line, col: p.col))
 
 proc getenumdef*(p: var Parser, name: string): CType =
-    result = getTag(p, name)
+    let res = getTag(p, name)
+    result = res[0]
     if result == nil:
         p.type_error("variable has incomplete type `enum " & name & '`')
         p.note("in forward references of `enum " & name & '`')
@@ -850,14 +927,16 @@ proc getenumdef*(p: var Parser, name: string): CType =
         p.type_error(name & " is not a enum")
 
 proc putenumdef*(p: var Parser, t: CType) =
-    let o = getTag(p, t.ename)
+    let (o, loc) = getTag(p, t.ename)
     if o != nil:
         p.error("enum " & t.ename & " aleady defined")
+        p.note(o.ename & "was defined at " & $loc)
     else:
-        p.tags[^1][t.ename] = t
+        p.tags[^1][t.ename] = (t, Location(line: p.line, col: p.col))
 
 proc getuniondef*(p: var Parser, name: string): CType =
-    result = getTag(p, name)
+    let res = getTag(p, name)
+    result = res[0]
     if result == nil:
         p.type_error("variable has incomplete type `union " & name & '`')
         p.note("in forward references of `union " & name & '`')
@@ -867,13 +946,14 @@ proc getuniondef*(p: var Parser, name: string): CType =
 
 proc putuniondef*(p: var Parser, t: CType) =
     let o = getTag(p, t.sname)
-    if o != nil:
+    if o[0] != nil:
         p.error("`union` " & t.sname & " aleady defined")
+        p.note(o[0].sname & "was defined at " & $o[1])
     else:
-        p.tags[^1][t.sname] = t
+        p.tags[^1][t.sname] = (t, Location(line: p.line, col: p.col))
 
 proc getsymtype*(p: var Parser, name: string): CType =
-  return gettypedef(p, name)
+  result = gettypedef(p, name)[0]
 
 # typedef, symbol
 proc putsymtype*(p: var Parser, name: string, t: CType) =
@@ -881,12 +961,12 @@ proc putsymtype*(p: var Parser, name: string, t: CType) =
   if ty != nil:
     p.error(name & " redeclared")
     return
-  p.typedefs[^1][name] = t
+  p.typedefs[^1][name] = (t, Location(line: p.line, col: p.col))
 
 proc enterBlock*(p: var Parser) =
-  p.typedefs.add(newTable[string, CType]())
-  p.tags.add(newTable[string, CType]())
-  p.lables.add(newTable[string, int]())
+  p.typedefs.add(newTable[string, typeof(p.typedefs[0][""])]())
+  p.tags.add(newTable[string, typeof(p.tags[0][""])]())
+  p.lables.add(newTable[string, typeof(p.lables[0][""])]())
 
 proc leaveBlock*(p: var Parser) =
   discard p.typedefs.pop()
@@ -906,6 +986,8 @@ proc addInclude*(p: var Parser, filename: string): bool =
     if s == nil:
         return false
     p.fstack.add(s)
+    p.filenamestack.add(p.filename)
+    p.pathstack.add(p.path)
     p.filename = filename # copy
     p.path = filename # copy
     return true

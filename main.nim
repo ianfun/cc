@@ -5,6 +5,6 @@ proc test(testLex = false) =
     reset(p)
     stdinParser(p)
     nextTok(p)
-    translation_unit(p)
+    discard translation_unit(p)
     closeParser(p)
 test(false)
