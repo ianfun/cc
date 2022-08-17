@@ -9,6 +9,7 @@ proc test(testLex = false) =
         let e = expression()
         if e == nil:
             break
+        echo e.k
         echo e
     closeParser()
 test(false)

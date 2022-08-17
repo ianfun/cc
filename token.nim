@@ -62,12 +62,12 @@ type Token* = enum
   TFloatLit="<float>",
   TCharLit="<char>",
   TIdentifier="<identifier>",
+  TIdentifier2="<<>>",
   TStringLit="<string>",
   TPPNumber="<pp-number>", # pp-token => pp-number, used by preprocessor
   PPEllipsis="...",
   PPSharp="#",
   PPSharpSharp="##",
-  PPEndExpand="<error>",
   TEOF="<EOF>"
 
 const tyCounter = CacheCounter"tyCounter"
@@ -992,17 +992,13 @@ proc addInclude*(filename: string): bool =
     return true
 
 proc putToken*() = 
+    echo "putToken"
     p.tokenq.add(p.tok)
 
 proc beginExpandMacro*(a: string) =
-  echo "begin ", a
   p.expansion_list.incl a
 
-proc endExpandMacro*(a: string, pos: int) =
-  p.tokenq.insert(TokenV(tok: PPEndExpand, tags: TVSVal, s: a), pos)
-
-proc removeExpandMacro*(a: string) =
-  echo "remove ", a
+proc endExpandMacro*(a: string) =
   p.expansion_list.excl a
 
 proc isMacroInUse*(a: string): bool =

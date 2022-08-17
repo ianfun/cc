@@ -16,89 +16,105 @@ proc nextTok*()
 
 proc checkMacro()
 
+var f = false
+
 proc getToken*() =
     if len(p.tokenq) == 0:
         nextTok()
     else:
         p.tok = p.tokenq.pop()
-    checkMacro()
+    if p.tok.tok == TIdentifier:
+        f = false
+        checkMacro()
+        if f:
+            getToken()
+            echo "getToken: ", p.tok[]
 
 proc checkMacro() =
-    if p.tok.tok == TIdentifier:
-        var name = p.tok.s
-        if isMacroInUse(name):
-            note("self-reference macro " & name & " skipped")
-            return
-        let m = p.macros.getOrDefault(name, nil)
-        if m != nil:
-            var pos = len(p.tokenq)
-            if pos != 0:
-                echo pos
-                dec pos
+    var name = p.tok.s
+    let m = p.macros.getOrDefault(name, nil)
+    if m != nil:
+        if m.funcmacro == false:
+            if len(m.tokens) == 0:
+                f = true
             else:
-                echo "pos = 0 !!!!"
-            discard stdin.readLine()
-            if m.funcmacro == false:
-                if len(m.tokens) == 0:
-                    getToken()
-                else:
-                    beginExpandMacro(name)
-                    for i in m.tokens:
-                        if i.tok != TSpace:
-                            p.tokenq.insert(i, pos)
-                            inc pos
-                    endExpandMacro(name, pos)
-                    getToken()
-            else:
-                var my = p.tok
-                nextTok()
-                if p.tok.tok == TLbracket:
-                    nextTok()
-                    var args: seq[seq[TokenV]]
-                    while true:
-                        if p.tok.tok == TEOF:
-                            parse_error("unexpected EOF while parsing function-like macro arguments")
-                            return
-                        if p.tok.tok == TRbracket:
-                            break
-                        elif p.tok.tok == TComma:
-                            args.add(default(seq[TokenV]))
-                        else:
-                            if len(args) == 0:
-                                args.add(@[p.tok])
+                beginExpandMacro(name)
+                for i in m.tokens:
+                    if i.tok != TSpace:
+                        p.tok = i
+                        if p.tok.tok == TIdentifier:
+                            if isMacroInUse(p.tok.s):
+                                note("self-reference macro " & name & " skipped")
+                                p.tokenq.insert(TokenV(tok: TIdentifier2, tags: TVSVal, s: p.tok.s))
                             else:
-                                args[^1].add(p.tok)
+                                checkMacro()
+                                p.tokenq.insert(p.tok, 0)
+                        else:
+                            p.tokenq.insert(p.tok, 0)
+                endExpandMacro(name)
+                f = true
+        else:
+            var my = p.tok
+            nextTok()
+            if p.tok.tok == TLbracket:
+                nextTok()
+                var args: seq[seq[TokenV]]
+                while true:
+                    if p.tok.tok == TEOF:
+                        parse_error("unexpected EOF while parsing function-like macro arguments")
+                        return
+                    if p.tok.tok == TRbracket:
                         nextTok()
-                    if m.ivarargs:
-                        if len(args) < len(m.params):
-                            parse_error("function-like macro " & name & " expect at least " & $len(m.params) & " arguments, but " & $len(args) & " provided")
-                            return
+                        break
+                    elif p.tok.tok == TComma:
+                        args.add(default(seq[TokenV]))
                     else:
-                        if len(args) != len(m.params):
-                            parse_error("function-like macro " & name & " expect " & $len(m.params) & " arguments, but got " & $len(args) & " provided")
-                            return
-                    beginExpandMacro(name)
-                    for i in m.tokens:
-                        var fallback = true
-                        if i.tok == TIdentifier:
-                            let k =  m.params.find(i.s)
-                            if k != -1:
-                                fallback = false
-                                for t in args[k]:
-                                    p.tokenq.insert(t, pos)
-                                    inc pos
-                        if fallback:
-                            if i.tok != TSpace:
-                                p.tokenq.insert(i, pos)
-                                inc pos
-                    endExpandMacro(name, pos)
-                    getToken()
+                        if len(args) == 0:
+                            args.add(@[p.tok])
+                        else:
+                            args[^1].add(p.tok)
+                    nextTok()
+                if m.ivarargs:
+                    if len(args) < len(m.params):
+                        parse_error("function-like macro " & name & " expect at least " & $len(m.params) & " arguments, but " & $len(args) & " provided")
+                        return
                 else:
-                    putToken()
-                    p.tok = my
-    elif p.tok.tok == PPEndExpand:
-        removeExpandMacro(p.tok.s)
-        getToken()
+                    if len(args) != len(m.params):
+                        parse_error("function-like macro " & name & " expect " & $len(m.params) & " arguments, but got " & $len(args) & " provided")
+                        return
+                beginExpandMacro(name)
+                for i in m.tokens:
+                    var fallback = true
+                    if i.tok == TIdentifier:
+                        let k =  m.params.find(i.s)
+                        if k != -1:
+                            fallback = false
+                            for t in args[k]:
+                                p.tok = i
+                                if p.tok.tok == TIdentifier:
+                                    if isMacroInUse(p.tok.s):
+                                        note("self-reference macro " & name & " skipped")
+                                        p.tokenq.insert(TokenV(tok: TIdentifier2, tags: TVSVal, s: p.tok.s))
+                                    else:
+                                        checkMacro()
+                                        p.tokenq.insert(p.tok, 0)
+                    if fallback:
+                        if i.tok != TSpace:
+                            p.tok = i
+                            if p.tok.tok == TIdentifier:
+                                if isMacroInUse(p.tok.s):
+                                    note("self-reference macro " & name & " skipped")
+                                    p.tokenq.insert(TokenV(tok: TIdentifier2, tags: TVSVal, s: p.tok.s))
+                                else:
+                                    checkMacro()
+                                    p.tokenq.insert(p.tok, 0)
+                endExpandMacro(name)
+                f = true
+            else:
+                putToken()
+                p.tok = my
+    else:
+        p.tok = TokenV(tok: TIdentifier2, tags: TVSVal, s: p.tok.s)
 
 import eval
 

@@ -105,9 +105,7 @@ proc postfix*(e: Expr, op: PostfixOP): Expr =
 
 proc consume*() =
     ## eat token from lexer and c preprocesser
-    echo p.tok.tok
     getToken()
-
 
 proc expect(msg: string) =
     ## emit `expect ...` error message
@@ -965,7 +963,7 @@ proc primary_expression*(): Expr =
             assert ok == 1
             result = Expr(k: EIntLit, ival: n)
             consume()
-    of TIdentifier:
+    of TIdentifier2:
         result = Expr(k: EVar, sval: p.tok.s)
         consume()
     of TLbracket:
@@ -977,7 +975,9 @@ proc primary_expression*(): Expr =
         if p.tok.tok != TRbracket:
             expect("')'")
             return nil
+        echo "eat `)`"
         consume()
+        echo "after: ", len(p.tokenq)
     of K_Generic:
         consume()
         if p.tok.tok != TLbracket:
