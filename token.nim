@@ -1,9 +1,12 @@
-import std/[streams, tables, times, sets, macrocache, deques]
+import std/[streams, tables, times, sets, macrocache]
 
 type
   Location = object
     line: int
     col: int
+
+type
+  intmax_t* = int64
 
 type Token* = enum
   TNul=0,
@@ -63,8 +66,8 @@ type Token* = enum
   TPPNumber="<pp-number>", # pp-token => pp-number, used by preprocessor
   PPEllipsis="...",
   PPSharp="#",
-  PPSharpSharp="#",
-  PPVAARGS="__VA_ARGS__",
+  PPSharpSharp="##",
+  PPEndExpand="<error>",
   TEOF="<EOF>"
 
 const tyCounter = CacheCounter"tyCounter"
@@ -159,20 +162,9 @@ type
       OAsignBitOr="|=",
       OAsignBitXor="^=",
       Comma=","
-    ValueKind* = enum
-      VInt, VFloat, VChar, VOperator, VKeyword, VIdentifier
-    Value  = object
-      ival*: int # Operator, int
-      sval*: string # TIdentifier, string
-      fval*: float # float
-      utf16*: seq[uint16]
-      utf32*: seq[uint32]
     Codepoint* = uint32
-    PPToken* = object
-      tok*: Token
-      s*: string
     PPMacro* = ref object
-      tokens*: seq[PPToken]
+      tokens*: seq[TokenV]
       case funcmacro*: bool # if a object like macro?
       of true:
         params*: seq[string]
@@ -183,8 +175,8 @@ type
       PFNormal=1, PFPP=2
     TokenVTags* = enum
       TVNormal, TVSVal, TVIVal, TVFval
-    TokenV* = object
-      t*: Token
+    TokenV* = ref object
+      tok*: Token
       case tags*: TokenVTags
       of TVNormal:
         discard
@@ -199,10 +191,9 @@ type
       fstack*: seq[Stream]
       pathstack*: seq[string]
       filenamestack*: seq[string]
-      tok*: Token
+      tok*: TokenV
       line*: int
       col*: int
-      val*: Value
       c*: char
       lastc*: uint16
       filename*: string
@@ -211,13 +202,12 @@ type
       flags*: ParseFlags
       ppstack*: seq[uint8]
       ok*: bool
-      onces*: HashSet[string]
-      fs_read*: proc ()
-      # 6.2.3 Name spaces of identifiers
+      onces*, expansion_list*: HashSet[string]
+      fs_read*: proc () # 6.2.3 Name spaces of identifiers
       lables*: seq[TableRef[string, (int, Location)]]
       tags*: seq[TableRef[string, (CType, Location)]]
       typedefs*: seq[TableRef[string, (CType, Location)]]
-      tokenq*: Deque[TokenV]
+      tokenq*: seq[TokenV]
     CTypeSpec* = enum
       TYPRIM,
       TYPOINTER,
@@ -239,16 +229,16 @@ type
         selems*: seq[(string, CType)]
       of TYENUM:
         ename*: string
-        eelems*: seq[(string, int)]
+        eelems*: seq[(string, intmax_t)]
       of TYBITFIELD:
         bittype*: CType
-        bitsize*: int
+        bitsize*: intmax_t
       of TYFUNCTION:
         fname*: string
         ret*: CType
         params*: seq[(string, CType)]
       of TYARRAY: # static parameter...
-        arrsize*: int
+        arrsize*: intmax_t
         arrtype*: CType
     ConstantKind* = enum
       CsInt, CsULong, CsLong, CsULongLong, CsLongLong, 
@@ -331,9 +321,12 @@ type
         sizeofx*: Expr
         sizeofty*: CType
       of ECast:
-        casttype*: Expr
+        casttype*: CType
         castval*: Expr
-      of ECall, ESubscript:
+      of ECall:
+        callfunc*: Expr
+        callargs*: seq[Expr]
+      of ESubscript:
         left*, right*: Expr
       of EInitializer_list:
         inits*: seq[Expr]
@@ -369,17 +362,6 @@ proc addTag*(a: uint32, dst: var string) =
   if bool(a and TYTHREAD_LOCAL): dst.add("_Thread_local ")
   if bool(a and TYTYPEDEF): dst.add("typedef ")
 
-proc getTokenV*(): TokenV = 
-  case p.tok:
-  of TIdentifier:
-    TokenV(tags: TVSVal, s: p.val.sval, t: p.tok)
-  of TNumberLit, TCharLit:
-    TokenV(tags: TVIVal, i: p.val.ival, t: p.tok)
-  of TFloatLit:
-    TokenV(tags: TVFval, f: p.val.fval, t: p.tok)
-  else:
-    TokenV(tags: TVNormal, t: p.tok)
-
 proc `$`*(a: Stmt): string
 
 proc `$`*(e: Expr): string
@@ -404,7 +386,7 @@ proc joinShow5*(a: seq[Stmt]): string =
         result.add($i)
         result.add(' ')
 
-proc joinShow4*(a: seq[(string, int)]): string =
+proc joinShow4*(a: seq[(string, intmax_t)]): string =
     if len(a) == 0:
         return ""
     result = "\n\t"
@@ -436,12 +418,12 @@ proc joinShow2*[A, B](a: seq[(A, B)]): string =
         result.add(", ")
     result.add($a[^1][1] & ' ' & $a[^1][0])
 
-proc joinShow*[T](a: seq[T]): string =
+proc joinShow*[T](a: seq[T], c: string = " "): string =
     if len(a) == 0:
         return ""
     for i in 0..<(len(a)-1):
-        result.add($i)
-        result.add(' ')
+        result.add($a[i])
+        result.add(c)
     result.add($a[^1])
 
 proc `$`*(a: Stmt): string =
@@ -541,9 +523,6 @@ proc `$`*(a: CType): string =
 var
   gkeywordtable* = initTable[string, Token](int(KwEnd) - int(KwStart) + 1)
 
-proc tokenToPPToken*(): PPToken =
-  PPToken(s: p.val.sval, tok: p.tok)
-
 proc show*(c: char): string =
   let n = int(c)
   if n >= 33 and n <= 126:
@@ -571,8 +550,10 @@ proc `$`*(e: Expr): string =
     $e.ival
   of EFloatLit:
     $e.fval
-  of EStringLit, EVar:
+  of EVar:
     e.sval
+  of EStringLit:
+    '"' & (e.sval) & '"'
   of ECondition:
     $e.cond & '?' & $e.cleft & ':' & $e.cright
   of EAlignof:
@@ -584,36 +565,24 @@ proc `$`*(e: Expr): string =
   of ESubscript:
     $e.left & '[' & $e.right & ']'
   of ECall:
-    $e.left & '(' & $e.right & ')'
+    $e.callfunc & '(' & $joinShow(e.callargs, ", ") & ')'
   of EGeneric:
     "_Generic(" & $e.selectexpr & (var s: string;for (tp, e) in e.selectors: s.add($tp & ':' & $e & ',');s) & ')'
   of EInitializer_list:
     "{" & $e.inits & "}"
 
-proc show*(s: seq[PPToken]): string =
-  for tok in s:
-    case tok.tok:
-    of TIdentifier, TPPNumber:
-      result &= $tok.s
-    else:
-      if int(tok.tok) < 255:
-        result &= chr(int(tok.tok))
-      else:
-        result &= $tok.tok
-    result &= ' '
-
 proc showToken*(): string =
-  case p.tok:
-  of TNumberLit: "number => " & $p.val.ival
-  of TCharLit: "char => " & show(char(p.val.ival))
-  of TIdentifier: "identifier => " & p.val.sval
-  of TFloatLit: "float => " & $p.val.fval
-  of TStringLit: "UTF " & $p.val.ival & " string => " & p.val.sval
+  case p.tok.tok:
+  of TNumberLit: "number => " & $p.tok.i
+  of TCharLit: "char => " & show(char(p.tok.i))
+  of TIdentifier: "identifier => " & p.tok.s
+  of TFloatLit: "float => " & $p.tok.f
+  of TStringLit: "UTF " & $p.tok.i & " string => " & p.tok.s
   else:
-    if p.tok < T255:
-      "token => " & show(chr(int(p.tok)))
+    if p.tok.tok < T255:
+      "token => " & show(chr(int(p.tok.tok)))
     else:
-      "keyword => " & $p.tok
+      "keyword => " & $p.tok.tok
 
 proc `$`*(loc: Location): string =
   $loc.line & ':' & $loc.col
@@ -622,26 +591,25 @@ proc warning*(msg: string) =
   stderr.writeLine("\e[33m" & p.filename & ": " & $p.line & '.' & $p.col & ": warning: " & msg & "\e[0m")
 
 proc error*(msg: string) =
-    p.tok = TNul
+    p.tok = TokenV(tok: TNul, tags: TVNormal)
     if p.err == false:
       stderr.writeLine("\e[31m" & p.filename & ": " & $p.line & '.' & $p.col & ": error: " & msg & "\e[0m")
       p.err = true
 
 proc type_error*(msg: string) =
-    p.tok = TNul
+    p.tok = TokenV(tok: TNul, tags: TVNormal)
     if p.err == false:
       stderr.writeLine("\e[35m" & p.filename & ": " & $p.line & '.' & $p.col & ": type error: " & msg & "\e[0m")
       p.err = true
 
 proc parse_error*(msg: string) =
-    p.tok = TNul
+    p.tok = TokenV(tok: TNul, tags: TVNormal)
     if p.err == false:
       stderr.writeLine("\e[34m" & p.filename & ": " & $p.line & '.' & $p.col & ": parse error: " & msg & "\e[0m")
       p.err = true
 
 proc note*(msg: string) =
     stderr.writeLine("\e[32mnote: " & msg & "\e[0m")
-    p.err = true
 
 proc init() =
   for k in int(KwStart)..int(KwEnd):
@@ -672,7 +640,7 @@ proc unsafe_utf8_codepoint*(s: cstring): (Codepoint, int) =
       2)
     else: # 1 byte
       (s[0].Codepoint, 1)
-
+#[ 
 proc writeUTF8toUTF32*() =
   # TODO: reserve 3 more bytes to prevent bad utf8 terminate access overflow
   p.val.utf32.setLen 0
@@ -695,6 +663,7 @@ proc writeUTF8toUTF16*() =
       c -= 0x10000
       p.val.utf16.add(uint16(0xD800 + (c shr 10)))
       p.val.utf16.add(uint16(0xDC00 + (c and 0x3FF)))
+]#
 
 init()
 
@@ -710,51 +679,59 @@ when false:
   
   proc localtime(time_ptr: ptr[time_t]): ptr[tm] {.importc: "localtime", nodecl, header: "time.h".}
 
-iterator getDefines*(): (string, string) =
+iterator getDefines*(): (string, seq[TokenV]) =
+  proc str(s: string): TokenV =
+    TokenV(tok: TStringLit, tags: TVSVal, s: s)
+  proc num(s: string): TokenV =
+    TokenV(tok: TPPNumber, tags: TVSVal, s: s)
+  proc space(): TokenV = 
+    TokenV(tok: TSpace, tags: TVNormal)
+  proc empty(): seq[TokenV] =
+    discard
   let n = now()
-  yield ("__DATE__", n.format(initTimeFormat("MMM dd yyyy")))
-  yield ("__TIME__", n.format(initTimeFormat("hh:mm:ss")))
-  yield ("__STDC__", "1")
-  yield ("__STDC_VERSION__", "201710L")
-  yield ("__STDC_HOSTED__", "1")
-  yield ("__STDC_NO_THREADS__", "1")
-  yield ("__STDC_NO_ATOMICS__", "1")
-  yield ("__STDC_UTF_16__", "1")
-  yield ("__STDC_UTF_32__", "1")
-  yield ("__SIZE_TYPE__", "size_t")
-  yield ("__INT8_TYPE__", "__int8")
-  yield ("__INT16_TYPE__", "__int16")
-  yield ("__INT32_TYPE__", "__int32")
-  yield ("__INT64_TYPE__", "__int64")
-  yield ("__INT_FAST8_TYPE__", "__int8")
-  yield ("__INT_FAST16_TYPE__", "__int16")
-  yield ("__INT_FAST32_TYPE__", "__int32")
-  yield ("__INT_FAST64_TYPE__", "__int64")
-  yield ("__UINT_FAST8_TYPE__", "unsigned __int8")
-  yield ("__UINT_FAST16_TYPE__", "unsigned __int16")
-  yield ("__UINT_FAST32_TYPE__", "unsigned __int32")
-  yield ("__UINT_FAST64_TYPE__", "unsigned __int64")
-  yield ("__INTPTR_TYPE__", "long long int")
-  yield ("__UINTPTR_TYPE__", "unsigned long long int")
-  yield ("__CHAR_BIT__", "8")
+  yield ("__DATE__", @[str(n.format(initTimeFormat("MMM dd yyyy")))])
+  yield ("__TIME__", @[str(n.format(initTimeFormat("hh:mm:ss")))])
+  yield ("__STDC__", @[num("1")])
+  yield ("__STDC_VERSION__", @[num("201710L")])
+  yield ("__STDC_HOSTED__", @[num("1")])
+#  yield ("__STDC_NO_THREADS__", @[num("1")])
+#  yield ("__STDC_NO_ATOMICS__", @[num("1")])
+  yield ("__STDC_UTF_16__", @[num("1")])
+  yield ("__STDC_UTF_32__", @[num("1")])
+  yield ("__SIZE_TYPE__", @[str("size_t")])
+  yield ("__INT8_TYPE__", @[str("__int8")])
+  yield ("__INT16_TYPE__", @[str("__int16")])
+  yield ("__INT32_TYPE__", @[str("__int32")])
+  yield ("__INT64_TYPE__", @[str("__int64")])
+  yield ("__INT_FAST8_TYPE__", @[str("__int8")])
+  yield ("__INT_FAST16_TYPE__", @[str("__int16")])
+  yield ("__INT_FAST32_TYPE__", @[str("__int32")])
+  yield ("__INT_FAST64_TYPE__", @[str("__int64")])
+  yield ("__UINT_FAST8_TYPE__", @[str("unsigned"), space(), str("__int8")])
+  yield ("__UINT_FAST16_TYPE__", @[str("unsigned"), space(), str("__int16")])
+  yield ("__UINT_FAST32_TYPE__", @[str("unsigned"), space(), str("__int32")])
+  yield ("__UINT_FAST64_TYPE__", @[str("unsigned"), space(), str("__int64")])
+  yield ("__INTPTR_TYPE__", @[str("long"), space(), str("long"), space(), str("int")])
+  yield ("__UINTPTR_TYPE__", @[str("unsigned"), space(),str("long"), space(), str("long"), space(), str("int")])
+  yield ("__CHAR_BIT__", @[num("8")])
   case hostOS:
   of "windows":
-    yield ("_WIN32", "")
-    yield ("WIN32", "")
+    yield ("_WIN32", empty())
+    yield ("WIN32", empty())
     if sizeof(cstring) == 8:
-      yield ("WIN64", "")
-      yield ("_WIN64", "")
+      yield ("WIN64", empty())
+      yield ("_WIN64", empty())
   of "macosx":
-    yield ("__APPLE__", "")
+    yield ("__APPLE__", empty())
   of "linux":
-    yield ("__linux__", "")
-    yield ("__linux", "")
+    yield ("__linux__", empty())
+    yield ("__linux", empty())
   of "netbsd":
-    yield ("__NetBSD__", "")
+    yield ("__NetBSD__", empty())
   of "freebsd":
-    yield ("__FreeBSD__", "12")
+    yield ("__FreeBSD__", empty())
 
-proc tokensEq(a, b: seq[PPToken]): bool =
+proc tokensEq(a, b: seq[TokenV]): bool =
   if a.len != b.len:
     return false
   for i in 0..<len(a):
@@ -772,12 +749,13 @@ proc tokensEq(a, b: seq[PPToken]): bool =
 
 proc ppMacroEq(a, b: PPMacro): bool =
   result = (a.funcmacro == b.funcmacro) and
-  tokensEq(a.tokens, b.tokens) and
-  (if a.funcmacro: (a.ivarargs == b.ivarargs) else: true)
+  (if a.funcmacro: (a.ivarargs == b.ivarargs) else: true) and
+  tokensEq(a.tokens, b.tokens)  
 
 proc macro_define*(name: string, m: PPMacro) =
-  if name in p.macros:
-    if ppMacroEq(p.macros[name], m):
+  let pr = p.macros.getOrDefault(name, nil)
+  if pr != nil:
+    if not ppMacroEq(pr, m):
       warning("macro " & name & " redefined")
   p.macros[name] = m
 
@@ -840,7 +818,7 @@ proc stdinParser*() =
   p.fs_read = fs_read_stdin
 
 proc reset*() =
-  p.tok = TNul
+  p.tok = TokenV(tok: TNul, tags: TVNormal)
   p.col = 1
   p.line = 1
   p.err = false
@@ -852,9 +830,11 @@ proc reset*() =
   p.fstack.setLen 0
   p.filenamestack.setLen 0
   p.pathstack.setLen 0
+  p.macros.clear()
   p.filename.setLen 0
   p.path.setLen 0
   p.onces.clear()
+  p.expansion_list.clear()
   p.fs_read = fs_read
   p.tags.setLen 0
   p.typedefs.setLen 0
@@ -862,11 +842,14 @@ proc reset*() =
   p.tags.add(newTable[string, typeof(p.tags[0][""])]())
   p.typedefs.add(newTable[string, typeof(p.typedefs[0][""])]())
   p.lables.add(newTable[string, typeof(p.lables[0][""])]())
-  p.tokenq = initDeque[TokenV]()
+  p.tokenq.setLen 0
+  for (name, v) in getDefines():
+    p.macros[name] = PPMacro(tokens: v, funcmacro: false)
 
-proc newParser*(): Parser =
-  result = Parser()
-  setParser(result)
+proc newParser*() =
+  ## create a Parser, and call `setParser proc<#setParser,Parser>`_, then call `reset proc<#reset>`_
+  var p = Parser()
+  setParser(p)
   reset()
 
 proc addString*(s: string, filename: string) =
@@ -1007,3 +990,22 @@ proc addInclude*(filename: string): bool =
     p.filename = filename # copy
     p.path = filename # copy
     return true
+
+proc putToken*() = 
+    p.tokenq.add(p.tok)
+
+proc beginExpandMacro*(a: string) =
+  echo "begin ", a
+  p.expansion_list.incl a
+
+proc endExpandMacro*(a: string, pos: int) =
+  p.tokenq.insert(TokenV(tok: PPEndExpand, tags: TVSVal, s: a), pos)
+
+proc removeExpandMacro*(a: string) =
+  echo "remove ", a
+  p.expansion_list.excl a
+
+proc isMacroInUse*(a: string): bool =
+  p.expansion_list.contains(a)
+
+

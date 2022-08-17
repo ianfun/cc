@@ -1,5 +1,7 @@
 ## A recursive descent parser for C language
+##
 ## see ISO C grammar for details
+##
 ## the main export function is expression, constant_expression, translation_unit, declaration
 
 import token, lexer, eval
@@ -8,8 +10,6 @@ from std/sequtils import count
 proc type_name*(): (CType, bool)
 
 proc expression*(): Expr
-
-proc constant_expression*(): Expr
 
 proc primary_expression*(): Expr
 
@@ -43,60 +43,44 @@ proc conditional_expression*(): Expr
 
 proc assignment_expression*(): Expr
 
-proc parse_initializer_list*(): Expr
+proc initializer_list*(): Expr
 
-proc parse_parameter_type_list*(): (bool, seq[(string, CType)])
+proc parameter_type_list*(): (bool, seq[(string, CType)])
 
 proc declaration*(): Stmt
 
-# parse many type qualifiers, add to type
-# used in decorator
-proc parse_type_qualifier_list*(ty: var CType)
+proc type_qualifier_list*(ty: var CType)
 
-# merge many token to a type, for example: `long long int const`
 proc merge_types*(ts: seq[Token]): Ctype
 
-# declaration_specfier is used in function and variable declaration/definition
-proc parse_declaration_specifiers*(): CType
+proc declaration_specifiers*(): CType
 
-# specfier_qualifier_list is used in struct declaration
-proc parse_specifier_qualifier_list*(): CType
+proc specifier_qualifier_list*(): CType
+
 
 type 
-    DeclaratorFlags = enum 
-      Direct, Abstract, Function
+    DeclaratorFlags* = enum 
+        ## * Direct: declarator with name
+        ## * Abstract: declarator without name
+        ## * Function: function parameter-type-list
+        Direct, Abstract, Function
 
-proc parse_direct_declarator*(base: CType; flags=Direct): Stmt
+proc direct_declarator*(base: CType; flags=Direct): Stmt
 
-# take a base type, return the final type and name
-# for example: static   int     *foo
-#                base-type    decorator
-proc parse_declarator*(base: CType; flags=Direct): Stmt
+proc declarator*(base: CType; flags=Direct): Stmt
 
-# abstract decorator has no name
-# for example: static int        (*)(int, char)
-#               base-type      abstact-decorator
-template parse_abstract_decorator*(base, f): untyped = parse_declarator(base, flags=f)
+template abstract_decorator*(base, f): untyped = 
+    ## abstract decorator has no name
+    ## for example: `static int        (*)(int, char)`
+    ##               base-type      abstact-decorator
+    declarator(base, flags=f)
 
-# type-name: specifier-qualifier-list optional<abstract_decorator>
-# proc parse_type_name*(): CType
 
-# parse a declaration: variable, struct, union, function...
-# proc parse_declaration*(): Stmt
+proc struct_union*(t: Token): CType
 
-# parse a struct or union, return it
-# for example: struct Foo
-#              struct { ... }
-#              struct Foo { ... }
-proc parse_struct_union*(t: Token): CType
+proc penum*(): CType
 
-# parse a enum, return it
-# for example: enum State
-#              enum { ... }
-#              enum State { ... }
-proc parse_enum*(): CType
-
-proc parse_static_assert*(): Stmt
+proc static_assert*(): Stmt
 
 proc translation_unit*(): seq[Stmt]
 
@@ -104,47 +88,61 @@ proc statament*(): Stmt
 
 proc compound_statement*(): Stmt
 
-proc binop*(a: Expr, op: BinOP, b: Expr): Expr = Expr(k: EBin, lhs: a, rhs: b, bop: op)
+proc binop*(a: Expr, op: BinOP, b: Expr): Expr = 
+    ## construct a binary operator
+    Expr(k: EBin, lhs: a, rhs: b, bop: op)
 
-proc unary*(e: Expr, op: UnaryOP): Expr = Expr(k: EUnary, uop: op, uoperand: e)
 
-proc postfix*(e: Expr, op: PostfixOP): Expr = Expr(k: EPostFix, pop: op, poperand: e)
+proc unary*(e: Expr, op: UnaryOP): Expr = 
+    ## construct a unary operator
+    Expr(k: EUnary, uop: op, uoperand: e)
+
+
+proc postfix*(e: Expr, op: PostfixOP): Expr = 
+    ## construct a postfix operator
+    Expr(k: EPostFix, pop: op, poperand: e)
+
 
 proc consume*() =
+    ## eat token from lexer and c preprocesser
+    echo p.tok.tok
     getToken()
 
 
-# primitive types
-const type_specifier_set = {
+proc expect(msg: string) =
+    ## emit `expect ...` error message
+    parse_error("expect " & msg & ", got " & showToken())
+
+const type_specifier_set* = {
     Kchar, Kint, Kshort, Ksigned, 
     Kunsigned, 
     Klong, Kdouble, Kfloat,
     K_Atomic,
     K_Complex, Kvoid, K_Bool
-} # + K_Alignas
+} ## primitive types
 
-# function specfiers
-const function_specifier_set = {
+
+const function_specifier_set* = {
     Kinline, K_Noreturn
-}
+} ## function specfiers
 
-# storage specfiers
-const storage_class_specifier_set = {
+
+const storage_class_specifier_set* = {
     Ktypedef, Kextern, Kstatic, 
     K_Thread_local, Kauto, Kregister
-}
+} ## storage specfiers
 
-# type qualifiers
-const type_qualifier_set = {
+
+const type_qualifier_set* = {
      Kvolatile, Krestrict, Kconst
-} # + atomic
+} ## type qualifiers
 
-# declaration specfiers
-const declaration_specifier_set = 
+
+const declaration_specifier_set* = 
     type_specifier_set +
     storage_class_specifier_set +
     type_qualifier_set +
-    function_specifier_set
+    function_specifier_set ## declaration specfiers
 
 proc addTag(ty: var CType, t: Token): bool =
     let t = (
@@ -174,6 +172,10 @@ proc default_storage(ts: var CType) =
         ts.tags = ts.tags or TYAUTO # default to auto storage-class-specifier
 
 proc merge_types*(ts: seq[Token]): CType =
+    ## merge many token to a type
+    ##
+    ## for example:
+    ##   `long long int const` => const long long
     if ts.len == 0:
         return nil
     result = CType(tags: TYINVALID, spec: TYPRIM)
@@ -289,9 +291,10 @@ proc merge_types*(ts: seq[Token]): CType =
     type_error("cannot combine types: " & $b)
     return nil
 
-proc parse_type_qualifier_list(ty: var CType) =
+proc type_qualifier_list(ty: var CType) =
+    ## parse many type qualifiers, add to type
     while true:
-        case p.tok:
+        case p.tok.tok:
         of Kconst:
             ty.tags = ty.tags or TYCONST
             consume()
@@ -308,8 +311,8 @@ proc parse_type_qualifier_list(ty: var CType) =
             break
 
 proc more(s: var seq[Token]) = 
-    while p.tok in declaration_specifier_set:
-        s.add(p.tok)
+    while p.tok.tok in declaration_specifier_set:
+        s.add(p.tok.tok)
         consume()
 
 proc read_enum_sepcs*(c: var CType, sepc: Token) = 
@@ -320,8 +323,8 @@ proc read_struct_union_sepcs*(c: var CType, sepc: Token) =
 
 proc handle_typedef(s: var seq[Token], ty: CType): CType =
     consume()
-    while p.tok in declaration_specifier_set:
-        s.add(p.tok)
+    while p.tok.tok in declaration_specifier_set:
+        s.add(p.tok.tok)
         consume()
     if len(s) > 0:
         if Ktypedef in s:
@@ -331,12 +334,12 @@ proc handle_typedef(s: var seq[Token], ty: CType): CType =
     result.tags = ty.tags and (not TYTYPEDEF)
     return result
 
-proc parse_specifier_qualifier_list*(): CType =
-    ## TODO: _Alignas
+proc specifier_qualifier_list*(): CType =
+    ## specfier_qualifier_list is used in struct declaration
     var s: seq[Token]
-    while p.tok in (type_specifier_set + type_qualifier_set + {Kstruct, Kenum, Kunion}):
-        if p.tok == Kenum:
-            result = parse_enum()
+    while p.tok.tok in (type_specifier_set + type_qualifier_set + {Kstruct, Kenum, Kunion}):
+        if p.tok.tok == Kenum:
+            result = penum()
             more(s)
             for i in s:
                 if i == Ktypedef:
@@ -344,8 +347,8 @@ proc parse_specifier_qualifier_list*(): CType =
                     continue
                 read_enum_sepcs(result, i)
             return result
-        elif p.tok == Kunion or p.tok == Kstruct:
-            result = parse_struct_union(p.tok)
+        elif p.tok.tok == Kunion or p.tok.tok == Kstruct:
+            result = struct_union(p.tok.tok)
             more(s)
             for i in s:
                 if i == Ktypedef:
@@ -353,16 +356,16 @@ proc parse_specifier_qualifier_list*(): CType =
                     continue
                 read_struct_union_sepcs(result, i)
             return result
-        elif p.tok == K_Atomic:
+        elif p.tok.tok == K_Atomic:
             consume()
-            if p.tok == TLbracket:
+            if p.tok.tok == TLbracket:
                 consume()
                 let ty = type_name()
                 if ty[0] == nil:
-                    parse_error("expect type-name")
+                    expect("type-name")
                     return nil
-                if p.tok != TRbracket:
-                    parse_error("expect ')'")
+                if p.tok.tok != TRbracket:
+                    expect("')'")
                     return nil
                 consume()
                 more(s)
@@ -371,10 +374,10 @@ proc parse_specifier_qualifier_list*(): CType =
                 return ty[0]
             s.add(K_Atomic)
         else:
-            s.add(p.tok)
+            s.add(p.tok.tok)
             consume()
-    if p.tok == TIdentifier:
-        let ty = gettypedef(p.val.sval)[0]
+    if p.tok.tok == TIdentifier:
+        let ty = gettypedef(p.tok.s)[0]
         more(s)
         if ty != nil and (ty.tags and TYTYPEDEF) != 0:
             return handle_typedef(s, ty)
@@ -382,25 +385,28 @@ proc parse_specifier_qualifier_list*(): CType =
         return merge_types(s)
     return nil
 
-proc parse_declarator*(base: CType; flags=Direct): Stmt =
+proc declarator*(base: CType; flags=Direct): Stmt =
+    ## take a base type, return the final type and name
+    ## for example: `static   int     *foo`
+    ##                base-type    decorator
     var ty = base
-    while p.tok == TMul:
+    while p.tok.tok == TMul:
         consume()
         ty = CType(tags: TYINVALID, spec: TYPOINTER, p: ty)
-        parse_type_qualifier_list(ty)
-    return parse_direct_declarator(ty, flags)
+        type_qualifier_list(ty)
+    return direct_declarator(ty, flags)
 
-proc parse_initializer_list*(): Expr =
-    if p.tok != TLcurlyBracket:
+proc initializer_list*(): Expr =
+    if p.tok.tok != TLcurlyBracket:
         return assignment_expression()
     result = Expr(k: EInitializer_list)
     consume()
     while true:
-        if p.tok == TRcurlyBracket:
+        if p.tok.tok == TRcurlyBracket:
             consume()
             break
-        if p.tok == TLcurlyBracket:
-            let e = parse_initializer_list()
+        if p.tok.tok == TLcurlyBracket:
+            let e = initializer_list()
             if e == nil:
                 return nil
             result.inits.add(e)
@@ -410,105 +416,105 @@ proc parse_initializer_list*(): Expr =
                 error("expect expression")
                 return nil
             result.inits.add(e)
-        if p.tok == TComma:
+        if p.tok.tok == TComma:
             consume()
 
-proc parse_direct_declarator_end*(base: CType, name: string): Stmt
+proc direct_declarator_end*(base: CType, name: string): Stmt
 
-proc parse_direct_declarator*(base: CType; flags=Direct): Stmt =
-    case p.tok:
+proc direct_declarator*(base: CType; flags=Direct): Stmt =
+    case p.tok.tok:
     of TIdentifier:
         if flags == Abstract:
             return nil
-        var name = p.val.sval
+        var name = p.tok.s
         consume()
-        return parse_direct_declarator_end(base, name)
+        return direct_declarator_end(base, name)
     of TLbracket:
         consume()
-        let st = parse_declarator(base, flags)
-        if p.tok != TRbracket:
-            parse_error("expect ')'")
+        let st = declarator(base, flags)
+        if p.tok.tok != TRbracket:
+            expect("')'")
             return nil
         consume()
         if st.k == SFunction:
-            return parse_direct_declarator_end(st.functy, st.funcname)
+            return direct_declarator_end(st.functy, st.funcname)
         else:
-            return parse_direct_declarator_end(st.var1type, st.var1name)
+            return direct_declarator_end(st.var1type, st.var1name)
     else:
         if flags != Direct:
-            return parse_direct_declarator_end(base, "")
+            return direct_declarator_end(base, "")
         return nil
 
-proc parse_direct_declarator_end*(base: CType, name: string): Stmt =
-    case p.tok:
+proc direct_declarator_end*(base: CType, name: string): Stmt =
+    case p.tok.tok:
     of TLSquareBrackets: # int arr[5], int arr[*], int arr[static 5], int arr[static const 5], int arr[const static 5], int arr2[static const restrict 5]
         consume() # eat ]
         var ty = CType(tags: TYINVALID, spec: TYARRAY, arrsize: -1, arrtype: base)
-        if p.tok == TMul: # int arr[*]
+        if p.tok.tok == TMul: # int arr[*]
           consume()
-          if p.tok != TRSquareBrackets:
+          if p.tok.tok != TRSquareBrackets:
             error("expect ']'")
             note("the syntax is:\n\tint arr[*]")
             return nil
           return Stmt(k: SVarDecl1, var1name: name, var1type: ty)
-        if p.tok == Kstatic:
+        if p.tok.tok == Kstatic:
            consume()
            ty.tags = ty.tags or TYSTATIC
-           parse_type_qualifier_list(ty)
+           type_qualifier_list(ty)
         else:
-            parse_type_qualifier_list(ty)
-            if p.tok == Kstatic:
+            type_qualifier_list(ty)
+            if p.tok.tok == Kstatic:
                 ty.tags = ty.tags or TYSTATIC
                 consume()
         let e = assignment_expression()
         ty.arrsize = eval_const_expression(e)
-        if p.tok != TRSquareBrackets:
+        if p.tok.tok != TRSquareBrackets:
           error("expect ']'")
           return nil
         consume() # eat ]
-        return parse_direct_declarator_end(ty, name)
+        return direct_declarator_end(ty, name)
     of TLbracket:
         consume()
         var ty = CType(tags: TYINVALID, spec: TYFUNCTION, ret: base)
-        if p.tok != TRbracket:
-            let res = parse_parameter_type_list()
+        if p.tok.tok != TRbracket:
+            let res = parameter_type_list()
             if res[0]:
                 ty.params = res[1]
             else:
                 return nil
-        if p.tok != TRbracket:
-            parse_error("expect ')'")
+        if p.tok.tok != TRbracket:
+            expect("')'")
             return nil
         consume()
-        if p.tok == TLcurlyBracket: # function definition
+        if p.tok.tok == TLcurlyBracket: # function definition
             let body = compound_statement()
             if body == nil:
-                parse_error("expect function body")
+                expect("function body")
                 return nil
             return Stmt(funcname: name, k: SFunction, functy: ty, funcbody: body)
-        return parse_direct_declarator_end(ty, name)
+        return direct_declarator_end(ty, name)
     else:
         return Stmt(k: SVarDecl1, var1name: name, var1type: base)
 
-proc parse_struct_declarator(base: CType): (string, CType) =
-    if p.tok == TColon:
+proc struct_declarator(base: CType): (string, CType) =
+    if p.tok.tok == TColon:
         consume()
         let e = constant_expression()
         if e == nil:
-            parse_error("expect expression")
+            expect("expression")
             note("in bit field declaration")
             return ("", nil)
         let bitsize = eval_const_expression(e)
         return ("", CType(tags: TYINVALID, spec: TYBITFIELD, bittype: base, bitsize: bitsize))
     else:
-        let d = parse_declarator(base, Direct)
+        let d = declarator(base, Direct)
         if d == nil:
             return ("", nil)
-        if p.tok == TColon:
+        if p.tok.tok == TColon:
             consume()
             let e = constant_expression()
             if e == nil:
-                parse_error("expect expression")
+                expect("expression")
                 note("in bit field declaration")
                 return
             let bitsize = eval_const_expression(e)
@@ -517,15 +523,21 @@ proc parse_struct_declarator(base: CType): (string, CType) =
             return (d.funcname, d.functy)
         return (d.var1name, d.var1type)
 
-proc parse_struct_union*(t: Token): CType =
+proc struct_union*(t: Token): CType =
+    ## parse a struct or union, return it
+    ## for example:  `struct Foo`
+    ##
+    ##               `struct { ... }`
+    ##
+    ##               `struct Foo { ... }`
     consume() # eat struct/union
     var name = ""
-    if p.tok == TIdentifier:
-        name = p.val.sval
+    if p.tok.tok == TIdentifier:
+        name = p.tok.s
         consume()
-        if p.tok != TLcurlyBracket: # struct Foo
+        if p.tok.tok != TLcurlyBracket: # struct Foo
            return if t==Kstruct: getstructdef(name) else: getuniondef(name)
-    elif p.tok != TLcurlyBracket:
+    elif p.tok.tok != TLcurlyBracket:
         error("expect '{' for start anonymous struct/union")
         return nil
     if t == Kstruct:
@@ -533,40 +545,40 @@ proc parse_struct_union*(t: Token): CType =
     else:
         result = CType(tags: TYINVALID, spec: TYUNION, sname: name)
     consume()
-    if p.tok != TRcurlyBracket:
+    if p.tok.tok != TRcurlyBracket:
         while true:
-            if p.tok == K_Static_assert:
-                let s = parse_static_assert()
+            if p.tok.tok == K_Static_assert:
+                let s = static_assert()
                 if s == nil:
                     return nil
-                if p.tok == TRcurlyBracket:
+                if p.tok.tok == TRcurlyBracket:
                     break
                 continue
-            var base = parse_specifier_qualifier_list()
+            var base = specifier_qualifier_list()
             if base == nil:
-                parse_error("expect specifier-qualifier-list")
+                expect("specifier-qualifier-list")
                 return nil
 
-            if p.tok == TSemicolon:
+            if p.tok.tok == TSemicolon:
                 warning("struct/union member declaration doest not declare anything")
                 consume()
                 continue
             else:
                 while true:
-                    let e = parse_struct_declarator(base)
+                    let e = struct_declarator(base)
                     if e[1] == nil:
                         error("expect struct-declarator")
                         return nil
                     result.selems.add(e)
-                    if p.tok == TComma:
+                    if p.tok.tok == TComma:
                         consume()
                     else:
-                        if p.tok != TSemicolon:
-                            parse_error("expect ';', got " & showToken())
+                        if p.tok.tok != TSemicolon:
+                            expect("';'")
                             return nil
                         consume()
                         break
-                if p.tok == TRcurlyBracket:
+                if p.tok.tok == TRcurlyBracket:
                     consume()
                     break
     else:
@@ -580,83 +592,89 @@ proc parse_struct_union*(t: Token): CType =
 
 let enum_type = CType(tags: TYEXPR or TYINT, spec: TYPRIM)
 
-proc parse_enum*(): CType =
+proc penum*(): CType =
+    ## parse a enum, return it
+    ## for example: 
+    ## 
+    ##      `enum State`
+    ##
+    ##      `enum { ... }`
+    ##
+    ##      `enum State { ... }`
     consume() # eat enum
     var name = ""
-    if p.tok == TIdentifier:
-        name = p.val.sval
+    if p.tok.tok == TIdentifier:
+        name = p.tok.s
         consume()
-        if p.tok != TLcurlyBracket: # struct Foo
+        if p.tok.tok != TLcurlyBracket: # struct Foo
           return getenumdef(name)
-    elif p.tok != TLcurlyBracket:
+    elif p.tok.tok != TLcurlyBracket:
         error("expect '{' for start anonymous enum")
         return nil
     result = CType(tags: TYINVALID, spec: TYENUM, ename: name)
     consume()
-    var c: int = 0
+    var c: intmax_t = 0
     while true:
-        if p.tok != TIdentifier:
+        if p.tok.tok != TIdentifier:
             break # enum {A, } is ok !
-        var s = p.val.sval # copy
+        var s = p.tok.s # copy
         consume()
-        if p.tok == TAssign:
+        if p.tok.tok == TAssign:
             consume()
             let e = constant_expression()
             c = eval_const_expression(e)
         result.eelems.add((s, c))
         putsymtype(s, enum_type)
         inc c
-        if p.tok == TComma:
+        if p.tok.tok == TComma:
             consume()
         else:
             break
-    if p.tok != TRcurlyBracket:
+    if p.tok.tok != TRcurlyBracket:
         error("expect '}'")
     consume()
     if len(result.ename) > 0:
         putenumdef(result)
     return result
 
-proc parse_parameter_type_list*(): (bool, seq[(string, CType)]) =
+proc parameter_type_list*(): (bool, seq[(string, CType)]) =
     result = (true, default(typeof(result[1])))
     while true:
-        var base = parse_declaration_specifiers()
+        var base = declaration_specifiers()
         if base == nil:
             return (false, default(typeof(result[1])))
-        let res = parse_abstract_decorator(base, Function)
+        let res = abstract_decorator(base, Function)
         if res == nil:
             return (false, default(typeof(result[1])))
         if res.k == SFunction:
             result[1].add((res.funcname, res.functy))
         else:
             result[1].add((res.var1name, res.var1type))
-        if p.tok == TRbracket:
+        if p.tok.tok == TRbracket:
             break
-        if p.tok == TComma:
+        if p.tok.tok == TComma:
             consume()
-        if p.tok == PPEllipsis:
+        if p.tok.tok == PPEllipsis:
             result[1].add(("", nil))
             consume()
             break
-        elif p.tok == TRbracket:
+        elif p.tok.tok == TRbracket:
             break
-
-let default_int = CType(tags: TYINVALID or TYINT, spec: TYPRIM)
 
 proc istype(a: Token): bool =
     if a in (declaration_specifier_set + {Kstruct, Kenum, Kunion}):
         return true
     if a == TIdentifier:
-      let ty = gettypedef(p.val.sval)[0]
+      let ty = gettypedef(p.tok.s)[0]
       return ty != nil and (ty.tags and TYTYPEDEF) != 0
     return false
 
-proc parse_declaration_specifiers*(): CType =
-    ## TODO: _Alignas
+proc declaration_specifiers*(): CType =
+    ## declaration_specfier is used in function and variable declaration/definition
     var s: seq[Token]
-    while p.tok in (declaration_specifier_set + {Kstruct, Kenum, Kunion}):
-        if p.tok == Kenum:
-            result = parse_enum()
+    while p.tok.tok in (declaration_specifier_set + {Kstruct, Kenum, Kunion}):
+        if p.tok.tok == Kenum:
+            result = penum()
             more(s)
             for i in s:
                 if i == Ktypedef:
@@ -664,8 +682,8 @@ proc parse_declaration_specifiers*(): CType =
                     continue
                 read_enum_sepcs(result, i)
             return result
-        elif p.tok == Kunion or p.tok == Kstruct:
-            result = parse_struct_union(p.tok)
+        elif p.tok.tok == Kunion or p.tok.tok == Kstruct:
+            result = struct_union(p.tok.tok)
             more(s)
             for i in s:
                 if i == Ktypedef:
@@ -673,16 +691,16 @@ proc parse_declaration_specifiers*(): CType =
                     continue
                 read_struct_union_sepcs(result, i)
             return result
-        elif p.tok == K_Atomic:
+        elif p.tok.tok == K_Atomic:
             consume()
-            if p.tok == TLbracket:
+            if p.tok.tok == TLbracket:
                 consume()
                 let ty = type_name()
                 if ty[0] == nil:
-                    parse_error("expect type-name")
+                    expect("type-name")
                     return nil
-                if p.tok != TRbracket:
-                    parse_error("expect ')'")
+                if p.tok.tok != TRbracket:
+                    expect("')'")
                     return nil
                 consume()
                 more(s)
@@ -691,71 +709,76 @@ proc parse_declaration_specifiers*(): CType =
                 return ty[0]
             s.add(K_Atomic)
         else:
-            s.add(p.tok)
+            s.add(p.tok.tok)
             consume()
-    if p.tok == TIdentifier:
-        let ty = gettypedef(p.val.sval)[0]
+    if p.tok.tok == TIdentifier:
+        let ty = gettypedef(p.tok.s)[0]
         more(s)
         if ty != nil and (ty.tags and TYTYPEDEF) != 0:
             return handle_typedef(s, ty)
     if s.len > 0:
         return merge_types(s)
     warning("type defaults to 'int' in declaration")
-    note("expect a type, got " & showToken())
-    note("specify one or more storage class specifier or type specifier")
-    return default_int
+    return CType(tags: TYINVALID or TYINT, spec: TYPRIM)
 
-proc parse_static_assert*(): Stmt =
+proc static_assert*(): Stmt =
     consume()
-    if p.tok != TLbracket:
-        parse_error("expect '('")
+    if p.tok.tok != TLbracket:
+        expect("'('")
         return nil
     consume()
     var msg = ""
     let e = constant_expression()
     let ok = eval_const_expression_bool(e)
-    if p.tok == TRbracket: # no message
+    if p.tok.tok == TRbracket: # no message
         if ok == false:
             error("static assert failed!")
         consume()
         note("static assert with no message")
-    elif p.tok == TComma:
+    elif p.tok.tok == TComma:
         consume()
-        if p.tok != TStringLit:
-            parse_error("expect string literal in static assert")
+        if p.tok.tok != TStringLit:
+            expect("string literal in static assert")
             return nil
         if ok == false:
-            error(p.val.sval)
-            msg = p.val.sval
+            error(p.tok.s)
+            msg = p.tok.s
+        consume()
+        if p.tok.tok != TRbracket:
+            expect("')'")
+            return nil
         consume()
     else:
-        parse_error("expect ',' or ')'")
+        expect("',' or ')'")
         return nil
-    if p.tok != TSemicolon:
-        error("expect ';'")
+    if p.tok.tok != TSemicolon:
+        expect("';'")
         return nil
     consume()
     return Stmt(k: SStaticAssertDecl, assertexpr: e, msg: msg)
 
 proc declaration*(): Stmt =
-    if p.tok == K_Static_assert:
-        return parse_static_assert()
+    ## parse variable declaration or function definition
+    ## 
+    ## this is different from ISO C grammar
+    if p.tok.tok == K_Static_assert:
+        return static_assert()
     else:
-        if p.tok == TSemicolon:
+        if p.tok.tok == TSemicolon:
             consume()
             return Stmt(k: SVarDecl)
-        var base = parse_declaration_specifiers()
+        var base = declaration_specifiers()
         if base == nil:
-            parse_error("expect declaration-specifiers")
+            expect("declaration-specifiers")
             return nil
         result = Stmt(k: SVarDecl)
         while true:
-            if p.tok == TSemicolon:
+            if p.tok.tok == TSemicolon:
                 consume()
                 break
-            let st = parse_declarator(base)
+            let st = declarator(base)
             if st == nil:
-                parse_error("declarator expected")
+                expect("declarator")
                 return nil
             if st.k == SFunction:
                 putsymtype(st.funcname, st.functy)
@@ -763,43 +786,53 @@ proc declaration*(): Stmt =
             assert st.k == SVarDecl1
             result.vars.add((st.var1name, st.var1type, nil))
             putsymtype(st.var1name, st.var1type)
-            if p.tok == TAssign:
+            if p.tok.tok == TAssign:
                 consume()
-                let init = parse_initializer_list()
+                let init = initializer_list()
                 if init == nil:
+                    expect("initializer-list")
                     return nil
                 result.vars[^1][2] = init
-            if p.tok == TComma:
+            if p.tok.tok == TComma:
                 consume()
-            elif p.tok == TSemicolon:
+            elif p.tok.tok == TSemicolon:
                 consume()
                 break
         return result
 
 proc cast_expression*(): Expr =
-    case p.tok:
+    case p.tok.tok:
     of TLbracket:
         consume()
-        let n = expression()
-        if n == nil: 
-            return nil
-        if p.tok != TRbracket:
-            parse_error("expect `)`")
-            return nil
-        consume()
-        let e = cast_expression()
-        return Expr(k: ECast, casttype: n, castval: e)
+        if istype(p.tok.tok):
+            let (n, isf) = type_name()
+            if n == nil:
+                return nil
+            if p.tok.tok != TRbracket:
+                expect("`)`")
+                return nil
+            consume()
+            let e = cast_expression()
+            return Expr(k: ECast, casttype: n, castval: e)
+        putToken()
+        p.tok = TokenV(tok: TLbracket, tags: TVNormal)
     else:
-        return unary_expression()
+        discard
+    return unary_expression()
 
 proc type_name*(): (CType, bool) =
-    let base = parse_declaration_specifiers()
+    ## parse a type-name
+    ##
+    ## for example:
+    ##
+    ##    sizeof(type-name)
+    let base = declaration_specifiers()
     if base == nil:
         (nil, false)
-    elif p.tok == TRbracket:
+    elif p.tok.tok == TRbracket:
         (base, false)
     else:
-        let st = parse_abstract_decorator(base, Abstract)
+        let st = abstract_decorator(base, Abstract)
         if st == nil:
             (nil, false)
         elif st.k == SFunction:
@@ -808,7 +841,7 @@ proc type_name*(): (CType, bool) =
             (st.var1type, false)
 
 proc unary_expression*(): Expr =
-    let tok = p.tok
+    let tok = p.tok.tok
     case tok:
     of TNot, TMul, TBitAnd, TBitNot:
         consume()
@@ -844,45 +877,45 @@ proc unary_expression*(): Expr =
         return unary(e, if tok == TAddAdd: OPrefixIncrement else: OPrefixDecrement)
     of Ksizeof:
         consume()
-        if p.tok == TLbracket:
+        if p.tok.tok == TLbracket:
             consume()
-            if istype(p.tok):
+            if istype(p.tok.tok):
                 let ty = type_name()
                 if ty[0] == nil:
-                    parse_error("expect type-name or expression")
+                    expect("type-name or expression")
                     return nil
                 if ty[1] == true:
                     type_error("invalid application of 'sizeof' to a function type")
-                if p.tok != TRbracket:
-                    parse_error("expect ')'")
+                if p.tok.tok != TRbracket:
+                    expect("')'")
                     return nil
                 consume()
                 return Expr(k: ESizeOf, sizeofx: nil, sizeofty: ty[0])
             let e = unary_expression()
             if e == nil:
-                parse_error("expect expression")
+                expect("expression")
                 return nil
-            if p.tok != TRbracket:
-                parse_error("expect ')'")
+            if p.tok.tok != TRbracket:
+                expect("')'")
                 return nil
             consume()
             return Expr(k: ESizeOf, sizeofx: e, sizeofty: nil)
         else:
             let e = unary_expression()
             if e == nil:
-                parse_error("expect expression")
+                expect("expression")
                 return nil
             return Expr(k: ESizeOf, sizeofx: e, sizeofty: nil)
     of K_Alignof:
         consume()
-        if p.tok != TLbracket:
-            parse_error("expect (")
+        if p.tok.tok != TLbracket:
+            expect("(")
             return nil
         consume()
-        if istype(p.tok):
+        if istype(p.tok.tok):
             let ty = type_name()
             if ty[0] == nil:
-                parse_error("expect type-name")
+                expect("type-name")
                 return nil
             if ty[1] == true:
                 type_error("invalid application of '_Alignof' to a function type")
@@ -890,11 +923,11 @@ proc unary_expression*(): Expr =
         else:
             let e = constant_expression()
             if e == nil:
-                parse_error("expect expression")
+                expect("expression")
                 return nil
             result = Expr(k: EAlignof, sizeofx: e, sizeofty: nil)
-        if p.tok != TRbracket:
-            parse_error("expect ')'")
+        if p.tok.tok != TRbracket:
+            expect("')'")
             return nil
         consume()
         return result
@@ -902,70 +935,87 @@ proc unary_expression*(): Expr =
         return postfix_expression()
 
 proc primary_expression*(): Expr =
-    case p.tok:
+    ## primary expressions:
+    ##     * constant
+    ##     * `(` expression `)`
+    ##     * identfier
+    case p.tok.tok:
     of TCharLit:
-        result = Expr(k: ECharLit, ival: p.val.ival)
+        result = Expr(k: ECharLit, ival: p.tok.i)
         consume()
     of TNumberLit:
-        result = Expr(k: EIntLit, ival: p.val.ival)
+        result = Expr(k: EIntLit, ival: p.tok.i)
         consume()
     of TFloatLit:
-        result = Expr(k: EFloatLit, fval: p.val.fval)
+        result = Expr(k: EFloatLit, fval: p.tok.f)
         consume()
     of TStringLit:
-        result = Expr(k: EStringLit, sval: p.val.sval)
+        result = Expr(k: EStringLit, sval: p.tok.s)
         consume()
+    of TPPNumber:
+        var f: float
+        var n: int
+        let ok = read_pp_number(p.tok.s, f, n)
+        if ok == 0:
+            result = nil
+        elif ok == 2:
+            result = Expr(k: EFloatLit, fval: f)
+            consume()
+        else:
+            assert ok == 1
+            result = Expr(k: EIntLit, ival: n)
+            consume()
     of TIdentifier:
-        result = Expr(k: EVar, sval: p.val.sval)
+        result = Expr(k: EVar, sval: p.tok.s)
         consume()
     of TLbracket:
         consume()
         result = expression()
         if result == nil:
-            parse_error("expect expression")
+            expect("expression")
             return nil
-        if p.tok != TRbracket:
-            parse_error("expect ')'")
+        if p.tok.tok != TRbracket:
+            expect("')'")
             return nil
         consume()
     of K_Generic:
         consume()
-        if p.tok != TLbracket:
-            parse_error("expect '('")
+        if p.tok.tok != TLbracket:
+            expect("'('")
             return nil
         consume()
         let test = assignment_expression()
         if test == nil:
-            parse_error("expect expression")
+            expect("expression")
             note("the syntax is:\n\t_Generic(expr, type1: expr, type2: expr, ..., default: expr)")
             return nil
-        if p.tok != TComma:
-            parse_error("expect ,")
+        if p.tok.tok != TComma:
+            expect("','")
             return nil
         consume()
         var selectors: seq[(Expr, Expr)]
         while true:
             var tname: Expr = nil
-            if p.tok == Kdefault:
+            if p.tok.tok == Kdefault:
                 consume()
             else:
                 tname = expression()
                 if tname == nil:
-                    parse_error("expect expression")
+                    expect("expression")
                     note("the syntax is:\n\t_Generic(expr, type1: expr, type2: expr, ..., default: expr)")
                     return nil
-            if p.tok != TColon:
-                parse_error("expect ':'")
+            if p.tok.tok != TColon:
+                expect("':'")
                 note("the syntax is:\n\t_Generic(expr, type1: expr, type2: expr, ..., default: expr)")
                 return nil
             consume()
             let e = assignment_expression()
             if e == nil:
-                parse_error("expect expression")
+                expect("expression")
                 note("the syntax is:\n\t_Generic(expr, type1: expr, type2: expr, ..., default: expr)")
                 return nil
             selectors.add((tname, e))
-            case p.tok:
+            case p.tok.tok:
             of TComma:
               consume()
               continue
@@ -973,242 +1023,255 @@ proc primary_expression*(): Expr =
               consume()
               break
             else:
-              parse_error("expect ','' or ')'")
+              expect("','' or ')'")
               return nil
         return Expr(k: EGeneric, selectexpr: test, selectors: selectors)
     of TEOF:
         return nil
     else:
-        parse_error("primary_expression: bad token: " & showToken())
+        parse_error("unexpected token in expression: " & showToken())
         return nil
 
 proc postfix_expression*(): Expr =
     let e = primary_expression()
-    case p.tok:
+    case p.tok.tok:
     of TSubSub, TAddAdd:
-        let op = if p.tok == TAddAdd: OPostfixIncrement else: OPostfixDecrement
+        let op = if p.tok.tok == TAddAdd: OPostfixIncrement else: OPostfixDecrement
         consume()
         return postfix(e, op)
     of TArrow, TDot: # member access
-        let isarrow = p.tok == TArrow
+        let isarrow = p.tok.tok == TArrow
         consume()
-        let i = p.tok
-        if i != TIdentifier:
-            parse_error("expect identifier")
+        if p.tok.tok != TIdentifier:
+            expect("identifier")
             note("the syntax is:\n\tfoo.member\n\tfoo.member")
             return nil
-        return binop(e, (if isarrow: OMemberAccess else: OPointerMemberAccess), Expr(k: EVar, sval: p.val.sval))
+        return binop(e, (if isarrow: OMemberAccess else: OPointerMemberAccess), Expr(k: EVar, sval: p.tok.s))
     of TLbracket: # function call
         consume()
-        let args = expression()
-        if args == nil:
-            parse_error("expect expression")
-            note("the syntax is:\n\tfunction-name(argument)")
-            return nil
-        if p.tok != TRbracket:
-            parse_error("expect ')'")
-            return
-        consume()
-        return Expr(k: ECall, left: e, right: args)
+        var args: seq[Expr]
+        if p.tok.tok == TRbracket:
+            consume()
+        else:
+            while true:
+                let a = assignment_expression()
+                if a == nil:
+                    expect("expression")
+                    note("the syntax is:\n\tfunction-name(argument)")
+                    return nil
+                args.add(a)
+                if p.tok.tok == TComma:
+                    consume()
+                elif p.tok.tok == TRbracket:
+                    consume()
+                    break
+        return Expr(k: ECall, callfunc: e, callargs: args)
     of TLSquareBrackets: # array subscript
         consume()
-        let args = expression()
-        if args == nil:
-            parse_error("expect expression")
+        let sub = expression()
+        if sub == nil:
+            expect("expression")
             note("the syntax is:\n\tarray[expression]")
             return nil
-        if p.tok != TRSquareBrackets:
-            parse_error("expect ']'")
+        if p.tok.tok != TRSquareBrackets:
+            expect("']'")
             return
         consume()
-        return Expr(k: ESubscript, left: e, right: args)
+        return Expr(k: ESubscript, left: e, right: sub)
     else:
         return e
 
 proc multiplicative_expression*(): Expr =
     result = cast_expression()
-    case p.tok:
-    of TMul:
-        consume()
-        let r = cast_expression()
-        if r == nil:
-            return nil
-        result = binop(result, OMultiplication, r)
-    of TSlash:
-        consume()
-        let r = cast_expression()
-        if r == nil:
-            return nil
-        result = binop(result, ODivision, r)
-    of TPercent:
-        consume()
-        let r = cast_expression()
-        if r == nil:
-            return nil
-        result = binop(result, Oremainder, r)
-    else:
-        return result
+    while true:
+        case p.tok.tok:
+        of TMul:
+            consume()
+            let r = cast_expression()
+            if r == nil:
+                return nil
+            result = binop(result, OMultiplication, r)
+        of TSlash:
+            consume()
+            let r = cast_expression()
+            if r == nil:
+                return nil
+            result = binop(result, ODivision, r)
+        of TPercent:
+            consume()
+            let r = cast_expression()
+            if r == nil:
+                return nil
+            result = binop(result, Oremainder, r)
+        else:
+            return result
 
 proc additive_expression*(): Expr =
     result = multiplicative_expression()
-    case p.tok:
-    of TAdd:
-        consume()
-        let r = multiplicative_expression()
-        if r == nil:
-            return nil
-        result = binop(result, OAddition, r)
-    of TDash:
-        consume()
-        let r = multiplicative_expression()
-        if r == nil:
-            return nil
-        result = binop(result, OSubtraction, r)
-    else:
-        return result
+    while true:
+        case p.tok.tok:
+        of TAdd:
+            consume()
+            let r = multiplicative_expression()
+            if r == nil:
+                return nil
+            result = binop(result, OAddition, r)
+        of TDash:
+            consume()
+            let r = multiplicative_expression()
+            if r == nil:
+                return nil
+            result = binop(result, OSubtraction, r)
+        else:
+            return result
 
 proc shift_expression*(): Expr =
     result = additive_expression()
-    case p.tok:
-    of Tshl:
-        consume()
-        let r = additive_expression()
-        if r == nil:
-            return nil
-        result = binop(result, OShl, r)
-    of Tshr:
-        consume()
-        let r = additive_expression()
-        if r == nil:
-            return nil
-        result = binop(result, OShr, r)
-    else:
-        return result
+    while true:
+        case p.tok.tok:
+        of Tshl:
+            consume()
+            let r = additive_expression()
+            if r == nil:
+                return nil
+            result = binop(result, OShl, r)
+        of Tshr:
+            consume()
+            let r = additive_expression()
+            if r == nil:
+                return nil
+            result = binop(result, OShr, r)
+        else:
+            return result
 
 proc relational_expression*(): Expr =
     result = shift_expression()
-    case p.tok:
-    of TLt:
-        consume()
-        let r = shift_expression()
-        if r == nil:
-            return nil
-        result = binop(result, OLt, r)
-    of TLe:
-        consume()
-        let r = shift_expression()
-        if r == nil:
-            return nil
-        result = binop(result, OLe, r)
-    of TGt:
-        consume()
-        let r = shift_expression()
-        if r == nil:
-            return nil
-        result = binop(result, OGt, r)
-    of TGe:
-        consume()
-        let r = shift_expression()
-        if r == nil:
-            return nil
-        result = binop(result, OGe, r)
-    else:
-        return result
+    while true:
+        case p.tok.tok:
+        of TLt:
+            consume()
+            let r = shift_expression()
+            if r == nil:
+                return nil
+            result = binop(result, OLt, r)
+        of TLe:
+            consume()
+            let r = shift_expression()
+            if r == nil:
+                return nil
+            result = binop(result, OLe, r)
+        of TGt:
+            consume()
+            let r = shift_expression()
+            if r == nil:
+                return nil
+            result = binop(result, OGt, r)
+        of TGe:
+            consume()
+            let r = shift_expression()
+            if r == nil:
+                return nil
+            result = binop(result, OGe, r)
+        else:
+            return result
 
 
 proc equality_expression*(): Expr =
     result = relational_expression()
-    case p.tok:
-    of TEq:
-        consume()
-        let r = relational_expression()
-        if r == nil:
-            return nil
-        result = binop(result, OEq, r)
-    of TNe:
-        consume()
-        let r = relational_expression()
-        if r == nil:
-            return nil
-        result = binop(result, ONe, r)
-    else:
-        return result
+    while true:
+        case p.tok.tok:
+        of TEq:
+            consume()
+            let r = relational_expression()
+            if r == nil:
+                return nil
+            result = binop(result, OEq, r)
+        of TNe:
+            consume()
+            let r = relational_expression()
+            if r == nil:
+                return nil
+            result = binop(result, ONe, r)
+        else:
+            return result
 
 proc AND_expression*(): Expr =
-    result = equality_expression()
-    case p.tok:
-    of TBitAnd:
-        consume()
-        let r = equality_expression()
-        if r == nil:
-            return nil
-        result = binop(result, OBitwiseAnd, r)
-    else:
-        return result
+    while true:
+        result = equality_expression()
+        case p.tok.tok:
+        of TBitAnd:
+            consume()
+            let r = equality_expression()
+            if r == nil:
+                return nil
+            result = binop(result, OBitwiseAnd, r)
+        else:
+            return result
 
 proc exclusive_OR_expression*(): Expr =
     result = AND_expression()
-    case p.tok:
-    of TXOr:
-        consume()
-        let r = AND_expression()
-        if r == nil:
-            return nil
-        result = binop(result, OBitwiseXor, r)
-    else:
-        return result
+    while true:
+        case p.tok.tok:
+        of TXOr:
+            consume()
+            let r = AND_expression()
+            if r == nil:
+                return nil
+            result = binop(result, OBitwiseXor, r)
+        else:
+            return result
 
 proc inclusive_OR_expression*(): Expr =
     result = exclusive_OR_expression()
-    case p.tok:
-    of TBitOr:
-        consume()
-        let r = exclusive_OR_expression()
-        if r == nil:
-            return nil
-        result = binop(result, OBitwiseOr, r)
-    else:
-        return result
+    while true:
+        case p.tok.tok:
+        of TBitOr:
+            consume()
+            let r = exclusive_OR_expression()
+            if r == nil:
+                return nil
+            result = binop(result, OBitwiseOr, r)
+        else:
+            return result
 
 proc logical_AND_expression*(): Expr =
     result = inclusive_OR_expression()
-    case p.tok:
-    of TBitOr:
-        consume()
-        let r = inclusive_OR_expression()
-        if r == nil:
-            return nil
-        result = binop(result, OLogicalAnd, r)
-    else:
-        return result
+    while true:
+        case p.tok.tok:
+        of TBitOr:
+            consume()
+            let r = inclusive_OR_expression()
+            if r == nil:
+                return nil
+            result = binop(result, OLogicalAnd, r)
+        else:
+            return result
 
 proc logical_OR_expression*(): Expr =
     result = logical_AND_expression()
-    case p.tok:
-    of TLogicalOr:
-        consume()
-        let r = logical_AND_expression()
-        if r == nil:
-            return nil
-        result = binop(result, OLogicalOr, r)
-    else:
-        return result
-
-proc constant_expression*(): Expr = 
-    conditional_expression()
+    while true:
+        case p.tok.tok:
+        of TLogicalOr:
+            consume()
+            let r = logical_AND_expression()
+            if r == nil:
+                return nil
+            result = binop(result, OLogicalOr, r)
+        else:
+            return result
 
 proc conditional_expression*(start: Expr): Expr =
-    consume() # TQuestionMark
+    consume()
     let lhs = expression()
     if lhs == nil:
-        parse_error("expect expression")
+        expect("expression")
         return nil
-    if p.tok != TColon:
+    if p.tok.tok != TColon:
         return lhs
     consume()
     let rhs = conditional_expression()
     if rhs == nil:
-        parse_error("expect expression")
+        expect("expression")
         note("the syntax is:\n\texpr ? a ? b")
         return nil
     return Expr(k: ECondition, cond: start, cleft: lhs, cright: rhs)
@@ -1217,7 +1280,7 @@ proc conditional_expression*(): Expr =
     let e = logical_OR_expression()
     if e == nil:
         return nil
-    if p.tok == TQuestionMark:
+    if p.tok.tok == TQuestionMark:
       return conditional_expression(e)
     return e
 
@@ -1240,7 +1303,7 @@ proc assignment_expression*(): Expr =
     result = logical_OR_expression()
     if result == nil:
         return nil
-    let tok = p.tok
+    let tok = p.tok.tok
     if tok == TQuestionMark:
         return conditional_expression(result)
     let op = get_assignment_op(tok)
@@ -1248,22 +1311,24 @@ proc assignment_expression*(): Expr =
         consume()
         let e = assignment_expression()
         if e == nil:
-            parse_error("expect expression")
+            expect("expression")
             note("the syntax is:\n\texpr1=expr2, expr3=expr4, ...")
             return nil
         result = binop(result, op, e)
 
 proc expression*(): Expr =
+    ## parse a expression
     result = assignment_expression()
-    if p.tok == TComma:
+    if p.tok.tok == TComma:
         let r = assignment_expression()
         if r == nil:
             return nil
         result = binop(result, Comma, r)
 
 proc translation_unit*(): seq[Stmt] =
+    ## parse a file, the entry point of program
     result = newSeqOfCap[Stmt](20)
-    while p.tok != TEOF:
+    while p.tok.tok != TEOF:
         let s = declaration()
         if s == nil:
             break
@@ -1274,9 +1339,9 @@ proc compound_statement*(): Stmt =
     result = Stmt(k: SCompound)
     consume()
     enterBlock()
-    while p.tok != TRcurlyBracket:
+    while p.tok.tok != TRcurlyBracket:
         var s: Stmt = nil
-        if istype(p.tok):
+        if istype(p.tok.tok):
             s = declaration()
         else:
             s = statament()
@@ -1289,29 +1354,30 @@ proc compound_statement*(): Stmt =
     return result
 
 proc statament*(): Stmt =
-    if p.tok == TSemicolon:
+    ## parse a statement
+    if p.tok.tok == TSemicolon:
         consume()
         return Stmt(k: SSemicolon)
-    elif p.tok == TLcurlyBracket:
+    elif p.tok.tok == TLcurlyBracket:
         return compound_statement()
-    elif p.tok == Kcase:
+    elif p.tok.tok == Kcase:
         consume()
         let e = constant_expression()
         if e == nil:
-            parse_error("expect constant-expression")
+            expect("constant-expression")
             return nil
-        if p.tok != TColon:
+        if p.tok.tok != TColon:
             parse_error("':' expected")
             return nil
         consume()
         let s = statament()
         if s == nil:
-            parse_error("expect statament")
+            expect("statament")
             return nil
         return Stmt(k: Scase, case_expr: e, case_stmt: s)
-    elif p.tok == Kdefault:
+    elif p.tok.tok == Kdefault:
         consume()
-        if p.tok != TColon:
+        if p.tok.tok != TColon:
             parse_error("':' expected")
             return nil
         consume()
@@ -1319,16 +1385,16 @@ proc statament*(): Stmt =
         if s == nil:
             return nil
         return Stmt(k: SDefault, default_stmt: s)
-    elif p.tok == Kgoto:
+    elif p.tok.tok == Kgoto:
         consume()
-        if p.tok != TIdentifier:
-            parse_error("expect identifier")
+        if p.tok.tok != TIdentifier:
+            expect("identifier")
             note("the syntax is:\n\tgoto label;")
             return nil
-        var location = p.val.sval
+        var location = p.tok.s
         let l = getLabel(location)[0]
         consume()
-        if p.tok != TSemicolon:
+        if p.tok.tok != TSemicolon:
             error("expect ';'")
             return nil
         consume()
@@ -1336,177 +1402,176 @@ proc statament*(): Stmt =
             error("undeclared label " & location)
             return nil
         return Stmt(k: SGoto, location: location)
-    elif p.tok == Kcontinue:
+    elif p.tok.tok == Kcontinue:
         consume()
-        if p.tok != TSemicolon:
+        if p.tok.tok != TSemicolon:
             error("expect ';'")
             return nil
         consume()
         return Stmt(k: SContinue)
-    elif p.tok == Kbreak:
+    elif p.tok.tok == Kbreak:
         consume()
-        if p.tok != TSemicolon:
+        if p.tok.tok != TSemicolon:
             error("expect ';'")
             return nil
         consume()
         return Stmt(k: SBreak)
-    elif p.tok == Kreturn:
+    elif p.tok.tok == Kreturn:
         consume()
-        if p.tok == TSemicolon:
+        if p.tok.tok == TSemicolon:
             consume()
             return Stmt(k: SReturn)
         let e = expression()
         if e == nil:
-            parse_error("expect expression")
+            expect("expression")
             return nil
-        if p.tok != TSemicolon:
+        if p.tok.tok != TSemicolon:
             error("expect '}'")
             return nil
         consume()
         return Stmt(k: SReturn, exprbody: e)
-    elif p.tok == Kif:
+    elif p.tok.tok == Kif:
         consume()
-        if p.tok != TLbracket:
-            parse_error("expect '('")
+        if p.tok.tok != TLbracket:
+            expect("'('")
             return nil
         consume()
         let e = expression()
         if e == nil:
-            parse_error("expect expression")
+            expect("expression")
             return nil
-        if p.tok != TRbracket:
-            parse_error("expect ')'")
+        if p.tok.tok != TRbracket:
+            expect("')'")
             return nil
         consume()
         let s = statament()
         if s == nil:
-            parse_error("expect statament")
+            expect("statament")
             return nil
         var elsebody: Stmt = nil
-        if p.tok == Kelse:
+        if p.tok.tok == Kelse:
             consume()
             elsebody = statament()
             if elsebody == nil:
-                parse_error("expect statament")
+                expect("statament")
                 return nil
         return Stmt(k: SIf, iftest: e, ifbody: s, elsebody: elsebody)
-    elif p.tok == Kwhile or p.tok == Kswitch:
-        let tok = p.tok
+    elif p.tok.tok == Kwhile or p.tok.tok == Kswitch:
+        let tok = p.tok.tok
         consume()
-        if p.tok != TLbracket:
-            parse_error("expect '('")
+        if p.tok.tok != TLbracket:
+            expect("'('")
             return nil
         consume()
         let e = expression()
         if e == nil:
-            parse_error("expect expression")
+            expect("expression")
             return nil
-        if p.tok != TRbracket:
-            parse_error("expect ')'")
+        if p.tok.tok != TRbracket:
+            expect("')'")
             return nil
         consume()
         let s = statament()
         if s == nil:
-            parse_error("expect statament")
+            expect("statament")
             return nil
         if tok == Kwhile:
             return Stmt(k: SWhile, test: e, body: s)
         else:
             return Stmt(k: SSwitch, test: e, body: s)  
-    elif p.tok == Kfor:
+    elif p.tok.tok == Kfor:
         consume()
-        if p.tok != TLbracket:
-            parse_error("expect '('")
+        if p.tok.tok != TLbracket:
+            expect("'('")
             return nil
         consume()
         enterBlock()
         # init-clause may be an expression or a declaration
         var init: Stmt = nil
-        if istype(p.tok):
+        if istype(p.tok.tok):
             init = declaration()
             if init == nil:
-                parse_error("expect statament")
+                expect("statament")
                 return nil
         else:
             let ex = expression()
             if ex == nil:
-                parse_error("expect expression")
+                expect("expression")
                 return nil
             init = Stmt(k: SExpr, exprbody: ex)
-        if p.tok != TSemicolon:
+        if p.tok.tok != TSemicolon:
             error("expect ';'")
         consume()
         #  cond-expression 
         let cond = expression()
         if cond == nil:
-            parse_error("expect expression")
+            expect("expression")
             return nil
-        if p.tok != TSemicolon:
+        if p.tok.tok != TSemicolon:
             error("expect ';'")
         consume()
         let forincl = expression()
         if forincl == nil:
-            parse_error("expect expression")
+            expect("expression")
             return nil
-        if p.tok != TRbracket:
-            parse_error("expect ')'")
+        if p.tok.tok != TRbracket:
+            expect("')'")
             return nil
         consume()
         let s = statament()
         if s == nil:
-            parse_error("expect statament")
+            expect("statament")
             return nil
         leaveBlock()
         return Stmt(k: SFor, forinit: init, forcond: cond, forincl: forincl, forbody: s)
-    elif p.tok == Kdo:
+    elif p.tok.tok == Kdo:
         consume()
         let s = statament()
         if s == nil:
-            parse_error("expect statament")
+            expect("statament")
             return nil
-        if p.tok != Kwhile:
-            parse_error("expect 'while'")
+        if p.tok.tok != Kwhile:
+            expect("'while'")
             return nil
         consume()
-        if p.tok != TLbracket:
-            parse_error("expect '('")
+        if p.tok.tok != TLbracket:
+            expect("'('")
             return nil
         consume()
         let e = expression()
         if e == nil:
-            parse_error("expect expression")
+            expect("expression")
             return nil
-        if p.tok != TRbracket:
-            parse_error("expect ')'")
+        if p.tok.tok != TRbracket:
+            expect("')'")
             return nil
         consume()
-        if p.tok != TSemicolon:
+        if p.tok.tok != TSemicolon:
             error("expect ';'")
             return nil
         consume()
         return Stmt(k: SDoWhile, test: e, body: s)
-    elif p.tok == TIdentifier:
-        var val = p.val.sval
+    elif p.tok.tok == TIdentifier:
+        var val = p.tok.s
         consume()
-        if p.tok == TColon: # # labeled-statement
+        if p.tok.tok == TColon: # # labeled-statement
             consume()
             let s = statament()
             if s == nil:
-                parse_error("expect statament")
+                expect("statament")
                 note("to add a empty statement, use:\n\tlabel: ;")
                 return nil
             putLable(val, 100)
             return Stmt(k: SLabled, label: val, labledstmt: s)
         else: # expression
             putToken()
-            p.tok = TIdentifier
-            p.val.sval = val
+            p.tok = TokenV(tok: TIdentifier, tags: TVSVal, s: val)
     let e = expression()
     if e == nil:
-        parse_error("expect expression")
+        expect("expression")
         return nil
-    if p.tok != TSemicolon:
-        parse_error("expect ';'")
+    if p.tok.tok != TSemicolon:
+        expect("';'")
         return nil
     consume()
     return Stmt(k: SExpr, exprbody: e)

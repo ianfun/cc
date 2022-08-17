@@ -1,10 +1,10 @@
 import "."/[token, lexer, parser]
 
 proc test(testLex = false) =
-    var p = newParser()
+    newParser()
     reset()
     stdinParser()
-    nextTok()
+    getToken()
     while true:
         let e = expression()
         if e == nil:
