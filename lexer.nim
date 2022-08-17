@@ -16,19 +16,31 @@ proc nextTok*()
 
 proc checkMacro()
 
-var f = false
-
 proc getToken*() =
     if len(p.tokenq) == 0:
         nextTok()
     else:
         p.tok = p.tokenq.pop()
     if p.tok.tok == TIdentifier:
-        f = false
         checkMacro()
-        if f:
-            getToken()
-            echo "getToken: ", p.tok[]
+
+proc expand(a: seq[TokenV]): seq[TokenV] = 
+    for t in a:
+        case t.tok:
+        of TIdentifier:
+            if isMacroInUse(t.s):
+                note("self-reference macro " & t.s & " skipped")
+                result &= TokenV(tok: TIdentifier2, tags: TVSVal, s: t.s)
+            else:
+                let m = p.macros.getOrDefault(t.s, nil)
+                beginExpandMacro(t.s)
+                if m != nil:
+                    result &= expand(m.tokens)
+                endExpandMacro(t.s)
+        of TSpace:
+            discard
+        else:
+            result &= t
 
 proc checkMacro() =
     var name = p.tok.s
@@ -36,23 +48,14 @@ proc checkMacro() =
     if m != nil:
         if m.funcmacro == false:
             if len(m.tokens) == 0:
-                f = true
+                getToken()
             else:
                 beginExpandMacro(name)
-                for i in m.tokens:
-                    if i.tok != TSpace:
-                        p.tok = i
-                        if p.tok.tok == TIdentifier:
-                            if isMacroInUse(p.tok.s):
-                                note("self-reference macro " & name & " skipped")
-                                p.tokenq.insert(TokenV(tok: TIdentifier2, tags: TVSVal, s: p.tok.s))
-                            else:
-                                checkMacro()
-                                p.tokenq.insert(p.tok, 0)
-                        else:
-                            p.tokenq.insert(p.tok, 0)
+                let l = expand(m.tokens)
+                for i in l:
+                    p.tokenq.insert(i, 0)
                 endExpandMacro(name)
-                f = true
+                getToken()
         else:
             var my = p.tok
             nextTok()
@@ -109,7 +112,7 @@ proc checkMacro() =
                                     checkMacro()
                                     p.tokenq.insert(p.tok, 0)
                 endExpandMacro(name)
-                f = true
+
             else:
                 putToken()
                 p.tok = my

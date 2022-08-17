@@ -975,9 +975,7 @@ proc primary_expression*(): Expr =
         if p.tok.tok != TRbracket:
             expect("')'")
             return nil
-        echo "eat `)`"
         consume()
-        echo "after: ", len(p.tokenq)
     of K_Generic:
         consume()
         if p.tok.tok != TLbracket:

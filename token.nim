@@ -61,8 +61,8 @@ type Token* = enum
   TNumberLit="<number>",
   TFloatLit="<float>",
   TCharLit="<char>",
-  TIdentifier="<identifier>",
-  TIdentifier2="<<>>",
+  TIdentifier="<identifier1>",
+  TIdentifier2="<identifier>",
   TStringLit="<string>",
   TPPNumber="<pp-number>", # pp-token => pp-number, used by preprocessor
   PPEllipsis="...",
