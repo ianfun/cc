@@ -110,6 +110,9 @@ proc getToken*() =
         p.flags = o
         if p.tok.tok == TNewLine:
             getToken()
+    elif p.tok.tok == PPMacroPop:
+        endExpandMacro(p.tok.s)
+        getToken()
 
 proc paste_token(a, b: TokenV): TokenV =
     var oldp = p
@@ -132,17 +135,19 @@ proc paste_token(a, b: TokenV): TokenV =
         parse_error('\'' & s & "' is an invalid preprocessing token")
         note("after join '##'")
 
-proc concatenation(a: var seq[TokenV]) =
+proc concatenation(a: var seq[TokenV]): bool =
     var i = 0
     while true:
         if i == len(a):
-            return
+            return false
         if a[i].tok == PPSharpSharp:
             break
         inc i
     var start = i - 1
     var last = i + 1
-    let r = paste_token(a[start], a[last])
+    echo "start: ", a[last][]
+    echo "end: ", a[start][]
+    let r = paste_token(a[last], a[start])
     if r.tok != TNul:
         # (start) (i) (last)
         a.del(start)
@@ -150,102 +155,8 @@ proc concatenation(a: var seq[TokenV]) =
         a.del(i-1)
         # (last-2)
         a[last - 2] = r
-
-proc expand(a: seq[TokenV]): seq[TokenV] = 
-    ## expand object-like macro
-    ##
-    ## note: this function ignore all space tokens!    
-    var i = 0
-    for t in a:
-        if i == len(a):
-            break
-        inc i
-        case t.tok:
-        of TIdentifier:
-            if isMacroInUse(t.s):
-                note("self-reference macro " & t.s & " skipped")
-                result &= t
-                result[^1].tok = TIdentifier2
-            else:
-                let m = getMacro(t.s)
-                if m != nil:
-                    case m.flags:
-                    of MOBJ:
-                        beginExpandMacro(t.s)
-                        result &= expand(m.tokens)
-                        endExpandMacro(t.s)
-                    of MFUNC:
-                        echo "A.expand later"
-                        result &= t # expand later
-                    of MPragma:
-                        assert(false)
-                else:
-                    result &= t
-                    result[^1].tok = TIdentifier2
-        of TSpace:
-            discard
-        of PPSharp:
-            parse_error("'#' in object-like macro, ignore it")
-        else:
-            result &= t
-
-    concatenation(result)
-
-proc expand2(a: seq[TokenV], args: seq[seq[TokenV]], params: seq[string]): seq[TokenV] = 
-    ## expand function-like macro
-    ##
-    ## note: this function ignore all space tokens!
-    var i = 0
-    while true:
-        if i == len(a):
-            break
-        var t = a[i]
-        inc i
-        case t.tok:
-        of TIdentifier:
-            let k = params.find(t.s)
-            if k != -1:
-                result &= args[k]
-            elif isMacroInUse(t.s):
-                note("self-reference macro " & t.s & " skipped")
-                result &= t
-                result[^1].tok = TIdentifier2
-            else:
-                let m = getMacro(t.s)
-                if m != nil:
-                    case m.flags:
-                    of MOBJ:
-                        beginExpandMacro(t.s)
-                        result &= expand(m.tokens)
-                        endExpandMacro(t.s)
-                    of MFUNC:
-                        echo "B.expand later!"
-                        result &= t # expand later
-                    of MPragma:
-                        discard
-                else:
-                    result &= t
-                    result[^1].tok = TIdentifier2
-        of TSpace:
-            discard
-        of PPSharp:
-            if i == len(a):
-                parse_error("expect macro parameter after '#', got EOF")
-            else:
-                let n = a[i]
-                if n.tok != TIdentifier:
-                    parse_error("expect macro parameter after '#'")
-                else:
-                    let k = params.find(n.s)
-                    if k == -1:
-                        parse_error(n.s & " is not a found in macro parameters (in argument to '#')")
-                    else:
-                        let r = args[k]
-                        result &= TokenV(tok: TStringLit, tags: TVSVal, s: stringizing(r))
-                        inc i
-        else:
-            result &= t
-        concatenation(result)
+        return true
+    return false
 
 proc removeSpace(a: var seq[TokenV]) =
     if len(a) > 0:
@@ -258,28 +169,46 @@ proc removeSpace(a: var seq[TokenV]) =
             if len(a) == 0:
                 return
 
+proc macroCheck(m: PPMacro, args: var seq[seq[TokenV]], name: string) =
+    for i in mitems(args):
+        removeSpace(i)
+    if len(args[0]) == 0:
+        args.del(0)
+    if m.ivarargs:
+        if len(args) < len(m.params):
+            parse_error("function-like macro " & name & " expect at least " & $len(m.params) & " arguments, but " & $len(args) & " provided")
+            return
+    else:
+        if len(args) != len(m.params):
+            parse_error("function-like macro " & name & " expect " & $len(m.params) & " arguments, but got " & $len(args) & " provided")
+            return
+
 proc checkMacro() =
-    echo "checkMacro: ", p.tok[]
     var name = p.tok.s
     let m = getMacro(name)
     if m != nil:
         case m.flags:
         of MOBJ:
-            echo "object"
             if len(m.tokens) > 0:
                 beginExpandMacro(name)
-                let l = expand(m.tokens)
-                echo "expand: ", len(l)
-                for i in l:
-                    p.tokenq.insert(i, 0)
-                endExpandMacro(name)
+                p.tokenq.add(TokenV(tok: PPMacroPop, tags: TVSVal, s: name))
+                var cp = m.tokens                
+                while concatenation(cp):
+                    discard
+                for i in countdown(len(cp)-1, 0):
+                    let t = cp[i]
+                    if t.tok != TSpace:
+                        if t.tok == TIdentifier:
+                            if isMacroInUse(t.s):
+                                note("self-referential macro '" & t.s & "' skipped")
+                                t.tok = TIdentifier2
+                        p.tokenq.add(t)
             getToken()
         of MFUNC:
-            echo "func"
             var my = p.tok
-            nextTok()
+            getToken()
             if p.tok.tok == TLbracket:
-                nextTok()
+                getToken()
                 var args: seq[seq[TokenV]]
                 args.add(default(seq[TokenV]))
                 while true:
@@ -296,29 +225,49 @@ proc checkMacro() =
                         eat()
                     else:
                         args[^1].add(p.tok)
-                    nextTok()
-                for i in mitems(args):
-                    removeSpace(i)
-                if len(args[0]) == 0:
-                    args.del(0)
-                if m.ivarargs:
-                    if len(args) < len(m.params):
-                        parse_error("function-like macro " & name & " expect at least " & $len(m.params) & " arguments, but " & $len(args) & " provided")
-                        return
-                else:
-                    if len(args) != len(m.params):
-                        parse_error("function-like macro " & name & " expect " & $len(m.params) & " arguments, but got " & $len(args) & " provided")
-                        return
+                    getToken()
+                macroCheck(m, args, name)
                 if len(m.tokens) > 0:
+                    var cp: seq[TokenV]
+                    for i in m.tokens:
+                        if i.tok != TSpace:
+                            cp.add(i)
+                    var i = len(cp)
+                    var s: seq[TokenV]
                     beginExpandMacro(name)
-                    let l = expand2(m.tokens, args=args, params=m.params)
-                    echo "expand2: ", len(l)
-                    for i in l:
-                        p.tokenq.insert(i, 0)
-                    endExpandMacro(name)
+                    while true:
+                        dec i
+                        let t = cp[i]
+                        case t.tok:
+                        of TSpace:
+                            discard
+                        of TIdentifier:
+                            let k = m.params.find(t.s)
+                            if k != -1:
+                                if i > 0 and cp[i-1].tok == PPSharp:
+                                    s.add(TokenV(tok: TStringLit, tags: TVSVal, s: stringizing(args[k])))
+                                    dec i
+                                else:
+                                    for j in args[k]:
+                                        s.add(j)
+                            else:
+                                if isMacroInUse(t.s):
+                                    note("self-referential macro '" & t.s & "' skipped")
+                                    t.tok = TIdentifier2
+                                s.add(t)
+                        else:
+                            s.add(t)
+                        if i == 0:
+                            break
+                    while concatenation(s):
+                        discard
+                    
+                    p.tokenq.add(TokenV(tok: PPMacroPop, tags: TVSVal, s: name))
+                    for i in s:
+                        p.tokenq.add(i)
                 getToken()
             else:
-                echo "not-expand: ", p.tok[]
+                echo "not expand: reason: ", p.tok[]
                 if p.tok.tok != TNewLine:
                     putToken()
                 p.tok = my
@@ -326,7 +275,6 @@ proc checkMacro() =
         of MPragma:
             discard
     else:
-        echo "not"
         p.tok.tok = TIdentifier2
 
 import eval
@@ -1270,7 +1218,6 @@ proc nextTok*() =
         if p.c == '\n':
             if p.flags == PFPP:
                 p.flags = PFNormal
-                echo "new-line detected!"
                 p.tok = TokenV(tok: TNewLine, tags: TVNormal)
                 return
             eat()

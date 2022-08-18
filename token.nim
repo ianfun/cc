@@ -69,6 +69,7 @@ type Token* = enum
   PPPlaceholder="<placeholder>",
   PPSharp="#",
   PPSharpSharp="##",
+  PPMacroPop="<pop>",
   TEOF="<EOF>"
 
 const tyCounter = CacheCounter"tyCounter"

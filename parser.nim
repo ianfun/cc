@@ -949,8 +949,12 @@ proc primary_expression*(): Expr =
         result = Expr(k: EFloatLit, fval: p.tok.f)
         consume()
     of TStringLit:
-        result = Expr(k: EStringLit, sval: p.tok.s)
-        consume()
+        result = Expr(k: EStringLit)
+        while true:
+            result.sval.add(p.tok.s)
+            consume()
+            if p.tok.tok != TStringLit:
+                break
     of TPPNumber:
         var f: float
         var n: int
@@ -964,7 +968,7 @@ proc primary_expression*(): Expr =
             assert ok == 1
             result = Expr(k: EIntLit, ival: n)
             consume()
-    of TIdentifier2:
+    of TIdentifier2, TIdentifier:
         result = Expr(k: EVar, sval: p.tok.s)
         consume()
     of TLbracket:
