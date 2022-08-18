@@ -208,6 +208,7 @@ type
       tags*: seq[TableRef[string, (CType, Location)]]
       typedefs*: seq[TableRef[string, (CType, Location)]]
       tokenq*: seq[TokenV]
+      counter*: int
     CTypeSpec* = enum
       TYPRIM,
       TYPOINTER,
@@ -818,6 +819,7 @@ proc stdinParser*() =
   p.fs_read = fs_read_stdin
 
 proc reset*() =
+  p.counter = 0
   p.tok = TokenV(tok: TNul, tags: TVNormal)
   p.col = 1
   p.line = 1

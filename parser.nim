@@ -804,6 +804,7 @@ proc cast_expression*(): Expr =
         consume()
         if istype(p.tok.tok):
             let (n, isf) = type_name()
+            discard isf
             if n == nil:
                 return nil
             if p.tok.tok != TRbracket:
