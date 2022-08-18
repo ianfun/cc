@@ -2,7 +2,6 @@ import "."/[token, lexer, parser]
 
 proc test(testLex = false) =
     newParser()
-    reset()
     stdinParser()
     getToken()
     while true:

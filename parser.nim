@@ -652,7 +652,7 @@ proc parameter_type_list*(): (bool, seq[(string, CType)]) =
             break
         if p.tok.tok == TComma:
             consume()
-        if p.tok.tok == PPEllipsis:
+        if p.tok.tok == TEllipsis:
             result[1].add(("", nil))
             consume()
             break

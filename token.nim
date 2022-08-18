@@ -9,7 +9,7 @@ type
   intmax_t* = int64
 
 type Token* = enum
-  TNul=0,
+  TNul=0, TNewLine=int('\n'),
 #    ' '             !      "
   TSpace=int(' '), TNot, TDoubleQ,
 #    #               $        %        &         '           (          )        *    +      ,       -      .     /
@@ -57,7 +57,8 @@ type Token* = enum
   TAsignBitAnd="&=",
   TAsignBitOr="|=",
   TAsignBitXor="^=",
-
+  
+  TEllipsis="...", # varargs
   TNumberLit="<number>",
   TFloatLit="<float>",
   TCharLit="<char>",
@@ -65,7 +66,7 @@ type Token* = enum
   TIdentifier2="<identifier>",
   TStringLit="<string>",
   TPPNumber="<pp-number>", # pp-token => pp-number, used by preprocessor
-  PPEllipsis="...",
+  PPPlaceholder="<placeholder>",
   PPSharp="#",
   PPSharpSharp="##",
   TEOF="<EOF>"
@@ -163,13 +164,15 @@ type
       OAsignBitXor="^=",
       Comma=","
     Codepoint* = uint32
+    PPMacroFlags* = enum
+      MOBJ, MPragma, MFUNC
     PPMacro* = ref object
       tokens*: seq[TokenV]
-      case funcmacro*: bool # if a object like macro?
-      of true:
+      case flags*: PPMacroFlags # if a object like macro?
+      of MFUNC:
         params*: seq[string]
         ivarargs*: bool
-      of false:
+      of MOBJ, MPragma:
         discard
     ParseFlags* = enum
       PFNormal=1, PFPP=2
@@ -689,9 +692,6 @@ iterator getDefines*(): (string, seq[TokenV]) =
     TokenV(tok: TSpace, tags: TVNormal)
   proc empty(): seq[TokenV] =
     discard
-  let n = now()
-  yield ("__DATE__", @[str(n.format(initTimeFormat("MMM dd yyyy")))])
-  yield ("__TIME__", @[str(n.format(initTimeFormat("hh:mm:ss")))])
   yield ("__STDC__", @[num("1")])
   yield ("__STDC_VERSION__", @[num("201710L")])
   yield ("__STDC_HOSTED__", @[num("1")])
@@ -749,8 +749,8 @@ proc tokensEq(a, b: seq[TokenV]): bool =
   return true
 
 proc ppMacroEq(a, b: PPMacro): bool =
-  result = (a.funcmacro == b.funcmacro) and
-  (if a.funcmacro: (a.ivarargs == b.ivarargs) else: true) and
+  result = (a.flags == b.flags) and
+  (if a.flags == MFUNC: (a.ivarargs == b.ivarargs) else: true) and
   tokensEq(a.tokens, b.tokens)  
 
 proc macro_define*(name: string, m: PPMacro) =
@@ -846,7 +846,7 @@ proc reset*() =
   p.lables.add(newTable[string, typeof(p.lables[0][""])]())
   p.tokenq.setLen 0
   for (name, v) in getDefines():
-    p.macros[name] = PPMacro(tokens: v, funcmacro: false)
+    p.macros[name] = PPMacro(tokens: v, flags: MOBJ)
 
 proc newParser*() =
   ## create a Parser, and call `setParser proc<#setParser,Parser>`_, then call `reset proc<#reset>`_
@@ -994,7 +994,7 @@ proc addInclude*(filename: string): bool =
     return true
 
 proc putToken*() = 
-    echo "putToken"
+    echo "putToken: ", p.tok[]
     p.tokenq.add(p.tok)
 
 proc beginExpandMacro*(a: string) =
@@ -1006,4 +1006,20 @@ proc endExpandMacro*(a: string) =
 proc isMacroInUse*(a: string): bool =
   p.expansion_list.contains(a)
 
-
+proc getMacro*(name: string): PPMacro =
+  case name:
+  of "__COUNTER__":
+    result = PPMacro(tokens: @[TokenV(tok: TPPNumber, tags: TVSVal, s: $p.counter)], flags: MOBJ)
+    inc p.counter
+  of "__LINE__":
+    result = PPMacro(tokens: @[TokenV(tok: TPPNumber, tags: TVSVal, s: $p.line)], flags: MOBJ)
+  of "__FILE__":
+    result = PPMacro(tokens: @[TokenV(tok: TStringLit, tags: TVSVal, s: p.filename)], flags: MOBJ)
+  of "__DATE__":
+    let n = now()
+    result = PPMacro(tokens: @[TokenV(tok: TStringLit, tags: TVSVal, s: n.format(initTimeFormat("MMM dd yyyy")))], flags: MOBJ)
+  of "__TIME__":
+    let n = now()
+    result = PPMacro(tokens: @[TokenV(tok: TStringLit, tags: TVSVal, s: n.format(initTimeFormat("hh:mm:ss")))], flags: MOBJ)
+  else:
+    result = p.macros.getOrDefault(name, nil)
