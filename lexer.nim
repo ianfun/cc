@@ -23,7 +23,10 @@ proc getToken*() =
     else:
         p.tok = p.tokenq.pop()
     if p.tok.tok == TIdentifier:
+        let o = p.flags
+        p.flags = PFPP
         checkMacro()
+        p.flags = o
 
 proc expand(a: seq[TokenV]): seq[TokenV] = 
     ## expand object-like macro
@@ -50,7 +53,7 @@ proc expand(a: seq[TokenV]): seq[TokenV] =
         else:
             result &= t
 
-proc isprint*(a: cint): cint {.importc: "isprint", nodecl, header: "ctypes.h".}
+proc isprint*(a: cint): cint {.importc: "isprint", nodecl, header: "ctype.h".}
 
 const hexs*: cstring = "0123456789ABCDEF"
 
