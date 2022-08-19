@@ -1,14 +1,10 @@
 import "."/[token, lexer, parser]
 
-proc test(testLex = false) =
-    newParser()
-    stdinParser()
-    getToken()
-    while true:
-        let e = expression()
-        if e == nil:
-            break
-        echo e.k
-        echo e
-    closeParser()
-test(false)
+newParser()
+stdinParser()
+getToken()
+#while p.tok.tok != TEOF:
+#    echo showToken()
+#    getToken()
+discard translation_unit()
+closeParser()

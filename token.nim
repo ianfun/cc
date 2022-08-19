@@ -23,7 +23,7 @@ type Token* = enum
 
   T255=255,
 
-  Kauto="auto", Kfor="for", 
+  Kauto="auto", Kfor="for",
   Kgoto="goto", Kif="if", Kinline="inline", 
   Kint="int", Kchar="char", Klong="long", 
   Kregister="register", Krestrict="restrict", 
@@ -62,8 +62,8 @@ type Token* = enum
   TNumberLit="<number>",
   TFloatLit="<float>",
   TCharLit="<char>",
-  TIdentifier="<identifier1>",
-  TIdentifier2="<identifier>",
+  TIdentifier="<identifier>",
+  CPPIdent="<CPPident>",
   TStringLit="<string>",
   TPPNumber="<pp-number>", # pp-token => pp-number, used by preprocessor
   PPPlaceholder="<placeholder>",
@@ -166,14 +166,16 @@ type
       Comma=","
     Codepoint* = uint32
     PPMacroFlags* = enum
-      MOBJ, MPragma, MFUNC
+      MOBJ, MFUNC, MBuiltin
     PPMacro* = ref object
       tokens*: seq[TokenV]
       case flags*: PPMacroFlags # if a object like macro?
       of MFUNC:
         params*: seq[string]
         ivarargs*: bool
-      of MOBJ, MPragma:
+      of MBuiltin:
+        fn*: proc ()
+      of MOBJ:
         discard
     ParseFlags* = enum
       PFNormal=1, PFPP=2
@@ -301,7 +303,7 @@ type
     ExprKind* = enum
       EBin, EUnary, EPostFix, EIntLit, ECharLit, EFloatLit, EStringLit, 
       ESizeOf, EVar, ECondition, ECast, ECall, ESubscript, 
-      EAlignof, EGeneric, EInitializer_list
+      EAlignof, EGeneric, EInitializer_list, ECppVar
     Expr* = ref object
       case k*: ExprKind
       of EBin:
@@ -317,7 +319,7 @@ type
         ival*: int
       of EFloatLit:
         fval*: float
-      of EStringLit, EVar:
+      of EStringLit, EVar, ECppVar:
         sval*: string
       of ECondition:
         cond*: Expr
@@ -454,7 +456,7 @@ proc `$`*(a: Stmt): string =
   of SSemicolon:
     ";"
   of SExpr:
-    $a.exprbody
+    $a.exprbody & ';'
   of SReturn:
     if a.exprbody == nil:
       "return;"
@@ -555,7 +557,7 @@ proc `$`*(e: Expr): string =
     $e.ival
   of EFloatLit:
     $e.fval
-  of EVar:
+  of EVar, ECppVar:
     e.sval
   of EStringLit:
     '"' & (e.sval) & '"'
@@ -578,16 +580,21 @@ proc `$`*(e: Expr): string =
 
 proc showToken*(): string =
   case p.tok.tok:
-  of TNumberLit: "number => " & $p.tok.i
-  of TCharLit: "char => " & show(char(p.tok.i))
-  of TIdentifier: "identifier => " & p.tok.s
-  of TFloatLit: "float => " & $p.tok.f
-  of TStringLit: "UTF " & $p.tok.i & " string => " & p.tok.s
+  of TNumberLit: $p.tok.i
+  of TPPNumber: p.tok.s
+  of TCharLit: show(char(p.tok.i))
+  of TIdentifier: p.tok.s
+  of TFloatLit: $p.tok.f
+  of TStringLit: '"' & p.tok.s & '"'
+  of TEOF: "<EOF>"
+  of TNul: "<null>"
   else:
     if p.tok.tok < T255:
-      "token => " & show(chr(int(p.tok.tok)))
+      '\'' & show(chr(int(p.tok.tok))) & '\''
     else:
-      "keyword => " & $p.tok.tok
+      $p.tok.tok
+
+
 
 proc `$`*(loc: Location): string =
   $loc.line & ':' & $loc.col
@@ -995,7 +1002,6 @@ proc addInclude*(filename: string): bool =
     return true
 
 proc putToken*() = 
-    echo "putToken: ", p.tok[]
     p.tokenq.add(p.tok)
 
 proc beginExpandMacro*(a: string) =
@@ -1006,21 +1012,3 @@ proc endExpandMacro*(a: string) =
 
 proc isMacroInUse*(a: string): bool =
   p.expansion_list.contains(a)
-
-proc getMacro*(name: string): PPMacro =
-  case name:
-  of "__COUNTER__":
-    result = PPMacro(tokens: @[TokenV(tok: TPPNumber, tags: TVSVal, s: $p.counter)], flags: MOBJ)
-    inc p.counter
-  of "__LINE__":
-    result = PPMacro(tokens: @[TokenV(tok: TPPNumber, tags: TVSVal, s: $p.line)], flags: MOBJ)
-  of "__FILE__":
-    result = PPMacro(tokens: @[TokenV(tok: TStringLit, tags: TVSVal, s: p.filename)], flags: MOBJ)
-  of "__DATE__":
-    let n = now()
-    result = PPMacro(tokens: @[TokenV(tok: TStringLit, tags: TVSVal, s: n.format(initTimeFormat("MMM dd yyyy")))], flags: MOBJ)
-  of "__TIME__":
-    let n = now()
-    result = PPMacro(tokens: @[TokenV(tok: TStringLit, tags: TVSVal, s: n.format(initTimeFormat("hh:mm:ss")))], flags: MOBJ)
-  else:
-    result = p.macros.getOrDefault(name, nil)

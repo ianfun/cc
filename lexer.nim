@@ -8,13 +8,59 @@
 ## for details
 
 import token, pragmas
-import std/[unicode, math, streams]
+import std/[unicode, math, streams, times, tables]
+
+proc getToken*()
 
 proc eat*()
 
 proc isprint*(a: cint): cint {.importc: "isprint", nodecl, header: "ctype.h".}
 
 const hexs*: cstring = "0123456789ABCDEF"
+
+
+proc builtin_Pragma() =
+  getToken()
+  if p.tok.tok != TLbracket:
+      parse_error("expect ')'")
+      note("the syntax is:\n\t_Pragma(<string>)")
+  else:
+      getToken()
+      if p.tok.tok != TStringLit:
+          parse_error("expect string literal")
+          note("the syntax is:\n\t_Pragma(<string>)")
+      else:
+          var pra = p.tok.s
+          getToken()
+          if p.tok.tok != TRbracket:
+              parse_error("expect ')'")
+          else:
+              echo "pragma: ", pra
+              getToken()
+
+
+proc getMacro*(name: string): PPMacro =
+  case name:
+  of "__COUNTER__":
+    result = PPMacro(tokens: @[TokenV(tok: TPPNumber, tags: TVSVal, s: $p.counter)], flags: MOBJ)
+    inc p.counter
+  of "__LINE__":
+    result = PPMacro(tokens: @[TokenV(tok: TPPNumber, tags: TVSVal, s: $p.line)], flags: MOBJ)
+  of "__FILE__":
+    result = PPMacro(tokens: @[TokenV(tok: TStringLit, tags: TVSVal, s: p.filename)], flags: MOBJ)
+  of "__DATE__":
+    let n = now()
+    result = PPMacro(tokens: @[TokenV(tok: TStringLit, tags: TVSVal, s: n.format(initTimeFormat("MMM dd yyyy")))], flags: MOBJ)
+  of "__TIME__":
+    let n = now()
+    result = PPMacro(tokens: @[TokenV(tok: TStringLit, tags: TVSVal, s: n.format(initTimeFormat("hh:mm:ss")))], flags: MOBJ)
+  of "_Pragma":
+    result = PPMacro(flags: MBuiltin, fn: builtin_Pragma)
+  else:
+    result = p.macros.getOrDefault(name, nil)
+
+
+
 
 proc reverse(a: var string) =
     var l = len(a) - 1
@@ -71,7 +117,7 @@ proc stringizing*(a: TokenV): string =
             discard
         of TSpace:
             result.add(" ")
-        of TIdentifier, TIdentifier2, TPPNumber: # TODO: remove TIdentifier case
+        of TIdentifier, CPPIdent, TPPNumber:
             result.add(a.s)
         of TStringLit:
             result.add(stringizing(a.s))
@@ -98,12 +144,12 @@ proc nextTok*()
 proc checkMacro()
 
 proc getToken*() =
-    ## read a token from lexer, if detect a macro, expand to lex stream
+    ## CPP layer(Preprocessing)
     if len(p.tokenq) == 0:
         nextTok()
     else:
         p.tok = p.tokenq.pop()
-    if p.tok.tok == TIdentifier:
+    if p.tok.tok == CPPIdent:
         let o = p.flags
         p.flags = PFPP
         checkMacro()
@@ -136,17 +182,19 @@ proc paste_token(a, b: TokenV): TokenV =
         note("after join '##'")
 
 proc concatenation(a: var seq[TokenV]): bool =
-    var i = 0
+    if len(a) <= 2:
+        return false
+    var i = len(a)
     while true:
-        if i == len(a):
-            return false
+        dec i
         if a[i].tok == PPSharpSharp:
             break
-        inc i
+        if i == 0:
+            return false
+    if i == 0 or (i+1) == len(a):
+        return false
     var start = i - 1
     var last = i + 1
-    echo "start: ", a[last][]
-    echo "end: ", a[start][]
     let r = paste_token(a[last], a[start])
     if r.tok != TNul:
         # (start) (i) (last)
@@ -169,7 +217,7 @@ proc removeSpace(a: var seq[TokenV]) =
             if len(a) == 0:
                 return
 
-proc macroCheck(m: PPMacro, args: var seq[seq[TokenV]], name: string) =
+proc macroCheck(m: PPMacro, args: var seq[seq[TokenV]], name: string): bool =
     for i in mitems(args):
         removeSpace(i)
     if len(args[0]) == 0:
@@ -177,11 +225,12 @@ proc macroCheck(m: PPMacro, args: var seq[seq[TokenV]], name: string) =
     if m.ivarargs:
         if len(args) < len(m.params):
             parse_error("function-like macro " & name & " expect at least " & $len(m.params) & " arguments, but " & $len(args) & " provided")
-            return
+            return false
     else:
         if len(args) != len(m.params):
             parse_error("function-like macro " & name & " expect " & $len(m.params) & " arguments, but got " & $len(args) & " provided")
-            return
+            return false
+    return true
 
 proc checkMacro() =
     var name = p.tok.s
@@ -198,10 +247,10 @@ proc checkMacro() =
                 for i in countdown(len(cp)-1, 0):
                     let t = cp[i]
                     if t.tok != TSpace:
-                        if t.tok == TIdentifier:
+                        if t.tok == CPPIdent:
                             if isMacroInUse(t.s):
                                 note("self-referential macro '" & t.s & "' skipped")
-                                t.tok = TIdentifier2
+                                t.tok = TIdentifier
                         p.tokenq.add(t)
             getToken()
         of MFUNC:
@@ -226,7 +275,8 @@ proc checkMacro() =
                     else:
                         args[^1].add(p.tok)
                     getToken()
-                macroCheck(m, args, name)
+                if macroCheck(m, args, name) == false:
+                    return
                 if len(m.tokens) > 0:
                     var cp: seq[TokenV]
                     for i in m.tokens:
@@ -241,7 +291,7 @@ proc checkMacro() =
                         case t.tok:
                         of TSpace:
                             discard
-                        of TIdentifier:
+                        of CPPIdent:
                             let k = m.params.find(t.s)
                             if k != -1:
                                 if i > 0 and cp[i-1].tok == PPSharp:
@@ -253,7 +303,7 @@ proc checkMacro() =
                             else:
                                 if isMacroInUse(t.s):
                                     note("self-referential macro '" & t.s & "' skipped")
-                                    t.tok = TIdentifier2
+                                    t.tok = TIdentifier
                                 s.add(t)
                         else:
                             s.add(t)
@@ -267,15 +317,14 @@ proc checkMacro() =
                         p.tokenq.add(i)
                 getToken()
             else:
-                echo "not expand: reason: ", p.tok[]
                 if p.tok.tok != TNewLine:
                     putToken()
                 p.tok = my
-                p.tok.tok = TIdentifier2
-        of MPragma:
-            discard
+                p.tok.tok = TIdentifier
+        of MBuiltin:
+            m.fn()
     else:
-        p.tok.tok = TIdentifier2
+        p.tok.tok = TIdentifier
 
 import eval
 
@@ -295,7 +344,6 @@ proc do_eat*() =
     if p.c == '/':
         lowleveleat()
         if p.c == '*':
-            note("C++ style-comment")
             while true:
                 lowleveleat()
                 if p.c == '*':
@@ -307,7 +355,6 @@ proc do_eat*() =
                     parse_error("expect '*/' before EOF")
                     return
         elif p.c == '/':
-            note("C style-comment")
             while true:
                 lowleveleat()
                 if p.c == '\n' or p.c == '\0':
@@ -463,6 +510,7 @@ proc readIdentLit() =
             p.tok.s.add(Rune(codepoint).toUTF8)
         else:
             parse_error("invalid escape in identifier")
+            return
       else:
         if not (isalnum(p.c) or (uint8(p.c) and 0x80'u8) != 0 or p.c == '$' or p.c == '_'):
             break
@@ -904,6 +952,7 @@ proc readPPNumber() =
             p.tok.s.add(p.c)
             if p.c notin {'a'..'z', 'A'..'Z', '_'}:
                 break
+            eat()
     # universal-character-name
     elif p.c == '\\':
         eat()
@@ -912,14 +961,13 @@ proc readPPNumber() =
         let c = readUChar(n)
         p.tok.s.add(Rune(c).toUTF8)
 
-proc skipLine(warn: bool = true) =
+proc skipLine() =
     while p.c != '\n' and p.c != '\0':
-        if warn:
-          warning("extra tokens found")
         eat()
     p.flags = PFNormal
 
 proc nextTok*() =
+    ## Tokenize
     while true:
         if p.c in CSkip:
             while true:
@@ -942,7 +990,7 @@ proc nextTok*() =
             eat()
             p.flags = PFPP
             nextTok() # directive
-            if p.tok.tok != TIdentifier:
+            if p.tok.tok != CPPIdent:
                 p.flags = PFNormal
                 parse_error("invalid preprocessing directive: expect an identifier")
                 return
@@ -951,7 +999,7 @@ proc nextTok*() =
                 nextTok() # name
                 while p.tok.tok == TSpace:
                     nextTok()
-                if p.tok.tok != TIdentifier:
+                if p.tok.tok != CPPIdent:
                     p.flags = PFNormal
                     parse_error("macro name should be a identifier, got " & showToken())
                     note("the syntax is:\n\t#define identifier replacement-list\n\t#define identifier(identifier-list) replacement-list")
@@ -962,7 +1010,7 @@ proc nextTok*() =
                 if m.flags == MFUNC:
                     while true:
                         nextTok()
-                        if p.tok.tok == TIdentifier:
+                        if p.tok.tok == CPPIdent:
                             m.params.add(p.tok.s)
                             nextTok()
                             if p.tok.tok == TRbracket:
@@ -991,7 +1039,7 @@ proc nextTok*() =
                                 p.flags = PFNormal
                                 return
                             break
-                        elif p.tok.tok == TIdentifier and p.tok.s == "__VA_ARGS__":
+                        elif p.tok.tok == CPPIdent and p.tok.s == "__VA_ARGS__":
                             m.ivarargs = true
                             nextTok()
                             if p.tok.tok != TRbracket:
@@ -1029,17 +1077,17 @@ proc nextTok*() =
                     parse_error("expect constant_expression")
                     ok = false
                 else:
-                    var f = p.flags
-                    p.flags = PFPP
                     ok = eval_const_expression_bool(e)
-                    p.flags = f
                 p.ppstack.add(if ok: 1 else: 0)
                 p.ok = ok
                 skipLine()
             of "ifdef", "ifndef":
                 let ndef = p.tok.s == "ifndef"
                 nextTok()
-                if p.tok.tok != TIdentifier:
+                while p.tok.tok == TSpace:
+                    nextTok()
+                if p.tok.tok != CPPIdent:
+                    echo p.tok[]
                     p.flags = PFNormal
                     parse_error("expect identifier")
                     note("the syntax is:\n\t#ifdef identifier\n\t#ifndef identifier")
@@ -1076,10 +1124,7 @@ proc nextTok*() =
                         parse_error("expect constant_expression")
                         ok = false
                     else:
-                        var f = p.flags
-                        p.flags = PFPP
                         ok = eval_const_expression_bool(e)
-                        p.flags = f
                     p.ok = ok
                 else:
                     p.ok = false
@@ -1168,7 +1213,9 @@ proc nextTok*() =
                     skipLine()
             of "undef":
                 nextTok()
-                if p.tok.tok != TIdentifier:
+                while p.tok.tok == TSpace:
+                    nextTok()
+                if p.tok.tok != CPPIdent:
                     p.flags = PFNormal
                     parse_error("macro name should be a identifier")
                     note("the syntax is: #undef identifier")
@@ -1181,10 +1228,11 @@ proc nextTok*() =
                 while true:
                     if p.flags != PFPP:
                         break
-                    pragmas.add(p.tok)
+                    if p.tok.tok != TSpace:
+                        pragmas.add(p.tok)
                     nextTok()
                 pragma(pragmas)
-                skipLine(false)
+                skipLine()
             of "error", "warning":
                 var s: string
                 let iswarning = p.tok.s == "warning"
@@ -1199,10 +1247,10 @@ proc nextTok*() =
                     warning("#warning: " & s)
                 else:
                     parse_error("#error: " & s)
-                skipLine(false)
+                skipLine()
             else:
                 parse_error("invalid directive: " & p.tok.s)
-                skipLine(false)
+                skipLine()
             eat()
             continue
         if p.flags == PFNormal and p.ok == false:
@@ -1237,19 +1285,19 @@ proc nextTok*() =
             elif p.c == '8':
                 eat()
                 if p.c != '"':
-                    p.tok = TokenV(tok: TIdentifier, tags: TVSVal, s: "u8")
+                    p.tok = TokenV(tok: CPPIdent, tags: TVSVal, s: "u8")
                     readIdentLit()
                 else:
                     eat()
                     readStringLit(8)
             else:
-                p.tok = TokenV(tok: TIdentifier, tags: TVSVal, s: "u")
+                p.tok = TokenV(tok: CPPIdent, tags: TVSVal, s: "u")
                 readIdentLit()
             return
         of 'U':
           eat()
           if p.c != '"':
-            p.tok = TokenV(tok: TIdentifier, tags: TVSVal, s: "U")
+            p.tok = TokenV(tok: CPPIdent, tags: TVSVal, s: "U")
             readIdentLit()
           else:
             eat()
@@ -1258,7 +1306,7 @@ proc nextTok*() =
         of 'L':
             eat()
             if p.c != '"':
-                p.tok = TokenV(tok: TIdentifier, tags: TVSVal, s: "L")
+                p.tok = TokenV(tok: CPPIdent, tags: TVSVal, s: "L")
                 readIdentLit()
             else:
                 eat()
@@ -1268,7 +1316,7 @@ proc nextTok*() =
             discard
 
         if p.c in {'a'..'z', 'A'..'Z', '\x80' .. '\xFD', '_', '$', '\\'}:
-            p.tok = TokenV(tok: TIdentifier, tags: TVSVal, s: "")
+            p.tok = TokenV(tok: CPPIdent, tags: TVSVal, s: "")
             readIdentLit()
             return
         case p.c:

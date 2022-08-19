@@ -430,6 +430,9 @@ proc direct_declarator*(base: CType; flags=Direct): Stmt =
     of TLbracket:
         consume()
         let st = declarator(base, flags)
+        if st == nil:
+            expect("declarator")
+            return nil
         if p.tok.tok != TRbracket:
             expect("')'")
             return nil
@@ -464,11 +467,15 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
             if p.tok.tok == Kstatic:
                 ty.tags = ty.tags or TYSTATIC
                 consume()
-        let e = assignment_expression()
-        ty.arrsize = eval_const_expression(e)
         if p.tok.tok != TRSquareBrackets:
-          error("expect ']'")
-          return nil
+            let e = assignment_expression()
+            if e == nil:
+                expect("expression")
+                return nil
+            ty.arrsize = eval_const_expression(e)
+            if p.tok.tok != TRSquareBrackets:
+               error("expect ']'")
+               return nil
         consume() # eat ]
         return direct_declarator_end(ty, name)
     of TLbracket:
@@ -968,8 +975,11 @@ proc primary_expression*(): Expr =
             assert ok == 1
             result = Expr(k: EIntLit, ival: n)
             consume()
-    of TIdentifier2, TIdentifier:
+    of TIdentifier:
         result = Expr(k: EVar, sval: p.tok.s)
+        consume()
+    of CPPident:
+        result = Expr(k: ECppVar, sval: p.tok.s)
         consume()
     of TLbracket:
         consume()

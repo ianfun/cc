@@ -96,11 +96,11 @@ proc evali*(e: Expr): intmax_t =
   of EInitializer_list:
     echo "bad init"
     0
+  of ECppVar:
+    0
   of EVar:
-    if p.flags == PFPP:
-      0
-    else:
-      0
+    echo "bad var"
+    0
 
 proc eval_const_expression*(e: Expr): intmax_t =
   evali(e)
