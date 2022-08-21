@@ -7,8 +7,8 @@
 ##  <https://gcc.gnu.org/onlinedocs/gcc-10.4.0/cpp/> 
 ## for details
 
-import token, pragmas
-import std/[unicode, math, streams, times, tables]
+import stream, token, pragmas
+import std/[unicode, math, times, tables]
 
 proc getToken*()
 
@@ -58,9 +58,6 @@ proc getMacro*(name: string): PPMacro =
     result = PPMacro(flags: MBuiltin, fn: builtin_Pragma)
   else:
     result = p.macros.getOrDefault(name, nil)
-
-
-
 
 proc reverse(a: var string) =
     var l = len(a) - 1
@@ -162,7 +159,7 @@ proc getToken*() =
 
 proc paste_token(a, b: TokenV): TokenV =
     var oldp = p
-    p = Parser(filenamestack: @["##"], pathstack: @["##"], flags: PFPP, line: 1, col: 1, ok: true, err: false, c: ' ', lastc: 256, fs_read: fs_read)
+    p = Parser(filenamestack: @["##"], pathstack: @["##"], flags: PFPP, line: 1, col: 1, ok: true, err: false, c: ' ', lastc: 256)
     p.tok = TokenV(tok: TNul, tags: TVNormal)
     result = TokenV(tok: TNul, tags: TVNormal)
     let s = stringizing(a) & stringizing(b)
@@ -331,12 +328,8 @@ import eval
 proc isalnum*(c: char): bool =
     return c in {'A'..'Z', 'a'..'z', '0'..'9'}
 
-proc lowleveleat*() =
-    ## LF, CR LF, CR is ok
-    p.fs_read()
-    inc p.col
-    if p.c == '\n':
-        resetLine()
+proc lowleveleat() =
+    fs_read()
 
 
 proc do_eat*() =
@@ -398,6 +391,36 @@ proc readHexChar(): Codepoint =
         else:
             return n
         eat()
+
+proc readFloatSuffix() =
+    if p.c == 'F' or p.c == 'f':
+        p.tok.ftag = Ffloat
+
+proc readSuffix() =
+    if p.c == 'U' or p.c == 'u':
+        case p.tok.itag:
+        of Iint:
+            p.tok.itag = Iuint
+        of Ilong:
+            p.tok.itag = Iulong
+        of Ilonglong:
+            p.tok.itag = Iulonglong
+        else:
+            parse_error("double 'u' suffix in integer constant")
+            return
+    else:
+        case p.tok.itag:
+        of Iint:
+            p.tok.itag = Ilong
+        of Iuint:
+            p.tok.itag = Iulong
+        of Ilong:
+            p.tok.itag = Ilonglong
+        of Iulong:
+            p.tok.itag = Iulonglong
+        of Ilonglong, Iulonglong:
+            parse_error("more than 2 'l' suffix in integer constant")
+            return
 
 proc validUCN(codepoint: Codepoint) =
     if codepoint > 0x10FFFF:
@@ -479,8 +502,8 @@ proc readEscape(): Codepoint =
         eat()
         return c
 
-proc readCharLit() =
-    p.tok = TokenV(tok: TCharLit, tags: TVIVal)
+proc readCharLit(tag: ITag = Iint) =
+    p.tok = TokenV(tok: TCharLit, tags: TVIVal, itag: tag)
     eat() # eat '
     if p.c == '\\':
         let codepoint = readEscape()
@@ -611,18 +634,28 @@ proc read_pp_float(s: string, o: var float, c: int, base: int, init = 0.0): int 
                 f *= fr
         else:
             f *= pow(2, if negate: -float(powerby) else: float(powerby))
-    while true:
-        if i == len(s):
-            break
+    result = 2
+    if i != len(s):
         if s[i] notin {'f', 'F', 'L', 'l'}:
             parse_error("invalid float suffix: " & s[i])
             return 0
-        inc i
+        if s[i] == 'F' or s[i] == 'f':
+            result = 3
     o = f
-    return 2
+    return result
 
 # attempt to paser pp-number to int
-# return 0 if failed, 1 if is a integer, 2 if is a float
+# return value
+#   * 0: <failed>
+#   * 1: int
+#   * 2: double
+#   * 3: float
+#   * 4: long
+#   * 5: long long
+#   * 6: unsigned long
+#   * 7: unsigned long long
+#   * 8: unsigned int
+
 proc read_pp_number*(s: string, f: var float, n: var int): int =
     var base = 10
     var i = 0
@@ -684,10 +717,10 @@ proc read_pp_number*(s: string, f: var float, n: var int): int =
         parse_error("invalid binary number suffix: " & s[i])
     if s[i] == '.':
         return read_pp_float(s, f, i+1, base=base, init=float(num))
-    var isfloat = 0
+    result = 1
     case s[i]:
     of 'E', 'e', 'P', 'p':
-        isfloat = 1
+        result = 2
         inc i
         if i == len(s):
             parse_error("expect exponents")
@@ -729,22 +762,60 @@ proc read_pp_number*(s: string, f: var float, n: var int): int =
     while true:
         if i == len(s):
             break
-        if s[i] notin {'L', 'l', 'F', 'f'}:
-            parse_error("invalid float suffix::::: " & show(s[i]))
+        case s[i]:
+        of 'F', 'f':
+            if result != 2:
+                parse_error("invalid integer suffix " & s[i])
+                return 0
+            result = 3
+            break
+        of 'L', 'l':
+            if result == 2:
+                break
+            case result:
+            of 1:
+                result = 8
+            of 4:
+                result = 4
+            of 5:
+                result = 7
+            else:
+                parse_error("double 'u' suffix in integer constant")
+                return 0
+        of 'U', 'u':
+            if result == 2:
+                parse_error("invalid float suffix " & s[i])
+                return 0
+            case result:
+            of 1:
+                result = 4
+            of 8:
+                result = 6
+            of 4:
+                result = 5
+            of 6:
+                result = 7
+            of 5, 7:
+                parse_error("more than 2 'l' suffix in integer constant")
+                return
+            else:
+                discard
+        else:
+            if result == 2:
+                parse_error("invalid float suffix: " & s[i])
+            else:
+                parse_error("invalid integer suffix: " & s[i])
             return 0
-        if s[i] == 'F' or s[i] == 'f':
-            if isfloat != 1:
-                isfloat = 3
         inc i
-    if isfloat == 3:
+    if result == 3 or result == 2:
         f = float(num)
-    elif isfloat == 0:
+    else:
         n = num
-    return if isfloat==0: 1 else: 2
+    return result
 
 proc readHexFloatLit(intPart: float = 0.0) =
     # read a float start from '.'
-    p.tok = TokenV(tok: TFloatLit, tags: TVFVal)
+    p.tok = TokenV(tok: TFloatLit, tags: TVFVal, ftag: Fdobule)
     p.tok.f = intPart
     var e = 1.0
     while true:
@@ -758,7 +829,8 @@ proc readHexFloatLit(intPart: float = 0.0) =
           p.tok.f += float(int(p.c) - 'A'.int + 10) * e
         else:
             if p.c in {'L', 'l', 'F', 'f'}:
-                eat() # TODO: mark as float
+                readFloatSuffix()
+                eat()
                 break
             if p.c != 'P' and p.c != 'p':
                 parse_error("expect p or P in hex floating constant, got " & show(p.c))
@@ -779,20 +851,22 @@ proc readHexFloatLit(intPart: float = 0.0) =
                 if p.c notin {'0'..'9'}:
                     break
             p.tok.f *= pow(2, if negate: -float(decimaltoInt(exps)) else: float(decimaltoInt(exps)))
-            if p.c in {'L', 'l', 'F', 'f'}: # TODO: mark as float
+            if p.c in {'L', 'l', 'F', 'f'}:
+                readFloatSuffix()
                 eat()
             break
 
 # read a float start from '.'
 proc readFloatLit(intPart: float = 0.0) =
-    p.tok = TokenV(tok: TNul, tags: TVFval)
+    p.tok = TokenV(tok: TFloatLit, tags: TVFval, ftag: Fdobule)
     p.tok.f = intPart
     var e = 0
     while true:
         inc e
         if p.c notin {'0'..'9'}:
             if p.c in {'L', 'l', 'F', 'f'}:
-                eat() # TODO: mark as float
+                readFloatSuffix()
+                eat()
                 break
             if p.c != 'E' and p.c != 'e':
                 break
@@ -805,6 +879,7 @@ proc readFloatLit(intPart: float = 0.0) =
                 eat()
             elif p.c notin {'0'..'9'}:
                 parse_error("expect exponent digits")
+                return
             var exps: string
             while true:
                 exps.add(p.c)
@@ -813,14 +888,14 @@ proc readFloatLit(intPart: float = 0.0) =
                     break
             p.tok.f *= pow(10, if negate: -float(decimaltoInt(exps)) else: float(decimaltoInt(exps)))
             if p.c in {'L', 'l', 'F', 'f'}:
-                 # TODO: mark as float
+                readFloatSuffix()
                 eat()
             break
         p.tok.f += float(int(p.c) - '0'.int) / pow(10.0, float(e))
         eat()
 
 proc readNumberLit() =
-    p.tok = TokenV(tok: TNumberLit, tags: TVIVal)
+    p.tok = TokenV(tok: TNumberLit, tags: TVIVal, itag: Iint)
     p.tok.i = 0
     if p.c == '0':
         eat()
@@ -868,6 +943,7 @@ proc readNumberLit() =
         of '.': # float
           eat()
           readFloatLit()
+          return
         else:
           return # zero
     else: # decimal
@@ -879,6 +955,7 @@ proc readNumberLit() =
             return
         if p.c in {'L', 'l', 'U', 'u'}:
             while p.c in {'L', 'l', 'U', 'u'}:
+                readSuffix()
                 eat()
             return
         elif p.c notin {'0'..'9'}:
@@ -887,8 +964,8 @@ proc readNumberLit() =
               note("user-defined literals is a C++ feature")
             return
 
-proc readStringLit(enc: int) =
-    p.tok = TokenV(tok: TStringLit, tags: TVSVal, s: "")
+proc readStringLit(enc: uint8) =
+    p.tok = TokenV(tok: TStringLit, tags: TVStr)
     while true:
         if p.c == '\\':
             p.tok.s.add(Rune(readEscape()).toUTF8)
@@ -922,7 +999,7 @@ proc readStringLit(enc: int) =
                 return
               p.tok.s.add(p.c)
             eat()
-    # TODO: p.tok.i = enc
+    p.tok.enc = enc
 
 proc readPPNumberAfterDot() =
     p.tok.s.add('.')
@@ -1060,13 +1137,17 @@ proc nextTok*() =
                 if m.tokens.len > 0:
                     while m.tokens[^1].tok == TSpace:
                         discard m.tokens.pop()
+                var ok = true
                 if len(m.tokens) >= 1:
                     if m.tokens[0].tok == PPSharpSharp:
                         parse_error("'##' cannot appear at start of macro expansion")
+                        ok = false
                     if len(m.tokens) >= 2:
                         if m.tokens[^1].tok == PPSharpSharp:
                             parse_error("'##' cannot appear at end of macro expansion")
-                macro_define(name, m)
+                            ok = false
+                if ok:
+                    macro_define(name, m)
             of "if":
                 nextTok() # if
                 while p.tok.tok == TSpace:
@@ -1087,7 +1168,6 @@ proc nextTok*() =
                 while p.tok.tok == TSpace:
                     nextTok()
                 if p.tok.tok != CPPIdent:
-                    echo p.tok[]
                     p.flags = PFNormal
                     parse_error("expect identifier")
                     note("the syntax is:\n\t#ifdef identifier\n\t#ifndef identifier")
@@ -1282,11 +1362,16 @@ proc nextTok*() =
             if p.c == '"':
                 eat()
                 readStringLit(16)
+            elif p.c == '\'':
+                readCharLit(Ilong)
             elif p.c == '8':
                 eat()
                 if p.c != '"':
-                    p.tok = TokenV(tok: CPPIdent, tags: TVSVal, s: "u8")
-                    readIdentLit()
+                    if p.c == '\'':
+                        readCharLit()
+                    else:
+                        p.tok = TokenV(tok: CPPIdent, tags: TVSVal, s: "u8")
+                        readIdentLit()
                 else:
                     eat()
                     readStringLit(8)
@@ -1297,8 +1382,11 @@ proc nextTok*() =
         of 'U':
           eat()
           if p.c != '"':
-            p.tok = TokenV(tok: CPPIdent, tags: TVSVal, s: "U")
-            readIdentLit()
+            if p.c == '\'':
+                readCharLit(Iulong)
+            else:
+                p.tok = TokenV(tok: CPPIdent, tags: TVSVal, s: "U")
+                readIdentLit()
           else:
             eat()
             readStringLit(32)
@@ -1306,8 +1394,11 @@ proc nextTok*() =
         of 'L':
             eat()
             if p.c != '"':
-                p.tok = TokenV(tok: CPPIdent, tags: TVSVal, s: "L")
-                readIdentLit()
+                if p.c == '\'':
+                    readCharLit(Ilonglong)
+                else:
+                    p.tok = TokenV(tok: CPPIdent, tags: TVSVal, s: "L")
+                    readIdentLit()
             else:
                 eat()
                 readStringLit(16)
@@ -1450,6 +1541,9 @@ proc nextTok*() =
             if p.c == '=':
                 make_tok(TAsignBitAnd)
                 eat()
+            elif p.c == '&':
+                make_tok(TLogicalAnd)
+                eat()
             else:
                 make_tok(TBitAnd)
             return
@@ -1457,6 +1551,9 @@ proc nextTok*() =
             eat()
             if p.c == '=':
                 make_tok(TAsignBitOr)
+                eat()
+            elif p.c == '|':
+                make_tok(TLogicalOr)
                 eat()
             else:
                 make_tok(TBitOr)

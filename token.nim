@@ -1,4 +1,5 @@
-import std/[streams, tables, times, sets, macrocache]
+import std/[tables, times, sets, macrocache, strutils]
+import stream
 
 type
   Location = object
@@ -47,6 +48,7 @@ type Token* = enum
   TGe=">=", TLe="<=",
   TEq="==", TNe="!=",
   TLogicalOr="||",
+  TLogicalAnd="&&",
   TAsignAdd="+=",
   TAsignSub="-=",
   TAsignMul="*=",
@@ -180,7 +182,15 @@ type
     ParseFlags* = enum
       PFNormal=1, PFPP=2
     TokenVTags* = enum
-      TVNormal, TVSVal, TVIVal, TVFval
+      TVNormal, TVSVal, TVIVal, TVFval, TVStr
+    # integer tags
+    ITag* = enum
+      Iint,   Ilong,   Iulong,  Ilonglong, Iulonglong, Iuint
+    # also for chars
+    # char,   char16,  char32,  wchar
+    # float tags
+    FTag* = enum
+      Fdobule, Ffloat
     TokenV* = ref object
       tok*: Token
       case tags*: TokenVTags
@@ -190,26 +200,30 @@ type
         s*: string
       of TVFval:
         f*: float
+        ftag*: FTag
       of TVIVal:
         i*: int
+        itag*: ITag
+      of TVStr:
+        str*: string
+        enc*: uint8
     Parser* = ref object
       err*: bool
       fstack*: seq[Stream]
-      pathstack*: seq[string]
-      filenamestack*: seq[string]
+      filenamestack*, pathstack*: seq[string]
+      locstack: seq[Location]
       tok*: TokenV
       line*: int
       col*: int
       c*: char
       lastc*: uint16
-      filename*: string
-      path*: string # the real path
+      filename*, path*: string
       macros*: Table[string, PPMacro]
       flags*: ParseFlags
       ppstack*: seq[uint8]
       ok*: bool
       onces*, expansion_list*: HashSet[string]
-      fs_read*: proc () # 6.2.3 Name spaces of identifiers
+      # 6.2.3 Name spaces of identifiers
       lables*: seq[TableRef[string, (int, Location)]]
       tags*: seq[TableRef[string, (CType, Location)]]
       typedefs*: seq[TableRef[string, (CType, Location)]]
@@ -303,8 +317,9 @@ type
     ExprKind* = enum
       EBin, EUnary, EPostFix, EIntLit, ECharLit, EFloatLit, EStringLit, 
       ESizeOf, EVar, ECondition, ECast, ECall, ESubscript, 
-      EAlignof, EGeneric, EInitializer_list, ECppVar
+      EAlignof, EGeneric, EInitializer_list, ECppVar, EArray
     Expr* = ref object
+      ty*: CType
       case k*: ExprKind
       of EBin:
         lhs*, rhs*: Expr
@@ -317,10 +332,14 @@ type
         poperand*: Expr
       of EIntLit, ECharLit:
         ival*: int
+        itag*: ITag
       of EFloatLit:
         fval*: float
+        ftag*: FTag
       of EStringLit, EVar, ECppVar:
         sval*: string
+      of EArray:
+        arr*: seq[Expr]
       of ECondition:
         cond*: Expr
         cleft*, cright*: Expr
@@ -342,6 +361,16 @@ type
         selectors*: seq[(Expr, Expr)] # CType is nil if default!
 
 var p*: Parser = nil
+
+#[ 
+var program*: seq[Stmt]
+
+type
+  Env = ref object
+    vars*: seq[TableRef[string, (int, Location)]]
+    *: seq[TableRef[string, (CType, Location)]]
+    typedefs*: seq[TableRef[string, (CType, Location)]]
+]#
 
 proc setParser*(a: var Parser) =
   p = a
@@ -369,11 +398,11 @@ proc addTag*(a: uint32, dst: var string) =
   if bool(a and TYTHREAD_LOCAL): dst.add("_Thread_local ")
   if bool(a and TYTYPEDEF): dst.add("typedef ")
 
-proc `$`*(a: Stmt): string
+proc `$`*(a: Stmt, level=0): string
 
 proc `$`*(e: Expr): string
 
-proc `$`*(a: CType): string
+proc `$`*(a: CType, level=0): string
 
 proc joinShow6*(a: seq[(string, CType, Expr)]): string =
     result = ""
@@ -387,33 +416,44 @@ proc joinShow6*(a: seq[(string, CType, Expr)]): string =
         if i < (len(a)-1):
           result.add(", ")
 
-proc joinShow5*(a: seq[Stmt]): string =
-    result = ""
+proc joinShow5*(a: seq[Stmt], level=1): string =
+    var padding = "  ".repeat(level)
+    result = "{\n"
     for i in a:
-        result.add($i)
-        result.add(' ')
+        result.add(padding & '\t')
+        result.add(`$`(i, level + 1))
+        result.add('\n')
+    if level > 2:
+      result.add("  ".repeat(level - 2))
+    result.add("}")
 
-proc joinShow4*(a: seq[(string, intmax_t)]): string =
-    if len(a) == 0:
-        return ""
-    result = "\n\t"
-    for i in 0..<(len(a)-1):
-        result.add(a[i][0])
+proc joinShow4*(a: seq[(string, intmax_t)], level=1): string =
+    var padding = "  ".repeat(level)
+    result = "{\n"
+    for (s, val) in a:
+        result.add(padding & '\t')
+        result.add(s)
         result.add('=')
-        result.add($a[i][1])
-        result.add(", ")
-    result.add(a[^1][0] & '=' & $a[^1][1] & '\n')
+        result.add($val)
+        result.add(',')
+        result.add('\n')
+    if level > 2:
+      result.add("  ".repeat(level - 2))
+    result.add("}")
 
-proc joinShow3*[A, B](a: seq[(A, B)]): string =
-    if len(a) == 0:
-        return ""
-    result = "\n\t"
-    for i in 0..<(len(a)-1):
-        result.add($a[i][1])
+proc joinShow3*(a: seq[(string, CType)], level=1): string =
+    var padding = "  ".repeat(level)
+    result = "{\n"
+    for (s, ty) in a:
+        result.add(padding & '\t')
+        result.add(`$`(ty, level=level + 1))
         result.add(' ')
-        result.add($a[i][0])
-        result.add(";\n\t")
-    result.add($a[^1][1] & ' ' & $a[^1][0] & ";\n")
+        result.add(s)
+        result.add(';')
+        result.add('\n')
+    if level > 2:
+      result.add("  ".repeat(level - 2))
+    result.add("}")
 
 proc joinShow2*[A, B](a: seq[(A, B)]): string =
     if len(a) == 0:
@@ -433,18 +473,18 @@ proc joinShow*[T](a: seq[T], c: string = " "): string =
         result.add(c)
     result.add($a[^1])
 
-proc `$`*(a: Stmt): string =
+proc `$`*(a: Stmt, level=0): string =
   if a == nil:
     return "<nil>"
   case a.k:
   of SFunction:
-    "Function " & a.funcname & " : " & $a.functy & $a.funcbody
+    "Function " & a.funcname & " :\n" & $a.functy & `$`(a.funcbody, level + 1)
   of SVarDecl1:
     "<SVarDecl1>"
   of SVarDecl:
     joinShow6(a.vars)
   of SCompound:
-    '{' & joinShow5(a.stmts) & '}'
+    joinShow5(a.stmts, level+1)
   of SDefault:
     "default: " & $a.default_stmt
   of Scase:
@@ -467,24 +507,24 @@ proc `$`*(a: Stmt): string =
   of SLabled:
     a.label & ':' & $a.labledstmt
   of SIf:
-    "if (" & $a.iftest & ") {" & $a.ifbody & (if a.elsebody==nil: "" else: '{' & $a.elsebody & '}')
+    "if (" & $a.iftest & ") " & `$`(a.ifbody, level + 1) & (if a.elsebody==nil: "" else: "else " & `$`(a.elsebody, level + 1))
   of SWhile:
-    "while (" & $a.test & ") {" & $a.body & '}'
+    "while (" & $a.test & ") " & `$`(a.body, level + 1)
   of SSwitch:
-    "switch (" & $a.test & ") {" & $a.body & '}'
+    "switch (" & $a.test & ") " & `$`(a.body, level + 1)
   of SDoWhile:
-    "do {" & $a.body & "} while (" & $a.test & ");"
+    "do " & `$`(a.body, level + 1) & " while (" & $a.test & ");"
   of SFor:
-    "for (" & (if a.forinit==nil: "" else: $a.forinit) & ';' & 
+    "for (" & (if a.forinit==nil: ";" else: $a.forinit) & 
     (if a.forcond==nil: "" else: $a.forcond) & ';' &
     (if a.forincl==nil: "" else: $a.forincl) & ')' &
-    $a.forbody
+    `$`(a.forbody, level+1)
   of SStaticAssertDecl:
     "_Static_assert(" & $a.assertexpr & a.msg & ");"
   of SStructDecl, SUnionDecl, SEnumDecl:
-    "<some declaration>"
+    $(a.stype)
 
-proc `$`*(a: CType): string =
+proc `$`*(a: CType, level=0): string =
   if a == nil:
     return "<nil>"
   result = ""
@@ -510,13 +550,13 @@ proc `$`*(a: CType): string =
       if s.len > 0:
         result.add(s)
   of TYENUM:
-    result.add("enum " & a.ename & '{' & joinShow4(a.eelems) & '}')
+    result.add("enum " & a.ename & ' ' & joinShow4(a.eelems, level + 1))
   of TYFUNCTION:
     result.add($a.ret & a.fname & " (" & joinShow2(a.params) & ')')
   of TYSTRUCT:
-    result.add("struct " & a.sname & " {" & joinShow3(a.selems) & '}')
+    result.add("struct " & a.sname & ' ' & joinShow3(a.selems, level + 1))
   of TYUNION:
-    result.add("union " & a.sname & " {" & joinShow3(a.selems) & '}')
+    result.add("union " & a.sname & ' ' & joinShow3(a.selems, level + 1))
   of TYBITFIELD:
     result.add($a.bittype & " : " &  $a.bitsize)
   of TYPOINTER: # format style: (int *const)
@@ -552,11 +592,11 @@ proc `$`*(e: Expr): string =
   of EUnary:
     $e.uop & $e.uoperand
   of ECharLit:
-    show(char(e.ival))
+    show(char(e.ival)) & $e.itag
   of EIntLit:
-    $e.ival
+    $e.ival & $e.itag
   of EFloatLit:
-    $e.fval
+    $e.fval & $e.ftag
   of EVar, ECppVar:
     e.sval
   of EStringLit:
@@ -590,11 +630,9 @@ proc showToken*(): string =
   of TNul: "<null>"
   else:
     if p.tok.tok < T255:
-      '\'' & show(chr(int(p.tok.tok))) & '\''
+      show(chr(int(p.tok.tok)))
     else:
       $p.tok.tok
-
-
 
 proc `$`*(loc: Location): string =
   $loc.line & ':' & $loc.col
@@ -777,7 +815,7 @@ proc macro_undef*(name: string) =
 proc macro_find*(name: string): PPMacro =
   p.macros.getOrDefault(name, nil)
 
-proc resetLine*() =
+proc resetLine() =
     p.col = 1
     inc p.line
 
@@ -785,46 +823,28 @@ proc fs_read*() =
     if p.fstack.len == 0:
         p.c = '\0'
     else:
-        p.c = p.fstack[^1].readChar()
+        let s = p.fstack[^1]
+        p.c = s.readChar()
+        inc p.col
         if p.c == '\0':
             let fd = p.fstack.pop()
-            p.path = p.pathstack.pop()
             p.filename = p.filenamestack.pop()
+            p.path = p.pathstack.pop()
+            let loc = p.locstack.pop()
+            p.line = loc.line
+            p.col = loc.col
             fd.close()
             fs_read() # tail call
+        if p.c == '\n':
+          resetLine()
         elif p.c == '\r':
           resetLine()
-          p.c = p.fstack[^1].readChar()
-          if p.c == '\n':
-            p.c = p.fstack[^1].readChar()
+          p.c = s.readChar()
+          if p.c != '\n':
+            putc(s, cint(p.c))
 
-proc fs_read_stdin*() =
-    if p.fstack.len == 0:
-        stdout.write(">>> ")
-        try:
-          p.fstack.add(newStringStream(stdin.readLine() & '\n'))
-        except IOError:
-          p.c = '\0'
-          return
-        p.filenamestack.add(p.filename)
-        p.pathstack.add(p.path)
-    p.c = p.fstack[^1].readChar()
-    if p.c == '\0':
-        let fd = p.fstack.pop()
-        fd.close()
-        p.filename = p.filenamestack.pop()
-        p.path = p.pathstack.pop()
-        fs_read_stdin() # tail call
-    elif p.c == '\r':
-      resetLine()
-      p.c = p.fstack[^1].readChar()
-      if p.c == '\n':
-        p.c = p.fstack[^1].readChar()
-
-proc stdinParser*() =
-  p.filename = "<stdin>"
-  p.path = "/dev/stdin"
-  p.fs_read = fs_read_stdin
+proc stdin_hook*() =
+  stdout.write(">>> ")
 
 proc reset*() =
   p.counter = 0
@@ -836,16 +856,16 @@ proc reset*() =
   p.lastc = 256
   p.flags = PFNormal
   p.ok = true
+  p.pathstack.setLen 0
   p.ppstack.setLen 0
   p.fstack.setLen 0
   p.filenamestack.setLen 0
-  p.pathstack.setLen 0
+  p.locstack.setLen 0
   p.macros.clear()
   p.filename.setLen 0
   p.path.setLen 0
   p.onces.clear()
   p.expansion_list.clear()
-  p.fs_read = fs_read
   p.tags.setLen 0
   p.typedefs.setLen 0
   p.lables.setLen 0
@@ -866,15 +886,45 @@ proc addString*(s: string, filename: string) =
   p.fstack.add(newStringStream(s))
   p.filenamestack.add(p.filename)
   p.pathstack.add(p.path)
-  p.filename = (filename) # copy
-  p.path = (filename) # copy
+  p.locstack.add(Location(line: p.line, col: p.col))
+  p.filename = filename
+  p.path = filename
+  p.line = 1
+  p.col = 1
 
-proc addFile*(fd: File, filename: string) =
-  p.fstack.add(newFileStream(fd))
+proc addStdin*() =
+  p.fstack.add(newStdinStream())
   p.filenamestack.add(p.filename)
   p.pathstack.add(p.path)
-  p.filename = (filename) # copy
-  p.path = (filename) # copy
+  p.locstack.add(Location(line: p.line, col: p.col))
+  p.filename = "<stdin>"
+  p.path = "/dev/stdin"
+  p.line = 1
+  p.col = 1
+
+proc addFile*(fd: File, filename: string) =
+  let f = newFileStream(fd)
+  p.fstack.add(f)
+  p.filenamestack.add(p.filename)
+  p.pathstack.add(p.path)
+  p.locstack.add(Location(line: p.line, col: p.col))
+  p.filename = filename
+  p.path = filename
+  p.line = 1
+  p.col = 1
+
+proc addFile*(filename: string) =
+  let f = newFileStream(filename)
+  if f == nil:
+    return
+  p.fstack.add(f)
+  p.filenamestack.add(p.filename)
+  p.pathstack.add(p.path)
+  p.locstack.add(Location(line: p.line, col: p.col))
+  p.filename = filename
+  p.path = filename
+  p.line = 1
+  p.col = 1
 
 proc closeParser*() =
   for fd in p.fstack:
@@ -997,8 +1047,11 @@ proc addInclude*(filename: string): bool =
     p.fstack.add(s)
     p.filenamestack.add(p.filename)
     p.pathstack.add(p.path)
-    p.filename = filename # copy
-    p.path = filename # copy
+    p.locstack.add(Location(line: p.line, col: p.col))
+    p.filename = filename
+    p.path = filename
+    p.line = 1
+    p.col = 1
     return true
 
 proc putToken*() = 

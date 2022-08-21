@@ -1,10 +1,22 @@
 import "."/[token, lexer, parser]
 
 newParser()
-stdinParser()
+addStdin()
 getToken()
-#while p.tok.tok != TEOF:
-#    echo showToken()
-#    getToken()
-discard translation_unit()
+
+when false:
+    translation_unit()
+
+when false:
+    while p.tok.tok != TEOF:
+        stdout.write($p.tok.tok)
+        stdout.write(' ')
+        getToken()
+
+when true:
+    let e = expression()
+    if e != nil:
+        echo e.k
+        echo e
+
 closeParser()

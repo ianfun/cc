@@ -7,6 +7,10 @@
 import token, lexer, eval
 from std/sequtils import count
 
+var
+  program*: seq[TokenV]
+  pc*: int = 0
+
 proc type_name*(): (CType, bool)
 
 proc expression*(): Expr
@@ -82,7 +86,7 @@ proc penum*(): CType
 
 proc static_assert*(): Stmt
 
-proc translation_unit*(): seq[Stmt]
+proc translation_unit*()
 
 proc statament*(): Stmt
 
@@ -746,8 +750,8 @@ proc static_assert*(): Stmt =
             expect("string literal in static assert")
             return nil
         if ok == false:
-            error(p.tok.s)
-            msg = p.tok.s
+            error(p.tok.str)
+            msg = p.tok.str
         consume()
         if p.tok.tok != TRbracket:
             expect("')'")
@@ -789,6 +793,13 @@ proc declaration*(): Stmt =
                 putsymtype(st.funcname, st.functy)
                 return st
             assert st.k == SVarDecl1
+            if (st.var1type.tags and TYINLINE) != 0:
+                warning("inline declaration is in block scope has no effect")
+            if st.var1type.spec == TYFUNCTION:
+                if (st.var1type.tags or (TYREGISTER)) != 0:
+                    warning("'register' in function has no effect")
+                if (st.var1type.tags or (TYTHREAD_LOCAL)) != 0:
+                    warning("'_Thread_local' in function has no effect")
             result.vars.add((st.var1name, st.var1type, nil))
             putsymtype(st.var1name, st.var1type)
             if p.tok.tok == TAssign:
@@ -947,34 +958,56 @@ proc primary_expression*(): Expr =
     ##     * identfier
     case p.tok.tok:
     of TCharLit:
-        result = Expr(k: ECharLit, ival: p.tok.i)
+        result = Expr(k: ECharLit, ival: p.tok.i, itag: p.tok.itag)
         consume()
     of TNumberLit:
-        result = Expr(k: EIntLit, ival: p.tok.i)
+        result = Expr(k: EIntLit, ival: p.tok.i, itag: p.tok.itag)
         consume()
     of TFloatLit:
-        result = Expr(k: EFloatLit, fval: p.tok.f)
+        result = Expr(k: EFloatLit, fval: p.tok.f, ftag: p.tok.ftag)
         consume()
     of TStringLit:
         result = Expr(k: EStringLit)
+        var enc = p.tok.enc
         while true:
-            result.sval.add(p.tok.s)
+            result.sval.add(p.tok.str)
             consume()
             if p.tok.tok != TStringLit:
                 break
+            if p.tok.enc != enc:
+                type_error("unsupported non-standard concatenation of string literals")
+                note("concatenation UTF-" & $enc & " and UTF-" & $p.tok.enc)
+                return
     of TPPNumber:
         var f: float
         var n: int
         let ok = read_pp_number(p.tok.s, f, n)
-        if ok == 0:
+        case ok:
+        of 0:
             result = nil
-        elif ok == 2:
-            result = Expr(k: EFloatLit, fval: f)
+        of 1:
+            result = Expr(k: EIntLit, ival: n, itag: Iint)
+            consume()
+        of 2, 3:
+            result = Expr(k: EFloatLit, fval: f, ftag: if ok == 2: Fdobule else: Ffloat)
+            consume()
+        of 4:
+            result = Expr(k: EIntLit, ival: n, itag: Ilong)
+            consume()
+        of 5:
+            result = Expr(k: EIntLit, ival: n, itag: Iulong)
+            consume() 
+        of 6:
+            result = Expr(k: EIntLit, ival: n, itag: Ilonglong)
+            consume()
+        of 7:
+            result = Expr(k: EIntLit, ival: n, itag: Iulonglong)
+            consume()
+        of 8:
+            result = Expr(k: EIntLit, ival: n, itag: Iuint)
             consume()
         else:
-            assert ok == 1
-            result = Expr(k: EIntLit, ival: n)
-            consume()
+            assert false
     of TIdentifier:
         result = Expr(k: EVar, sval: p.tok.s)
         consume()
@@ -1188,7 +1221,6 @@ proc relational_expression*(): Expr =
         else:
             return result
 
-
 proc equality_expression*(): Expr =
     result = relational_expression()
     while true:
@@ -1209,8 +1241,8 @@ proc equality_expression*(): Expr =
             return result
 
 proc AND_expression*(): Expr =
+    result = equality_expression()
     while true:
-        result = equality_expression()
         case p.tok.tok:
         of TBitAnd:
             consume()
@@ -1251,7 +1283,7 @@ proc logical_AND_expression*(): Expr =
     result = inclusive_OR_expression()
     while true:
         case p.tok.tok:
-        of TBitOr:
+        of TLogicalAnd:
             consume()
             let r = inclusive_OR_expression()
             if r == nil:
@@ -1273,9 +1305,21 @@ proc logical_OR_expression*(): Expr =
         else:
             return result
 
+proc expression*(): Expr =
+    ## parse a expression
+    result = assignment_expression()
+    while true:
+        if p.tok.tok == TComma:
+            let r = assignment_expression()
+            if r == nil:
+                return nil
+            result = binop(result, Comma, r)
+        else:
+            return result
+
 proc conditional_expression*(start: Expr): Expr =
     consume()
-    let lhs = expression()
+    let lhs = logical_OR_expression()
     if lhs == nil:
         expect("expression")
         return nil
@@ -1329,24 +1373,13 @@ proc assignment_expression*(): Expr =
             return nil
         result = binop(result, op, e)
 
-proc expression*(): Expr =
-    ## parse a expression
-    result = assignment_expression()
-    if p.tok.tok == TComma:
-        let r = assignment_expression()
-        if r == nil:
-            return nil
-        result = binop(result, Comma, r)
-
-proc translation_unit*(): seq[Stmt] =
+proc translation_unit*() =
     ## parse a file, the entry point of program
-    result = newSeqOfCap[Stmt](20)
     while p.tok.tok != TEOF:
         let s = declaration()
         if s == nil:
             break
         echo s
-        result.add(s)
 
 proc compound_statement*(): Stmt =
     result = Stmt(k: SCompound)
@@ -1504,32 +1537,39 @@ proc statament*(): Stmt =
         if istype(p.tok.tok):
             init = declaration()
             if init == nil:
-                expect("statament")
+                expect("declaration")
                 return nil
         else:
-            let ex = expression()
-            if ex == nil:
+            if p.tok.tok != TSemicolon:
+                let ex = expression()
+                if ex == nil:
+                    expect("expression")
+                    return nil
+                init = Stmt(k: SExpr, exprbody: ex)
+                if p.tok.tok != TSemicolon:
+                    expect("';'")
+                    return nil
+            consume()
+        #  cond-expression 
+        var cond: Expr = nil
+        if p.tok.tok != TSemicolon:
+            cond = expression()
+            if cond == nil:
                 expect("expression")
                 return nil
-            init = Stmt(k: SExpr, exprbody: ex)
-        if p.tok.tok != TSemicolon:
-            error("expect ';'")
+            if p.tok.tok != TSemicolon:
+                expect("';'")
+                return nil
         consume()
-        #  cond-expression 
-        let cond = expression()
-        if cond == nil:
-            expect("expression")
-            return nil
-        if p.tok.tok != TSemicolon:
-            error("expect ';'")
-        consume()
-        let forincl = expression()
-        if forincl == nil:
-            expect("expression")
-            return nil
+        var forincl: Expr = nil
         if p.tok.tok != TRbracket:
-            expect("')'")
-            return nil
+            forincl = expression()
+            if forincl == nil:
+                expect("expression")
+                return nil
+            if p.tok.tok != TRbracket:
+                expect("')'")
+                return nil
         consume()
         let s = statament()
         if s == nil:
