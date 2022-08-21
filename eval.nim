@@ -93,13 +93,13 @@ proc evali*(e: Expr): intmax_t =
   of EStringLit:
     echo "bad string"
     0
-  of EInitializer_list:
-    echo "bad init"
-    0
   of ECppVar:
     0
   of EVar:
     echo "bad var"
+    0
+  of EArray:
+    echo "bad array"
     0
 
 proc eval_const_expression*(e: Expr): intmax_t =

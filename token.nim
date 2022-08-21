@@ -188,6 +188,7 @@ type
       Iint,   Ilong,   Iulong,  Ilonglong, Iulonglong, Iuint
     # also for chars
     # char,   char16,  char32,  wchar
+    #  u8       u        U       L
     # float tags
     FTag* = enum
       Fdobule, Ffloat
@@ -317,7 +318,7 @@ type
     ExprKind* = enum
       EBin, EUnary, EPostFix, EIntLit, ECharLit, EFloatLit, EStringLit, 
       ESizeOf, EVar, ECondition, ECast, ECall, ESubscript, 
-      EAlignof, EGeneric, EInitializer_list, ECppVar, EArray
+      EAlignof, EGeneric, ECppVar, EArray
     Expr* = ref object
       ty*: CType
       case k*: ExprKind
@@ -332,7 +333,6 @@ type
         poperand*: Expr
       of EIntLit, ECharLit:
         ival*: int
-        itag*: ITag
       of EFloatLit:
         fval*: float
         ftag*: FTag
@@ -354,8 +354,6 @@ type
         callargs*: seq[Expr]
       of ESubscript:
         left*, right*: Expr
-      of EInitializer_list:
-        inits*: seq[Expr]
       of EGeneric:
         selectexpr*: Expr
         selectors*: seq[(Expr, Expr)] # CType is nil if default!
@@ -592,11 +590,11 @@ proc `$`*(e: Expr): string =
   of EUnary:
     $e.uop & $e.uoperand
   of ECharLit:
-    show(char(e.ival)) & $e.itag
+    show(char(e.ival))
   of EIntLit:
-    $e.ival & $e.itag
+    $e.ival
   of EFloatLit:
-    $e.fval & $e.ftag
+    $e.fval
   of EVar, ECppVar:
     e.sval
   of EStringLit:
@@ -615,8 +613,8 @@ proc `$`*(e: Expr): string =
     $e.callfunc & '(' & $joinShow(e.callargs, ", ") & ')'
   of EGeneric:
     "_Generic(" & $e.selectexpr & (var s: string;for (tp, e) in e.selectors: s.add($tp & ':' & $e & ',');s) & ')'
-  of EInitializer_list:
-    "{" & $e.inits & "}"
+  of EArray:
+    "{" & $e.arr & "}"
 
 proc showToken*(): string =
   case p.tok.tok:
@@ -669,7 +667,6 @@ proc isKeyword*(a: string): Token =
   gkeywordtable.getOrDefault(a, TNul)
 
 proc unsafe_utf8_codepoint*(s: cstring): (Codepoint, int) =
-    # note: this is unchecked! it will not check whether input is a valid utf8 and overflow!
     if 0xf0 == (0xf8 and s[0].Codepoint): # 4 byte
       (
         ((0x07 and s[0].Codepoint) shl 18) or 
@@ -690,30 +687,28 @@ proc unsafe_utf8_codepoint*(s: cstring): (Codepoint, int) =
       2)
     else: # 1 byte
       (s[0].Codepoint, 1)
-#[ 
-proc writeUTF8toUTF32*() =
+
+proc writeUTF8toUTF32*(s: string): seq[Codepoint] =
   # TODO: reserve 3 more bytes to prevent bad utf8 terminate access overflow
-  p.val.utf32.setLen 0
   var i = 0
   while true:
-    if i >= len(p.val.sval):
+    if i >= len(s):
       break
-    let (codepoint, length) = unsafe_utf8_codepoint(cast[cstring](cast[int](cstring(p.val.sval)) + i))
-    p.val.utf32.add(codepoint)
+    let (codepoint, length) = unsafe_utf8_codepoint(cast[cstring](cast[int](cstring(s)) + i))
+    result.add(codepoint)
     i += length
 
-proc writeUTF8toUTF16*() =
-  writeUTF8toUTF32()
-  p.val.utf16.setLen 0
-  for codepoint in p.val.utf32:
+proc writeUTF8toUTF16*(s: string): seq[uint16] =
+  let u32 = writeUTF8toUTF32(s)
+  result = newSeqOfCap[uint16](len(u32) div 2)
+  for codepoint in u32:
     var c = codepoint
     if c <= 0xFFFF:
-      p.val.utf16.add(uint16(c))
+      result.add(uint16(c))
     else:
       c -= 0x10000
-      p.val.utf16.add(uint16(0xD800 + (c shr 10)))
-      p.val.utf16.add(uint16(0xDC00 + (c and 0x3FF)))
-]#
+      result.add(uint16(0xD800 + (c shr 10)))
+      result.add(uint16(0xDC00 + (c and 0x3FF)))
 
 init()
 

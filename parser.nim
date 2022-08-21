@@ -401,7 +401,7 @@ proc declarator*(base: CType; flags=Direct): Stmt =
 proc initializer_list*(): Expr =
     if p.tok.tok != TLcurlyBracket:
         return assignment_expression()
-    result = Expr(k: EInitializer_list)
+    result = Expr(k: EArray)
     consume()
     while true:
         if p.tok.tok == TRcurlyBracket:
@@ -411,13 +411,13 @@ proc initializer_list*(): Expr =
             let e = initializer_list()
             if e == nil:
                 return nil
-            result.inits.add(e)
+            result.arr.add(e)
         else:
             let e = assignment_expression()
             if e == nil:
                 error("expect expression")
                 return nil
-            result.inits.add(e)
+            result.arr.add(e)
         if p.tok.tok == TComma:
             consume()
 
@@ -958,19 +958,34 @@ proc primary_expression*(): Expr =
     ##     * identfier
     case p.tok.tok:
     of TCharLit:
-        result = Expr(k: ECharLit, ival: p.tok.i, itag: p.tok.itag)
+        var tags = 0'u32
+        case p.tok.itag:
+        of Iint:
+            tags = TYCHAR
+        of Ilong:
+            tags = TYUINT16
+        of Iulong:
+            tags = TYUINT32
+        of Ilonglong:
+            when defined(windows):
+                tags = TYUINT32
+            else:
+                tags = TYUINT32
+        else:
+            assert false
+        result = Expr(k: ECharLit, ival: p.tok.i, ty: CType(tags: tags, spec: TYPRIM))
         consume()
     of TNumberLit:
-        result = Expr(k: EIntLit, ival: p.tok.i, itag: p.tok.itag)
+        result = Expr(k: EIntLit, ival: p.tok.i, ty: CType(tags: TYINT, spec: TYPRIM))
         consume()
     of TFloatLit:
-        result = Expr(k: EFloatLit, fval: p.tok.f, ftag: p.tok.ftag)
+        result = Expr(k: EFloatLit, fval: p.tok.f, ty: CType(tags: TYDOUBLE, spec: TYPRIM))
         consume()
     of TStringLit:
-        result = Expr(k: EStringLit)
+        var s: string
         var enc = p.tok.enc
         while true:
-            result.sval.add(p.tok.str)
+            s.add(p.tok.str)
             consume()
             if p.tok.tok != TStringLit:
                 break
@@ -978,6 +993,24 @@ proc primary_expression*(): Expr =
                 type_error("unsupported non-standard concatenation of string literals")
                 note("concatenation UTF-" & $enc & " and UTF-" & $p.tok.enc)
                 return
+        case enc:
+        of 8:
+            var a: seq[Expr]
+            for i in s:
+                a.add(Expr(k: EIntLit, ival: cast[int](i)))
+            return Expr(k: EArray, ty: CType(tags: TYCHAR, spec: TYPRIM) , arr: a)
+        of 16:
+            var a: seq[Expr]
+            for i in writeUTF8toUTF16(s):
+                a.add(Expr(k: EIntLit, ival: cast[int](i)))
+            return Expr(k: EArray, ty: CType(tags: TYUSHORT, spec: TYPRIM) , arr: a)
+        of 32:
+            var a: seq[Expr]
+            for i in writeUTF8toUTF32(s):
+                a.add(Expr(k: EIntLit, ival: cast[int](i)))
+            return Expr(k: EArray, ty: CType(tags: TYUINT, spec: TYPRIM) , arr: a)
+        else:
+            assert false
     of TPPNumber:
         var f: float
         var n: int
@@ -986,33 +1019,37 @@ proc primary_expression*(): Expr =
         of 0:
             result = nil
         of 1:
-            result = Expr(k: EIntLit, ival: n, itag: Iint)
+            result = Expr(ty: CType(tags: TYINT, spec: TYPRIM), k: EIntLit, ival: n)
             consume()
         of 2, 3:
-            result = Expr(k: EFloatLit, fval: f, ftag: if ok == 2: Fdobule else: Ffloat)
+            result = Expr(ty: CType(tags: if ok == 2: TYDOUBLE else: TYFLOAT, spec: TYPRIM), k: EFloatLit, fval: f)
             consume()
         of 4:
-            result = Expr(k: EIntLit, ival: n, itag: Ilong)
+            result = Expr(ty: CType(tags: TYLONG, spec: TYPRIM), k: EIntLit, ival: n)
             consume()
         of 5:
-            result = Expr(k: EIntLit, ival: n, itag: Iulong)
+            result = Expr(ty: CType(tags: TYULONG, spec: TYPRIM), k: EIntLit, ival: n)
             consume() 
         of 6:
-            result = Expr(k: EIntLit, ival: n, itag: Ilonglong)
+            result = Expr(ty: CType(tags: TYLONGLONG, spec: TYPRIM), k: EIntLit, ival: n)
             consume()
         of 7:
-            result = Expr(k: EIntLit, ival: n, itag: Iulonglong)
+            result = Expr(ty: CType(tags: TYULONGLONG, spec: TYPRIM), k: EIntLit, ival: n)
             consume()
         of 8:
-            result = Expr(k: EIntLit, ival: n, itag: Iuint)
+            result = Expr(ty: CType(tags: TYUINT, spec: TYPRIM), k: EIntLit, ival: n)
             consume()
         else:
             assert false
     of TIdentifier:
-        result = Expr(k: EVar, sval: p.tok.s)
+        let ty = getsymtype(p.tok.s)
+        if ty == nil:
+            type_error("symbol not found: " & p.tok.s)
+            return nil
+        result = Expr(k: EVar, sval: p.tok.s, ty: ty)
         consume()
     of CPPident:
-        result = Expr(k: ECppVar, sval: p.tok.s)
+        result = Expr(k: ECppVar, sval: p.tok.s, ty: nil)
         consume()
     of TLbracket:
         consume()
@@ -1039,15 +1076,19 @@ proc primary_expression*(): Expr =
             expect("','")
             return nil
         consume()
-        var selectors: seq[(Expr, Expr)]
+        let testty = test.ty
+        var defaults: Expr
         while true:
-            var tname: Expr = nil
+            var tname: CType = nil
             if p.tok.tok == Kdefault:
+                if defaults != nil:
+                    type_error("more then one default case in Generic expression")
+                    return nil
                 consume()
             else:
-                tname = expression()
+                tname = type_name()[0]
                 if tname == nil:
-                    expect("expression")
+                    expect("type-name")
                     note("the syntax is:\n\t_Generic(expr, type1: expr, type2: expr, ..., default: expr)")
                     return nil
             if p.tok.tok != TColon:
@@ -1060,7 +1101,13 @@ proc primary_expression*(): Expr =
                 expect("expression")
                 note("the syntax is:\n\t_Generic(expr, type1: expr, type2: expr, ..., default: expr)")
                 return nil
-            selectors.add((tname, e))
+            if tname == nil:
+                defaults = e
+            elif tname.tags == testty.tags and tname.spec == testty.spec:
+                if result != nil:
+                    type_error("more then one compatible types in Generic expression")
+                    return nil
+                result = e
             case p.tok.tok:
             of TComma:
               consume()
@@ -1071,7 +1118,11 @@ proc primary_expression*(): Expr =
             else:
               expect("','' or ')'")
               return nil
-        return Expr(k: EGeneric, selectexpr: test, selectors: selectors)
+        if result != nil:
+            return result
+        if defaults != nil:
+            return defaults
+        type_error("Generic expression not compatible with any generic association type")
     of TEOF:
         return nil
     else:
