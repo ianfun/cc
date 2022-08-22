@@ -7,6 +7,8 @@
 import token, lexer, eval
 from std/sequtils import count
 
+import typesystem
+
 var
   program*: seq[TokenV]
   pc*: int = 0
@@ -92,19 +94,19 @@ proc statament*(): Stmt
 
 proc compound_statement*(): Stmt
 
-proc binop*(a: Expr, op: BinOP, b: Expr): Expr = 
+proc binop*(a: Expr, op: BinOP, b: Expr, ty: CType = nil): Expr = 
     ## construct a binary operator
-    Expr(k: EBin, lhs: a, rhs: b, bop: op)
+    Expr(k: EBin, lhs: a, rhs: b, bop: op, ty: ty)
 
 
-proc unary*(e: Expr, op: UnaryOP): Expr = 
+proc unary*(e: Expr, op: UnaryOP, ty: CType=nil): Expr = 
     ## construct a unary operator
-    Expr(k: EUnary, uop: op, uoperand: e)
+    Expr(k: EUnary, uop: op, uoperand: e, ty: ty)
 
 
-proc postfix*(e: Expr, op: PostfixOP): Expr = 
+proc postfix*(e: Expr, op: PostfixOP, ty: CType=nil): Expr = 
     ## construct a postfix operator
-    Expr(k: EPostFix, pop: op, poperand: e)
+    Expr(k: EPostFix, pop: op, poperand: e, ty: ty)
 
 
 proc consume*() =
@@ -155,7 +157,6 @@ proc addTag(ty: var CType, t: Token): bool =
         of Kextern: TYEXTERN
         of Kstatic: TYSTATIC
         of K_Thread_local: TYTHREAD_LOCAL
-        of Kauto: TYAUTO
         of Kregister: TYREGISTER
         of Krestrict: TYRESTRICT
         of Kvolatile: TYVOLATILE
@@ -169,10 +170,6 @@ proc addTag(ty: var CType, t: Token): bool =
     ty.tags = ty.tags or t
     return true
 
-proc default_storage(ts: var CType) =
-    if (ts.tags and (TYTYPEDEF or TYTHREAD_LOCAL or TYAUTO or TYREGISTER or TYSTATIC or TYEXTERN)) == 0:
-        ts.tags = ts.tags or TYAUTO # default to auto storage-class-specifier
-
 proc merge_types*(ts: seq[Token]): CType =
     ## merge many token to a type
     ##
@@ -185,7 +182,6 @@ proc merge_types*(ts: seq[Token]): CType =
     for t in ts:
         if addTag(result, t) == false:
             b.add(t)
-    default_storage(result)
     if b.len == 0: # no type
         warning("deault type to `int`")
         result.tags = result.tags or TYINT
@@ -830,7 +826,7 @@ proc cast_expression*(): Expr =
                 return nil
             consume()
             let e = cast_expression()
-            return Expr(k: ECast, casttype: n, castval: e)
+            return Expr(k: ECast, ty: n, castval: e)
         putToken()
         p.tok = TokenV(tok: TLbracket, tags: TVNormal)
     else:
@@ -873,7 +869,9 @@ proc unary_expression*(): Expr =
             of TBitNot: OBitwiseNot
             else: UNop
         )
-        return unary(e, op)
+        result = unary(e, op, e.ty)
+        integer_promotions(result)
+        return result
     of TAdd, TDash:
         consume()
         let e = unary_expression()
@@ -885,13 +883,15 @@ proc unary_expression*(): Expr =
             of TDash: OUnaryMinus
             else: UNop
         )
-        return unary(e, op)
+        result = unary(e, op, e.ty)
+        integer_promotions(result)
+        return result
     of TAddAdd, TSubSub:
         consume()
         let e = unary_expression()
         if e == nil:
             return nil
-        return unary(e, if tok == TAddAdd: OPrefixIncrement else: OPrefixDecrement)
+        return unary(e, if tok == TAddAdd: OPrefixIncrement else: OPrefixDecrement, e.ty)
     of Ksizeof:
         consume()
         if p.tok.tok == TLbracket:
@@ -907,7 +907,7 @@ proc unary_expression*(): Expr =
                     expect("')'")
                     return nil
                 consume()
-                return Expr(k: ESizeOf, sizeofx: nil, sizeofty: ty[0])
+                return Expr(ty: CType(tags: TYSIZE_T, spec: TYPRIM), k: EIntLit, ival: cast[int](getsizeof(ty[0])))
             let e = unary_expression()
             if e == nil:
                 expect("expression")
@@ -916,13 +916,13 @@ proc unary_expression*(): Expr =
                 expect("')'")
                 return nil
             consume()
-            return Expr(k: ESizeOf, sizeofx: e, sizeofty: nil)
+            return Expr(ty: CType(tags: TYSIZE_T, spec: TYPRIM), k: EIntLit, ival: cast[int](getsizeof(e)))
         else:
             let e = unary_expression()
             if e == nil:
                 expect("expression")
                 return nil
-            return Expr(k: ESizeOf, sizeofx: e, sizeofty: nil)
+            return Expr(ty: CType(tags: TYSIZE_T, spec: TYPRIM), k: EIntLit, ival: cast[int](getsizeof(e)))
     of K_Alignof:
         consume()
         if p.tok.tok != TLbracket:
@@ -936,13 +936,13 @@ proc unary_expression*(): Expr =
                 return nil
             if ty[1] == true:
                 type_error("invalid application of '_Alignof' to a function type")
-            result = Expr(k: EAlignof, sizeofx: nil, sizeofty: ty[0])
+            result = Expr(ty: CType(tags: TYSIZE_T, spec: TYPRIM), k: EIntLit, ival: cast[int](getAlignof(ty[0])))
         else:
             let e = constant_expression()
             if e == nil:
                 expect("expression")
                 return nil
-            result = Expr(k: EAlignof, sizeofx: e, sizeofty: nil)
+            result = Expr(ty: CType(tags: TYSIZE_T, spec: TYPRIM), k: EIntLit, ival: cast[int](getAlignof(e)))
         if p.tok.tok != TRbracket:
             expect("')'")
             return nil
@@ -976,10 +976,24 @@ proc primary_expression*(): Expr =
         result = Expr(k: ECharLit, ival: p.tok.i, ty: CType(tags: tags, spec: TYPRIM))
         consume()
     of TNumberLit:
-        result = Expr(k: EIntLit, ival: p.tok.i, ty: CType(tags: TYINT, spec: TYPRIM))
+        var tags = TYINT
+        case p.tok.itag:
+        of Iint:
+            tags = TYINT
+        of Ilong:
+            tags = TYLONG
+        of Iulong:
+            tags = TYULONG
+        of Ilonglong:
+            tags = TYLONGLONG
+        of Iulonglong:
+            tags = TYULONGLONG
+        of Iuint:
+            tags = TYUINT
+        result = Expr(k: EIntLit, ival: p.tok.i, ty: CType(tags: tags, spec: TYPRIM))
         consume()
     of TFloatLit:
-        result = Expr(k: EFloatLit, fval: p.tok.f, ty: CType(tags: TYDOUBLE, spec: TYPRIM))
+        result = Expr(k: EFloatLit, fval: p.tok.f, ty: CType(tags: if p.tok.ftag == Ffloat: TYFLOAT else: TYDOUBLE, spec: TYPRIM))
         consume()
     of TStringLit:
         var s: string
@@ -996,19 +1010,22 @@ proc primary_expression*(): Expr =
         case enc:
         of 8:
             var a: seq[Expr]
+            let ty = CType(tags: TYCHAR, spec: TYPRIM)
             for i in s:
-                a.add(Expr(k: EIntLit, ival: cast[int](i)))
-            return Expr(k: EArray, ty: CType(tags: TYCHAR, spec: TYPRIM) , arr: a)
+                a.add(Expr(k: EIntLit, ival: cast[int](i), ty: ty))
+            return Expr(k: EArray, ty: CType(tags: TYINVALID, spec: TYPOINTER, p: ty) , arr: a)
         of 16:
             var a: seq[Expr]
+            let ty = CType(tags: TYUSHORT, spec: TYPRIM)
             for i in writeUTF8toUTF16(s):
-                a.add(Expr(k: EIntLit, ival: cast[int](i)))
-            return Expr(k: EArray, ty: CType(tags: TYUSHORT, spec: TYPRIM) , arr: a)
+                a.add(Expr(k: EIntLit, ival: cast[int](i), ty: ty))
+            return Expr(k: EArray, ty: CType(tags: TYINVALID, spec: TYPOINTER, p: ty), arr: a)
         of 32:
             var a: seq[Expr]
+            let ty = CType(tags: TYUINT, spec: TYPRIM)
             for i in writeUTF8toUTF32(s):
-                a.add(Expr(k: EIntLit, ival: cast[int](i)))
-            return Expr(k: EArray, ty: CType(tags: TYUINT, spec: TYPRIM) , arr: a)
+                a.add(Expr(k: EIntLit, ival: cast[int](i), ty: ty))
+            return Expr(k: EArray, ty: CType(tags: TYINVALID, spec: TYPOINTER, p: ty), arr: a)
         else:
             assert false
     of TPPNumber:
@@ -1049,7 +1066,7 @@ proc primary_expression*(): Expr =
         result = Expr(k: EVar, sval: p.tok.s, ty: ty)
         consume()
     of CPPident:
-        result = Expr(k: ECppVar, sval: p.tok.s, ty: nil)
+        result = Expr(k: ECppVar, sval: p.tok.s, ty: CType(tags: TYINT, spec: TYPRIM))
         consume()
     of TLbracket:
         consume()
@@ -1123,7 +1140,8 @@ proc primary_expression*(): Expr =
         if defaults != nil:
             return defaults
         type_error("Generic expression not compatible with any generic association type")
-    of TEOF:
+        note("no match of type " & $testty)
+    of TEOF, TNul:
         return nil
     else:
         parse_error("unexpected token in expression: " & showToken())
@@ -1135,17 +1153,35 @@ proc postfix_expression*(): Expr =
     of TSubSub, TAddAdd:
         let op = if p.tok.tok == TAddAdd: OPostfixIncrement else: OPostfixDecrement
         consume()
-        return postfix(e, op)
+        return postfix(e, op, e.ty)
     of TArrow, TDot: # member access
         let isarrow = p.tok.tok == TArrow
         consume()
         if p.tok.tok != TIdentifier:
             expect("identifier")
-            note("the syntax is:\n\tfoo.member\n\tfoo.member")
+            note("the syntax is:\n\tfoo.member\n\tfoo->member")
             return nil
-        return binop(e, (if isarrow: OMemberAccess else: OPointerMemberAccess), Expr(k: EVar, sval: p.tok.s))
+        if not (e.ty.spec == TYSTRUCT or e.ty.spec == TYUNION):
+            type_error("member access is not struct or union")
+            note("in the expression " & $e)
+            return nil
+        if isarrow and e.ty.spec != TYPOINTER:
+            type_error("pointer member access('->') must be used in a pointer")
+            note("maybe you mean: '.'")
+            return nil
+        elif isarrow == false and e.ty.spec == TYPOINTER:
+            type_error("member access('.') cannot used in a pointer")
+            note("maybe you mean: '->'")
+        for i in 0..<len(e.ty.selems):
+            if p.tok.s == e.ty.selems[i][0]:
+                return binop(e, (if isarrow: OMemberAccess else: OPointerMemberAccess), Expr(k: EVar, sval: p.tok.s))
+        type_error("struct/union " & $e.ty.sname & " has no member " & p.tok.s)
+        return nil
     of TLbracket: # function call
         consume()
+        if e.ty.spec != TYFUNCTION:
+            type_error("expression " & $e & " is of type " & $e.ty & " and is not callable")
+            return nil
         var args: seq[Expr]
         if p.tok.tok == TRbracket:
             consume()
@@ -1162,19 +1198,48 @@ proc postfix_expression*(): Expr =
                 elif p.tok.tok == TRbracket:
                     consume()
                     break
-        return Expr(k: ECall, callfunc: e, callargs: args)
+        if len(e.ty.params) > 0 and e.ty.params[^1][1] == nil: # varargs
+            if len(args) < (len(e.ty.params) - 1):
+                type_error("too few arguments to variable argument function")
+                note("at lease " & $(len(e.ty.params) - 0) & " arguments needed")
+                return nil
+        elif len(e.ty.params) != len(args):
+            type_error("expect " & $(len(e.ty.params)) & " parameters, " & $len(args) & " provided")
+            note("in the expression " & $e)
+            return nil
+        var i = 0
+        var ivarargs = false
+        while true:
+            if i == len(e.ty.params):
+                break
+            if e.ty.params[i][1] == nil:
+                ivarargs = true
+                break
+            if not compatible(args[i].ty, expected=e.ty.params[i][1]):
+                type_error("incompatible type for argument " & $i & " for calling function " & $e)
+                note("expected " & $e.ty.params[i] & " but argument is of type " & $args[i].ty)
+                return nil
+        if ivarargs:
+            for j in i ..< len(args):
+                varargs_conv(args[i])
+        return Expr(k: ECall, callfunc: e, callargs: args, ty: e.ty.ret)
     of TLSquareBrackets: # array subscript
         consume()
-        let sub = expression()
-        if sub == nil:
+        let e = expression()
+        if e == nil:
             expect("expression")
             note("the syntax is:\n\tarray[expression]")
             return nil
         if p.tok.tok != TRSquareBrackets:
             expect("']'")
             return
+        if e.ty.spec == TYPOINTER:
+            discard
+        else:
+            type_error("expression " & $e & " is of type " & $e.ty & ", and is not subscriptable")
+            return nil
         consume()
-        return Expr(k: ESubscript, left: e, right: sub)
+        return Expr(k: ESubscript, left: e, right: e, ty: e.ty.p)
     else:
         return e
 
@@ -1184,22 +1249,25 @@ proc multiplicative_expression*(): Expr =
         case p.tok.tok:
         of TMul:
             consume()
-            let r = cast_expression()
+            var r = cast_expression()
             if r == nil:
                 return nil
-            result = binop(result, OMultiplication, r)
+            conv(result, r)
+            result = binop(result, OMultiplication, r, r.ty)
         of TSlash:
             consume()
-            let r = cast_expression()
+            var r = cast_expression()
             if r == nil:
                 return nil
-            result = binop(result, ODivision, r)
+            conv(result, r)
+            result = binop(result, ODivision, r, r.ty)
         of TPercent:
             consume()
-            let r = cast_expression()
+            var r = cast_expression()
             if r == nil:
                 return nil
-            result = binop(result, Oremainder, r)
+            conv(result, r)
+            result = binop(result, Oremainder, r, r.ty)
         else:
             return result
 
@@ -1209,16 +1277,18 @@ proc additive_expression*(): Expr =
         case p.tok.tok:
         of TAdd:
             consume()
-            let r = multiplicative_expression()
+            var r = multiplicative_expression()
             if r == nil:
                 return nil
-            result = binop(result, OAddition, r)
+            conv(result, r)
+            result = binop(result, OAddition, r, r.ty)
         of TDash:
             consume()
-            let r = multiplicative_expression()
+            var r = multiplicative_expression()
             if r == nil:
                 return nil
-            result = binop(result, OSubtraction, r)
+            conv(result, r)
+            result = binop(result, OSubtraction, r, r.ty)
         else:
             return result
 
@@ -1370,18 +1440,23 @@ proc expression*(): Expr =
 
 proc conditional_expression*(start: Expr): Expr =
     consume()
-    let lhs = logical_OR_expression()
+    var lhs = logical_OR_expression()
     if lhs == nil:
         expect("expression")
         return nil
     if p.tok.tok != TColon:
         return lhs
     consume()
-    let rhs = conditional_expression()
+    var rhs = conditional_expression()
     if rhs == nil:
         expect("expression")
         note("the syntax is:\n\texpr ? a ? b")
         return nil
+    if not compatible(lhs.ty, rhs.ty):
+        type_error("incompatible type for conditional-expression")
+        note("the left is " & $lhs.ty)
+        note("the right is " & $rhs.ty)
+    conv(lhs, rhs)
     return Expr(k: ECondition, cond: start, cleft: lhs, cright: rhs)
 
 proc conditional_expression*(): Expr =

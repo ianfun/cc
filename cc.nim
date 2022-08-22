@@ -17,6 +17,7 @@ when true:
     let e = expression()
     if e != nil:
         echo e.k
+        echo e.ty
         echo e
 
 closeParser()

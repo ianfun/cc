@@ -486,7 +486,7 @@ proc readEscape(): Codepoint =
         let n = if p.c == 'U': 8 else: 4
         eat()
         return readUChar(n)
-    of '0', '1', '2', '3', '4', '5', '6', '7':
+    of '0' .. '7':
         const octalChs = {'0'..'7'}
         var n = Codepoint(p.c) - '0'.Codepoint
         eat() # eat first
@@ -672,7 +672,7 @@ proc read_pp_number*(s: string, f: var float, n: var int): int =
         of 'x', 'X':
             base = 16
             i = 2
-        of '0', '1', '2', '3', '4', '5', '6', '7':
+        of '0' .. '7':
             i = 2
             var num = int(s[1]) - int('0')
             while true:
@@ -764,51 +764,49 @@ proc read_pp_number*(s: string, f: var float, n: var int): int =
             break
         case s[i]:
         of 'F', 'f':
-            if result != 2:
+            if not (result == 2 or result == 3):
                 parse_error("invalid integer suffix " & s[i])
                 return 0
             result = 3
             break
         of 'L', 'l':
-            if result == 2:
+            if result == 2 or result == 3:
                 break
+            case result:
+            of 1: # int => long
+                result = 4
+            of 4: # long => long long
+                result = 5
+            of 8: # unsigned int => unsigned long
+                result = 6
+            of 6: # unsigned long => unsigned long long
+                result = 7
+            else:
+                parse_error("double 'L' suffix in integer constant")
+                return 0
+        of 'U', 'u':
+            if result == 2 or result == 3:
+                parse_error("invalid float suffix " & show(s[i]))
+                return 0
             case result:
             of 1:
                 result = 8
             of 4:
-                result = 4
+                result = 6
             of 5:
                 result = 7
             else:
-                parse_error("double 'u' suffix in integer constant")
-                return 0
-        of 'U', 'u':
-            if result == 2:
-                parse_error("invalid float suffix " & s[i])
-                return 0
-            case result:
-            of 1:
-                result = 4
-            of 8:
-                result = 6
-            of 4:
-                result = 5
-            of 6:
-                result = 7
-            of 5, 7:
-                parse_error("more than 2 'l' suffix in integer constant")
+                parse_error("double 'U' suffix in integer constant")
                 return
-            else:
-                discard
         else:
-            if result == 2:
-                parse_error("invalid float suffix: " & s[i])
+            if result == 2 or result == 3:
+                parse_error("invalid float suffix: " & show(s[i]))
             else:
-                parse_error("invalid integer suffix: " & s[i])
+                parse_error("invalid integer suffix: " & show(s[i]))
             return 0
         inc i
     if result == 3 or result == 2:
-        f = float(num)
+        discard
     else:
         n = num
     return result
@@ -900,7 +898,7 @@ proc readNumberLit() =
     if p.c == '0':
         eat()
         case p.c:
-        of '0', '1', '2', '3', '4', '5', '6', '7': # octal
+        of '0'..'7': # octal
           discard
         of 'x', 'X': # hex
           eat()
@@ -951,53 +949,54 @@ proc readNumberLit() =
         p.tok.i = (10 * p.tok.i) + (int(p.c) - '0'.int)
         eat()
         if p.c == '.':
+            eat()
             readFloatLit(float(p.tok.i))
-            return
+            break
         if p.c in {'L', 'l', 'U', 'u'}:
             while p.c in {'L', 'l', 'U', 'u'}:
                 readSuffix()
                 eat()
-            return
+            break
         elif p.c notin {'0'..'9'}:
             if p.c in {'a'..'z', 'A'..'Z'}: # User-defined literals?
               warning("invalid decimal suffix " & show(p.c))
               note("user-defined literals is a C++ feature")
-            return
+            break
 
 proc readStringLit(enc: uint8) =
     p.tok = TokenV(tok: TStringLit, tags: TVStr)
     while true:
         if p.c == '\\':
-            p.tok.s.add(Rune(readEscape()).toUTF8)
+            p.tok.str.add(Rune(readEscape()).toUTF8)
         elif p.c == '"':
             eat()
             break
         else:
             if 0xF0 == (0xF8 and Codepoint(p.c)): # 4 byte
-              p.tok.s.add(p.c)
+              p.tok.str.add(p.c)
               eat()
-              p.tok.s.add(p.c)
+              p.tok.str.add(p.c)
               eat()
-              p.tok.s.add(p.c)
+              p.tok.str.add(p.c)
               eat()
-              p.tok.s.add(p.c)
+              p.tok.str.add(p.c)
             elif 0xE0 == (0xF0 and Codepoint(p.c)): # 3 byte
-              p.tok.s.add(p.c)
+              p.tok.str.add(p.c)
               eat()
-              p.tok.s.add(p.c)
+              p.tok.str.add(p.c)
               eat()
-              p.tok.s.add(p.c)
+              p.tok.str.add(p.c)
             elif 0xC0 == (0xE0 and Codepoint(p.c)): # 2 byte
-              p.tok.s.add(p.c)
+              p.tok.str.add(p.c)
               eat()
-              p.tok.s.add(p.c)
+              p.tok.str.add(p.c)
             else: # 1 byte
               if p.c == '\n':
                 warning("missing terminating '\"' character, read newline as \\n")
               elif p.c == '\0':
                 parse_error("unexpected EOF")
                 return
-              p.tok.s.add(p.c)
+              p.tok.str.add(p.c)
             eat()
     p.tok.enc = enc
 
@@ -1009,27 +1008,62 @@ proc readPPNumberAfterDot() =
 
 proc readPPNumber() =
     p.tok = TokenV(tok: TPPNumber, tags: TVSVal)
-    while true:
-        p.tok.s.add(p.c)
+    if p.c == '0':
         eat()
-        if p.c notin {'0'..'9'}:
-            break
-    if p.c == '.':
-        eat()
-        readPPNumberAfterDot()
-    elif p.c in {'e', 'p', 'E', 'P'}:
+        case p.c:
+        of 'x', 'X':
+            p.tok.s = "0x"
+            while true:
+                eat()
+                if p.c notin {'0'..'9', 'a'..'f', 'A'..'F'}:
+                    break
+                p.tok.s.add(p.c)
+        of 'B', 'b':
+            p.tok.s = "0b"
+            while true:
+                eat()
+                if p.c notin {'0', '1'}:
+                    break
+                p.tok.s.add(p.c)
+        of '0' .. '7':
+            p.tok.s = "0"
+            p.tok.s.add(p.c)
+            while true:
+                eat()
+                if p.c notin {'0'..'7'}:
+                    break
+                p.tok.s.add(p.c)
+        of '.':
+            eat()
+            readPPNumberAfterDot()
+        else:
+            p.tok.s = "0"
+            return
+    else:
+        while true:
+            p.tok.s.add(p.c)
+            eat()
+            if p.c notin {'0'..'9'}:
+                break
+        if p.c == '.':
+            eat()
+            readPPNumberAfterDot()
+    if p.c in {'e', 'p', 'E', 'P'}:
         p.tok.s.add(p.c)
         eat()
         if p.c == '+' or p.c == '-':
+            p.tok.s.add(p.c)
+            eat()
+        while p.c in {'0'..'9'}:
             p.tok.s.add(p.c)
             eat()
     # nodigit
     elif p.c in {'a'..'z', 'A'..'Z', '_'}:
         while true:
             p.tok.s.add(p.c)
+            eat()
             if p.c notin {'a'..'z', 'A'..'Z', '_'}:
                 break
-            eat()
     # universal-character-name
     elif p.c == '\\':
         eat()

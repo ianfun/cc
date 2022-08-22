@@ -82,7 +82,7 @@ proc make_ty(): uint32 =
 
 const # optional type tags
   TYINVALID* = 0'u32
-  TYAUTO* = make_ty()
+  # TYAUTO* = make_ty()
   TYCONST* = make_ty()
   TYRESTRICT* = make_ty()
   TYVOLATILE* = make_ty()
@@ -124,6 +124,14 @@ const # type alias
   TYULONG* = TYUINT64 # 32 bit in MSVC, 64 bit in GCC/JVM
   TYULONGLONG* = TYUINT64
   TYLONGDOUBLE* = TYDOUBLE
+  TYSIZE_T* = when sizeof(pointer) == 8: TYUINT64 else: TYUINT32
+
+const 
+  prim* = TYINT8 or TYINT16 or TYINT32 or TYINT64 or 
+    TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64 or 
+    TYFLOAT or TYDOUBLE
+  signed*   = TYINT8  or TYINT16  or TYINT32  or TYINT64
+  unsigned* = TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64
 
 type
     CValueKind* = enum
@@ -259,7 +267,7 @@ type
         fname*: string
         ret*: CType
         params*: seq[(string, CType)]
-      of TYARRAY: # static parameter...
+      of TYARRAY:
         arrsize*: intmax_t
         arrtype*: CType
     ConstantKind* = enum
@@ -316,9 +324,9 @@ type
       of SStructDecl, SUnionDecl, SEnumDecl:
         stype*: CType
     ExprKind* = enum
-      EBin, EUnary, EPostFix, EIntLit, ECharLit, EFloatLit, EStringLit, 
-      ESizeOf, EVar, ECondition, ECast, ECall, ESubscript, 
-      EAlignof, EGeneric, ECppVar, EArray
+      EBin, EUnary, EPostFix, EIntLit, ECharLit, EFloatLit,
+      EVar, ECondition, ECast, ECall, ESubscript, 
+      ECppVar, EArray
     Expr* = ref object
       ty*: CType
       case k*: ExprKind
@@ -336,27 +344,20 @@ type
       of EFloatLit:
         fval*: float
         ftag*: FTag
-      of EStringLit, EVar, ECppVar:
+      of EVar, ECppVar:
         sval*: string
       of EArray:
         arr*: seq[Expr]
       of ECondition:
         cond*: Expr
         cleft*, cright*: Expr
-      of ESizeOf, EAlignof:
-        sizeofx*: Expr
-        sizeofty*: CType
       of ECast:
-        casttype*: CType
         castval*: Expr
       of ECall:
         callfunc*: Expr
         callargs*: seq[Expr]
       of ESubscript:
         left*, right*: Expr
-      of EGeneric:
-        selectexpr*: Expr
-        selectors*: seq[(Expr, Expr)] # CType is nil if default!
 
 var p*: Parser = nil
 
@@ -597,22 +598,14 @@ proc `$`*(e: Expr): string =
     $e.fval
   of EVar, ECppVar:
     e.sval
-  of EStringLit:
-    '"' & (e.sval) & '"'
   of ECondition:
     $e.cond & '?' & $e.cleft & ':' & $e.cright
-  of EAlignof:
-    "_Alignof(" & (if e.sizeofx != nil: $e.sizeofx else: $e.sizeofty)  & ')'
-  of ESizeOf:
-    "sizeof(" & (if e.sizeofx != nil: $e.sizeofx else: $e.sizeofty) & ')'
   of ECast:
-    $e.casttype & '(' & $e.castval & ')'
+    '(' & $e.ty & ')' & $e.castval
   of ESubscript:
     $e.left & '[' & $e.right & ']'
   of ECall:
     $e.callfunc & '(' & $joinShow(e.callargs, ", ") & ')'
-  of EGeneric:
-    "_Generic(" & $e.selectexpr & (var s: string;for (tp, e) in e.selectors: s.add($tp & ':' & $e & ',');s) & ')'
   of EArray:
     "{" & $e.arr & "}"
 
@@ -645,7 +638,6 @@ proc error*(msg: string) =
       p.err = true
 
 proc type_error*(msg: string) =
-    p.tok = TokenV(tok: TNul, tags: TVNormal)
     if p.err == false:
       stderr.writeLine("\e[35m" & p.filename & ": " & $p.line & '.' & $p.col & ": type error: " & msg & "\e[0m")
       p.err = true

@@ -72,12 +72,6 @@ proc evali*(e: Expr): intmax_t =
     0
   of ECondition:
     if evali(e.cond) != 0: evali(e.cleft) else: evali(e.cright)
-  of EAlignof:
-    echo "bad aignof"
-    0
-  of ESizeOf:
-    echo "bad sizeof"
-    0
   of ECast:
     echo "bad cast"
     0
@@ -86,12 +80,6 @@ proc evali*(e: Expr): intmax_t =
     0
   of ECall:
     echo "bad call"
-    0
-  of EGeneric:
-    echo "bad generic"
-    0
-  of EStringLit:
-    echo "bad string"
     0
   of ECppVar:
     0
