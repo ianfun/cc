@@ -1,6 +1,8 @@
 import "."/[token, lexer, parser]
 
 newParser()
+p.filename = "<stdin>"
+p.path = "<stdin>"
 addStdin()
 getToken()
 

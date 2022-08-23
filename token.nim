@@ -129,7 +129,8 @@ const # type alias
 const 
   prim* = TYINT8 or TYINT16 or TYINT32 or TYINT64 or 
     TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64 or 
-    TYFLOAT or TYDOUBLE
+    TYFLOAT or TYDOUBLE or
+    TYBOOL
   signed*   = TYINT8  or TYINT16  or TYINT32  or TYINT64
   unsigned* = TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64
 

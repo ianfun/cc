@@ -71,6 +71,9 @@ proc to(e: var Expr, tag: uint32) =
     if e.ty.tags != tag:
         e = Expr(k: ECast, ty: CType(tags: tag), castval: e)
 
+proc castto*(e: var Expr, t: CType) =
+    to(e, t.tags)
+
 proc integer_promotions*(a: var Expr) =
     if a.ty.spec == TYBITFIELD or getsizeof(a) < sizoefint:
         to(a, TYINT)
@@ -128,3 +131,46 @@ proc compatible*(e: var CType, expected: CType): bool =
 
 proc varargs_conv*(e: var Expr) =
     discard
+
+proc checkInteger*(a: CType, scalar=false): bool =
+    if a.spec != TYPRIM:
+        if scalar and a.spec == TYPOINTER:
+            return true
+        return false
+    if (a.tags and TYLONGDOUBLE) != 0:
+        return false
+    if (a.tags and TYDOUBLE) != 0:
+        return false
+    if (a.tags and TYFLOAT) != 0:
+        return false
+    if (a.tags and TYCOMPLEX) != 0:
+        return false
+    return true
+
+proc checkInteger*(a, b: Expr) =
+    let ok = checkInteger(a.ty) and checkInteger(b.ty)
+    if ok == false:
+        type_error("integer expected")
+
+proc checkScalar*(a, b: Expr) =
+    let ok = checkInteger(a.ty, scalar=true) and checkInteger(b.ty, scalar=true)
+    if ok == false:
+        type_error("scalar expected")
+
+proc checkArithmetic*(a: CType): bool =
+    if a.spec != TYPRIM:
+        return false
+    return true
+
+proc checkArithmetic*(a, b: Expr) =
+    let ok = checkArithmetic(a.ty) and checkArithmetic(b.ty)
+    if ok == false:
+        type_error("arithmetic type expected")
+
+proc checkSpec*(a, b: var Expr) =
+    if a.ty.spec != b.ty.spec:
+        type_error("operands type mismatch: " & $a & ", " & $b)
+    else:
+        checkScalar(a, b)
+        conv(a, b)
+

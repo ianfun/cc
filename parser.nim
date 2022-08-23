@@ -94,17 +94,17 @@ proc statament*(): Stmt
 
 proc compound_statement*(): Stmt
 
-proc binop*(a: Expr, op: BinOP, b: Expr, ty: CType = nil): Expr = 
+proc binop*(a: Expr, op: BinOP, b: Expr, ty: CType): Expr = 
     ## construct a binary operator
     Expr(k: EBin, lhs: a, rhs: b, bop: op, ty: ty)
 
 
-proc unary*(e: Expr, op: UnaryOP, ty: CType=nil): Expr = 
+proc unary*(e: Expr, op: UnaryOP, ty: CType): Expr = 
     ## construct a unary operator
     Expr(k: EUnary, uop: op, uoperand: e, ty: ty)
 
 
-proc postfix*(e: Expr, op: PostfixOP, ty: CType=nil): Expr = 
+proc postfix*(e: Expr, op: PostfixOP, ty: CType): Expr = 
     ## construct a postfix operator
     Expr(k: EPostFix, pop: op, poperand: e, ty: ty)
 
@@ -1174,7 +1174,7 @@ proc postfix_expression*(): Expr =
             note("maybe you mean: '->'")
         for i in 0..<len(e.ty.selems):
             if p.tok.s == e.ty.selems[i][0]:
-                return binop(e, (if isarrow: OMemberAccess else: OPointerMemberAccess), Expr(k: EVar, sval: p.tok.s))
+                return binop(e, (if isarrow: OMemberAccess else: OPointerMemberAccess), Expr(k: EVar, sval: p.tok.s), e.ty.selems[i][1])
         type_error("struct/union " & $e.ty.sname & " has no member " & p.tok.s)
         return nil
     of TLbracket: # function call
@@ -1252,6 +1252,7 @@ proc multiplicative_expression*(): Expr =
             var r = cast_expression()
             if r == nil:
                 return nil
+            checkArithmetic(result, r)
             conv(result, r)
             result = binop(result, OMultiplication, r, r.ty)
         of TSlash:
@@ -1259,6 +1260,7 @@ proc multiplicative_expression*(): Expr =
             var r = cast_expression()
             if r == nil:
                 return nil
+            checkArithmetic(result, r)
             conv(result, r)
             result = binop(result, ODivision, r, r.ty)
         of TPercent:
@@ -1266,6 +1268,7 @@ proc multiplicative_expression*(): Expr =
             var r = cast_expression()
             if r == nil:
                 return nil
+            checkInteger(result, r)
             conv(result, r)
             result = binop(result, Oremainder, r, r.ty)
         else:
@@ -1280,6 +1283,7 @@ proc additive_expression*(): Expr =
             var r = multiplicative_expression()
             if r == nil:
                 return nil
+            checkScalar(result, r)
             conv(result, r)
             result = binop(result, OAddition, r, r.ty)
         of TDash:
@@ -1287,6 +1291,7 @@ proc additive_expression*(): Expr =
             var r = multiplicative_expression()
             if r == nil:
                 return nil
+            checkScalar(result, r)
             conv(result, r)
             result = binop(result, OSubtraction, r, r.ty)
         else:
@@ -1298,16 +1303,22 @@ proc shift_expression*(): Expr =
         case p.tok.tok:
         of Tshl:
             consume()
-            let r = additive_expression()
+            var r = additive_expression()
             if r == nil:
                 return nil
-            result = binop(result, OShl, r)
+            checkInteger(result, r)
+            integer_promotions(result)
+            integer_promotions(r)
+            result = binop(result, OShl, r, result.ty)
         of Tshr:
             consume()
-            let r = additive_expression()
+            var r = additive_expression()
             if r == nil:
                 return nil
-            result = binop(result, OShr, r)
+            checkInteger(result, r)
+            integer_promotions(result)
+            integer_promotions(r)
+            result = binop(result, OShr, r, result.ty)
         else:
             return result
 
@@ -1317,28 +1328,32 @@ proc relational_expression*(): Expr =
         case p.tok.tok:
         of TLt:
             consume()
-            let r = shift_expression()
+            var r = shift_expression()
             if r == nil:
                 return nil
-            result = binop(result, OLt, r)
+            checkSpec(result, r)
+            result = binop(result, OLt, r, result.ty)
         of TLe:
             consume()
-            let r = shift_expression()
+            var r = shift_expression()
             if r == nil:
                 return nil
-            result = binop(result, OLe, r)
+            checkSpec(result, r)
+            result = binop(result, OLe, r, result.ty)
         of TGt:
             consume()
-            let r = shift_expression()
+            var r = shift_expression()
             if r == nil:
                 return nil
-            result = binop(result, OGt, r)
+            checkSpec(result, r)
+            result = binop(result, OGt, r, result.ty)
         of TGe:
             consume()
-            let r = shift_expression()
+            var r = shift_expression()
             if r == nil:
                 return nil
-            result = binop(result, OGe, r)
+            checkSpec(result, r)
+            result = binop(result, OGe, r, result.ty)
         else:
             return result
 
@@ -1348,16 +1363,18 @@ proc equality_expression*(): Expr =
         case p.tok.tok:
         of TEq:
             consume()
-            let r = relational_expression()
+            var r = relational_expression()
             if r == nil:
                 return nil
-            result = binop(result, OEq, r)
+            checkSpec(result, r)
+            result = binop(result, OEq, r, result.ty)
         of TNe:
             consume()
-            let r = relational_expression()
+            var r = relational_expression()
             if r == nil:
                 return nil
-            result = binop(result, ONe, r)
+            checkSpec(result, r)
+            result = binop(result, ONe, r, result.ty)
         else:
             return result
 
@@ -1367,10 +1384,12 @@ proc AND_expression*(): Expr =
         case p.tok.tok:
         of TBitAnd:
             consume()
-            let r = equality_expression()
+            var r = equality_expression()
             if r == nil:
                 return nil
-            result = binop(result, OBitwiseAnd, r)
+            checkInteger(result, r)
+            conv(result, r)
+            result = binop(result, OBitwiseAnd, r, result.ty)
         else:
             return result
 
@@ -1380,10 +1399,12 @@ proc exclusive_OR_expression*(): Expr =
         case p.tok.tok:
         of TXOr:
             consume()
-            let r = AND_expression()
+            var r = AND_expression()
             if r == nil:
                 return nil
-            result = binop(result, OBitwiseXor, r)
+            checkInteger(result, r)
+            conv(result, r)
+            result = binop(result, OBitwiseXor, r, result.ty)
         else:
             return result
 
@@ -1393,10 +1414,12 @@ proc inclusive_OR_expression*(): Expr =
         case p.tok.tok:
         of TBitOr:
             consume()
-            let r = exclusive_OR_expression()
+            var r = exclusive_OR_expression()
             if r == nil:
                 return nil
-            result = binop(result, OBitwiseOr, r)
+            checkInteger(result, r)
+            conv(result, r)
+            result = binop(result, OBitwiseOr, r, result.ty)
         else:
             return result
 
@@ -1406,10 +1429,11 @@ proc logical_AND_expression*(): Expr =
         case p.tok.tok:
         of TLogicalAnd:
             consume()
-            let r = inclusive_OR_expression()
+            var r = inclusive_OR_expression()
             if r == nil:
                 return nil
-            result = binop(result, OLogicalAnd, r)
+            checkScalar(result, r)
+            result = binop(result, OLogicalAnd, r, CType(tags: TYINT, spec: TYPRIM))
         else:
             return result
 
@@ -1419,10 +1443,11 @@ proc logical_OR_expression*(): Expr =
         case p.tok.tok:
         of TLogicalOr:
             consume()
-            let r = logical_AND_expression()
+            var r = logical_AND_expression()
             if r == nil:
                 return nil
-            result = binop(result, OLogicalOr, r)
+            checkScalar(result, r)
+            result = binop(result, OLogicalOr, r, CType(tags: TYINT, spec: TYPRIM))
         else:
             return result
 
@@ -1431,10 +1456,10 @@ proc expression*(): Expr =
     result = assignment_expression()
     while true:
         if p.tok.tok == TComma:
-            let r = assignment_expression()
+            var r = assignment_expression()
             if r == nil:
                 return nil
-            result = binop(result, Comma, r)
+            result = binop(result, Comma, r, r.ty)
         else:
             return result
 
@@ -1492,12 +1517,13 @@ proc assignment_expression*(): Expr =
     let op = get_assignment_op(tok)
     if op != BNop:
         consume()
-        let e = assignment_expression()
+        var e = assignment_expression()
         if e == nil:
             expect("expression")
             note("the syntax is:\n\texpr1=expr2, expr3=expr4, ...")
             return nil
-        result = binop(result, op, e)
+        castto(e, result.ty)
+        result = binop(result, op, e, result.ty)
 
 proc translation_unit*() =
     ## parse a file, the entry point of program
