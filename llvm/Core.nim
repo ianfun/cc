@@ -196,8 +196,14 @@ type ## *
                        ##                               the old one
     AtomicRMWBinOpFAdd,       ## *< Add a floating point value and return the
                        ##                               old one
-    AtomicRMWBinOpFSub        ## *< Subtract a floating point value and return the
-                      ##                              old one
+    AtomicRMWBinOpFSub,       ## *< Subtract a floating point value and return the
+                       ##                             old one
+    AtomicRMWBinOpFMax, ## *< Sets the value if it's greater than the
+                       ##                              original using an floating point comparison and
+                       ##                              return the old one
+    AtomicRMWBinOpFMin ## *< Sets the value if it's smaller than the
+                      ##                              original using an floating point comparison and
+                      ##                              return the old one
   DiagnosticSeverity* {.size: sizeof(cint).} = enum
     DSError, DSWarning, DSRemark, DSNote
   InlineAsmDialect* {.size: sizeof(cint).} = enum
@@ -263,9 +269,9 @@ type ## *
 ##
 
 const
-  AttributeReturnIndex* = 0'u ##  ISO C restricts enumerator values to range of 'int'
-                           ##  (4294967295 is too large)
-                           ##  LLVMAttributeFunctionIndex = ~0U,
+  AttributeReturnIndex* = 0 ##  ISO C restricts enumerator values to range of 'int'
+                              ##  (4294967295 is too large)
+                              ##  LLVMAttributeFunctionIndex = ~0U,
   AttributeFunctionIndex* = -1
 
 ## !!!Ignored construct:  typedef unsigned LLVMAttributeIndex ;
@@ -276,18 +282,18 @@ const
 ##
 
 proc initializeCore*(r: PassRegistryRef) {.importc: "LLVMInitializeCore",
-                                        dynlib: LLVMLib.}
+                                        .}
 ## * Deallocate and destroy all ManagedStatic variables.
 ##     @see llvm::llvm_shutdown
 ##     @see ManagedStatic
 
-proc shutdown*() {.importc: "LLVMShutdown", dynlib: LLVMLib.}
+proc shutdown*() {.importc: "LLVMShutdown".}
 ## ===-- Error handling ----------------------------------------------------===
 
 proc createMessage*(message: cstring): cstring {.importc: "LLVMCreateMessage",
-    dynlib: LLVMLib.}
+    .}
 proc disposeMessage*(message: cstring) {.importc: "LLVMDisposeMessage",
-                                      dynlib: LLVMLib.}
+                                      .}
 ## *
 ##  @defgroup LLVMCCoreContext Contexts
 ##
@@ -311,32 +317,32 @@ type
 ##  LLVMContextDispose() or the context will leak memory.
 ##
 
-proc contextCreate*(): ContextRef {.importc: "LLVMContextCreate", dynlib: LLVMLib.}
+proc contextCreate*(): ContextRef {.importc: "LLVMContextCreate".}
 ## *
 ##  Obtain the global context instance.
 ##
 
 proc getGlobalContext*(): ContextRef {.importc: "LLVMGetGlobalContext",
-                                    dynlib: LLVMLib.}
+                                    .}
 ## *
 ##  Set the diagnostic handler for this context.
 ##
 
 proc contextSetDiagnosticHandler*(c: ContextRef; handler: DiagnosticHandler;
                                  diagnosticContext: pointer) {.
-    importc: "LLVMContextSetDiagnosticHandler", dynlib: LLVMLib.}
+    importc: "LLVMContextSetDiagnosticHandler".}
 ## *
 ##  Get the diagnostic handler of this context.
 ##
 
 proc contextGetDiagnosticHandler*(c: ContextRef): DiagnosticHandler {.
-    importc: "LLVMContextGetDiagnosticHandler", dynlib: LLVMLib.}
+    importc: "LLVMContextGetDiagnosticHandler".}
 ## *
 ##  Get the diagnostic context of this context.
 ##
 
 proc contextGetDiagnosticContext*(c: ContextRef): pointer {.
-    importc: "LLVMContextGetDiagnosticContext", dynlib: LLVMLib.}
+    importc: "LLVMContextGetDiagnosticContext".}
 ## *
 ##  Set the yield callback function for this context.
 ##
@@ -345,7 +351,7 @@ proc contextGetDiagnosticContext*(c: ContextRef): pointer {.
 
 proc contextSetYieldCallback*(c: ContextRef; callback: YieldCallback;
                              opaqueHandle: pointer) {.
-    importc: "LLVMContextSetYieldCallback", dynlib: LLVMLib.}
+    importc: "LLVMContextSetYieldCallback".}
 ## *
 ##  Retrieve whether the given context is set to discard all value names.
 ##
@@ -353,7 +359,7 @@ proc contextSetYieldCallback*(c: ContextRef; callback: YieldCallback;
 ##
 
 proc contextShouldDiscardValueNames*(c: ContextRef): Bool {.
-    importc: "LLVMContextShouldDiscardValueNames", dynlib: LLVMLib.}
+    importc: "LLVMContextShouldDiscardValueNames".}
 ## *
 ##  Set whether the given context discards all value names.
 ##
@@ -364,7 +370,15 @@ proc contextShouldDiscardValueNames*(c: ContextRef): Bool {.
 ##
 
 proc contextSetDiscardValueNames*(c: ContextRef; `discard`: Bool) {.
-    importc: "LLVMContextSetDiscardValueNames", dynlib: LLVMLib.}
+    importc: "LLVMContextSetDiscardValueNames".}
+## *
+##  Set whether the given context is in opaque pointer mode.
+##
+##  @see LLVMContext::setOpaquePointers()
+##
+
+proc contextSetOpaquePointers*(c: ContextRef; opaquePointers: Bool) {.
+    importc: "LLVMContextSetOpaquePointers".}
 ## *
 ##  Destroy a context instance.
 ##
@@ -372,7 +386,7 @@ proc contextSetDiscardValueNames*(c: ContextRef; `discard`: Bool) {.
 ##  will be leaked.
 ##
 
-proc contextDispose*(c: ContextRef) {.importc: "LLVMContextDispose", dynlib: LLVMLib.}
+proc contextDispose*(c: ContextRef) {.importc: "LLVMContextDispose".}
 ## *
 ##  Return a string representation of the DiagnosticInfo. Use
 ##  LLVMDisposeMessage to free the string.
@@ -381,7 +395,7 @@ proc contextDispose*(c: ContextRef) {.importc: "LLVMContextDispose", dynlib: LLV
 ##
 
 proc getDiagInfoDescription*(di: DiagnosticInfoRef): cstring {.
-    importc: "LLVMGetDiagInfoDescription", dynlib: LLVMLib.}
+    importc: "LLVMGetDiagInfoDescription".}
 ## *
 ##  Return an enum LLVMDiagnosticSeverity.
 ##
@@ -389,11 +403,11 @@ proc getDiagInfoDescription*(di: DiagnosticInfoRef): cstring {.
 ##
 
 proc getDiagInfoSeverity*(di: DiagnosticInfoRef): DiagnosticSeverity {.
-    importc: "LLVMGetDiagInfoSeverity", dynlib: LLVMLib.}
+    importc: "LLVMGetDiagInfoSeverity".}
 proc getMDKindIDInContext*(c: ContextRef; name: cstring; sLen: cuint): cuint {.
-    importc: "LLVMGetMDKindIDInContext", dynlib: LLVMLib.}
+    importc: "LLVMGetMDKindIDInContext".}
 proc getMDKindID*(name: cstring; sLen: cuint): cuint {.importc: "LLVMGetMDKindID",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Return an unique id given the name of a enum attribute,
 ##  or 0 if no attribute by that name exists.
@@ -407,75 +421,75 @@ proc getMDKindID*(name: cstring; sLen: cuint): cuint {.importc: "LLVMGetMDKindID
 ##
 
 proc getEnumAttributeKindForName*(name: cstring; sLen: csize_t): cuint {.
-    importc: "LLVMGetEnumAttributeKindForName", dynlib: LLVMLib.}
+    importc: "LLVMGetEnumAttributeKindForName".}
 proc getLastEnumAttributeKind*(): cuint {.importc: "LLVMGetLastEnumAttributeKind",
-                                       dynlib: LLVMLib.}
+                                       .}
 ## *
 ##  Create an enum attribute.
 ##
 
 proc createEnumAttribute*(c: ContextRef; kindID: cuint; val: uint64): AttributeRef {.
-    importc: "LLVMCreateEnumAttribute", dynlib: LLVMLib.}
+    importc: "LLVMCreateEnumAttribute".}
 ## *
 ##  Get the unique id corresponding to the enum attribute
 ##  passed as argument.
 ##
 
 proc getEnumAttributeKind*(a: AttributeRef): cuint {.
-    importc: "LLVMGetEnumAttributeKind", dynlib: LLVMLib.}
+    importc: "LLVMGetEnumAttributeKind".}
 ## *
 ##  Get the enum attribute's value. 0 is returned if none exists.
 ##
 
 proc getEnumAttributeValue*(a: AttributeRef): uint64 {.
-    importc: "LLVMGetEnumAttributeValue", dynlib: LLVMLib.}
+    importc: "LLVMGetEnumAttributeValue".}
 ## *
 ##  Create a type attribute
 ##
 
 proc createTypeAttribute*(c: ContextRef; kindID: cuint; typeRef: TypeRef): AttributeRef {.
-    importc: "LLVMCreateTypeAttribute", dynlib: LLVMLib.}
+    importc: "LLVMCreateTypeAttribute".}
 ## *
 ##  Get the type attribute's value.
 ##
 
 proc getTypeAttributeValue*(a: AttributeRef): TypeRef {.
-    importc: "LLVMGetTypeAttributeValue", dynlib: LLVMLib.}
+    importc: "LLVMGetTypeAttributeValue".}
 ## *
 ##  Create a string attribute.
 ##
 
 proc createStringAttribute*(c: ContextRef; k: cstring; kLength: cuint; v: cstring;
                            vLength: cuint): AttributeRef {.
-    importc: "LLVMCreateStringAttribute", dynlib: LLVMLib.}
+    importc: "LLVMCreateStringAttribute".}
 ## *
 ##  Get the string attribute's kind.
 ##
 
 proc getStringAttributeKind*(a: AttributeRef; length: ptr cuint): cstring {.
-    importc: "LLVMGetStringAttributeKind", dynlib: LLVMLib.}
+    importc: "LLVMGetStringAttributeKind".}
 ## *
 ##  Get the string attribute's value.
 ##
 
 proc getStringAttributeValue*(a: AttributeRef; length: ptr cuint): cstring {.
-    importc: "LLVMGetStringAttributeValue", dynlib: LLVMLib.}
+    importc: "LLVMGetStringAttributeValue".}
 ## *
 ##  Check for the different types of attributes.
 ##
 
 proc isEnumAttribute*(a: AttributeRef): Bool {.importc: "LLVMIsEnumAttribute",
-    dynlib: LLVMLib.}
+    .}
 proc isStringAttribute*(a: AttributeRef): Bool {.importc: "LLVMIsStringAttribute",
-    dynlib: LLVMLib.}
+    .}
 proc isTypeAttribute*(a: AttributeRef): Bool {.importc: "LLVMIsTypeAttribute",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain a Type from a context by its registered name.
 ##
 
 proc getTypeByName2*(c: ContextRef; name: cstring): TypeRef {.
-    importc: "LLVMGetTypeByName2", dynlib: LLVMLib.}
+    importc: "LLVMGetTypeByName2".}
 ## *
 ##  @}
 ##
@@ -499,7 +513,7 @@ proc getTypeByName2*(c: ContextRef; name: cstring): TypeRef {.
 ##
 
 proc moduleCreateWithName*(moduleID: cstring): ModuleRef {.
-    importc: "LLVMModuleCreateWithName", dynlib: LLVMLib.}
+    importc: "LLVMModuleCreateWithName".}
 ## *
 ##  Create a new, empty module in a specific context.
 ##
@@ -508,13 +522,13 @@ proc moduleCreateWithName*(moduleID: cstring): ModuleRef {.
 ##
 
 proc moduleCreateWithNameInContext*(moduleID: cstring; c: ContextRef): ModuleRef {.
-    importc: "LLVMModuleCreateWithNameInContext", dynlib: LLVMLib.}
+    importc: "LLVMModuleCreateWithNameInContext".}
 ## *
 ##  Return an exact copy of the specified module.
 ##
 
 proc cloneModule*(m: ModuleRef): ModuleRef {.importc: "LLVMCloneModule",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Destroy a module instance.
 ##
@@ -522,7 +536,7 @@ proc cloneModule*(m: ModuleRef): ModuleRef {.importc: "LLVMCloneModule",
 ##  leaked.
 ##
 
-proc disposeModule*(m: ModuleRef) {.importc: "LLVMDisposeModule", dynlib: LLVMLib.}
+proc disposeModule*(m: ModuleRef) {.importc: "LLVMDisposeModule".}
 ## *
 ##  Obtain the identifier of a module.
 ##
@@ -533,7 +547,7 @@ proc disposeModule*(m: ModuleRef) {.importc: "LLVMDisposeModule", dynlib: LLVMLi
 ##
 
 proc getModuleIdentifier*(m: ModuleRef; len: ptr csize_t): cstring {.
-    importc: "LLVMGetModuleIdentifier", dynlib: LLVMLib.}
+    importc: "LLVMGetModuleIdentifier".}
 ## *
 ##  Set the identifier of a module to a string Ident with length Len.
 ##
@@ -544,7 +558,7 @@ proc getModuleIdentifier*(m: ModuleRef; len: ptr csize_t): cstring {.
 ##
 
 proc setModuleIdentifier*(m: ModuleRef; ident: cstring; len: csize_t) {.
-    importc: "LLVMSetModuleIdentifier", dynlib: LLVMLib.}
+    importc: "LLVMSetModuleIdentifier".}
 ## *
 ##  Obtain the module's original source file name.
 ##
@@ -555,7 +569,7 @@ proc setModuleIdentifier*(m: ModuleRef; ident: cstring; len: csize_t) {.
 ##
 
 proc getSourceFileName*(m: ModuleRef; len: ptr csize_t): cstring {.
-    importc: "LLVMGetSourceFileName", dynlib: LLVMLib.}
+    importc: "LLVMGetSourceFileName".}
 ## *
 ##  Set the original source file name of a module to a string Name with length
 ##  Len.
@@ -567,7 +581,7 @@ proc getSourceFileName*(m: ModuleRef; len: ptr csize_t): cstring {.
 ##
 
 proc setSourceFileName*(m: ModuleRef; name: cstring; len: csize_t) {.
-    importc: "LLVMSetSourceFileName", dynlib: LLVMLib.}
+    importc: "LLVMSetSourceFileName".}
 ## *
 ##  Obtain the data layout for a module.
 ##
@@ -579,9 +593,9 @@ proc setSourceFileName*(m: ModuleRef; name: cstring; len: csize_t) {.
 ##
 
 proc getDataLayoutStr*(m: ModuleRef): cstring {.importc: "LLVMGetDataLayoutStr",
-    dynlib: LLVMLib.}
+    .}
 proc getDataLayout*(m: ModuleRef): cstring {.importc: "LLVMGetDataLayout",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Set the data layout for a module.
 ##
@@ -589,14 +603,14 @@ proc getDataLayout*(m: ModuleRef): cstring {.importc: "LLVMGetDataLayout",
 ##
 
 proc setDataLayout*(m: ModuleRef; dataLayoutStr: cstring) {.
-    importc: "LLVMSetDataLayout", dynlib: LLVMLib.}
+    importc: "LLVMSetDataLayout".}
 ## *
 ##  Obtain the target triple for a module.
 ##
 ##  @see Module::getTargetTriple()
 ##
 
-proc getTarget*(m: ModuleRef): cstring {.importc: "LLVMGetTarget", dynlib: LLVMLib.}
+proc getTarget*(m: ModuleRef): cstring {.importc: "LLVMGetTarget".}
 ## *
 ##  Set the target triple for a module.
 ##
@@ -604,7 +618,7 @@ proc getTarget*(m: ModuleRef): cstring {.importc: "LLVMGetTarget", dynlib: LLVML
 ##
 
 proc setTarget*(m: ModuleRef; triple: cstring) {.importc: "LLVMSetTarget",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Returns the module flags as an array of flag-key-value triples.  The caller
 ##  is responsible for freeing this array by calling
@@ -614,13 +628,13 @@ proc setTarget*(m: ModuleRef; triple: cstring) {.importc: "LLVMSetTarget",
 ##
 
 proc copyModuleFlagsMetadata*(m: ModuleRef; len: ptr csize_t): ptr ModuleFlagEntry {.
-    importc: "LLVMCopyModuleFlagsMetadata", dynlib: LLVMLib.}
+    importc: "LLVMCopyModuleFlagsMetadata".}
 ## *
 ##  Destroys module flags metadata entries.
 ##
 
 proc disposeModuleFlagsMetadata*(entries: ptr ModuleFlagEntry) {.
-    importc: "LLVMDisposeModuleFlagsMetadata", dynlib: LLVMLib.}
+    importc: "LLVMDisposeModuleFlagsMetadata".}
 ## *
 ##  Returns the flag behavior for a module flag entry at a specific index.
 ##
@@ -628,7 +642,7 @@ proc disposeModuleFlagsMetadata*(entries: ptr ModuleFlagEntry) {.
 ##
 
 proc moduleFlagEntriesGetFlagBehavior*(entries: ptr ModuleFlagEntry; index: cuint): ModuleFlagBehavior {.
-    importc: "LLVMModuleFlagEntriesGetFlagBehavior", dynlib: LLVMLib.}
+    importc: "LLVMModuleFlagEntriesGetFlagBehavior".}
 ## *
 ##  Returns the key for a module flag entry at a specific index.
 ##
@@ -637,7 +651,7 @@ proc moduleFlagEntriesGetFlagBehavior*(entries: ptr ModuleFlagEntry; index: cuin
 
 proc moduleFlagEntriesGetKey*(entries: ptr ModuleFlagEntry; index: cuint;
                              len: ptr csize_t): cstring {.
-    importc: "LLVMModuleFlagEntriesGetKey", dynlib: LLVMLib.}
+    importc: "LLVMModuleFlagEntriesGetKey".}
 ## *
 ##  Returns the metadata for a module flag entry at a specific index.
 ##
@@ -645,7 +659,7 @@ proc moduleFlagEntriesGetKey*(entries: ptr ModuleFlagEntry; index: cuint;
 ##
 
 proc moduleFlagEntriesGetMetadata*(entries: ptr ModuleFlagEntry; index: cuint): MetadataRef {.
-    importc: "LLVMModuleFlagEntriesGetMetadata", dynlib: LLVMLib.}
+    importc: "LLVMModuleFlagEntriesGetMetadata".}
 ## *
 ##  Add a module-level flag to the module-level flags metadata if it doesn't
 ##  already exist.
@@ -654,7 +668,7 @@ proc moduleFlagEntriesGetMetadata*(entries: ptr ModuleFlagEntry; index: cuint): 
 ##
 
 proc getModuleFlag*(m: ModuleRef; key: cstring; keyLen: csize_t): MetadataRef {.
-    importc: "LLVMGetModuleFlag", dynlib: LLVMLib.}
+    importc: "LLVMGetModuleFlag".}
 ## *
 ##  Add a module-level flag to the module-level flags metadata if it doesn't
 ##  already exist.
@@ -664,14 +678,14 @@ proc getModuleFlag*(m: ModuleRef; key: cstring; keyLen: csize_t): MetadataRef {.
 
 proc addModuleFlag*(m: ModuleRef; behavior: ModuleFlagBehavior; key: cstring;
                    keyLen: csize_t; val: MetadataRef) {.
-    importc: "LLVMAddModuleFlag", dynlib: LLVMLib.}
+    importc: "LLVMAddModuleFlag".}
 ## *
 ##  Dump a representation of a module to stderr.
 ##
 ##  @see Module::dump()
 ##
 
-proc dumpModule*(m: ModuleRef) {.importc: "LLVMDumpModule", dynlib: LLVMLib.}
+proc dumpModule*(m: ModuleRef) {.importc: "LLVMDumpModule".}
 ## *
 ##  Print a representation of a module to a file. The ErrorMessage needs to be
 ##  disposed with LLVMDisposeMessage. Returns 0 on success, 1 otherwise.
@@ -680,7 +694,7 @@ proc dumpModule*(m: ModuleRef) {.importc: "LLVMDumpModule", dynlib: LLVMLib.}
 ##
 
 proc printModuleToFile*(m: ModuleRef; filename: cstring; errorMessage: cstringArray): Bool {.
-    importc: "LLVMPrintModuleToFile", dynlib: LLVMLib.}
+    importc: "LLVMPrintModuleToFile".}
 ## *
 ##  Return a string representation of the module. Use
 ##  LLVMDisposeMessage to free the string.
@@ -689,7 +703,7 @@ proc printModuleToFile*(m: ModuleRef; filename: cstring; errorMessage: cstringAr
 ##
 
 proc printModuleToString*(m: ModuleRef): cstring {.
-    importc: "LLVMPrintModuleToString", dynlib: LLVMLib.}
+    importc: "LLVMPrintModuleToString".}
 ## *
 ##  Get inline assembly for a module.
 ##
@@ -697,7 +711,7 @@ proc printModuleToString*(m: ModuleRef): cstring {.
 ##
 
 proc getModuleInlineAsm*(m: ModuleRef; len: ptr csize_t): cstring {.
-    importc: "LLVMGetModuleInlineAsm", dynlib: LLVMLib.}
+    importc: "LLVMGetModuleInlineAsm".}
 ## *
 ##  Set inline assembly for a module.
 ##
@@ -705,7 +719,7 @@ proc getModuleInlineAsm*(m: ModuleRef; len: ptr csize_t): cstring {.
 ##
 
 proc setModuleInlineAsm2*(m: ModuleRef; `asm`: cstring; len: csize_t) {.
-    importc: "LLVMSetModuleInlineAsm2", dynlib: LLVMLib.}
+    importc: "LLVMSetModuleInlineAsm2".}
 ## *
 ##  Append inline assembly to a module.
 ##
@@ -713,7 +727,7 @@ proc setModuleInlineAsm2*(m: ModuleRef; `asm`: cstring; len: csize_t) {.
 ##
 
 proc appendModuleInlineAsm*(m: ModuleRef; `asm`: cstring; len: csize_t) {.
-    importc: "LLVMAppendModuleInlineAsm", dynlib: LLVMLib.}
+    importc: "LLVMAppendModuleInlineAsm".}
 ## *
 ##  Create the specified uniqued inline asm string.
 ##
@@ -724,7 +738,7 @@ proc getInlineAsm*(ty: TypeRef; asmString: cstring; asmStringSize: csize_t;
                   constraints: cstring; constraintsSize: csize_t;
                   hasSideEffects: Bool; isAlignStack: Bool;
                   dialect: InlineAsmDialect; canThrow: Bool): ValueRef {.
-    importc: "LLVMGetInlineAsm", dynlib: LLVMLib.}
+    importc: "LLVMGetInlineAsm".}
 ## *
 ##  Obtain the context to which this module is associated.
 ##
@@ -732,11 +746,11 @@ proc getInlineAsm*(ty: TypeRef; asmString: cstring; asmStringSize: csize_t;
 ##
 
 proc getModuleContext*(m: ModuleRef): ContextRef {.importc: "LLVMGetModuleContext",
-    dynlib: LLVMLib.}
+    .}
 ## * Deprecated: Use LLVMGetTypeByName2 instead.
 
 proc getTypeByName*(m: ModuleRef; name: cstring): TypeRef {.
-    importc: "LLVMGetTypeByName", dynlib: LLVMLib.}
+    importc: "LLVMGetTypeByName".}
 ## *
 ##  Obtain an iterator to the first NamedMDNode in a Module.
 ##
@@ -744,7 +758,7 @@ proc getTypeByName*(m: ModuleRef; name: cstring): TypeRef {.
 ##
 
 proc getFirstNamedMetadata*(m: ModuleRef): NamedMDNodeRef {.
-    importc: "LLVMGetFirstNamedMetadata", dynlib: LLVMLib.}
+    importc: "LLVMGetFirstNamedMetadata".}
 ## *
 ##  Obtain an iterator to the last NamedMDNode in a Module.
 ##
@@ -752,7 +766,7 @@ proc getFirstNamedMetadata*(m: ModuleRef): NamedMDNodeRef {.
 ##
 
 proc getLastNamedMetadata*(m: ModuleRef): NamedMDNodeRef {.
-    importc: "LLVMGetLastNamedMetadata", dynlib: LLVMLib.}
+    importc: "LLVMGetLastNamedMetadata".}
 ## *
 ##  Advance a NamedMDNode iterator to the next NamedMDNode.
 ##
@@ -761,7 +775,7 @@ proc getLastNamedMetadata*(m: ModuleRef): NamedMDNodeRef {.
 ##
 
 proc getNextNamedMetadata*(namedMDNode: NamedMDNodeRef): NamedMDNodeRef {.
-    importc: "LLVMGetNextNamedMetadata", dynlib: LLVMLib.}
+    importc: "LLVMGetNextNamedMetadata".}
 ## *
 ##  Decrement a NamedMDNode iterator to the previous NamedMDNode.
 ##
@@ -770,7 +784,7 @@ proc getNextNamedMetadata*(namedMDNode: NamedMDNodeRef): NamedMDNodeRef {.
 ##
 
 proc getPreviousNamedMetadata*(namedMDNode: NamedMDNodeRef): NamedMDNodeRef {.
-    importc: "LLVMGetPreviousNamedMetadata", dynlib: LLVMLib.}
+    importc: "LLVMGetPreviousNamedMetadata".}
 ## *
 ##  Retrieve a NamedMDNode with the given name, returning NULL if no such
 ##  node exists.
@@ -779,7 +793,7 @@ proc getPreviousNamedMetadata*(namedMDNode: NamedMDNodeRef): NamedMDNodeRef {.
 ##
 
 proc getNamedMetadata*(m: ModuleRef; name: cstring; nameLen: csize_t): NamedMDNodeRef {.
-    importc: "LLVMGetNamedMetadata", dynlib: LLVMLib.}
+    importc: "LLVMGetNamedMetadata".}
 ## *
 ##  Retrieve a NamedMDNode with the given name, creating a new node if no such
 ##  node exists.
@@ -788,7 +802,7 @@ proc getNamedMetadata*(m: ModuleRef; name: cstring; nameLen: csize_t): NamedMDNo
 ##
 
 proc getOrInsertNamedMetadata*(m: ModuleRef; name: cstring; nameLen: csize_t): NamedMDNodeRef {.
-    importc: "LLVMGetOrInsertNamedMetadata", dynlib: LLVMLib.}
+    importc: "LLVMGetOrInsertNamedMetadata".}
 ## *
 ##  Retrieve the name of a NamedMDNode.
 ##
@@ -796,7 +810,7 @@ proc getOrInsertNamedMetadata*(m: ModuleRef; name: cstring; nameLen: csize_t): N
 ##
 
 proc getNamedMetadataName*(namedMD: NamedMDNodeRef; nameLen: ptr csize_t): cstring {.
-    importc: "LLVMGetNamedMetadataName", dynlib: LLVMLib.}
+    importc: "LLVMGetNamedMetadataName".}
 ## *
 ##  Obtain the number of operands for named metadata in a module.
 ##
@@ -804,7 +818,7 @@ proc getNamedMetadataName*(namedMD: NamedMDNodeRef; nameLen: ptr csize_t): cstri
 ##
 
 proc getNamedMetadataNumOperands*(m: ModuleRef; name: cstring): cuint {.
-    importc: "LLVMGetNamedMetadataNumOperands", dynlib: LLVMLib.}
+    importc: "LLVMGetNamedMetadataNumOperands".}
 ## *
 ##  Obtain the named metadata operands for a module.
 ##
@@ -818,7 +832,7 @@ proc getNamedMetadataNumOperands*(m: ModuleRef; name: cstring): cuint {.
 ##
 
 proc getNamedMetadataOperands*(m: ModuleRef; name: cstring; dest: ptr ValueRef) {.
-    importc: "LLVMGetNamedMetadataOperands", dynlib: LLVMLib.}
+    importc: "LLVMGetNamedMetadataOperands".}
 ## *
 ##  Add an operand to named metadata.
 ##
@@ -827,7 +841,7 @@ proc getNamedMetadataOperands*(m: ModuleRef; name: cstring; dest: ptr ValueRef) 
 ##
 
 proc addNamedMetadataOperand*(m: ModuleRef; name: cstring; val: ValueRef) {.
-    importc: "LLVMAddNamedMetadataOperand", dynlib: LLVMLib.}
+    importc: "LLVMAddNamedMetadataOperand".}
 ## *
 ##  Return the directory of the debug location for this value, which must be
 ##  an llvm::Instruction, llvm::GlobalVariable, or llvm::Function.
@@ -838,7 +852,7 @@ proc addNamedMetadataOperand*(m: ModuleRef; name: cstring; val: ValueRef) {.
 ##
 
 proc getDebugLocDirectory*(val: ValueRef; length: ptr cuint): cstring {.
-    importc: "LLVMGetDebugLocDirectory", dynlib: LLVMLib.}
+    importc: "LLVMGetDebugLocDirectory".}
 ## *
 ##  Return the filename of the debug location for this value, which must be
 ##  an llvm::Instruction, llvm::GlobalVariable, or llvm::Function.
@@ -849,7 +863,7 @@ proc getDebugLocDirectory*(val: ValueRef; length: ptr cuint): cstring {.
 ##
 
 proc getDebugLocFilename*(val: ValueRef; length: ptr cuint): cstring {.
-    importc: "LLVMGetDebugLocFilename", dynlib: LLVMLib.}
+    importc: "LLVMGetDebugLocFilename".}
 ## *
 ##  Return the line number of the debug location for this value, which must be
 ##  an llvm::Instruction, llvm::GlobalVariable, or llvm::Function.
@@ -860,7 +874,7 @@ proc getDebugLocFilename*(val: ValueRef; length: ptr cuint): cstring {.
 ##
 
 proc getDebugLocLine*(val: ValueRef): cuint {.importc: "LLVMGetDebugLocLine",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Return the column number of the debug location for this value, which must be
 ##  an llvm::Instruction.
@@ -869,7 +883,7 @@ proc getDebugLocLine*(val: ValueRef): cuint {.importc: "LLVMGetDebugLocLine",
 ##
 
 proc getDebugLocColumn*(val: ValueRef): cuint {.importc: "LLVMGetDebugLocColumn",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Add a function to a module under a specified name.
 ##
@@ -877,7 +891,7 @@ proc getDebugLocColumn*(val: ValueRef): cuint {.importc: "LLVMGetDebugLocColumn"
 ##
 
 proc addFunction*(m: ModuleRef; name: cstring; functionTy: TypeRef): ValueRef {.
-    importc: "LLVMAddFunction", dynlib: LLVMLib.}
+    importc: "LLVMAddFunction".}
 ## *
 ##  Obtain a Function value from a Module by its name.
 ##
@@ -887,7 +901,7 @@ proc addFunction*(m: ModuleRef; name: cstring; functionTy: TypeRef): ValueRef {.
 ##
 
 proc getNamedFunction*(m: ModuleRef; name: cstring): ValueRef {.
-    importc: "LLVMGetNamedFunction", dynlib: LLVMLib.}
+    importc: "LLVMGetNamedFunction".}
 ## *
 ##  Obtain an iterator to the first Function in a Module.
 ##
@@ -895,7 +909,7 @@ proc getNamedFunction*(m: ModuleRef; name: cstring): ValueRef {.
 ##
 
 proc getFirstFunction*(m: ModuleRef): ValueRef {.importc: "LLVMGetFirstFunction",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain an iterator to the last Function in a Module.
 ##
@@ -903,7 +917,7 @@ proc getFirstFunction*(m: ModuleRef): ValueRef {.importc: "LLVMGetFirstFunction"
 ##
 
 proc getLastFunction*(m: ModuleRef): ValueRef {.importc: "LLVMGetLastFunction",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Advance a Function iterator to the next Function.
 ##
@@ -912,7 +926,7 @@ proc getLastFunction*(m: ModuleRef): ValueRef {.importc: "LLVMGetLastFunction",
 ##
 
 proc getNextFunction*(fn: ValueRef): ValueRef {.importc: "LLVMGetNextFunction",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Decrement a Function iterator to the previous Function.
 ##
@@ -921,11 +935,11 @@ proc getNextFunction*(fn: ValueRef): ValueRef {.importc: "LLVMGetNextFunction",
 ##
 
 proc getPreviousFunction*(fn: ValueRef): ValueRef {.
-    importc: "LLVMGetPreviousFunction", dynlib: LLVMLib.}
+    importc: "LLVMGetPreviousFunction".}
 ## * Deprecated: Use LLVMSetModuleInlineAsm2 instead.
 
 proc setModuleInlineAsm*(m: ModuleRef; `asm`: cstring) {.
-    importc: "LLVMSetModuleInlineAsm", dynlib: LLVMLib.}
+    importc: "LLVMSetModuleInlineAsm".}
 ## *
 ##  @}
 ##
@@ -963,7 +977,7 @@ proc setModuleInlineAsm*(m: ModuleRef; `asm`: cstring) {.
 ##  @see llvm::Type:getTypeID()
 ##
 
-proc getTypeKind*(ty: TypeRef): TypeKind {.importc: "LLVMGetTypeKind", dynlib: LLVMLib.}
+proc getTypeKind*(ty: TypeRef): TypeKind {.importc: "LLVMGetTypeKind".}
 ## *
 ##  Whether the type has a known size.
 ##
@@ -972,7 +986,7 @@ proc getTypeKind*(ty: TypeRef): TypeKind {.importc: "LLVMGetTypeKind", dynlib: L
 ##  @see llvm::Type::isSized()
 ##
 
-proc typeIsSized*(ty: TypeRef): Bool {.importc: "LLVMTypeIsSized", dynlib: LLVMLib.}
+proc typeIsSized*(ty: TypeRef): Bool {.importc: "LLVMTypeIsSized".}
 ## *
 ##  Obtain the context to which this type instance is associated.
 ##
@@ -980,14 +994,14 @@ proc typeIsSized*(ty: TypeRef): Bool {.importc: "LLVMTypeIsSized", dynlib: LLVML
 ##
 
 proc getTypeContext*(ty: TypeRef): ContextRef {.importc: "LLVMGetTypeContext",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Dump a representation of a type to stderr.
 ##
 ##  @see llvm::Type::dump()
 ##
 
-proc dumpType*(val: TypeRef) {.importc: "LLVMDumpType", dynlib: LLVMLib.}
+proc dumpType*(val: TypeRef) {.importc: "LLVMDumpType".}
 ## *
 ##  Return a string representation of the type. Use
 ##  LLVMDisposeMessage to free the string.
@@ -996,7 +1010,7 @@ proc dumpType*(val: TypeRef) {.importc: "LLVMDumpType", dynlib: LLVMLib.}
 ##
 
 proc printTypeToString*(val: TypeRef): cstring {.importc: "LLVMPrintTypeToString",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  @defgroup LLVMCCoreTypeInt Integer Types
 ##
@@ -1009,33 +1023,33 @@ proc printTypeToString*(val: TypeRef): cstring {.importc: "LLVMPrintTypeToString
 ##
 
 proc int1TypeInContext*(c: ContextRef): TypeRef {.importc: "LLVMInt1TypeInContext",
-    dynlib: LLVMLib.}
+    .}
 proc int8TypeInContext*(c: ContextRef): TypeRef {.importc: "LLVMInt8TypeInContext",
-    dynlib: LLVMLib.}
+    .}
 proc int16TypeInContext*(c: ContextRef): TypeRef {.
-    importc: "LLVMInt16TypeInContext", dynlib: LLVMLib.}
+    importc: "LLVMInt16TypeInContext".}
 proc int32TypeInContext*(c: ContextRef): TypeRef {.
-    importc: "LLVMInt32TypeInContext", dynlib: LLVMLib.}
+    importc: "LLVMInt32TypeInContext".}
 proc int64TypeInContext*(c: ContextRef): TypeRef {.
-    importc: "LLVMInt64TypeInContext", dynlib: LLVMLib.}
+    importc: "LLVMInt64TypeInContext".}
 proc int128TypeInContext*(c: ContextRef): TypeRef {.
-    importc: "LLVMInt128TypeInContext", dynlib: LLVMLib.}
+    importc: "LLVMInt128TypeInContext".}
 proc intTypeInContext*(c: ContextRef; numBits: cuint): TypeRef {.
-    importc: "LLVMIntTypeInContext", dynlib: LLVMLib.}
+    importc: "LLVMIntTypeInContext".}
 ## *
 ##  Obtain an integer type from the global context with a specified bit
 ##  width.
 ##
 
-proc int1Type*(): TypeRef {.importc: "LLVMInt1Type", dynlib: LLVMLib.}
-proc int8Type*(): TypeRef {.importc: "LLVMInt8Type", dynlib: LLVMLib.}
-proc int16Type*(): TypeRef {.importc: "LLVMInt16Type", dynlib: LLVMLib.}
-proc int32Type*(): TypeRef {.importc: "LLVMInt32Type", dynlib: LLVMLib.}
-proc int64Type*(): TypeRef {.importc: "LLVMInt64Type", dynlib: LLVMLib.}
-proc int128Type*(): TypeRef {.importc: "LLVMInt128Type", dynlib: LLVMLib.}
-proc intType*(numBits: cuint): TypeRef {.importc: "LLVMIntType", dynlib: LLVMLib.}
+proc int1Type*(): TypeRef {.importc: "LLVMInt1Type".}
+proc int8Type*(): TypeRef {.importc: "LLVMInt8Type".}
+proc int16Type*(): TypeRef {.importc: "LLVMInt16Type".}
+proc int32Type*(): TypeRef {.importc: "LLVMInt32Type".}
+proc int64Type*(): TypeRef {.importc: "LLVMInt64Type".}
+proc int128Type*(): TypeRef {.importc: "LLVMInt128Type".}
+proc intType*(numBits: cuint): TypeRef {.importc: "LLVMIntType".}
 proc getIntTypeWidth*(integerTy: TypeRef): cuint {.importc: "LLVMGetIntTypeWidth",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  @}
 ##
@@ -1049,57 +1063,57 @@ proc getIntTypeWidth*(integerTy: TypeRef): cuint {.importc: "LLVMGetIntTypeWidth
 ##
 
 proc halfTypeInContext*(c: ContextRef): TypeRef {.importc: "LLVMHalfTypeInContext",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain a 16-bit brain floating point type from a context.
 ##
 
 proc bFloatTypeInContext*(c: ContextRef): TypeRef {.
-    importc: "LLVMBFloatTypeInContext", dynlib: LLVMLib.}
+    importc: "LLVMBFloatTypeInContext".}
 ## *
 ##  Obtain a 32-bit floating point type from a context.
 ##
 
 proc floatTypeInContext*(c: ContextRef): TypeRef {.
-    importc: "LLVMFloatTypeInContext", dynlib: LLVMLib.}
+    importc: "LLVMFloatTypeInContext".}
 ## *
 ##  Obtain a 64-bit floating point type from a context.
 ##
 
 proc doubleTypeInContext*(c: ContextRef): TypeRef {.
-    importc: "LLVMDoubleTypeInContext", dynlib: LLVMLib.}
+    importc: "LLVMDoubleTypeInContext".}
 ## *
 ##  Obtain a 80-bit floating point type (X87) from a context.
 ##
 
 proc x86FP80TypeInContext*(c: ContextRef): TypeRef {.
-    importc: "LLVMX86FP80TypeInContext", dynlib: LLVMLib.}
+    importc: "LLVMX86FP80TypeInContext".}
 ## *
 ##  Obtain a 128-bit floating point type (112-bit mantissa) from a
 ##  context.
 ##
 
 proc fP128TypeInContext*(c: ContextRef): TypeRef {.
-    importc: "LLVMFP128TypeInContext", dynlib: LLVMLib.}
+    importc: "LLVMFP128TypeInContext".}
 ## *
 ##  Obtain a 128-bit floating point type (two 64-bits) from a context.
 ##
 
 proc pPCFP128TypeInContext*(c: ContextRef): TypeRef {.
-    importc: "LLVMPPCFP128TypeInContext", dynlib: LLVMLib.}
+    importc: "LLVMPPCFP128TypeInContext".}
 ## *
 ##  Obtain a floating point type from the global context.
 ##
 ##  These map to the functions in this group of the same name.
 ##
 
-proc halfType*(): TypeRef {.importc: "LLVMHalfType", dynlib: LLVMLib.}
-proc bFloatType*(): TypeRef {.importc: "LLVMBFloatType", dynlib: LLVMLib.}
-proc floatType*(): TypeRef {.importc: "LLVMFloatType", dynlib: LLVMLib.}
-proc doubleType*(): TypeRef {.importc: "LLVMDoubleType", dynlib: LLVMLib.}
-proc x86FP80Type*(): TypeRef {.importc: "LLVMX86FP80Type", dynlib: LLVMLib.}
-proc fP128Type*(): TypeRef {.importc: "LLVMFP128Type", dynlib: LLVMLib.}
-proc pPCFP128Type*(): TypeRef {.importc: "LLVMPPCFP128Type", dynlib: LLVMLib.}
+proc halfType*(): TypeRef {.importc: "LLVMHalfType".}
+proc bFloatType*(): TypeRef {.importc: "LLVMBFloatType".}
+proc floatType*(): TypeRef {.importc: "LLVMFloatType".}
+proc doubleType*(): TypeRef {.importc: "LLVMDoubleType".}
+proc x86FP80Type*(): TypeRef {.importc: "LLVMX86FP80Type".}
+proc fP128Type*(): TypeRef {.importc: "LLVMFP128Type".}
+proc pPCFP128Type*(): TypeRef {.importc: "LLVMPPCFP128Type".}
 ## *
 ##  @}
 ##
@@ -1117,25 +1131,25 @@ proc pPCFP128Type*(): TypeRef {.importc: "LLVMPPCFP128Type", dynlib: LLVMLib.}
 
 proc functionType*(returnType: TypeRef; paramTypes: ptr TypeRef; paramCount: cuint;
                   isVarArg: Bool): TypeRef {.importc: "LLVMFunctionType",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Returns whether a function type is variadic.
 ##
 
 proc isFunctionVarArg*(functionTy: TypeRef): Bool {.importc: "LLVMIsFunctionVarArg",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain the Type this function Type returns.
 ##
 
 proc getReturnType*(functionTy: TypeRef): TypeRef {.importc: "LLVMGetReturnType",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain the number of parameters this function accepts.
 ##
 
 proc countParamTypes*(functionTy: TypeRef): cuint {.importc: "LLVMCountParamTypes",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain the types of a function's parameters.
 ##
@@ -1149,7 +1163,7 @@ proc countParamTypes*(functionTy: TypeRef): cuint {.importc: "LLVMCountParamType
 ##
 
 proc getParamTypes*(functionTy: TypeRef; dest: ptr TypeRef) {.
-    importc: "LLVMGetParamTypes", dynlib: LLVMLib.}
+    importc: "LLVMGetParamTypes".}
 ## *
 ##  @}
 ##
@@ -1173,7 +1187,7 @@ proc getParamTypes*(functionTy: TypeRef; dest: ptr TypeRef) {.
 
 proc structTypeInContext*(c: ContextRef; elementTypes: ptr TypeRef;
                          elementCount: cuint; packed: Bool): TypeRef {.
-    importc: "LLVMStructTypeInContext", dynlib: LLVMLib.}
+    importc: "LLVMStructTypeInContext".}
 ## *
 ##  Create a new structure type in the global context.
 ##
@@ -1181,7 +1195,7 @@ proc structTypeInContext*(c: ContextRef; elementTypes: ptr TypeRef;
 ##
 
 proc structType*(elementTypes: ptr TypeRef; elementCount: cuint; packed: Bool): TypeRef {.
-    importc: "LLVMStructType", dynlib: LLVMLib.}
+    importc: "LLVMStructType".}
 ## *
 ##  Create an empty structure in a context having a specified name.
 ##
@@ -1189,7 +1203,7 @@ proc structType*(elementTypes: ptr TypeRef; elementCount: cuint; packed: Bool): 
 ##
 
 proc structCreateNamed*(c: ContextRef; name: cstring): TypeRef {.
-    importc: "LLVMStructCreateNamed", dynlib: LLVMLib.}
+    importc: "LLVMStructCreateNamed".}
 ## *
 ##  Obtain the name of a structure.
 ##
@@ -1197,7 +1211,7 @@ proc structCreateNamed*(c: ContextRef; name: cstring): TypeRef {.
 ##
 
 proc getStructName*(ty: TypeRef): cstring {.importc: "LLVMGetStructName",
-                                        dynlib: LLVMLib.}
+                                        .}
 ## *
 ##  Set the contents of a structure type.
 ##
@@ -1205,7 +1219,7 @@ proc getStructName*(ty: TypeRef): cstring {.importc: "LLVMGetStructName",
 ##
 
 proc structSetBody*(structTy: TypeRef; elementTypes: ptr TypeRef; elementCount: cuint;
-                   packed: Bool) {.importc: "LLVMStructSetBody", dynlib: LLVMLib.}
+                   packed: Bool) {.importc: "LLVMStructSetBody".}
 ## *
 ##  Get the number of elements defined inside the structure.
 ##
@@ -1213,7 +1227,7 @@ proc structSetBody*(structTy: TypeRef; elementTypes: ptr TypeRef; elementCount: 
 ##
 
 proc countStructElementTypes*(structTy: TypeRef): cuint {.
-    importc: "LLVMCountStructElementTypes", dynlib: LLVMLib.}
+    importc: "LLVMCountStructElementTypes".}
 ## *
 ##  Get the elements within a structure.
 ##
@@ -1226,7 +1240,7 @@ proc countStructElementTypes*(structTy: TypeRef): cuint {.
 ##
 
 proc getStructElementTypes*(structTy: TypeRef; dest: ptr TypeRef) {.
-    importc: "LLVMGetStructElementTypes", dynlib: LLVMLib.}
+    importc: "LLVMGetStructElementTypes".}
 ## *
 ##  Get the type of the element at a given index in the structure.
 ##
@@ -1234,7 +1248,7 @@ proc getStructElementTypes*(structTy: TypeRef; dest: ptr TypeRef) {.
 ##
 
 proc structGetTypeAtIndex*(structTy: TypeRef; i: cuint): TypeRef {.
-    importc: "LLVMStructGetTypeAtIndex", dynlib: LLVMLib.}
+    importc: "LLVMStructGetTypeAtIndex".}
 ## *
 ##  Determine whether a structure is packed.
 ##
@@ -1242,7 +1256,7 @@ proc structGetTypeAtIndex*(structTy: TypeRef; i: cuint): TypeRef {.
 ##
 
 proc isPackedStruct*(structTy: TypeRef): Bool {.importc: "LLVMIsPackedStruct",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Determine whether a structure is opaque.
 ##
@@ -1250,7 +1264,7 @@ proc isPackedStruct*(structTy: TypeRef): Bool {.importc: "LLVMIsPackedStruct",
 ##
 
 proc isOpaqueStruct*(structTy: TypeRef): Bool {.importc: "LLVMIsOpaqueStruct",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Determine whether a structure is literal.
 ##
@@ -1258,7 +1272,7 @@ proc isOpaqueStruct*(structTy: TypeRef): Bool {.importc: "LLVMIsOpaqueStruct",
 ##
 
 proc isLiteralStruct*(structTy: TypeRef): Bool {.importc: "LLVMIsLiteralStruct",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  @}
 ##
@@ -1271,15 +1285,15 @@ proc isLiteralStruct*(structTy: TypeRef): Bool {.importc: "LLVMIsLiteralStruct",
 ##  @{
 ##
 ## *
-##  Obtain the type of elements within a sequential type.
+##  Obtain the element type of an array or vector type.
 ##
-##  This works on array, vector, and pointer types.
+##  This currently also works for pointer types, but this usage is deprecated.
 ##
 ##  @see llvm::SequentialType::getElementType()
 ##
 
 proc getElementType*(ty: TypeRef): TypeRef {.importc: "LLVMGetElementType",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Returns type's subtypes
 ##
@@ -1287,7 +1301,7 @@ proc getElementType*(ty: TypeRef): TypeRef {.importc: "LLVMGetElementType",
 ##
 
 proc getSubtypes*(tp: TypeRef; arr: ptr TypeRef) {.importc: "LLVMGetSubtypes",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##   Return the number of types in the derived type.
 ##
@@ -1295,7 +1309,7 @@ proc getSubtypes*(tp: TypeRef; arr: ptr TypeRef) {.importc: "LLVMGetSubtypes",
 ##
 
 proc getNumContainedTypes*(tp: TypeRef): cuint {.
-    importc: "LLVMGetNumContainedTypes", dynlib: LLVMLib.}
+    importc: "LLVMGetNumContainedTypes".}
 ## *
 ##  Create a fixed size array type that refers to a specific type.
 ##
@@ -1306,7 +1320,7 @@ proc getNumContainedTypes*(tp: TypeRef): cuint {.
 ##
 
 proc arrayType*(elementType: TypeRef; elementCount: cuint): TypeRef {.
-    importc: "LLVMArrayType", dynlib: LLVMLib.}
+    importc: "LLVMArrayType".}
 ## *
 ##  Obtain the length of an array type.
 ##
@@ -1316,7 +1330,7 @@ proc arrayType*(elementType: TypeRef; elementCount: cuint): TypeRef {.
 ##
 
 proc getArrayLength*(arrayTy: TypeRef): cuint {.importc: "LLVMGetArrayLength",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Create a pointer type that points to a defined type.
 ##
@@ -1327,7 +1341,25 @@ proc getArrayLength*(arrayTy: TypeRef): cuint {.importc: "LLVMGetArrayLength",
 ##
 
 proc pointerType*(elementType: TypeRef; addressSpace: cuint): TypeRef {.
-    importc: "LLVMPointerType", dynlib: LLVMLib.}
+    importc: "LLVMPointerType".}
+## *
+##  Determine whether a pointer is opaque.
+##
+##  True if this is an instance of an opaque PointerType.
+##
+##  @see llvm::Type::isOpaquePointerTy()
+##
+
+proc pointerTypeIsOpaque*(ty: TypeRef): Bool {.importc: "LLVMPointerTypeIsOpaque",
+    .}
+## *
+##  Create an opaque pointer type in a context.
+##
+##  @see llvm::PointerType::get()
+##
+
+proc pointerTypeInContext*(c: ContextRef; addressSpace: cuint): TypeRef {.
+    importc: "LLVMPointerTypeInContext".}
 ## *
 ##  Obtain the address space of a pointer type.
 ##
@@ -1337,7 +1369,7 @@ proc pointerType*(elementType: TypeRef; addressSpace: cuint): TypeRef {.
 ##
 
 proc getPointerAddressSpace*(pointerTy: TypeRef): cuint {.
-    importc: "LLVMGetPointerAddressSpace", dynlib: LLVMLib.}
+    importc: "LLVMGetPointerAddressSpace".}
 ## *
 ##  Create a vector type that contains a defined type and has a specific
 ##  number of elements.
@@ -1349,7 +1381,7 @@ proc getPointerAddressSpace*(pointerTy: TypeRef): cuint {.
 ##
 
 proc vectorType*(elementType: TypeRef; elementCount: cuint): TypeRef {.
-    importc: "LLVMVectorType", dynlib: LLVMLib.}
+    importc: "LLVMVectorType".}
 ## *
 ##  Create a vector type that contains a defined type and has a scalable
 ##  number of elements.
@@ -1361,7 +1393,7 @@ proc vectorType*(elementType: TypeRef; elementCount: cuint): TypeRef {.
 ##
 
 proc scalableVectorType*(elementType: TypeRef; elementCount: cuint): TypeRef {.
-    importc: "LLVMScalableVectorType", dynlib: LLVMLib.}
+    importc: "LLVMScalableVectorType".}
 ## *
 ##  Obtain the (possibly scalable) number of elements in a vector type.
 ##
@@ -1371,7 +1403,7 @@ proc scalableVectorType*(elementType: TypeRef; elementCount: cuint): TypeRef {.
 ##
 
 proc getVectorSize*(vectorTy: TypeRef): cuint {.importc: "LLVMGetVectorSize",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  @}
 ##
@@ -1385,46 +1417,46 @@ proc getVectorSize*(vectorTy: TypeRef): cuint {.importc: "LLVMGetVectorSize",
 ##
 
 proc voidTypeInContext*(c: ContextRef): TypeRef {.importc: "LLVMVoidTypeInContext",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Create a label type in a context.
 ##
 
 proc labelTypeInContext*(c: ContextRef): TypeRef {.
-    importc: "LLVMLabelTypeInContext", dynlib: LLVMLib.}
+    importc: "LLVMLabelTypeInContext".}
 ## *
 ##  Create a X86 MMX type in a context.
 ##
 
 proc x86MMXTypeInContext*(c: ContextRef): TypeRef {.
-    importc: "LLVMX86MMXTypeInContext", dynlib: LLVMLib.}
+    importc: "LLVMX86MMXTypeInContext".}
 ## *
 ##  Create a X86 AMX type in a context.
 ##
 
 proc x86AMXTypeInContext*(c: ContextRef): TypeRef {.
-    importc: "LLVMX86AMXTypeInContext", dynlib: LLVMLib.}
+    importc: "LLVMX86AMXTypeInContext".}
 ## *
 ##  Create a token type in a context.
 ##
 
 proc tokenTypeInContext*(c: ContextRef): TypeRef {.
-    importc: "LLVMTokenTypeInContext", dynlib: LLVMLib.}
+    importc: "LLVMTokenTypeInContext".}
 ## *
 ##  Create a metadata type in a context.
 ##
 
 proc metadataTypeInContext*(c: ContextRef): TypeRef {.
-    importc: "LLVMMetadataTypeInContext", dynlib: LLVMLib.}
+    importc: "LLVMMetadataTypeInContext".}
 ## *
 ##  These are similar to the above functions except they operate on the
 ##  global context.
 ##
 
-proc voidType*(): TypeRef {.importc: "LLVMVoidType", dynlib: LLVMLib.}
-proc labelType*(): TypeRef {.importc: "LLVMLabelType", dynlib: LLVMLib.}
-proc x86MMXType*(): TypeRef {.importc: "LLVMX86MMXType", dynlib: LLVMLib.}
-proc x86AMXType*(): TypeRef {.importc: "LLVMX86AMXType", dynlib: LLVMLib.}
+proc voidType*(): TypeRef {.importc: "LLVMVoidType".}
+proc labelType*(): TypeRef {.importc: "LLVMLabelType".}
+proc x86MMXType*(): TypeRef {.importc: "LLVMX86MMXType".}
+proc x86AMXType*(): TypeRef {.importc: "LLVMX86AMXType".}
 ## *
 ##  @}
 ##
@@ -1477,7 +1509,7 @@ template for_Each_Value_Subclass*(`macro`: untyped): untyped =
 ##
 
 proc getValueKind*(val: ValueRef): ValueKind {.importc: "LLVMGetValueKind",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain the string name of a value.
 ##
@@ -1485,7 +1517,7 @@ proc getValueKind*(val: ValueRef): ValueKind {.importc: "LLVMGetValueKind",
 ##
 
 proc getValueName2*(val: ValueRef; length: ptr csize_t): cstring {.
-    importc: "LLVMGetValueName2", dynlib: LLVMLib.}
+    importc: "LLVMGetValueName2".}
 ## *
 ##  Set the string name of a value.
 ##
@@ -1493,14 +1525,14 @@ proc getValueName2*(val: ValueRef; length: ptr csize_t): cstring {.
 ##
 
 proc setValueName2*(val: ValueRef; name: cstring; nameLen: csize_t) {.
-    importc: "LLVMSetValueName2", dynlib: LLVMLib.}
+    importc: "LLVMSetValueName2".}
 ## *
 ##  Dump a representation of a value to stderr.
 ##
 ##  @see llvm::Value::dump()
 ##
 
-proc dumpValue*(val: ValueRef) {.importc: "LLVMDumpValue", dynlib: LLVMLib.}
+proc dumpValue*(val: ValueRef) {.importc: "LLVMDumpValue".}
 ## *
 ##  Return a string representation of the value. Use
 ##  LLVMDisposeMessage to free the string.
@@ -1509,7 +1541,7 @@ proc dumpValue*(val: ValueRef) {.importc: "LLVMDumpValue", dynlib: LLVMLib.}
 ##
 
 proc printValueToString*(val: ValueRef): cstring {.
-    importc: "LLVMPrintValueToString", dynlib: LLVMLib.}
+    importc: "LLVMPrintValueToString".}
 ## *
 ##  Replace all uses of a value with another one.
 ##
@@ -1517,22 +1549,22 @@ proc printValueToString*(val: ValueRef): cstring {.
 ##
 
 proc replaceAllUsesWith*(oldVal: ValueRef; newVal: ValueRef) {.
-    importc: "LLVMReplaceAllUsesWith", dynlib: LLVMLib.}
+    importc: "LLVMReplaceAllUsesWith".}
 ## *
 ##  Determine whether the specified value instance is constant.
 ##
 
-proc isConstant*(val: ValueRef): Bool {.importc: "LLVMIsConstant", dynlib: LLVMLib.}
+proc isConstant*(val: ValueRef): Bool {.importc: "LLVMIsConstant".}
 ## *
 ##  Determine whether a value instance is undefined.
 ##
 
-proc isUndef*(val: ValueRef): Bool {.importc: "LLVMIsUndef", dynlib: LLVMLib.}
+proc isUndef*(val: ValueRef): Bool {.importc: "LLVMIsUndef".}
 ## *
 ##  Determine whether a value instance is poisonous.
 ##
 
-proc isPoison*(val: ValueRef): Bool {.importc: "LLVMIsPoison", dynlib: LLVMLib.}
+proc isPoison*(val: ValueRef): Bool {.importc: "LLVMIsPoison".}
 ## *
 ##  Convert value instances between types.
 ##
@@ -1555,15 +1587,15 @@ template declare_Value_Cast*(name: untyped): untyped =
 ## Error: did not expect [NewLine]!!!
 
 proc isAMDString*(val: ValueRef): ValueRef {.importc: "LLVMIsAMDString",
-    dynlib: LLVMLib.}
+    .}
 ## * Deprecated: Use LLVMGetValueName2 instead.
 
 proc getValueName*(val: ValueRef): cstring {.importc: "LLVMGetValueName",
-    dynlib: LLVMLib.}
+    .}
 ## * Deprecated: Use LLVMSetValueName2 instead.
 
 proc setValueName*(val: ValueRef; name: cstring) {.importc: "LLVMSetValueName",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  @}
 ##
@@ -1590,7 +1622,7 @@ proc setValueName*(val: ValueRef; name: cstring) {.importc: "LLVMSetValueName",
 ##  @see llvm::Value::use_begin()
 ##
 
-proc getFirstUse*(val: ValueRef): UseRef {.importc: "LLVMGetFirstUse", dynlib: LLVMLib.}
+proc getFirstUse*(val: ValueRef): UseRef {.importc: "LLVMGetFirstUse".}
 ## *
 ##  Obtain the next use of a value.
 ##
@@ -1598,7 +1630,7 @@ proc getFirstUse*(val: ValueRef): UseRef {.importc: "LLVMGetFirstUse", dynlib: L
 ##  the final use and no more are available.
 ##
 
-proc getNextUse*(u: UseRef): UseRef {.importc: "LLVMGetNextUse", dynlib: LLVMLib.}
+proc getNextUse*(u: UseRef): UseRef {.importc: "LLVMGetNextUse".}
 ## *
 ##  Obtain the user value for a user.
 ##
@@ -1607,14 +1639,14 @@ proc getNextUse*(u: UseRef): UseRef {.importc: "LLVMGetNextUse", dynlib: LLVMLib
 ##  @see llvm::Use::getUser()
 ##
 
-proc getUser*(u: UseRef): ValueRef {.importc: "LLVMGetUser", dynlib: LLVMLib.}
+proc getUser*(u: UseRef): ValueRef {.importc: "LLVMGetUser".}
 ## *
 ##  Obtain the value this use corresponds to.
 ##
 ##  @see llvm::Use::get().
 ##
 
-proc getUsedValue*(u: UseRef): ValueRef {.importc: "LLVMGetUsedValue", dynlib: LLVMLib.}
+proc getUsedValue*(u: UseRef): ValueRef {.importc: "LLVMGetUsedValue".}
 ## *
 ##  @}
 ##
@@ -1634,7 +1666,7 @@ proc getUsedValue*(u: UseRef): ValueRef {.importc: "LLVMGetUsedValue", dynlib: L
 ##
 
 proc getOperand*(val: ValueRef; index: cuint): ValueRef {.importc: "LLVMGetOperand",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain the use of an operand at a specific index in a llvm::User value.
 ##
@@ -1642,7 +1674,7 @@ proc getOperand*(val: ValueRef; index: cuint): ValueRef {.importc: "LLVMGetOpera
 ##
 
 proc getOperandUse*(val: ValueRef; index: cuint): UseRef {.
-    importc: "LLVMGetOperandUse", dynlib: LLVMLib.}
+    importc: "LLVMGetOperandUse".}
 ## *
 ##  Set an operand at a specific index in a llvm::User value.
 ##
@@ -1650,7 +1682,7 @@ proc getOperandUse*(val: ValueRef; index: cuint): UseRef {.
 ##
 
 proc setOperand*(user: ValueRef; index: cuint; val: ValueRef) {.
-    importc: "LLVMSetOperand", dynlib: LLVMLib.}
+    importc: "LLVMSetOperand".}
 ## *
 ##  Obtain the number of operands in a llvm::User value.
 ##
@@ -1658,7 +1690,7 @@ proc setOperand*(user: ValueRef; index: cuint; val: ValueRef) {.
 ##
 
 proc getNumOperands*(val: ValueRef): cint {.importc: "LLVMGetNumOperands",
-                                        dynlib: LLVMLib.}
+                                        .}
 ## *
 ##  @}
 ##
@@ -1679,7 +1711,7 @@ proc getNumOperands*(val: ValueRef): cint {.importc: "LLVMGetNumOperands",
 ##  @see llvm::Constant::getNullValue()
 ##
 
-proc constNull*(ty: TypeRef): ValueRef {.importc: "LLVMConstNull", dynlib: LLVMLib.}
+proc constNull*(ty: TypeRef): ValueRef {.importc: "LLVMConstNull".}
 ##  all zeroes
 ## *
 ##  Obtain a constant value referring to the instance of a type
@@ -1691,35 +1723,35 @@ proc constNull*(ty: TypeRef): ValueRef {.importc: "LLVMConstNull", dynlib: LLVML
 ##
 
 proc constAllOnes*(ty: TypeRef): ValueRef {.importc: "LLVMConstAllOnes",
-                                        dynlib: LLVMLib.}
+                                        .}
 ## *
 ##  Obtain a constant value referring to an undefined value of a type.
 ##
 ##  @see llvm::UndefValue::get()
 ##
 
-proc getUndef*(ty: TypeRef): ValueRef {.importc: "LLVMGetUndef", dynlib: LLVMLib.}
+proc getUndef*(ty: TypeRef): ValueRef {.importc: "LLVMGetUndef".}
 ## *
 ##  Obtain a constant value referring to a poison value of a type.
 ##
 ##  @see llvm::PoisonValue::get()
 ##
 
-proc getPoison*(ty: TypeRef): ValueRef {.importc: "LLVMGetPoison", dynlib: LLVMLib.}
+proc getPoison*(ty: TypeRef): ValueRef {.importc: "LLVMGetPoison".}
 ## *
 ##  Determine whether a value instance is null.
 ##
 ##  @see llvm::Constant::isNullValue()
 ##
 
-proc isNull*(val: ValueRef): Bool {.importc: "LLVMIsNull", dynlib: LLVMLib.}
+proc isNull*(val: ValueRef): Bool {.importc: "LLVMIsNull".}
 ## *
 ##  Obtain a constant that is a constant pointer pointing to NULL for a
 ##  specified type.
 ##
 
 proc constPointerNull*(ty: TypeRef): ValueRef {.importc: "LLVMConstPointerNull",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  @defgroup LLVMCCoreValueConstantScalar Scalar constants
 ##
@@ -1748,7 +1780,7 @@ proc constPointerNull*(ty: TypeRef): ValueRef {.importc: "LLVMConstPointerNull",
 ##
 
 proc constInt*(intTy: TypeRef; n: culonglong; signExtend: Bool): ValueRef {.
-    importc: "LLVMConstInt", dynlib: LLVMLib.}
+    importc: "LLVMConstInt".}
 ## *
 ##  Obtain a constant value for an integer of arbitrary precision.
 ##
@@ -1757,7 +1789,7 @@ proc constInt*(intTy: TypeRef; n: culonglong; signExtend: Bool): ValueRef {.
 
 proc constIntOfArbitraryPrecision*(intTy: TypeRef; numWords: cuint;
                                   words: ptr uint64): ValueRef {.
-    importc: "LLVMConstIntOfArbitraryPrecision", dynlib: LLVMLib.}
+    importc: "LLVMConstIntOfArbitraryPrecision".}
 ## *
 ##  Obtain a constant value for an integer parsed from a string.
 ##
@@ -1769,7 +1801,7 @@ proc constIntOfArbitraryPrecision*(intTy: TypeRef; numWords: cuint;
 ##
 
 proc constIntOfString*(intTy: TypeRef; text: cstring; radix: uint8T): ValueRef {.
-    importc: "LLVMConstIntOfString", dynlib: LLVMLib.}
+    importc: "LLVMConstIntOfString".}
 ## *
 ##  Obtain a constant value for an integer parsed from a string with
 ##  specified length.
@@ -1778,13 +1810,13 @@ proc constIntOfString*(intTy: TypeRef; text: cstring; radix: uint8T): ValueRef {
 ##
 
 proc constIntOfStringAndSize*(intTy: TypeRef; text: cstring; sLen: cuint; radix: uint8T): ValueRef {.
-    importc: "LLVMConstIntOfStringAndSize", dynlib: LLVMLib.}
+    importc: "LLVMConstIntOfStringAndSize".}
 ## *
 ##  Obtain a constant value referring to a double floating point value.
 ##
 
 proc constReal*(realTy: TypeRef; n: cdouble): ValueRef {.importc: "LLVMConstReal",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain a constant for a floating point value parsed from a string.
 ##
@@ -1793,13 +1825,13 @@ proc constReal*(realTy: TypeRef; n: cdouble): ValueRef {.importc: "LLVMConstReal
 ##
 
 proc constRealOfString*(realTy: TypeRef; text: cstring): ValueRef {.
-    importc: "LLVMConstRealOfString", dynlib: LLVMLib.}
+    importc: "LLVMConstRealOfString".}
 ## *
 ##  Obtain a constant for a floating point value parsed from a string.
 ##
 
 proc constRealOfStringAndSize*(realTy: TypeRef; text: cstring; sLen: cuint): ValueRef {.
-    importc: "LLVMConstRealOfStringAndSize", dynlib: LLVMLib.}
+    importc: "LLVMConstRealOfStringAndSize".}
 ## *
 ##  Obtain the zero extended value for an integer constant value.
 ##
@@ -1807,7 +1839,7 @@ proc constRealOfStringAndSize*(realTy: TypeRef; text: cstring; sLen: cuint): Val
 ##
 
 proc constIntGetZExtValue*(constantVal: ValueRef): culonglong {.
-    importc: "LLVMConstIntGetZExtValue", dynlib: LLVMLib.}
+    importc: "LLVMConstIntGetZExtValue".}
 ## *
 ##  Obtain the sign extended value for an integer constant value.
 ##
@@ -1815,7 +1847,7 @@ proc constIntGetZExtValue*(constantVal: ValueRef): culonglong {.
 ##
 
 proc constIntGetSExtValue*(constantVal: ValueRef): clonglong {.
-    importc: "LLVMConstIntGetSExtValue", dynlib: LLVMLib.}
+    importc: "LLVMConstIntGetSExtValue".}
 ## *
 ##  Obtain the double value for an floating point constant value.
 ##  losesInfo indicates if some precision was lost in the conversion.
@@ -1824,7 +1856,7 @@ proc constIntGetSExtValue*(constantVal: ValueRef): clonglong {.
 ##
 
 proc constRealGetDouble*(constantVal: ValueRef; losesInfo: ptr Bool): cdouble {.
-    importc: "LLVMConstRealGetDouble", dynlib: LLVMLib.}
+    importc: "LLVMConstRealGetDouble".}
 ## *
 ##  @}
 ##
@@ -1843,7 +1875,7 @@ proc constRealGetDouble*(constantVal: ValueRef; losesInfo: ptr Bool): cdouble {.
 
 proc constStringInContext*(c: ContextRef; str: cstring; length: cuint;
                           dontNullTerminate: Bool): ValueRef {.
-    importc: "LLVMConstStringInContext", dynlib: LLVMLib.}
+    importc: "LLVMConstStringInContext".}
 ## *
 ##  Create a ConstantDataSequential with string content in the global context.
 ##
@@ -1855,7 +1887,7 @@ proc constStringInContext*(c: ContextRef; str: cstring; length: cuint;
 ##
 
 proc constString*(str: cstring; length: cuint; dontNullTerminate: Bool): ValueRef {.
-    importc: "LLVMConstString", dynlib: LLVMLib.}
+    importc: "LLVMConstString".}
 ## *
 ##  Returns true if the specified constant is an array of i8.
 ##
@@ -1863,7 +1895,7 @@ proc constString*(str: cstring; length: cuint; dontNullTerminate: Bool): ValueRe
 ##
 
 proc isConstantString*(c: ValueRef): Bool {.importc: "LLVMIsConstantString",
-                                        dynlib: LLVMLib.}
+                                        .}
 ## *
 ##  Get the given constant data sequential as a string.
 ##
@@ -1871,7 +1903,7 @@ proc isConstantString*(c: ValueRef): Bool {.importc: "LLVMIsConstantString",
 ##
 
 proc getAsString*(c: ValueRef; length: ptr csize_t): cstring {.
-    importc: "LLVMGetAsString", dynlib: LLVMLib.}
+    importc: "LLVMGetAsString".}
 ## *
 ##  Create an anonymous ConstantStruct with the specified values.
 ##
@@ -1880,7 +1912,7 @@ proc getAsString*(c: ValueRef; length: ptr csize_t): cstring {.
 
 proc constStructInContext*(c: ContextRef; constantVals: ptr ValueRef; count: cuint;
                           packed: Bool): ValueRef {.
-    importc: "LLVMConstStructInContext", dynlib: LLVMLib.}
+    importc: "LLVMConstStructInContext".}
 ## *
 ##  Create a ConstantStruct in the global Context.
 ##
@@ -1891,7 +1923,7 @@ proc constStructInContext*(c: ContextRef; constantVals: ptr ValueRef; count: cui
 ##
 
 proc constStruct*(constantVals: ptr ValueRef; count: cuint; packed: Bool): ValueRef {.
-    importc: "LLVMConstStruct", dynlib: LLVMLib.}
+    importc: "LLVMConstStruct".}
 ## *
 ##  Create a ConstantArray from values.
 ##
@@ -1899,7 +1931,7 @@ proc constStruct*(constantVals: ptr ValueRef; count: cuint; packed: Bool): Value
 ##
 
 proc constArray*(elementTy: TypeRef; constantVals: ptr ValueRef; length: cuint): ValueRef {.
-    importc: "LLVMConstArray", dynlib: LLVMLib.}
+    importc: "LLVMConstArray".}
 ## *
 ##  Create a non-anonymous ConstantStruct from values.
 ##
@@ -1907,7 +1939,18 @@ proc constArray*(elementTy: TypeRef; constantVals: ptr ValueRef; length: cuint):
 ##
 
 proc constNamedStruct*(structTy: TypeRef; constantVals: ptr ValueRef; count: cuint): ValueRef {.
-    importc: "LLVMConstNamedStruct", dynlib: LLVMLib.}
+    importc: "LLVMConstNamedStruct".}
+## *
+##  Get element of a constant aggregate (struct, array or vector) at the
+##  specified index. Returns null if the index is out of range, or it's not
+##  possible to determine the element (e.g., because the constant is a
+##  constant expression.)
+##
+##  @see llvm::Constant::getAggregateElement()
+##
+
+proc getAggregateElement*(c: ValueRef; idx: cuint): ValueRef {.
+    importc: "LLVMGetAggregateElement".}
 ## *
 ##  Get an element at specified index as a constant.
 ##
@@ -1915,7 +1958,7 @@ proc constNamedStruct*(structTy: TypeRef; constantVals: ptr ValueRef; count: cui
 ##
 
 proc getElementAsConstant*(c: ValueRef; idx: cuint): ValueRef {.
-    importc: "LLVMGetElementAsConstant", dynlib: LLVMLib.}
+    importc: "LLVMGetElementAsConstant".}
 ## *
 ##  Create a ConstantVector from values.
 ##
@@ -1923,7 +1966,7 @@ proc getElementAsConstant*(c: ValueRef; idx: cuint): ValueRef {.
 ##
 
 proc constVector*(scalarConstantVals: ptr ValueRef; size: cuint): ValueRef {.
-    importc: "LLVMConstVector", dynlib: LLVMLib.}
+    importc: "LLVMConstVector".}
 ## *
 ##  @}
 ##
@@ -1938,148 +1981,121 @@ proc constVector*(scalarConstantVals: ptr ValueRef; size: cuint): ValueRef {.
 ##
 
 proc getConstOpcode*(constantVal: ValueRef): Opcode {.importc: "LLVMGetConstOpcode",
-    dynlib: LLVMLib.}
-proc alignOf*(ty: TypeRef): ValueRef {.importc: "LLVMAlignOf", dynlib: LLVMLib.}
-proc sizeOfX*(ty: TypeRef): ValueRef {.importc: "LLVMSizeOf", dynlib: LLVMLib.}
+    .}
+proc alignOf*(ty: TypeRef): ValueRef {.importc: "LLVMAlignOf".}
+proc sizeOfX*(ty: TypeRef): ValueRef {.importc: "LLVMSizeOf".}
 proc constNeg*(constantVal: ValueRef): ValueRef {.importc: "LLVMConstNeg",
-    dynlib: LLVMLib.}
+    .}
 proc constNSWNeg*(constantVal: ValueRef): ValueRef {.importc: "LLVMConstNSWNeg",
-    dynlib: LLVMLib.}
+    .}
 proc constNUWNeg*(constantVal: ValueRef): ValueRef {.importc: "LLVMConstNUWNeg",
-    dynlib: LLVMLib.}
+    .}
 proc constFNeg*(constantVal: ValueRef): ValueRef {.importc: "LLVMConstFNeg",
-    dynlib: LLVMLib.}
+    .}
 proc constNot*(constantVal: ValueRef): ValueRef {.importc: "LLVMConstNot",
-    dynlib: LLVMLib.}
+    .}
 proc constAdd*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstAdd", dynlib: LLVMLib.}
+    importc: "LLVMConstAdd".}
 proc constNSWAdd*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstNSWAdd", dynlib: LLVMLib.}
+    importc: "LLVMConstNSWAdd".}
 proc constNUWAdd*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstNUWAdd", dynlib: LLVMLib.}
-proc constFAdd*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstFAdd", dynlib: LLVMLib.}
+    importc: "LLVMConstNUWAdd".}
 proc constSub*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstSub", dynlib: LLVMLib.}
+    importc: "LLVMConstSub".}
 proc constNSWSub*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstNSWSub", dynlib: LLVMLib.}
+    importc: "LLVMConstNSWSub".}
 proc constNUWSub*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstNUWSub", dynlib: LLVMLib.}
-proc constFSub*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstFSub", dynlib: LLVMLib.}
+    importc: "LLVMConstNUWSub".}
 proc constMul*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstMul", dynlib: LLVMLib.}
+    importc: "LLVMConstMul".}
 proc constNSWMul*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstNSWMul", dynlib: LLVMLib.}
+    importc: "LLVMConstNSWMul".}
 proc constNUWMul*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstNUWMul", dynlib: LLVMLib.}
-proc constFMul*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstFMul", dynlib: LLVMLib.}
-proc constUDiv*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstUDiv", dynlib: LLVMLib.}
-proc constExactUDiv*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstExactUDiv", dynlib: LLVMLib.}
-proc constSDiv*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstSDiv", dynlib: LLVMLib.}
-proc constExactSDiv*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstExactSDiv", dynlib: LLVMLib.}
-proc constFDiv*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstFDiv", dynlib: LLVMLib.}
-proc constURem*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstURem", dynlib: LLVMLib.}
-proc constSRem*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstSRem", dynlib: LLVMLib.}
-proc constFRem*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstFRem", dynlib: LLVMLib.}
+    importc: "LLVMConstNUWMul".}
 proc constAnd*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstAnd", dynlib: LLVMLib.}
+    importc: "LLVMConstAnd".}
 proc constOr*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstOr", dynlib: LLVMLib.}
+    importc: "LLVMConstOr".}
 proc constXor*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstXor", dynlib: LLVMLib.}
+    importc: "LLVMConstXor".}
 proc constICmp*(predicate: IntPredicate; lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstICmp", dynlib: LLVMLib.}
+    importc: "LLVMConstICmp".}
 proc constFCmp*(predicate: RealPredicate; lHSConstant: ValueRef;
                rHSConstant: ValueRef): ValueRef {.importc: "LLVMConstFCmp",
-    dynlib: LLVMLib.}
+    .}
 proc constShl*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstShl", dynlib: LLVMLib.}
+    importc: "LLVMConstShl".}
 proc constLShr*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstLShr", dynlib: LLVMLib.}
+    importc: "LLVMConstLShr".}
 proc constAShr*(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstAShr", dynlib: LLVMLib.}
+    importc: "LLVMConstAShr".}
 proc constGEP*(constantVal: ValueRef; constantIndices: ptr ValueRef; numIndices: cuint): ValueRef {.
-    importc: "LLVMConstGEP", dynlib: LLVMLib.}
+    importc: "LLVMConstGEP".}
 proc constGEP2*(ty: TypeRef; constantVal: ValueRef; constantIndices: ptr ValueRef;
                numIndices: cuint): ValueRef {.importc: "LLVMConstGEP2",
-    dynlib: LLVMLib.}
-proc constInBoundsGEP*(constantVal: ValueRef; constantIndices: ptr ValueRef;
-                      numIndices: cuint): ValueRef {.
-    importc: "LLVMConstInBoundsGEP", dynlib: LLVMLib.}
+    .}
+proc constInBoundsGEP*(ty: TypeRef; constantVal: ValueRef;
+                       constantIndices: ptr ValueRef; numIndices: cuint): ValueRef {.
+    importc: "LLVMConstInBoundsGEP".}
 proc constInBoundsGEP2*(ty: TypeRef; constantVal: ValueRef;
                        constantIndices: ptr ValueRef; numIndices: cuint): ValueRef {.
-    importc: "LLVMConstInBoundsGEP2", dynlib: LLVMLib.}
+    importc: "LLVMConstInBoundsGEP2".}
 proc constTrunc*(constantVal: ValueRef; toType: TypeRef): ValueRef {.
-    importc: "LLVMConstTrunc", dynlib: LLVMLib.}
+    importc: "LLVMConstTrunc".}
 proc constSExt*(constantVal: ValueRef; toType: TypeRef): ValueRef {.
-    importc: "LLVMConstSExt", dynlib: LLVMLib.}
+    importc: "LLVMConstSExt".}
 proc constZExt*(constantVal: ValueRef; toType: TypeRef): ValueRef {.
-    importc: "LLVMConstZExt", dynlib: LLVMLib.}
+    importc: "LLVMConstZExt".}
 proc constFPTrunc*(constantVal: ValueRef; toType: TypeRef): ValueRef {.
-    importc: "LLVMConstFPTrunc", dynlib: LLVMLib.}
+    importc: "LLVMConstFPTrunc".}
 proc constFPExt*(constantVal: ValueRef; toType: TypeRef): ValueRef {.
-    importc: "LLVMConstFPExt", dynlib: LLVMLib.}
+    importc: "LLVMConstFPExt".}
 proc constUIToFP*(constantVal: ValueRef; toType: TypeRef): ValueRef {.
-    importc: "LLVMConstUIToFP", dynlib: LLVMLib.}
+    importc: "LLVMConstUIToFP".}
 proc constSIToFP*(constantVal: ValueRef; toType: TypeRef): ValueRef {.
-    importc: "LLVMConstSIToFP", dynlib: LLVMLib.}
+    importc: "LLVMConstSIToFP".}
 proc constFPToUI*(constantVal: ValueRef; toType: TypeRef): ValueRef {.
-    importc: "LLVMConstFPToUI", dynlib: LLVMLib.}
+    importc: "LLVMConstFPToUI".}
 proc constFPToSI*(constantVal: ValueRef; toType: TypeRef): ValueRef {.
-    importc: "LLVMConstFPToSI", dynlib: LLVMLib.}
+    importc: "LLVMConstFPToSI".}
 proc constPtrToInt*(constantVal: ValueRef; toType: TypeRef): ValueRef {.
-    importc: "LLVMConstPtrToInt", dynlib: LLVMLib.}
+    importc: "LLVMConstPtrToInt".}
 proc constIntToPtr*(constantVal: ValueRef; toType: TypeRef): ValueRef {.
-    importc: "LLVMConstIntToPtr", dynlib: LLVMLib.}
+    importc: "LLVMConstIntToPtr".}
 proc constBitCast*(constantVal: ValueRef; toType: TypeRef): ValueRef {.
-    importc: "LLVMConstBitCast", dynlib: LLVMLib.}
+    importc: "LLVMConstBitCast".}
 proc constAddrSpaceCast*(constantVal: ValueRef; toType: TypeRef): ValueRef {.
-    importc: "LLVMConstAddrSpaceCast", dynlib: LLVMLib.}
+    importc: "LLVMConstAddrSpaceCast".}
 proc constZExtOrBitCast*(constantVal: ValueRef; toType: TypeRef): ValueRef {.
-    importc: "LLVMConstZExtOrBitCast", dynlib: LLVMLib.}
+    importc: "LLVMConstZExtOrBitCast".}
 proc constSExtOrBitCast*(constantVal: ValueRef; toType: TypeRef): ValueRef {.
-    importc: "LLVMConstSExtOrBitCast", dynlib: LLVMLib.}
+    importc: "LLVMConstSExtOrBitCast".}
 proc constTruncOrBitCast*(constantVal: ValueRef; toType: TypeRef): ValueRef {.
-    importc: "LLVMConstTruncOrBitCast", dynlib: LLVMLib.}
+    importc: "LLVMConstTruncOrBitCast".}
 proc constPointerCast*(constantVal: ValueRef; toType: TypeRef): ValueRef {.
-    importc: "LLVMConstPointerCast", dynlib: LLVMLib.}
+    importc: "LLVMConstPointerCast".}
 proc constIntCast*(constantVal: ValueRef; toType: TypeRef; isSigned: Bool): ValueRef {.
-    importc: "LLVMConstIntCast", dynlib: LLVMLib.}
+    importc: "LLVMConstIntCast".}
 proc constFPCast*(constantVal: ValueRef; toType: TypeRef): ValueRef {.
-    importc: "LLVMConstFPCast", dynlib: LLVMLib.}
+    importc: "LLVMConstFPCast".}
 proc constSelect*(constantCondition: ValueRef; constantIfTrue: ValueRef;
                  constantIfFalse: ValueRef): ValueRef {.importc: "LLVMConstSelect",
-    dynlib: LLVMLib.}
+    .}
 proc constExtractElement*(vectorConstant: ValueRef; indexConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstExtractElement", dynlib: LLVMLib.}
+    importc: "LLVMConstExtractElement".}
 proc constInsertElement*(vectorConstant: ValueRef; elementValueConstant: ValueRef;
                         indexConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstInsertElement", dynlib: LLVMLib.}
+    importc: "LLVMConstInsertElement".}
 proc constShuffleVector*(vectorAConstant: ValueRef; vectorBConstant: ValueRef;
                         maskConstant: ValueRef): ValueRef {.
-    importc: "LLVMConstShuffleVector", dynlib: LLVMLib.}
-proc constExtractValue*(aggConstant: ValueRef; idxList: ptr cuint; numIdx: cuint): ValueRef {.
-    importc: "LLVMConstExtractValue", dynlib: LLVMLib.}
-proc constInsertValue*(aggConstant: ValueRef; elementValueConstant: ValueRef;
-                      idxList: ptr cuint; numIdx: cuint): ValueRef {.
-    importc: "LLVMConstInsertValue", dynlib: LLVMLib.}
+    importc: "LLVMConstShuffleVector".}
 proc blockAddress*(f: ValueRef; bb: BasicBlockRef): ValueRef {.
-    importc: "LLVMBlockAddress", dynlib: LLVMLib.}
+    importc: "LLVMBlockAddress".}
 ## * Deprecated: Use LLVMGetInlineAsm instead.
 
 proc constInlineAsm*(ty: TypeRef; asmString: cstring; constraints: cstring;
                     hasSideEffects: Bool; isAlignStack: Bool): ValueRef {.
-    importc: "LLVMConstInlineAsm", dynlib: LLVMLib.}
+    importc: "LLVMConstInlineAsm".}
 ## *
 ##  @}
 ##
@@ -2095,29 +2111,29 @@ proc constInlineAsm*(ty: TypeRef; asmString: cstring; constraints: cstring;
 ##
 
 proc getGlobalParent*(global: ValueRef): ModuleRef {.importc: "LLVMGetGlobalParent",
-    dynlib: LLVMLib.}
+    .}
 proc isDeclaration*(global: ValueRef): Bool {.importc: "LLVMIsDeclaration",
-    dynlib: LLVMLib.}
+    .}
 proc getLinkage*(global: ValueRef): Linkage {.importc: "LLVMGetLinkage",
-    dynlib: LLVMLib.}
+    .}
 proc setLinkage*(global: ValueRef; linkage: Linkage) {.importc: "LLVMSetLinkage",
-    dynlib: LLVMLib.}
+    .}
 proc getSection*(global: ValueRef): cstring {.importc: "LLVMGetSection",
-    dynlib: LLVMLib.}
+    .}
 proc setSection*(global: ValueRef; section: cstring) {.importc: "LLVMSetSection",
-    dynlib: LLVMLib.}
+    .}
 proc getVisibility*(global: ValueRef): Visibility {.importc: "LLVMGetVisibility",
-    dynlib: LLVMLib.}
+    .}
 proc setVisibility*(global: ValueRef; viz: Visibility) {.
-    importc: "LLVMSetVisibility", dynlib: LLVMLib.}
+    importc: "LLVMSetVisibility".}
 proc getDLLStorageClass*(global: ValueRef): DLLStorageClass {.
-    importc: "LLVMGetDLLStorageClass", dynlib: LLVMLib.}
+    importc: "LLVMGetDLLStorageClass".}
 proc setDLLStorageClass*(global: ValueRef; class: DLLStorageClass) {.
-    importc: "LLVMSetDLLStorageClass", dynlib: LLVMLib.}
+    importc: "LLVMSetDLLStorageClass".}
 proc getUnnamedAddress*(global: ValueRef): UnnamedAddr {.
-    importc: "LLVMGetUnnamedAddress", dynlib: LLVMLib.}
+    importc: "LLVMGetUnnamedAddress".}
 proc setUnnamedAddress*(global: ValueRef; unnamedAddr: UnnamedAddr) {.
-    importc: "LLVMSetUnnamedAddress", dynlib: LLVMLib.}
+    importc: "LLVMSetUnnamedAddress".}
 ## *
 ##  Returns the "value type" of a global value.  This differs from the formal
 ##  type of a global value which is always a pointer type.
@@ -2126,15 +2142,15 @@ proc setUnnamedAddress*(global: ValueRef; unnamedAddr: UnnamedAddr) {.
 ##
 
 proc globalGetValueType*(global: ValueRef): TypeRef {.
-    importc: "LLVMGlobalGetValueType", dynlib: LLVMLib.}
+    importc: "LLVMGlobalGetValueType".}
 ## * Deprecated: Use LLVMGetUnnamedAddress instead.
 
 proc hasUnnamedAddr*(global: ValueRef): Bool {.importc: "LLVMHasUnnamedAddr",
-    dynlib: LLVMLib.}
+    .}
 ## * Deprecated: Use LLVMSetUnnamedAddress instead.
 
 proc setUnnamedAddr*(global: ValueRef; hasUnnamedAddr: Bool) {.
-    importc: "LLVMSetUnnamedAddr", dynlib: LLVMLib.}
+    importc: "LLVMSetUnnamedAddr".}
 ## *
 ##  @defgroup LLVMCCoreValueWithAlignment Values with alignment
 ##
@@ -2151,7 +2167,7 @@ proc setUnnamedAddr*(global: ValueRef; hasUnnamedAddr: Bool) {.
 ##  @see llvm::GlobalValue::getAlignment()
 ##
 
-proc getAlignment*(v: ValueRef): cuint {.importc: "LLVMGetAlignment", dynlib: LLVMLib.}
+proc getAlignment*(v: ValueRef): cuint {.importc: "LLVMGetAlignment".}
 ## *
 ##  Set the preferred alignment of the value.
 ##  @see llvm::AllocaInst::setAlignment()
@@ -2163,7 +2179,7 @@ proc getAlignment*(v: ValueRef): cuint {.importc: "LLVMGetAlignment", dynlib: LL
 ##
 
 proc setAlignment*(v: ValueRef; bytes: cuint) {.importc: "LLVMSetAlignment",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Sets a metadata attachment, erasing the existing metadata attachment if
 ##  it already exists for the given kind.
@@ -2172,7 +2188,7 @@ proc setAlignment*(v: ValueRef; bytes: cuint) {.importc: "LLVMSetAlignment",
 ##
 
 proc globalSetMetadata*(global: ValueRef; kind: cuint; md: MetadataRef) {.
-    importc: "LLVMGlobalSetMetadata", dynlib: LLVMLib.}
+    importc: "LLVMGlobalSetMetadata".}
 ## *
 ##  Erases a metadata attachment of the given kind if it exists.
 ##
@@ -2180,7 +2196,7 @@ proc globalSetMetadata*(global: ValueRef; kind: cuint; md: MetadataRef) {.
 ##
 
 proc globalEraseMetadata*(global: ValueRef; kind: cuint) {.
-    importc: "LLVMGlobalEraseMetadata", dynlib: LLVMLib.}
+    importc: "LLVMGlobalEraseMetadata".}
 ## *
 ##  Removes all metadata attachments from this value.
 ##
@@ -2188,7 +2204,7 @@ proc globalEraseMetadata*(global: ValueRef; kind: cuint) {.
 ##
 
 proc globalClearMetadata*(global: ValueRef) {.importc: "LLVMGlobalClearMetadata",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Retrieves an array of metadata entries representing the metadata attached to
 ##  this value. The caller is responsible for freeing this array by calling
@@ -2198,26 +2214,26 @@ proc globalClearMetadata*(global: ValueRef) {.importc: "LLVMGlobalClearMetadata"
 ##
 
 proc globalCopyAllMetadata*(value: ValueRef; numEntries: ptr csize_t): ptr ValueMetadataEntry {.
-    importc: "LLVMGlobalCopyAllMetadata", dynlib: LLVMLib.}
+    importc: "LLVMGlobalCopyAllMetadata".}
 ## *
 ##  Destroys value metadata entries.
 ##
 
 proc disposeValueMetadataEntries*(entries: ptr ValueMetadataEntry) {.
-    importc: "LLVMDisposeValueMetadataEntries", dynlib: LLVMLib.}
+    importc: "LLVMDisposeValueMetadataEntries".}
 ## *
 ##  Returns the kind of a value metadata entry at a specific index.
 ##
 
 proc valueMetadataEntriesGetKind*(entries: ptr ValueMetadataEntry; index: cuint): cuint {.
-    importc: "LLVMValueMetadataEntriesGetKind", dynlib: LLVMLib.}
+    importc: "LLVMValueMetadataEntriesGetKind".}
 ## *
 ##  Returns the underlying metadata node of a value metadata entry at a
 ##  specific index.
 ##
 
 proc valueMetadataEntriesGetMetadata*(entries: ptr ValueMetadataEntry; index: cuint): MetadataRef {.
-    importc: "LLVMValueMetadataEntriesGetMetadata", dynlib: LLVMLib.}
+    importc: "LLVMValueMetadataEntriesGetMetadata".}
 ## *
 ##  @}
 ##
@@ -2232,42 +2248,42 @@ proc valueMetadataEntriesGetMetadata*(entries: ptr ValueMetadataEntry; index: cu
 ##
 
 proc addGlobal*(m: ModuleRef; ty: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMAddGlobal", dynlib: LLVMLib.}
+    importc: "LLVMAddGlobal".}
 proc addGlobalInAddressSpace*(m: ModuleRef; ty: TypeRef; name: cstring;
                              addressSpace: cuint): ValueRef {.
-    importc: "LLVMAddGlobalInAddressSpace", dynlib: LLVMLib.}
+    importc: "LLVMAddGlobalInAddressSpace".}
 proc getNamedGlobal*(m: ModuleRef; name: cstring): ValueRef {.
-    importc: "LLVMGetNamedGlobal", dynlib: LLVMLib.}
+    importc: "LLVMGetNamedGlobal".}
 proc getFirstGlobal*(m: ModuleRef): ValueRef {.importc: "LLVMGetFirstGlobal",
-    dynlib: LLVMLib.}
+    .}
 proc getLastGlobal*(m: ModuleRef): ValueRef {.importc: "LLVMGetLastGlobal",
-    dynlib: LLVMLib.}
+    .}
 proc getNextGlobal*(globalVar: ValueRef): ValueRef {.importc: "LLVMGetNextGlobal",
-    dynlib: LLVMLib.}
+    .}
 proc getPreviousGlobal*(globalVar: ValueRef): ValueRef {.
-    importc: "LLVMGetPreviousGlobal", dynlib: LLVMLib.}
+    importc: "LLVMGetPreviousGlobal".}
 proc deleteGlobal*(globalVar: ValueRef) {.importc: "LLVMDeleteGlobal",
-                                       dynlib: LLVMLib.}
+                                       .}
 proc getInitializer*(globalVar: ValueRef): ValueRef {.importc: "LLVMGetInitializer",
-    dynlib: LLVMLib.}
+    .}
 proc setInitializer*(globalVar: ValueRef; constantVal: ValueRef) {.
-    importc: "LLVMSetInitializer", dynlib: LLVMLib.}
+    importc: "LLVMSetInitializer".}
 proc isThreadLocal*(globalVar: ValueRef): Bool {.importc: "LLVMIsThreadLocal",
-    dynlib: LLVMLib.}
+    .}
 proc setThreadLocal*(globalVar: ValueRef; isThreadLocal: Bool) {.
-    importc: "LLVMSetThreadLocal", dynlib: LLVMLib.}
+    importc: "LLVMSetThreadLocal".}
 proc isGlobalConstant*(globalVar: ValueRef): Bool {.importc: "LLVMIsGlobalConstant",
-    dynlib: LLVMLib.}
+    .}
 proc setGlobalConstant*(globalVar: ValueRef; isConstant: Bool) {.
-    importc: "LLVMSetGlobalConstant", dynlib: LLVMLib.}
+    importc: "LLVMSetGlobalConstant".}
 proc getThreadLocalMode*(globalVar: ValueRef): ThreadLocalMode {.
-    importc: "LLVMGetThreadLocalMode", dynlib: LLVMLib.}
+    importc: "LLVMGetThreadLocalMode".}
 proc setThreadLocalMode*(globalVar: ValueRef; mode: ThreadLocalMode) {.
-    importc: "LLVMSetThreadLocalMode", dynlib: LLVMLib.}
+    importc: "LLVMSetThreadLocalMode".}
 proc isExternallyInitialized*(globalVar: ValueRef): Bool {.
-    importc: "LLVMIsExternallyInitialized", dynlib: LLVMLib.}
+    importc: "LLVMIsExternallyInitialized".}
 proc setExternallyInitialized*(globalVar: ValueRef; isExtInit: Bool) {.
-    importc: "LLVMSetExternallyInitialized", dynlib: LLVMLib.}
+    importc: "LLVMSetExternallyInitialized".}
 ## *
 ##  @}
 ##
@@ -2282,7 +2298,7 @@ proc setExternallyInitialized*(globalVar: ValueRef; isExtInit: Bool) {.
 ##
 
 proc addAlias*(m: ModuleRef; ty: TypeRef; aliasee: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMAddAlias", dynlib: LLVMLib.}
+    importc: "LLVMAddAlias".}
 ## *
 ##  Add a GlobalAlias with the given value type, address space and aliasee.
 ##
@@ -2290,7 +2306,7 @@ proc addAlias*(m: ModuleRef; ty: TypeRef; aliasee: ValueRef; name: cstring): Val
 ##
 
 proc addAlias2*(m: ModuleRef; valueTy: TypeRef; addrSpace: cuint; aliasee: ValueRef;
-               name: cstring): ValueRef {.importc: "LLVMAddAlias2", dynlib: LLVMLib.}
+               name: cstring): ValueRef {.importc: "LLVMAddAlias2".}
 ## *
 ##  Obtain a GlobalAlias value from a Module by its name.
 ##
@@ -2300,7 +2316,7 @@ proc addAlias2*(m: ModuleRef; valueTy: TypeRef; addrSpace: cuint; aliasee: Value
 ##
 
 proc getNamedGlobalAlias*(m: ModuleRef; name: cstring; nameLen: csize_t): ValueRef {.
-    importc: "LLVMGetNamedGlobalAlias", dynlib: LLVMLib.}
+    importc: "LLVMGetNamedGlobalAlias".}
 ## *
 ##  Obtain an iterator to the first GlobalAlias in a Module.
 ##
@@ -2308,7 +2324,7 @@ proc getNamedGlobalAlias*(m: ModuleRef; name: cstring; nameLen: csize_t): ValueR
 ##
 
 proc getFirstGlobalAlias*(m: ModuleRef): ValueRef {.
-    importc: "LLVMGetFirstGlobalAlias", dynlib: LLVMLib.}
+    importc: "LLVMGetFirstGlobalAlias".}
 ## *
 ##  Obtain an iterator to the last GlobalAlias in a Module.
 ##
@@ -2316,7 +2332,7 @@ proc getFirstGlobalAlias*(m: ModuleRef): ValueRef {.
 ##
 
 proc getLastGlobalAlias*(m: ModuleRef): ValueRef {.
-    importc: "LLVMGetLastGlobalAlias", dynlib: LLVMLib.}
+    importc: "LLVMGetLastGlobalAlias".}
 ## *
 ##  Advance a GlobalAlias iterator to the next GlobalAlias.
 ##
@@ -2325,7 +2341,7 @@ proc getLastGlobalAlias*(m: ModuleRef): ValueRef {.
 ##
 
 proc getNextGlobalAlias*(ga: ValueRef): ValueRef {.
-    importc: "LLVMGetNextGlobalAlias", dynlib: LLVMLib.}
+    importc: "LLVMGetNextGlobalAlias".}
 ## *
 ##  Decrement a GlobalAlias iterator to the previous GlobalAlias.
 ##
@@ -2334,19 +2350,19 @@ proc getNextGlobalAlias*(ga: ValueRef): ValueRef {.
 ##
 
 proc getPreviousGlobalAlias*(ga: ValueRef): ValueRef {.
-    importc: "LLVMGetPreviousGlobalAlias", dynlib: LLVMLib.}
+    importc: "LLVMGetPreviousGlobalAlias".}
 ## *
 ##  Retrieve the target value of an alias.
 ##
 
 proc aliasGetAliasee*(alias: ValueRef): ValueRef {.importc: "LLVMAliasGetAliasee",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Set the target value of an alias.
 ##
 
 proc aliasSetAliasee*(alias: ValueRef; aliasee: ValueRef) {.
-    importc: "LLVMAliasSetAliasee", dynlib: LLVMLib.}
+    importc: "LLVMAliasSetAliasee".}
 ## *
 ##  @}
 ##
@@ -2366,7 +2382,7 @@ proc aliasSetAliasee*(alias: ValueRef; aliasee: ValueRef) {.
 ##  @see llvm::Function::eraseFromParent()
 ##
 
-proc deleteFunction*(fn: ValueRef) {.importc: "LLVMDeleteFunction", dynlib: LLVMLib.}
+proc deleteFunction*(fn: ValueRef) {.importc: "LLVMDeleteFunction".}
 ## *
 ##  Check whether the given function has a personality function.
 ##
@@ -2374,7 +2390,7 @@ proc deleteFunction*(fn: ValueRef) {.importc: "LLVMDeleteFunction", dynlib: LLVM
 ##
 
 proc hasPersonalityFn*(fn: ValueRef): Bool {.importc: "LLVMHasPersonalityFn",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain the personality function attached to the function.
 ##
@@ -2382,7 +2398,7 @@ proc hasPersonalityFn*(fn: ValueRef): Bool {.importc: "LLVMHasPersonalityFn",
 ##
 
 proc getPersonalityFn*(fn: ValueRef): ValueRef {.importc: "LLVMGetPersonalityFn",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Set the personality function attached to the function.
 ##
@@ -2390,7 +2406,7 @@ proc getPersonalityFn*(fn: ValueRef): ValueRef {.importc: "LLVMGetPersonalityFn"
 ##
 
 proc setPersonalityFn*(fn: ValueRef; personalityFn: ValueRef) {.
-    importc: "LLVMSetPersonalityFn", dynlib: LLVMLib.}
+    importc: "LLVMSetPersonalityFn".}
 ## *
 ##  Obtain the intrinsic ID number which matches the given function name.
 ##
@@ -2398,7 +2414,7 @@ proc setPersonalityFn*(fn: ValueRef; personalityFn: ValueRef) {.
 ##
 
 proc lookupIntrinsicID*(name: cstring; nameLen: csize_t): cuint {.
-    importc: "LLVMLookupIntrinsicID", dynlib: LLVMLib.}
+    importc: "LLVMLookupIntrinsicID".}
 ## *
 ##  Obtain the ID number from a function instance.
 ##
@@ -2406,7 +2422,7 @@ proc lookupIntrinsicID*(name: cstring; nameLen: csize_t): cuint {.
 ##
 
 proc getIntrinsicID*(fn: ValueRef): cuint {.importc: "LLVMGetIntrinsicID",
-                                        dynlib: LLVMLib.}
+                                        .}
 ## *
 ##  Create or insert the declaration of an intrinsic.  For overloaded intrinsics,
 ##  parameter types must be provided to uniquely identify an overload.
@@ -2416,7 +2432,7 @@ proc getIntrinsicID*(fn: ValueRef): cuint {.importc: "LLVMGetIntrinsicID",
 
 proc getIntrinsicDeclaration*(`mod`: ModuleRef; id: cuint; paramTypes: ptr TypeRef;
                              paramCount: csize_t): ValueRef {.
-    importc: "LLVMGetIntrinsicDeclaration", dynlib: LLVMLib.}
+    importc: "LLVMGetIntrinsicDeclaration".}
 ## *
 ##  Retrieves the type of an intrinsic.  For overloaded intrinsics, parameter
 ##  types must be provided to uniquely identify an overload.
@@ -2426,7 +2442,7 @@ proc getIntrinsicDeclaration*(`mod`: ModuleRef; id: cuint; paramTypes: ptr TypeR
 
 proc intrinsicGetType*(ctx: ContextRef; id: cuint; paramTypes: ptr TypeRef;
                       paramCount: csize_t): TypeRef {.
-    importc: "LLVMIntrinsicGetType", dynlib: LLVMLib.}
+    importc: "LLVMIntrinsicGetType".}
 ## *
 ##  Retrieves the name of an intrinsic.
 ##
@@ -2434,12 +2450,12 @@ proc intrinsicGetType*(ctx: ContextRef; id: cuint; paramTypes: ptr TypeRef;
 ##
 
 proc intrinsicGetName*(id: cuint; nameLength: ptr csize_t): cstring {.
-    importc: "LLVMIntrinsicGetName", dynlib: LLVMLib.}
+    importc: "LLVMIntrinsicGetName".}
 ## * Deprecated: Use LLVMIntrinsicCopyOverloadedName2 instead.
 
 proc intrinsicCopyOverloadedName*(id: cuint; paramTypes: ptr TypeRef;
                                  paramCount: csize_t; nameLength: ptr csize_t): cstring {.
-    importc: "LLVMIntrinsicCopyOverloadedName", dynlib: LLVMLib.}
+    importc: "LLVMIntrinsicCopyOverloadedName".}
 ## *
 ##  Copies the name of an overloaded intrinsic identified by a given list of
 ##  parameter types.
@@ -2455,7 +2471,7 @@ proc intrinsicCopyOverloadedName*(id: cuint; paramTypes: ptr TypeRef;
 proc intrinsicCopyOverloadedName2*(`mod`: ModuleRef; id: cuint;
                                   paramTypes: ptr TypeRef; paramCount: csize_t;
                                   nameLength: ptr csize_t): cstring {.
-    importc: "LLVMIntrinsicCopyOverloadedName2", dynlib: LLVMLib.}
+    importc: "LLVMIntrinsicCopyOverloadedName2".}
 ## *
 ##  Obtain if the intrinsic identified by the given ID is overloaded.
 ##
@@ -2463,7 +2479,7 @@ proc intrinsicCopyOverloadedName2*(`mod`: ModuleRef; id: cuint;
 ##
 
 proc intrinsicIsOverloaded*(id: cuint): Bool {.importc: "LLVMIntrinsicIsOverloaded",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain the calling function of a function.
 ##
@@ -2473,7 +2489,7 @@ proc intrinsicIsOverloaded*(id: cuint): Bool {.importc: "LLVMIntrinsicIsOverload
 ##
 
 proc getFunctionCallConv*(fn: ValueRef): cuint {.importc: "LLVMGetFunctionCallConv",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Set the calling convention of a function.
 ##
@@ -2484,7 +2500,7 @@ proc getFunctionCallConv*(fn: ValueRef): cuint {.importc: "LLVMGetFunctionCallCo
 ##
 
 proc setFunctionCallConv*(fn: ValueRef; cc: cuint) {.
-    importc: "LLVMSetFunctionCallConv", dynlib: LLVMLib.}
+    importc: "LLVMSetFunctionCallConv".}
 ## *
 ##  Obtain the name of the garbage collector to use during code
 ##  generation.
@@ -2492,14 +2508,14 @@ proc setFunctionCallConv*(fn: ValueRef; cc: cuint) {.
 ##  @see llvm::Function::getGC()
 ##
 
-proc getGC*(fn: ValueRef): cstring {.importc: "LLVMGetGC", dynlib: LLVMLib.}
+proc getGC*(fn: ValueRef): cstring {.importc: "LLVMGetGC".}
 ## *
 ##  Define the garbage collector to use during code generation.
 ##
 ##  @see llvm::Function::setGC()
 ##
 
-proc setGC*(fn: ValueRef; name: cstring) {.importc: "LLVMSetGC", dynlib: LLVMLib.}
+proc setGC*(fn: ValueRef; name: cstring) {.importc: "LLVMSetGC".}
 ## *
 ##  Add an attribute to a function.
 ##
@@ -2507,28 +2523,28 @@ proc setGC*(fn: ValueRef; name: cstring) {.importc: "LLVMSetGC", dynlib: LLVMLib
 ##
 
 proc addAttributeAtIndex*(f: ValueRef; idx: AttributeIndex; a: AttributeRef) {.
-    importc: "LLVMAddAttributeAtIndex", dynlib: LLVMLib.}
+    importc: "LLVMAddAttributeAtIndex".}
 proc getAttributeCountAtIndex*(f: ValueRef; idx: AttributeIndex): cuint {.
-    importc: "LLVMGetAttributeCountAtIndex", dynlib: LLVMLib.}
+    importc: "LLVMGetAttributeCountAtIndex".}
 proc getAttributesAtIndex*(f: ValueRef; idx: AttributeIndex; attrs: ptr AttributeRef) {.
-    importc: "LLVMGetAttributesAtIndex", dynlib: LLVMLib.}
+    importc: "LLVMGetAttributesAtIndex".}
 proc getEnumAttributeAtIndex*(f: ValueRef; idx: AttributeIndex; kindID: cuint): AttributeRef {.
-    importc: "LLVMGetEnumAttributeAtIndex", dynlib: LLVMLib.}
+    importc: "LLVMGetEnumAttributeAtIndex".}
 proc getStringAttributeAtIndex*(f: ValueRef; idx: AttributeIndex; k: cstring;
                                kLen: cuint): AttributeRef {.
-    importc: "LLVMGetStringAttributeAtIndex", dynlib: LLVMLib.}
+    importc: "LLVMGetStringAttributeAtIndex".}
 proc removeEnumAttributeAtIndex*(f: ValueRef; idx: AttributeIndex; kindID: cuint) {.
-    importc: "LLVMRemoveEnumAttributeAtIndex", dynlib: LLVMLib.}
+    importc: "LLVMRemoveEnumAttributeAtIndex".}
 proc removeStringAttributeAtIndex*(f: ValueRef; idx: AttributeIndex; k: cstring;
                                   kLen: cuint) {.
-    importc: "LLVMRemoveStringAttributeAtIndex", dynlib: LLVMLib.}
+    importc: "LLVMRemoveStringAttributeAtIndex".}
 ## *
 ##  Add a target-dependent attribute to a function
 ##  @see llvm::AttrBuilder::addAttribute()
 ##
 
 proc addTargetDependentFunctionAttr*(fn: ValueRef; a: cstring; v: cstring) {.
-    importc: "LLVMAddTargetDependentFunctionAttr", dynlib: LLVMLib.}
+    importc: "LLVMAddTargetDependentFunctionAttr".}
 ## *
 ##  @defgroup LLVMCCoreValueFunctionParameters Function Parameters
 ##
@@ -2545,7 +2561,7 @@ proc addTargetDependentFunctionAttr*(fn: ValueRef; a: cstring; v: cstring) {.
 ##  @see llvm::Function::arg_size()
 ##
 
-proc countParams*(fn: ValueRef): cuint {.importc: "LLVMCountParams", dynlib: LLVMLib.}
+proc countParams*(fn: ValueRef): cuint {.importc: "LLVMCountParams".}
 ## *
 ##  Obtain the parameters in a function.
 ##
@@ -2559,7 +2575,7 @@ proc countParams*(fn: ValueRef): cuint {.importc: "LLVMCountParams", dynlib: LLV
 ##
 
 proc getParams*(fn: ValueRef; params: ptr ValueRef) {.importc: "LLVMGetParams",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain the parameter at the specified index.
 ##
@@ -2569,7 +2585,7 @@ proc getParams*(fn: ValueRef; params: ptr ValueRef) {.importc: "LLVMGetParams",
 ##
 
 proc getParam*(fn: ValueRef; index: cuint): ValueRef {.importc: "LLVMGetParam",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain the function to which this argument belongs.
 ##
@@ -2581,7 +2597,7 @@ proc getParam*(fn: ValueRef; index: cuint): ValueRef {.importc: "LLVMGetParam",
 ##
 
 proc getParamParent*(inst: ValueRef): ValueRef {.importc: "LLVMGetParamParent",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain the first parameter to a function.
 ##
@@ -2589,7 +2605,7 @@ proc getParamParent*(inst: ValueRef): ValueRef {.importc: "LLVMGetParamParent",
 ##
 
 proc getFirstParam*(fn: ValueRef): ValueRef {.importc: "LLVMGetFirstParam",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain the last parameter to a function.
 ##
@@ -2597,7 +2613,7 @@ proc getFirstParam*(fn: ValueRef): ValueRef {.importc: "LLVMGetFirstParam",
 ##
 
 proc getLastParam*(fn: ValueRef): ValueRef {.importc: "LLVMGetLastParam",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain the next parameter to a function.
 ##
@@ -2607,7 +2623,7 @@ proc getLastParam*(fn: ValueRef): ValueRef {.importc: "LLVMGetLastParam",
 ##
 
 proc getNextParam*(arg: ValueRef): ValueRef {.importc: "LLVMGetNextParam",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain the previous parameter to a function.
 ##
@@ -2615,7 +2631,7 @@ proc getNextParam*(arg: ValueRef): ValueRef {.importc: "LLVMGetNextParam",
 ##
 
 proc getPreviousParam*(arg: ValueRef): ValueRef {.importc: "LLVMGetPreviousParam",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Set the alignment for a function parameter.
 ##
@@ -2624,7 +2640,7 @@ proc getPreviousParam*(arg: ValueRef): ValueRef {.importc: "LLVMGetPreviousParam
 ##
 
 proc setParamAlignment*(arg: ValueRef; align: cuint) {.
-    importc: "LLVMSetParamAlignment", dynlib: LLVMLib.}
+    importc: "LLVMSetParamAlignment".}
 ## *
 ##  @}
 ##
@@ -2646,7 +2662,7 @@ proc setParamAlignment*(arg: ValueRef; align: cuint) {.
 
 proc addGlobalIFunc*(m: ModuleRef; name: cstring; nameLen: csize_t; ty: TypeRef;
                     addrSpace: cuint; resolver: ValueRef): ValueRef {.
-    importc: "LLVMAddGlobalIFunc", dynlib: LLVMLib.}
+    importc: "LLVMAddGlobalIFunc".}
 ## *
 ##  Obtain a GlobalIFunc value from a Module by its name.
 ##
@@ -2656,7 +2672,7 @@ proc addGlobalIFunc*(m: ModuleRef; name: cstring; nameLen: csize_t; ty: TypeRef;
 ##
 
 proc getNamedGlobalIFunc*(m: ModuleRef; name: cstring; nameLen: csize_t): ValueRef {.
-    importc: "LLVMGetNamedGlobalIFunc", dynlib: LLVMLib.}
+    importc: "LLVMGetNamedGlobalIFunc".}
 ## *
 ##  Obtain an iterator to the first GlobalIFunc in a Module.
 ##
@@ -2664,7 +2680,7 @@ proc getNamedGlobalIFunc*(m: ModuleRef; name: cstring; nameLen: csize_t): ValueR
 ##
 
 proc getFirstGlobalIFunc*(m: ModuleRef): ValueRef {.
-    importc: "LLVMGetFirstGlobalIFunc", dynlib: LLVMLib.}
+    importc: "LLVMGetFirstGlobalIFunc".}
 ## *
 ##  Obtain an iterator to the last GlobalIFunc in a Module.
 ##
@@ -2672,7 +2688,7 @@ proc getFirstGlobalIFunc*(m: ModuleRef): ValueRef {.
 ##
 
 proc getLastGlobalIFunc*(m: ModuleRef): ValueRef {.
-    importc: "LLVMGetLastGlobalIFunc", dynlib: LLVMLib.}
+    importc: "LLVMGetLastGlobalIFunc".}
 ## *
 ##  Advance a GlobalIFunc iterator to the next GlobalIFunc.
 ##
@@ -2681,7 +2697,7 @@ proc getLastGlobalIFunc*(m: ModuleRef): ValueRef {.
 ##
 
 proc getNextGlobalIFunc*(iFunc: ValueRef): ValueRef {.
-    importc: "LLVMGetNextGlobalIFunc", dynlib: LLVMLib.}
+    importc: "LLVMGetNextGlobalIFunc".}
 ## *
 ##  Decrement a GlobalIFunc iterator to the previous GlobalIFunc.
 ##
@@ -2690,7 +2706,7 @@ proc getNextGlobalIFunc*(iFunc: ValueRef): ValueRef {.
 ##
 
 proc getPreviousGlobalIFunc*(iFunc: ValueRef): ValueRef {.
-    importc: "LLVMGetPreviousGlobalIFunc", dynlib: LLVMLib.}
+    importc: "LLVMGetPreviousGlobalIFunc".}
 ## *
 ##  Retrieves the resolver function associated with this indirect function, or
 ##  NULL if it doesn't not exist.
@@ -2699,7 +2715,7 @@ proc getPreviousGlobalIFunc*(iFunc: ValueRef): ValueRef {.
 ##
 
 proc getGlobalIFuncResolver*(iFunc: ValueRef): ValueRef {.
-    importc: "LLVMGetGlobalIFuncResolver", dynlib: LLVMLib.}
+    importc: "LLVMGetGlobalIFuncResolver".}
 ## *
 ##  Sets the resolver function associated with this indirect function.
 ##
@@ -2707,7 +2723,7 @@ proc getGlobalIFuncResolver*(iFunc: ValueRef): ValueRef {.
 ##
 
 proc setGlobalIFuncResolver*(iFunc: ValueRef; resolver: ValueRef) {.
-    importc: "LLVMSetGlobalIFuncResolver", dynlib: LLVMLib.}
+    importc: "LLVMSetGlobalIFuncResolver".}
 ## *
 ##  Remove a global indirect function from its parent module and delete it.
 ##
@@ -2715,7 +2731,7 @@ proc setGlobalIFuncResolver*(iFunc: ValueRef; resolver: ValueRef) {.
 ##
 
 proc eraseGlobalIFunc*(iFunc: ValueRef) {.importc: "LLVMEraseGlobalIFunc",
-                                       dynlib: LLVMLib.}
+                                       .}
 ## *
 ##  Remove a global indirect function from its parent module.
 ##
@@ -2726,7 +2742,7 @@ proc eraseGlobalIFunc*(iFunc: ValueRef) {.importc: "LLVMEraseGlobalIFunc",
 ##
 
 proc removeGlobalIFunc*(iFunc: ValueRef) {.importc: "LLVMRemoveGlobalIFunc",
-                                        dynlib: LLVMLib.}
+                                        .}
 ## *
 ##  @}
 ##
@@ -2754,7 +2770,7 @@ proc removeGlobalIFunc*(iFunc: ValueRef) {.importc: "LLVMRemoveGlobalIFunc",
 ##
 
 proc mDStringInContext2*(c: ContextRef; str: cstring; sLen: csize_t): MetadataRef {.
-    importc: "LLVMMDStringInContext2", dynlib: LLVMLib.}
+    importc: "LLVMMDStringInContext2".}
 ## *
 ##  Create an MDNode value with the given array of operands.
 ##
@@ -2762,19 +2778,19 @@ proc mDStringInContext2*(c: ContextRef; str: cstring; sLen: csize_t): MetadataRe
 ##
 
 proc mDNodeInContext2*(c: ContextRef; mDs: ptr MetadataRef; count: csize_t): MetadataRef {.
-    importc: "LLVMMDNodeInContext2", dynlib: LLVMLib.}
+    importc: "LLVMMDNodeInContext2".}
 ## *
 ##  Obtain a Metadata as a Value.
 ##
 
 proc metadataAsValue*(c: ContextRef; md: MetadataRef): ValueRef {.
-    importc: "LLVMMetadataAsValue", dynlib: LLVMLib.}
+    importc: "LLVMMetadataAsValue".}
 ## *
 ##  Obtain a Value as a Metadata.
 ##
 
 proc valueAsMetadata*(val: ValueRef): MetadataRef {.importc: "LLVMValueAsMetadata",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain the underlying string from a MDString value.
 ##
@@ -2784,7 +2800,7 @@ proc valueAsMetadata*(val: ValueRef): MetadataRef {.importc: "LLVMValueAsMetadat
 ##
 
 proc getMDString*(v: ValueRef; length: ptr cuint): cstring {.
-    importc: "LLVMGetMDString", dynlib: LLVMLib.}
+    importc: "LLVMGetMDString".}
 ## *
 ##  Obtain the number of operands from an MDNode value.
 ##
@@ -2793,7 +2809,7 @@ proc getMDString*(v: ValueRef; length: ptr cuint): cstring {.
 ##
 
 proc getMDNodeNumOperands*(v: ValueRef): cuint {.
-    importc: "LLVMGetMDNodeNumOperands", dynlib: LLVMLib.}
+    importc: "LLVMGetMDNodeNumOperands".}
 ## *
 ##  Obtain the given MDNode's operands.
 ##
@@ -2807,23 +2823,23 @@ proc getMDNodeNumOperands*(v: ValueRef): cuint {.
 ##
 
 proc getMDNodeOperands*(v: ValueRef; dest: ptr ValueRef) {.
-    importc: "LLVMGetMDNodeOperands", dynlib: LLVMLib.}
+    importc: "LLVMGetMDNodeOperands".}
 ## * Deprecated: Use LLVMMDStringInContext2 instead.
 
 proc mDStringInContext*(c: ContextRef; str: cstring; sLen: cuint): ValueRef {.
-    importc: "LLVMMDStringInContext", dynlib: LLVMLib.}
+    importc: "LLVMMDStringInContext".}
 ## * Deprecated: Use LLVMMDStringInContext2 instead.
 
 proc mDString*(str: cstring; sLen: cuint): ValueRef {.importc: "LLVMMDString",
-    dynlib: LLVMLib.}
+    .}
 ## * Deprecated: Use LLVMMDNodeInContext2 instead.
 
 proc mDNodeInContext*(c: ContextRef; vals: ptr ValueRef; count: cuint): ValueRef {.
-    importc: "LLVMMDNodeInContext", dynlib: LLVMLib.}
+    importc: "LLVMMDNodeInContext".}
 ## * Deprecated: Use LLVMMDNodeInContext2 instead.
 
 proc mDNode*(vals: ptr ValueRef; count: cuint): ValueRef {.importc: "LLVMMDNode",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  @}
 ##
@@ -2848,25 +2864,25 @@ proc mDNode*(vals: ptr ValueRef; count: cuint): ValueRef {.importc: "LLVMMDNode"
 ##
 
 proc basicBlockAsValue*(bb: BasicBlockRef): ValueRef {.
-    importc: "LLVMBasicBlockAsValue", dynlib: LLVMLib.}
+    importc: "LLVMBasicBlockAsValue".}
 ## *
 ##  Determine whether an LLVMValueRef is itself a basic block.
 ##
 
 proc valueIsBasicBlock*(val: ValueRef): Bool {.importc: "LLVMValueIsBasicBlock",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Convert an LLVMValueRef to an LLVMBasicBlockRef instance.
 ##
 
 proc valueAsBasicBlock*(val: ValueRef): BasicBlockRef {.
-    importc: "LLVMValueAsBasicBlock", dynlib: LLVMLib.}
+    importc: "LLVMValueAsBasicBlock".}
 ## *
 ##  Obtain the string name of a basic block.
 ##
 
 proc getBasicBlockName*(bb: BasicBlockRef): cstring {.
-    importc: "LLVMGetBasicBlockName", dynlib: LLVMLib.}
+    importc: "LLVMGetBasicBlockName".}
 ## *
 ##  Obtain the function to which a basic block belongs.
 ##
@@ -2874,7 +2890,7 @@ proc getBasicBlockName*(bb: BasicBlockRef): cstring {.
 ##
 
 proc getBasicBlockParent*(bb: BasicBlockRef): ValueRef {.
-    importc: "LLVMGetBasicBlockParent", dynlib: LLVMLib.}
+    importc: "LLVMGetBasicBlockParent".}
 ## *
 ##  Obtain the terminator instruction for a basic block.
 ##
@@ -2887,7 +2903,7 @@ proc getBasicBlockParent*(bb: BasicBlockRef): ValueRef {.
 ##
 
 proc getBasicBlockTerminator*(bb: BasicBlockRef): ValueRef {.
-    importc: "LLVMGetBasicBlockTerminator", dynlib: LLVMLib.}
+    importc: "LLVMGetBasicBlockTerminator".}
 ## *
 ##  Obtain the number of basic blocks in a function.
 ##
@@ -2895,7 +2911,7 @@ proc getBasicBlockTerminator*(bb: BasicBlockRef): ValueRef {.
 ##
 
 proc countBasicBlocks*(fn: ValueRef): cuint {.importc: "LLVMCountBasicBlocks",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain all of the basic blocks in a function.
 ##
@@ -2906,7 +2922,7 @@ proc countBasicBlocks*(fn: ValueRef): cuint {.importc: "LLVMCountBasicBlocks",
 ##
 
 proc getBasicBlocks*(fn: ValueRef; basicBlocks: ptr BasicBlockRef) {.
-    importc: "LLVMGetBasicBlocks", dynlib: LLVMLib.}
+    importc: "LLVMGetBasicBlocks".}
 ## *
 ##  Obtain the first basic block in a function.
 ##
@@ -2917,7 +2933,7 @@ proc getBasicBlocks*(fn: ValueRef; basicBlocks: ptr BasicBlockRef) {.
 ##
 
 proc getFirstBasicBlock*(fn: ValueRef): BasicBlockRef {.
-    importc: "LLVMGetFirstBasicBlock", dynlib: LLVMLib.}
+    importc: "LLVMGetFirstBasicBlock".}
 ## *
 ##  Obtain the last basic block in a function.
 ##
@@ -2925,19 +2941,19 @@ proc getFirstBasicBlock*(fn: ValueRef): BasicBlockRef {.
 ##
 
 proc getLastBasicBlock*(fn: ValueRef): BasicBlockRef {.
-    importc: "LLVMGetLastBasicBlock", dynlib: LLVMLib.}
+    importc: "LLVMGetLastBasicBlock".}
 ## *
 ##  Advance a basic block iterator.
 ##
 
 proc getNextBasicBlock*(bb: BasicBlockRef): BasicBlockRef {.
-    importc: "LLVMGetNextBasicBlock", dynlib: LLVMLib.}
+    importc: "LLVMGetNextBasicBlock".}
 ## *
 ##  Go backwards in a basic block iterator.
 ##
 
 proc getPreviousBasicBlock*(bb: BasicBlockRef): BasicBlockRef {.
-    importc: "LLVMGetPreviousBasicBlock", dynlib: LLVMLib.}
+    importc: "LLVMGetPreviousBasicBlock".}
 ## *
 ##  Obtain the basic block that corresponds to the entry point of a
 ##  function.
@@ -2946,7 +2962,7 @@ proc getPreviousBasicBlock*(bb: BasicBlockRef): BasicBlockRef {.
 ##
 
 proc getEntryBasicBlock*(fn: ValueRef): BasicBlockRef {.
-    importc: "LLVMGetEntryBasicBlock", dynlib: LLVMLib.}
+    importc: "LLVMGetEntryBasicBlock".}
 ## *
 ##  Insert the given basic block after the insertion point of the given builder.
 ##
@@ -2957,7 +2973,7 @@ proc getEntryBasicBlock*(fn: ValueRef): BasicBlockRef {.
 
 proc insertExistingBasicBlockAfterInsertBlock*(builder: BuilderRef;
     bb: BasicBlockRef) {.importc: "LLVMInsertExistingBasicBlockAfterInsertBlock",
-                       dynlib: LLVMLib.}
+                       .}
 ## *
 ##  Append the given basic block to the basic block list of the given function.
 ##
@@ -2965,7 +2981,7 @@ proc insertExistingBasicBlockAfterInsertBlock*(builder: BuilderRef;
 ##
 
 proc appendExistingBasicBlock*(fn: ValueRef; bb: BasicBlockRef) {.
-    importc: "LLVMAppendExistingBasicBlock", dynlib: LLVMLib.}
+    importc: "LLVMAppendExistingBasicBlock".}
 ## *
 ##  Create a new basic block without inserting it into a function.
 ##
@@ -2973,7 +2989,7 @@ proc appendExistingBasicBlock*(fn: ValueRef; bb: BasicBlockRef) {.
 ##
 
 proc createBasicBlockInContext*(c: ContextRef; name: cstring): BasicBlockRef {.
-    importc: "LLVMCreateBasicBlockInContext", dynlib: LLVMLib.}
+    importc: "LLVMCreateBasicBlockInContext".}
 ## *
 ##  Append a basic block to the end of a function.
 ##
@@ -2981,7 +2997,7 @@ proc createBasicBlockInContext*(c: ContextRef; name: cstring): BasicBlockRef {.
 ##
 
 proc appendBasicBlockInContext*(c: ContextRef; fn: ValueRef; name: cstring): BasicBlockRef {.
-    importc: "LLVMAppendBasicBlockInContext", dynlib: LLVMLib.}
+    importc: "LLVMAppendBasicBlockInContext".}
 ## *
 ##  Append a basic block to the end of a function using the global
 ##  context.
@@ -2990,7 +3006,7 @@ proc appendBasicBlockInContext*(c: ContextRef; fn: ValueRef; name: cstring): Bas
 ##
 
 proc appendBasicBlock*(fn: ValueRef; name: cstring): BasicBlockRef {.
-    importc: "LLVMAppendBasicBlock", dynlib: LLVMLib.}
+    importc: "LLVMAppendBasicBlock".}
 ## *
 ##  Insert a basic block in a function before another basic block.
 ##
@@ -3001,7 +3017,7 @@ proc appendBasicBlock*(fn: ValueRef; name: cstring): BasicBlockRef {.
 ##
 
 proc insertBasicBlockInContext*(c: ContextRef; bb: BasicBlockRef; name: cstring): BasicBlockRef {.
-    importc: "LLVMInsertBasicBlockInContext", dynlib: LLVMLib.}
+    importc: "LLVMInsertBasicBlockInContext".}
 ## *
 ##  Insert a basic block in a function using the global context.
 ##
@@ -3009,7 +3025,7 @@ proc insertBasicBlockInContext*(c: ContextRef; bb: BasicBlockRef; name: cstring)
 ##
 
 proc insertBasicBlock*(insertBeforeBB: BasicBlockRef; name: cstring): BasicBlockRef {.
-    importc: "LLVMInsertBasicBlock", dynlib: LLVMLib.}
+    importc: "LLVMInsertBasicBlock".}
 ## *
 ##  Remove a basic block from a function and delete it.
 ##
@@ -3020,7 +3036,7 @@ proc insertBasicBlock*(insertBeforeBB: BasicBlockRef; name: cstring): BasicBlock
 ##
 
 proc deleteBasicBlock*(bb: BasicBlockRef) {.importc: "LLVMDeleteBasicBlock",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Remove a basic block from a function.
 ##
@@ -3031,7 +3047,7 @@ proc deleteBasicBlock*(bb: BasicBlockRef) {.importc: "LLVMDeleteBasicBlock",
 ##
 
 proc removeBasicBlockFromParent*(bb: BasicBlockRef) {.
-    importc: "LLVMRemoveBasicBlockFromParent", dynlib: LLVMLib.}
+    importc: "LLVMRemoveBasicBlockFromParent".}
 ## *
 ##  Move a basic block to before another one.
 ##
@@ -3039,7 +3055,7 @@ proc removeBasicBlockFromParent*(bb: BasicBlockRef) {.
 ##
 
 proc moveBasicBlockBefore*(bb: BasicBlockRef; movePos: BasicBlockRef) {.
-    importc: "LLVMMoveBasicBlockBefore", dynlib: LLVMLib.}
+    importc: "LLVMMoveBasicBlockBefore".}
 ## *
 ##  Move a basic block to after another one.
 ##
@@ -3047,7 +3063,7 @@ proc moveBasicBlockBefore*(bb: BasicBlockRef; movePos: BasicBlockRef) {.
 ##
 
 proc moveBasicBlockAfter*(bb: BasicBlockRef; movePos: BasicBlockRef) {.
-    importc: "LLVMMoveBasicBlockAfter", dynlib: LLVMLib.}
+    importc: "LLVMMoveBasicBlockAfter".}
 ## *
 ##  Obtain the first instruction in a basic block.
 ##
@@ -3056,7 +3072,7 @@ proc moveBasicBlockAfter*(bb: BasicBlockRef; movePos: BasicBlockRef) {.
 ##
 
 proc getFirstInstruction*(bb: BasicBlockRef): ValueRef {.
-    importc: "LLVMGetFirstInstruction", dynlib: LLVMLib.}
+    importc: "LLVMGetFirstInstruction".}
 ## *
 ##  Obtain the last instruction in a basic block.
 ##
@@ -3064,7 +3080,7 @@ proc getFirstInstruction*(bb: BasicBlockRef): ValueRef {.
 ##
 
 proc getLastInstruction*(bb: BasicBlockRef): ValueRef {.
-    importc: "LLVMGetLastInstruction", dynlib: LLVMLib.}
+    importc: "LLVMGetLastInstruction".}
 ## *
 ##  @}
 ##
@@ -3088,19 +3104,19 @@ proc getLastInstruction*(bb: BasicBlockRef): ValueRef {.
 ##  Determine whether an instruction has any metadata attached.
 ##
 
-proc hasMetadata*(val: ValueRef): cint {.importc: "LLVMHasMetadata", dynlib: LLVMLib.}
+proc hasMetadata*(val: ValueRef): cint {.importc: "LLVMHasMetadata".}
 ## *
 ##  Return metadata associated with an instruction value.
 ##
 
 proc getMetadata*(val: ValueRef; kindID: cuint): ValueRef {.
-    importc: "LLVMGetMetadata", dynlib: LLVMLib.}
+    importc: "LLVMGetMetadata".}
 ## *
 ##  Set metadata associated with an instruction value.
 ##
 
 proc setMetadata*(val: ValueRef; kindID: cuint; node: ValueRef) {.
-    importc: "LLVMSetMetadata", dynlib: LLVMLib.}
+    importc: "LLVMSetMetadata".}
 ## *
 ##  Returns the metadata associated with an instruction value, but filters out
 ##  all the debug locations.
@@ -3110,7 +3126,7 @@ proc setMetadata*(val: ValueRef; kindID: cuint; node: ValueRef) {.
 
 proc instructionGetAllMetadataOtherThanDebugLoc*(instr: ValueRef;
     numEntries: ptr csize_t): ptr ValueMetadataEntry {.
-    importc: "LLVMInstructionGetAllMetadataOtherThanDebugLoc", dynlib: LLVMLib.}
+    importc: "LLVMInstructionGetAllMetadataOtherThanDebugLoc".}
 ## *
 ##  Obtain the basic block to which an instruction belongs.
 ##
@@ -3118,7 +3134,7 @@ proc instructionGetAllMetadataOtherThanDebugLoc*(instr: ValueRef;
 ##
 
 proc getInstructionParent*(inst: ValueRef): BasicBlockRef {.
-    importc: "LLVMGetInstructionParent", dynlib: LLVMLib.}
+    importc: "LLVMGetInstructionParent".}
 ## *
 ##  Obtain the instruction that occurs after the one specified.
 ##
@@ -3129,7 +3145,7 @@ proc getInstructionParent*(inst: ValueRef): BasicBlockRef {.
 ##
 
 proc getNextInstruction*(inst: ValueRef): ValueRef {.
-    importc: "LLVMGetNextInstruction", dynlib: LLVMLib.}
+    importc: "LLVMGetNextInstruction".}
 ## *
 ##  Obtain the instruction that occurred before this one.
 ##
@@ -3138,9 +3154,9 @@ proc getNextInstruction*(inst: ValueRef): ValueRef {.
 ##
 
 proc getPreviousInstruction*(inst: ValueRef): ValueRef {.
-    importc: "LLVMGetPreviousInstruction", dynlib: LLVMLib.}
+    importc: "LLVMGetPreviousInstruction".}
 ## *
-##  Remove and delete an instruction.
+##  Remove an instruction.
 ##
 ##  The instruction specified is removed from its containing building
 ##  block but is kept alive.
@@ -3149,7 +3165,7 @@ proc getPreviousInstruction*(inst: ValueRef): ValueRef {.
 ##
 
 proc instructionRemoveFromParent*(inst: ValueRef) {.
-    importc: "LLVMInstructionRemoveFromParent", dynlib: LLVMLib.}
+    importc: "LLVMInstructionRemoveFromParent".}
 ## *
 ##  Remove and delete an instruction.
 ##
@@ -3160,7 +3176,18 @@ proc instructionRemoveFromParent*(inst: ValueRef) {.
 ##
 
 proc instructionEraseFromParent*(inst: ValueRef) {.
-    importc: "LLVMInstructionEraseFromParent", dynlib: LLVMLib.}
+    importc: "LLVMInstructionEraseFromParent".}
+## *
+##  Delete an instruction.
+##
+##  The instruction specified is deleted. It must have previously been
+##  removed from its containing building block.
+##
+##  @see llvm::Value::deleteValue()
+##
+
+proc deleteInstruction*(inst: ValueRef) {.importc: "LLVMDeleteInstruction",
+                                       .}
 ## *
 ##  Obtain the code opcode for an individual instruction.
 ##
@@ -3168,7 +3195,7 @@ proc instructionEraseFromParent*(inst: ValueRef) {.
 ##
 
 proc getInstructionOpcode*(inst: ValueRef): Opcode {.
-    importc: "LLVMGetInstructionOpcode", dynlib: LLVMLib.}
+    importc: "LLVMGetInstructionOpcode".}
 ## *
 ##  Obtain the predicate of an instruction.
 ##
@@ -3179,7 +3206,7 @@ proc getInstructionOpcode*(inst: ValueRef): Opcode {.
 ##
 
 proc getICmpPredicate*(inst: ValueRef): IntPredicate {.
-    importc: "LLVMGetICmpPredicate", dynlib: LLVMLib.}
+    importc: "LLVMGetICmpPredicate".}
 ## *
 ##  Obtain the float predicate of an instruction.
 ##
@@ -3190,7 +3217,7 @@ proc getICmpPredicate*(inst: ValueRef): IntPredicate {.
 ##
 
 proc getFCmpPredicate*(inst: ValueRef): RealPredicate {.
-    importc: "LLVMGetFCmpPredicate", dynlib: LLVMLib.}
+    importc: "LLVMGetFCmpPredicate".}
 ## *
 ##  Create a copy of 'this' instruction that is identical in all ways
 ##  except the following:
@@ -3201,7 +3228,7 @@ proc getFCmpPredicate*(inst: ValueRef): RealPredicate {.
 ##
 
 proc instructionClone*(inst: ValueRef): ValueRef {.importc: "LLVMInstructionClone",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Determine whether an instruction is a terminator. This routine is named to
 ##  be compatible with historical functions that did this by querying the
@@ -3211,7 +3238,7 @@ proc instructionClone*(inst: ValueRef): ValueRef {.importc: "LLVMInstructionClon
 ##
 
 proc isATerminatorInst*(inst: ValueRef): ValueRef {.
-    importc: "LLVMIsATerminatorInst", dynlib: LLVMLib.}
+    importc: "LLVMIsATerminatorInst".}
 ## *
 ##  @defgroup LLVMCCoreValueInstructionCall Call Sites and Invocations
 ##
@@ -3233,7 +3260,7 @@ proc isATerminatorInst*(inst: ValueRef): ValueRef {.
 ##
 
 proc getNumArgOperands*(instr: ValueRef): cuint {.importc: "LLVMGetNumArgOperands",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Set the calling convention for a call instruction.
 ##
@@ -3245,7 +3272,7 @@ proc getNumArgOperands*(instr: ValueRef): cuint {.importc: "LLVMGetNumArgOperand
 ##
 
 proc setInstructionCallConv*(instr: ValueRef; cc: cuint) {.
-    importc: "LLVMSetInstructionCallConv", dynlib: LLVMLib.}
+    importc: "LLVMSetInstructionCallConv".}
 ## *
 ##  Obtain the calling convention for a call instruction.
 ##
@@ -3256,25 +3283,25 @@ proc setInstructionCallConv*(instr: ValueRef; cc: cuint) {.
 ##
 
 proc getInstructionCallConv*(instr: ValueRef): cuint {.
-    importc: "LLVMGetInstructionCallConv", dynlib: LLVMLib.}
+    importc: "LLVMGetInstructionCallConv".}
 proc setInstrParamAlignment*(instr: ValueRef; idx: AttributeIndex; align: cuint) {.
-    importc: "LLVMSetInstrParamAlignment", dynlib: LLVMLib.}
+    importc: "LLVMSetInstrParamAlignment".}
 proc addCallSiteAttribute*(c: ValueRef; idx: AttributeIndex; a: AttributeRef) {.
-    importc: "LLVMAddCallSiteAttribute", dynlib: LLVMLib.}
+    importc: "LLVMAddCallSiteAttribute".}
 proc getCallSiteAttributeCount*(c: ValueRef; idx: AttributeIndex): cuint {.
-    importc: "LLVMGetCallSiteAttributeCount", dynlib: LLVMLib.}
+    importc: "LLVMGetCallSiteAttributeCount".}
 proc getCallSiteAttributes*(c: ValueRef; idx: AttributeIndex; attrs: ptr AttributeRef) {.
-    importc: "LLVMGetCallSiteAttributes", dynlib: LLVMLib.}
+    importc: "LLVMGetCallSiteAttributes".}
 proc getCallSiteEnumAttribute*(c: ValueRef; idx: AttributeIndex; kindID: cuint): AttributeRef {.
-    importc: "LLVMGetCallSiteEnumAttribute", dynlib: LLVMLib.}
+    importc: "LLVMGetCallSiteEnumAttribute".}
 proc getCallSiteStringAttribute*(c: ValueRef; idx: AttributeIndex; k: cstring;
                                 kLen: cuint): AttributeRef {.
-    importc: "LLVMGetCallSiteStringAttribute", dynlib: LLVMLib.}
+    importc: "LLVMGetCallSiteStringAttribute".}
 proc removeCallSiteEnumAttribute*(c: ValueRef; idx: AttributeIndex; kindID: cuint) {.
-    importc: "LLVMRemoveCallSiteEnumAttribute", dynlib: LLVMLib.}
+    importc: "LLVMRemoveCallSiteEnumAttribute".}
 proc removeCallSiteStringAttribute*(c: ValueRef; idx: AttributeIndex; k: cstring;
                                    kLen: cuint) {.
-    importc: "LLVMRemoveCallSiteStringAttribute", dynlib: LLVMLib.}
+    importc: "LLVMRemoveCallSiteStringAttribute".}
 ## *
 ##  Obtain the function type called by this instruction.
 ##
@@ -3282,7 +3309,7 @@ proc removeCallSiteStringAttribute*(c: ValueRef; idx: AttributeIndex; k: cstring
 ##
 
 proc getCalledFunctionType*(c: ValueRef): TypeRef {.
-    importc: "LLVMGetCalledFunctionType", dynlib: LLVMLib.}
+    importc: "LLVMGetCalledFunctionType".}
 ## *
 ##  Obtain the pointer to the function invoked by this instruction.
 ##
@@ -3294,7 +3321,7 @@ proc getCalledFunctionType*(c: ValueRef): TypeRef {.
 ##
 
 proc getCalledValue*(instr: ValueRef): ValueRef {.importc: "LLVMGetCalledValue",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain whether a call instruction is a tail call.
 ##
@@ -3304,7 +3331,7 @@ proc getCalledValue*(instr: ValueRef): ValueRef {.importc: "LLVMGetCalledValue",
 ##
 
 proc isTailCall*(callInst: ValueRef): Bool {.importc: "LLVMIsTailCall",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Set whether a call instruction is a tail call.
 ##
@@ -3314,7 +3341,7 @@ proc isTailCall*(callInst: ValueRef): Bool {.importc: "LLVMIsTailCall",
 ##
 
 proc setTailCall*(callInst: ValueRef; isTailCall: Bool) {.importc: "LLVMSetTailCall",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Return the normal destination basic block.
 ##
@@ -3324,7 +3351,7 @@ proc setTailCall*(callInst: ValueRef; isTailCall: Bool) {.importc: "LLVMSetTailC
 ##
 
 proc getNormalDest*(invokeInst: ValueRef): BasicBlockRef {.
-    importc: "LLVMGetNormalDest", dynlib: LLVMLib.}
+    importc: "LLVMGetNormalDest".}
 ## *
 ##  Return the unwind destination basic block.
 ##
@@ -3337,7 +3364,7 @@ proc getNormalDest*(invokeInst: ValueRef): BasicBlockRef {.
 ##
 
 proc getUnwindDest*(invokeInst: ValueRef): BasicBlockRef {.
-    importc: "LLVMGetUnwindDest", dynlib: LLVMLib.}
+    importc: "LLVMGetUnwindDest".}
 ## *
 ##  Set the normal destination basic block.
 ##
@@ -3347,7 +3374,7 @@ proc getUnwindDest*(invokeInst: ValueRef): BasicBlockRef {.
 ##
 
 proc setNormalDest*(invokeInst: ValueRef; b: BasicBlockRef) {.
-    importc: "LLVMSetNormalDest", dynlib: LLVMLib.}
+    importc: "LLVMSetNormalDest".}
 ## *
 ##  Set the unwind destination basic block.
 ##
@@ -3360,7 +3387,7 @@ proc setNormalDest*(invokeInst: ValueRef; b: BasicBlockRef) {.
 ##
 
 proc setUnwindDest*(invokeInst: ValueRef; b: BasicBlockRef) {.
-    importc: "LLVMSetUnwindDest", dynlib: LLVMLib.}
+    importc: "LLVMSetUnwindDest".}
 ## *
 ##  @}
 ##
@@ -3379,7 +3406,7 @@ proc setUnwindDest*(invokeInst: ValueRef; b: BasicBlockRef) {.
 ##
 
 proc getNumSuccessors*(term: ValueRef): cuint {.importc: "LLVMGetNumSuccessors",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Return the specified successor.
 ##
@@ -3387,7 +3414,7 @@ proc getNumSuccessors*(term: ValueRef): cuint {.importc: "LLVMGetNumSuccessors",
 ##
 
 proc getSuccessor*(term: ValueRef; i: cuint): BasicBlockRef {.
-    importc: "LLVMGetSuccessor", dynlib: LLVMLib.}
+    importc: "LLVMGetSuccessor".}
 ## *
 ##  Update the specified successor to point at the provided block.
 ##
@@ -3395,7 +3422,7 @@ proc getSuccessor*(term: ValueRef; i: cuint): BasicBlockRef {.
 ##
 
 proc setSuccessor*(term: ValueRef; i: cuint; `block`: BasicBlockRef) {.
-    importc: "LLVMSetSuccessor", dynlib: LLVMLib.}
+    importc: "LLVMSetSuccessor".}
 ## *
 ##  Return if a branch is conditional.
 ##
@@ -3405,7 +3432,7 @@ proc setSuccessor*(term: ValueRef; i: cuint; `block`: BasicBlockRef) {.
 ##
 
 proc isConditional*(branch: ValueRef): Bool {.importc: "LLVMIsConditional",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Return the condition of a branch instruction.
 ##
@@ -3415,7 +3442,7 @@ proc isConditional*(branch: ValueRef): Bool {.importc: "LLVMIsConditional",
 ##
 
 proc getCondition*(branch: ValueRef): ValueRef {.importc: "LLVMGetCondition",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Set the condition of a branch instruction.
 ##
@@ -3425,7 +3452,7 @@ proc getCondition*(branch: ValueRef): ValueRef {.importc: "LLVMGetCondition",
 ##
 
 proc setCondition*(branch: ValueRef; cond: ValueRef) {.importc: "LLVMSetCondition",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain the default destination basic block of a switch instruction.
 ##
@@ -3435,7 +3462,7 @@ proc setCondition*(branch: ValueRef; cond: ValueRef) {.importc: "LLVMSetConditio
 ##
 
 proc getSwitchDefaultDest*(switchInstr: ValueRef): BasicBlockRef {.
-    importc: "LLVMGetSwitchDefaultDest", dynlib: LLVMLib.}
+    importc: "LLVMGetSwitchDefaultDest".}
 ## *
 ##  @}
 ##
@@ -3452,7 +3479,7 @@ proc getSwitchDefaultDest*(switchInstr: ValueRef): BasicBlockRef {.
 ##
 
 proc getAllocatedType*(alloca: ValueRef): TypeRef {.importc: "LLVMGetAllocatedType",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  @}
 ##
@@ -3468,19 +3495,19 @@ proc getAllocatedType*(alloca: ValueRef): TypeRef {.importc: "LLVMGetAllocatedTy
 ##  Check whether the given GEP operator is inbounds.
 ##
 
-proc isInBounds*(gep: ValueRef): Bool {.importc: "LLVMIsInBounds", dynlib: LLVMLib.}
+proc isInBounds*(gep: ValueRef): Bool {.importc: "LLVMIsInBounds".}
 ## *
 ##  Set the given GEP instruction to be inbounds or not.
 ##
 
 proc setIsInBounds*(gep: ValueRef; inBounds: Bool) {.importc: "LLVMSetIsInBounds",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Get the source element type of the given GEP operator.
 ##
 
 proc getGEPSourceElementType*(gep: ValueRef): TypeRef {.
-    importc: "LLVMGetGEPSourceElementType", dynlib: LLVMLib.}
+    importc: "LLVMGetGEPSourceElementType".}
 ## *
 ##  @}
 ##
@@ -3498,25 +3525,25 @@ proc getGEPSourceElementType*(gep: ValueRef): TypeRef {.
 
 proc addIncoming*(phiNode: ValueRef; incomingValues: ptr ValueRef;
                  incomingBlocks: ptr BasicBlockRef; count: cuint) {.
-    importc: "LLVMAddIncoming", dynlib: LLVMLib.}
+    importc: "LLVMAddIncoming".}
 ## *
 ##  Obtain the number of incoming basic blocks to a PHI node.
 ##
 
 proc countIncoming*(phiNode: ValueRef): cuint {.importc: "LLVMCountIncoming",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain an incoming value to a PHI node as an LLVMValueRef.
 ##
 
 proc getIncomingValue*(phiNode: ValueRef; index: cuint): ValueRef {.
-    importc: "LLVMGetIncomingValue", dynlib: LLVMLib.}
+    importc: "LLVMGetIncomingValue".}
 ## *
 ##  Obtain an incoming value to a PHI node as an LLVMBasicBlockRef.
 ##
 
 proc getIncomingBlock*(phiNode: ValueRef; index: cuint): BasicBlockRef {.
-    importc: "LLVMGetIncomingBlock", dynlib: LLVMLib.}
+    importc: "LLVMGetIncomingBlock".}
 ## *
 ##  @}
 ##
@@ -3535,13 +3562,13 @@ proc getIncomingBlock*(phiNode: ValueRef; index: cuint): BasicBlockRef {.
 ##
 
 proc getNumIndices*(inst: ValueRef): cuint {.importc: "LLVMGetNumIndices",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain the indices as an array.
 ##
 
 proc getIndices*(inst: ValueRef): ptr cuint {.importc: "LLVMGetIndices",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  @}
 ##
@@ -3561,24 +3588,24 @@ proc getIndices*(inst: ValueRef): ptr cuint {.importc: "LLVMGetIndices",
 ##
 
 proc createBuilderInContext*(c: ContextRef): BuilderRef {.
-    importc: "LLVMCreateBuilderInContext", dynlib: LLVMLib.}
-proc createBuilder*(): BuilderRef {.importc: "LLVMCreateBuilder", dynlib: LLVMLib.}
+    importc: "LLVMCreateBuilderInContext".}
+proc createBuilder*(): BuilderRef {.importc: "LLVMCreateBuilder".}
 proc positionBuilder*(builder: BuilderRef; `block`: BasicBlockRef; instr: ValueRef) {.
-    importc: "LLVMPositionBuilder", dynlib: LLVMLib.}
+    importc: "LLVMPositionBuilder".}
 proc positionBuilderBefore*(builder: BuilderRef; instr: ValueRef) {.
-    importc: "LLVMPositionBuilderBefore", dynlib: LLVMLib.}
+    importc: "LLVMPositionBuilderBefore".}
 proc positionBuilderAtEnd*(builder: BuilderRef; `block`: BasicBlockRef) {.
-    importc: "LLVMPositionBuilderAtEnd", dynlib: LLVMLib.}
+    importc: "LLVMPositionBuilderAtEnd".}
 proc getInsertBlock*(builder: BuilderRef): BasicBlockRef {.
-    importc: "LLVMGetInsertBlock", dynlib: LLVMLib.}
+    importc: "LLVMGetInsertBlock".}
 proc clearInsertionPosition*(builder: BuilderRef) {.
-    importc: "LLVMClearInsertionPosition", dynlib: LLVMLib.}
+    importc: "LLVMClearInsertionPosition".}
 proc insertIntoBuilder*(builder: BuilderRef; instr: ValueRef) {.
-    importc: "LLVMInsertIntoBuilder", dynlib: LLVMLib.}
+    importc: "LLVMInsertIntoBuilder".}
 proc insertIntoBuilderWithName*(builder: BuilderRef; instr: ValueRef; name: cstring) {.
-    importc: "LLVMInsertIntoBuilderWithName", dynlib: LLVMLib.}
+    importc: "LLVMInsertIntoBuilderWithName".}
 proc disposeBuilder*(builder: BuilderRef) {.importc: "LLVMDisposeBuilder",
-    dynlib: LLVMLib.}
+    .}
 ##  Metadata
 ## *
 ##  Get location information used by debugging information.
@@ -3587,7 +3614,7 @@ proc disposeBuilder*(builder: BuilderRef) {.importc: "LLVMDisposeBuilder",
 ##
 
 proc getCurrentDebugLocation2*(builder: BuilderRef): MetadataRef {.
-    importc: "LLVMGetCurrentDebugLocation2", dynlib: LLVMLib.}
+    importc: "LLVMGetCurrentDebugLocation2".}
 ## *
 ##  Set location information used by debugging information.
 ##
@@ -3597,7 +3624,7 @@ proc getCurrentDebugLocation2*(builder: BuilderRef): MetadataRef {.
 ##
 
 proc setCurrentDebugLocation2*(builder: BuilderRef; loc: MetadataRef) {.
-    importc: "LLVMSetCurrentDebugLocation2", dynlib: LLVMLib.}
+    importc: "LLVMSetCurrentDebugLocation2".}
 ## *
 ##  Attempts to set the debug location for the given instruction using the
 ##  current debug location for the given builder.  If the builder has no current
@@ -3610,7 +3637,7 @@ proc setCurrentDebugLocation2*(builder: BuilderRef; loc: MetadataRef) {.
 ##
 
 proc setInstDebugLocation*(builder: BuilderRef; inst: ValueRef) {.
-    importc: "LLVMSetInstDebugLocation", dynlib: LLVMLib.}
+    importc: "LLVMSetInstDebugLocation".}
 ## *
 ##  Adds the metadata registered with the given builder to the given instruction.
 ##
@@ -3618,7 +3645,7 @@ proc setInstDebugLocation*(builder: BuilderRef; inst: ValueRef) {.
 ##
 
 proc addMetadataToInst*(builder: BuilderRef; inst: ValueRef) {.
-    importc: "LLVMAddMetadataToInst", dynlib: LLVMLib.}
+    importc: "LLVMAddMetadataToInst".}
 ## *
 ##  Get the dafult floating-point math metadata for a given builder.
 ##
@@ -3626,7 +3653,7 @@ proc addMetadataToInst*(builder: BuilderRef; inst: ValueRef) {.
 ##
 
 proc builderGetDefaultFPMathTag*(builder: BuilderRef): MetadataRef {.
-    importc: "LLVMBuilderGetDefaultFPMathTag", dynlib: LLVMLib.}
+    importc: "LLVMBuilderGetDefaultFPMathTag".}
 ## *
 ##  Set the default floating-point math metadata for the given builder.
 ##
@@ -3636,103 +3663,100 @@ proc builderGetDefaultFPMathTag*(builder: BuilderRef): MetadataRef {.
 ##
 
 proc builderSetDefaultFPMathTag*(builder: BuilderRef; fPMathTag: MetadataRef) {.
-    importc: "LLVMBuilderSetDefaultFPMathTag", dynlib: LLVMLib.}
+    importc: "LLVMBuilderSetDefaultFPMathTag".}
 ## *
 ##  Deprecated: Passing the NULL location will crash.
 ##  Use LLVMGetCurrentDebugLocation2 instead.
 ##
 
 proc setCurrentDebugLocation*(builder: BuilderRef; L: ValueRef) {.
-    importc: "LLVMSetCurrentDebugLocation", dynlib: LLVMLib.}
+    importc: "LLVMSetCurrentDebugLocation".}
 ## *
 ##  Deprecated: Returning the NULL location will crash.
 ##  Use LLVMGetCurrentDebugLocation2 instead.
 ##
 
 proc getCurrentDebugLocation*(builder: BuilderRef): ValueRef {.
-    importc: "LLVMGetCurrentDebugLocation", dynlib: LLVMLib.}
+    importc: "LLVMGetCurrentDebugLocation".}
 ##  Terminators
 
 proc buildRetVoid*(a1: BuilderRef): ValueRef {.importc: "LLVMBuildRetVoid",
-    dynlib: LLVMLib.}
+    .}
 proc buildRet*(a1: BuilderRef; v: ValueRef): ValueRef {.importc: "LLVMBuildRet",
-    dynlib: LLVMLib.}
+    .}
 proc buildAggregateRet*(a1: BuilderRef; retVals: ptr ValueRef; n: cuint): ValueRef {.
-    importc: "LLVMBuildAggregateRet", dynlib: LLVMLib.}
+    importc: "LLVMBuildAggregateRet".}
 proc buildBr*(a1: BuilderRef; dest: BasicBlockRef): ValueRef {.importc: "LLVMBuildBr",
-    dynlib: LLVMLib.}
+    .}
 proc buildCondBr*(a1: BuilderRef; `if`: ValueRef; then: BasicBlockRef;
                  `else`: BasicBlockRef): ValueRef {.importc: "LLVMBuildCondBr",
-    dynlib: LLVMLib.}
+    .}
 proc buildSwitch*(a1: BuilderRef; v: ValueRef; `else`: BasicBlockRef; numCases: cuint): ValueRef {.
-    importc: "LLVMBuildSwitch", dynlib: LLVMLib.}
+    importc: "LLVMBuildSwitch".}
 proc buildIndirectBr*(b: BuilderRef; `addr`: ValueRef; numDests: cuint): ValueRef {.
-    importc: "LLVMBuildIndirectBr", dynlib: LLVMLib.}
-proc buildInvoke*(a1: BuilderRef; fn: ValueRef; args: ptr ValueRef; numArgs: cuint;
-                 then: BasicBlockRef; catch: BasicBlockRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildInvoke", dynlib: LLVMLib.}
+    importc: "LLVMBuildIndirectBr".}
 proc buildInvoke2*(a1: BuilderRef; ty: TypeRef; fn: ValueRef; args: ptr ValueRef;
                   numArgs: cuint; then: BasicBlockRef; catch: BasicBlockRef;
                   name: cstring): ValueRef {.importc: "LLVMBuildInvoke2",
-    dynlib: LLVMLib.}
+    .}
 proc buildUnreachable*(a1: BuilderRef): ValueRef {.importc: "LLVMBuildUnreachable",
-    dynlib: LLVMLib.}
+    .}
 ##  Exception Handling
 
 proc buildResume*(b: BuilderRef; exn: ValueRef): ValueRef {.
-    importc: "LLVMBuildResume", dynlib: LLVMLib.}
+    importc: "LLVMBuildResume".}
 proc buildLandingPad*(b: BuilderRef; ty: TypeRef; persFn: ValueRef; numClauses: cuint;
                      name: cstring): ValueRef {.importc: "LLVMBuildLandingPad",
-    dynlib: LLVMLib.}
+    .}
 proc buildCleanupRet*(b: BuilderRef; catchPad: ValueRef; bb: BasicBlockRef): ValueRef {.
-    importc: "LLVMBuildCleanupRet", dynlib: LLVMLib.}
+    importc: "LLVMBuildCleanupRet".}
 proc buildCatchRet*(b: BuilderRef; catchPad: ValueRef; bb: BasicBlockRef): ValueRef {.
-    importc: "LLVMBuildCatchRet", dynlib: LLVMLib.}
+    importc: "LLVMBuildCatchRet".}
 proc buildCatchPad*(b: BuilderRef; parentPad: ValueRef; args: ptr ValueRef;
                    numArgs: cuint; name: cstring): ValueRef {.
-    importc: "LLVMBuildCatchPad", dynlib: LLVMLib.}
+    importc: "LLVMBuildCatchPad".}
 proc buildCleanupPad*(b: BuilderRef; parentPad: ValueRef; args: ptr ValueRef;
                      numArgs: cuint; name: cstring): ValueRef {.
-    importc: "LLVMBuildCleanupPad", dynlib: LLVMLib.}
+    importc: "LLVMBuildCleanupPad".}
 proc buildCatchSwitch*(b: BuilderRef; parentPad: ValueRef; unwindBB: BasicBlockRef;
                       numHandlers: cuint; name: cstring): ValueRef {.
-    importc: "LLVMBuildCatchSwitch", dynlib: LLVMLib.}
+    importc: "LLVMBuildCatchSwitch".}
 ##  Add a case to the switch instruction
 
 proc addCase*(switch: ValueRef; onVal: ValueRef; dest: BasicBlockRef) {.
-    importc: "LLVMAddCase", dynlib: LLVMLib.}
+    importc: "LLVMAddCase".}
 ##  Add a destination to the indirectbr instruction
 
 proc addDestination*(indirectBr: ValueRef; dest: BasicBlockRef) {.
-    importc: "LLVMAddDestination", dynlib: LLVMLib.}
+    importc: "LLVMAddDestination".}
 ##  Get the number of clauses on the landingpad instruction
 
 proc getNumClauses*(landingPad: ValueRef): cuint {.importc: "LLVMGetNumClauses",
-    dynlib: LLVMLib.}
+    .}
 ##  Get the value of the clause at index Idx on the landingpad instruction
 
 proc getClause*(landingPad: ValueRef; idx: cuint): ValueRef {.
-    importc: "LLVMGetClause", dynlib: LLVMLib.}
+    importc: "LLVMGetClause".}
 ##  Add a catch or filter clause to the landingpad instruction
 
 proc addClause*(landingPad: ValueRef; clauseVal: ValueRef) {.
-    importc: "LLVMAddClause", dynlib: LLVMLib.}
+    importc: "LLVMAddClause".}
 ##  Get the 'cleanup' flag in the landingpad instruction
 
 proc isCleanup*(landingPad: ValueRef): Bool {.importc: "LLVMIsCleanup",
-    dynlib: LLVMLib.}
+    .}
 ##  Set the 'cleanup' flag in the landingpad instruction
 
 proc setCleanup*(landingPad: ValueRef; val: Bool) {.importc: "LLVMSetCleanup",
-    dynlib: LLVMLib.}
+    .}
 ##  Add a destination to the catchswitch instruction
 
 proc addHandler*(catchSwitch: ValueRef; dest: BasicBlockRef) {.
-    importc: "LLVMAddHandler", dynlib: LLVMLib.}
+    importc: "LLVMAddHandler".}
 ##  Get the number of handlers on the catchswitch instruction
 
 proc getNumHandlers*(catchSwitch: ValueRef): cuint {.importc: "LLVMGetNumHandlers",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  Obtain the basic blocks acting as handlers for a catchswitch instruction.
 ##
@@ -3746,16 +3770,16 @@ proc getNumHandlers*(catchSwitch: ValueRef): cuint {.importc: "LLVMGetNumHandler
 ##
 
 proc getHandlers*(catchSwitch: ValueRef; handlers: ptr BasicBlockRef) {.
-    importc: "LLVMGetHandlers", dynlib: LLVMLib.}
+    importc: "LLVMGetHandlers".}
 ##  Funclets
 ##  Get the number of funcletpad arguments.
 
 proc getArgOperand*(funclet: ValueRef; i: cuint): ValueRef {.
-    importc: "LLVMGetArgOperand", dynlib: LLVMLib.}
+    importc: "LLVMGetArgOperand".}
 ##  Set a funcletpad argument at the given index.
 
 proc setArgOperand*(funclet: ValueRef; i: cuint; value: ValueRef) {.
-    importc: "LLVMSetArgOperand", dynlib: LLVMLib.}
+    importc: "LLVMSetArgOperand".}
 ## *
 ##  Get the parent catchswitch instruction of a catchpad instruction.
 ##
@@ -3765,7 +3789,7 @@ proc setArgOperand*(funclet: ValueRef; i: cuint; value: ValueRef) {.
 ##
 
 proc getParentCatchSwitch*(catchPad: ValueRef): ValueRef {.
-    importc: "LLVMGetParentCatchSwitch", dynlib: LLVMLib.}
+    importc: "LLVMGetParentCatchSwitch".}
 ## *
 ##  Set the parent catchswitch instruction of a catchpad instruction.
 ##
@@ -3775,79 +3799,79 @@ proc getParentCatchSwitch*(catchPad: ValueRef): ValueRef {.
 ##
 
 proc setParentCatchSwitch*(catchPad: ValueRef; catchSwitch: ValueRef) {.
-    importc: "LLVMSetParentCatchSwitch", dynlib: LLVMLib.}
+    importc: "LLVMSetParentCatchSwitch".}
 ##  Arithmetic
 
 proc buildAdd*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildAdd", dynlib: LLVMLib.}
+    importc: "LLVMBuildAdd".}
 proc buildNSWAdd*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildNSWAdd", dynlib: LLVMLib.}
+    importc: "LLVMBuildNSWAdd".}
 proc buildNUWAdd*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildNUWAdd", dynlib: LLVMLib.}
+    importc: "LLVMBuildNUWAdd".}
 proc buildFAdd*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildFAdd", dynlib: LLVMLib.}
+    importc: "LLVMBuildFAdd".}
 proc buildSub*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildSub", dynlib: LLVMLib.}
+    importc: "LLVMBuildSub".}
 proc buildNSWSub*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildNSWSub", dynlib: LLVMLib.}
+    importc: "LLVMBuildNSWSub".}
 proc buildNUWSub*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildNUWSub", dynlib: LLVMLib.}
+    importc: "LLVMBuildNUWSub".}
 proc buildFSub*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildFSub", dynlib: LLVMLib.}
+    importc: "LLVMBuildFSub".}
 proc buildMul*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildMul", dynlib: LLVMLib.}
+    importc: "LLVMBuildMul".}
 proc buildNSWMul*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildNSWMul", dynlib: LLVMLib.}
+    importc: "LLVMBuildNSWMul".}
 proc buildNUWMul*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildNUWMul", dynlib: LLVMLib.}
+    importc: "LLVMBuildNUWMul".}
 proc buildFMul*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildFMul", dynlib: LLVMLib.}
+    importc: "LLVMBuildFMul".}
 proc buildUDiv*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildUDiv", dynlib: LLVMLib.}
+    importc: "LLVMBuildUDiv".}
 proc buildExactUDiv*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildExactUDiv", dynlib: LLVMLib.}
+    importc: "LLVMBuildExactUDiv".}
 proc buildSDiv*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildSDiv", dynlib: LLVMLib.}
+    importc: "LLVMBuildSDiv".}
 proc buildExactSDiv*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildExactSDiv", dynlib: LLVMLib.}
+    importc: "LLVMBuildExactSDiv".}
 proc buildFDiv*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildFDiv", dynlib: LLVMLib.}
+    importc: "LLVMBuildFDiv".}
 proc buildURem*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildURem", dynlib: LLVMLib.}
+    importc: "LLVMBuildURem".}
 proc buildSRem*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildSRem", dynlib: LLVMLib.}
+    importc: "LLVMBuildSRem".}
 proc buildFRem*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildFRem", dynlib: LLVMLib.}
+    importc: "LLVMBuildFRem".}
 proc buildShl*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildShl", dynlib: LLVMLib.}
+    importc: "LLVMBuildShl".}
 proc buildLShr*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildLShr", dynlib: LLVMLib.}
+    importc: "LLVMBuildLShr".}
 proc buildAShr*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildAShr", dynlib: LLVMLib.}
+    importc: "LLVMBuildAShr".}
 proc buildAnd*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildAnd", dynlib: LLVMLib.}
+    importc: "LLVMBuildAnd".}
 proc buildOr*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildOr", dynlib: LLVMLib.}
+    importc: "LLVMBuildOr".}
 proc buildXor*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildXor", dynlib: LLVMLib.}
+    importc: "LLVMBuildXor".}
 proc buildBinOp*(b: BuilderRef; op: Opcode; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildBinOp", dynlib: LLVMLib.}
+    importc: "LLVMBuildBinOp".}
 proc buildNeg*(a1: BuilderRef; v: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildNeg", dynlib: LLVMLib.}
+    importc: "LLVMBuildNeg".}
 proc buildNSWNeg*(b: BuilderRef; v: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildNSWNeg", dynlib: LLVMLib.}
+    importc: "LLVMBuildNSWNeg".}
 proc buildNUWNeg*(b: BuilderRef; v: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildNUWNeg", dynlib: LLVMLib.}
+    importc: "LLVMBuildNUWNeg".}
 proc buildFNeg*(a1: BuilderRef; v: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildFNeg", dynlib: LLVMLib.}
+    importc: "LLVMBuildFNeg".}
 proc buildNot*(a1: BuilderRef; v: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildNot", dynlib: LLVMLib.}
+    importc: "LLVMBuildNot".}
 ##  Memory
 
 proc buildMalloc*(a1: BuilderRef; ty: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildMalloc", dynlib: LLVMLib.}
+    importc: "LLVMBuildMalloc".}
 proc buildArrayMalloc*(a1: BuilderRef; ty: TypeRef; val: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildArrayMalloc", dynlib: LLVMLib.}
+    importc: "LLVMBuildArrayMalloc".}
 ## *
 ##  Creates and inserts a memset to the specified pointer and the
 ##  specified value.
@@ -3857,7 +3881,7 @@ proc buildArrayMalloc*(a1: BuilderRef; ty: TypeRef; val: ValueRef; name: cstring
 
 proc buildMemSet*(b: BuilderRef; `ptr`: ValueRef; val: ValueRef; len: ValueRef;
                  align: cuint): ValueRef {.importc: "LLVMBuildMemSet",
-                                        dynlib: LLVMLib.}
+                                        .}
 ## *
 ##  Creates and inserts a memcpy between the specified pointers.
 ##
@@ -3866,7 +3890,7 @@ proc buildMemSet*(b: BuilderRef; `ptr`: ValueRef; val: ValueRef; len: ValueRef;
 
 proc buildMemCpy*(b: BuilderRef; dst: ValueRef; dstAlign: cuint; src: ValueRef;
                  srcAlign: cuint; size: ValueRef): ValueRef {.
-    importc: "LLVMBuildMemCpy", dynlib: LLVMLib.}
+    importc: "LLVMBuildMemCpy".}
 ## *
 ##  Creates and inserts a memmove between the specified pointers.
 ##
@@ -3875,166 +3899,165 @@ proc buildMemCpy*(b: BuilderRef; dst: ValueRef; dstAlign: cuint; src: ValueRef;
 
 proc buildMemMove*(b: BuilderRef; dst: ValueRef; dstAlign: cuint; src: ValueRef;
                   srcAlign: cuint; size: ValueRef): ValueRef {.
-    importc: "LLVMBuildMemMove", dynlib: LLVMLib.}
+    importc: "LLVMBuildMemMove".}
 proc buildAlloca*(a1: BuilderRef; ty: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildAlloca", dynlib: LLVMLib.}
+    importc: "LLVMBuildAlloca".}
 proc buildArrayAlloca*(a1: BuilderRef; ty: TypeRef; val: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildArrayAlloca", dynlib: LLVMLib.}
+    importc: "LLVMBuildArrayAlloca".}
 proc buildFree*(a1: BuilderRef; pointerVal: ValueRef): ValueRef {.
-    importc: "LLVMBuildFree", dynlib: LLVMLib.}
-proc buildLoad*(a1: BuilderRef; pointerVal: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildLoad", dynlib: LLVMLib.}
+    importc: "LLVMBuildFree".}
+
+proc buildLoad*(b: BuilderRef, pointerVal: ValueRef; name: cstring): ValueRef {.
+    importc: "LLVMBuildLoad2".}
+
 proc buildLoad2*(a1: BuilderRef; ty: TypeRef; pointerVal: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildLoad2", dynlib: LLVMLib.}
+    importc: "LLVMBuildLoad2".}
 proc buildStore*(a1: BuilderRef; val: ValueRef; `ptr`: ValueRef): ValueRef {.
-    importc: "LLVMBuildStore", dynlib: LLVMLib.}
-proc buildGEP*(b: BuilderRef; pointer: ValueRef; indices: ptr ValueRef;
-              numIndices: cuint; name: cstring): ValueRef {.importc: "LLVMBuildGEP",
-    dynlib: LLVMLib.}
-proc buildInBoundsGEP*(b: BuilderRef; pointer: ValueRef; indices: ptr ValueRef;
-                      numIndices: cuint; name: cstring): ValueRef {.
-    importc: "LLVMBuildInBoundsGEP", dynlib: LLVMLib.}
-proc buildStructGEP*(b: BuilderRef; pointer: ValueRef; idx: cuint; name: cstring): ValueRef {.
-    importc: "LLVMBuildStructGEP", dynlib: LLVMLib.}
+    importc: "LLVMBuildStore".}
+
 proc buildGEP2*(b: BuilderRef; ty: TypeRef; pointer: ValueRef; indices: ptr ValueRef;
                numIndices: cuint; name: cstring): ValueRef {.
-    importc: "LLVMBuildGEP2", dynlib: LLVMLib.}
+    importc: "LLVMBuildGEP2".}
 proc buildInBoundsGEP2*(b: BuilderRef; ty: TypeRef; pointer: ValueRef;
                        indices: ptr ValueRef; numIndices: cuint; name: cstring): ValueRef {.
-    importc: "LLVMBuildInBoundsGEP2", dynlib: LLVMLib.}
+    importc: "LLVMBuildInBoundsGEP2".}
 proc buildStructGEP2*(b: BuilderRef; ty: TypeRef; pointer: ValueRef; idx: cuint;
                      name: cstring): ValueRef {.importc: "LLVMBuildStructGEP2",
-    dynlib: LLVMLib.}
+    .}
 proc buildGlobalString*(b: BuilderRef; str: cstring; name: cstring): ValueRef {.
-    importc: "LLVMBuildGlobalString", dynlib: LLVMLib.}
+    importc: "LLVMBuildGlobalString".}
 proc buildGlobalStringPtr*(b: BuilderRef; str: cstring; name: cstring): ValueRef {.
-    importc: "LLVMBuildGlobalStringPtr", dynlib: LLVMLib.}
+    importc: "LLVMBuildGlobalStringPtr".}
 proc getVolatile*(memoryAccessInst: ValueRef): Bool {.importc: "LLVMGetVolatile",
-    dynlib: LLVMLib.}
+    .}
 proc setVolatile*(memoryAccessInst: ValueRef; isVolatile: Bool) {.
-    importc: "LLVMSetVolatile", dynlib: LLVMLib.}
-proc getWeak*(cmpXchgInst: ValueRef): Bool {.importc: "LLVMGetWeak", dynlib: LLVMLib.}
+    importc: "LLVMSetVolatile".}
+proc getWeak*(cmpXchgInst: ValueRef): Bool {.importc: "LLVMGetWeak".}
 proc setWeak*(cmpXchgInst: ValueRef; isWeak: Bool) {.importc: "LLVMSetWeak",
-    dynlib: LLVMLib.}
+    .}
 proc getOrdering*(memoryAccessInst: ValueRef): AtomicOrdering {.
-    importc: "LLVMGetOrdering", dynlib: LLVMLib.}
+    importc: "LLVMGetOrdering".}
 proc setOrdering*(memoryAccessInst: ValueRef; ordering: AtomicOrdering) {.
-    importc: "LLVMSetOrdering", dynlib: LLVMLib.}
+    importc: "LLVMSetOrdering".}
 proc getAtomicRMWBinOp*(atomicRMWInst: ValueRef): AtomicRMWBinOp {.
-    importc: "LLVMGetAtomicRMWBinOp", dynlib: LLVMLib.}
+    importc: "LLVMGetAtomicRMWBinOp".}
 proc setAtomicRMWBinOp*(atomicRMWInst: ValueRef; binOp: AtomicRMWBinOp) {.
-    importc: "LLVMSetAtomicRMWBinOp", dynlib: LLVMLib.}
+    importc: "LLVMSetAtomicRMWBinOp".}
 ##  Casts
 
 proc buildTrunc*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildTrunc", dynlib: LLVMLib.}
+    importc: "LLVMBuildTrunc".}
 proc buildZExt*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildZExt", dynlib: LLVMLib.}
+    importc: "LLVMBuildZExt".}
 proc buildSExt*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildSExt", dynlib: LLVMLib.}
+    importc: "LLVMBuildSExt".}
 proc buildFPToUI*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildFPToUI", dynlib: LLVMLib.}
+    importc: "LLVMBuildFPToUI".}
 proc buildFPToSI*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildFPToSI", dynlib: LLVMLib.}
+    importc: "LLVMBuildFPToSI".}
 proc buildUIToFP*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildUIToFP", dynlib: LLVMLib.}
+    importc: "LLVMBuildUIToFP".}
 proc buildSIToFP*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildSIToFP", dynlib: LLVMLib.}
+    importc: "LLVMBuildSIToFP".}
 proc buildFPTrunc*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildFPTrunc", dynlib: LLVMLib.}
+    importc: "LLVMBuildFPTrunc".}
 proc buildFPExt*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildFPExt", dynlib: LLVMLib.}
+    importc: "LLVMBuildFPExt".}
 proc buildPtrToInt*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildPtrToInt", dynlib: LLVMLib.}
+    importc: "LLVMBuildPtrToInt".}
 proc buildIntToPtr*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildIntToPtr", dynlib: LLVMLib.}
+    importc: "LLVMBuildIntToPtr".}
 proc buildBitCast*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildBitCast", dynlib: LLVMLib.}
+    importc: "LLVMBuildBitCast".}
 proc buildAddrSpaceCast*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildAddrSpaceCast", dynlib: LLVMLib.}
+    importc: "LLVMBuildAddrSpaceCast".}
 proc buildZExtOrBitCast*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildZExtOrBitCast", dynlib: LLVMLib.}
+    importc: "LLVMBuildZExtOrBitCast".}
 proc buildSExtOrBitCast*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildSExtOrBitCast", dynlib: LLVMLib.}
+    importc: "LLVMBuildSExtOrBitCast".}
 proc buildTruncOrBitCast*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildTruncOrBitCast", dynlib: LLVMLib.}
+    importc: "LLVMBuildTruncOrBitCast".}
 proc buildCast*(b: BuilderRef; op: Opcode; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildCast", dynlib: LLVMLib.}
+    importc: "LLVMBuildCast".}
 proc buildPointerCast*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildPointerCast", dynlib: LLVMLib.}
+    importc: "LLVMBuildPointerCast".}
 proc buildIntCast2*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; isSigned: Bool;
                    name: cstring): ValueRef {.importc: "LLVMBuildIntCast2",
-    dynlib: LLVMLib.}
+    .}
 proc buildFPCast*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildFPCast", dynlib: LLVMLib.}
+    importc: "LLVMBuildFPCast".}
 ## * Deprecated: This cast is always signed. Use LLVMBuildIntCast2 instead.
 
 proc buildIntCast*(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildIntCast", dynlib: LLVMLib.}
+    importc: "LLVMBuildIntCast".}
   ## Signed cast!
+proc getCastOpcode*(src: ValueRef; srcIsSigned: Bool; destTy: TypeRef;
+                   destIsSigned: Bool): Opcode {.importc: "LLVMGetCastOpcode",
+    .}
 ##  Comparisons
 
 proc buildICmp*(a1: BuilderRef; op: IntPredicate; lhs: ValueRef; rhs: ValueRef;
-               name: cstring): ValueRef {.importc: "LLVMBuildICmp", dynlib: LLVMLib.}
+               name: cstring): ValueRef {.importc: "LLVMBuildICmp".}
 proc buildFCmp*(a1: BuilderRef; op: RealPredicate; lhs: ValueRef; rhs: ValueRef;
-               name: cstring): ValueRef {.importc: "LLVMBuildFCmp", dynlib: LLVMLib.}
+               name: cstring): ValueRef {.importc: "LLVMBuildFCmp".}
 ##  Miscellaneous instructions
 
 proc buildPhi*(a1: BuilderRef; ty: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildPhi", dynlib: LLVMLib.}
-proc buildCall*(a1: BuilderRef; fn: ValueRef; args: ptr ValueRef; numArgs: cuint;
-               name: cstring): ValueRef {.importc: "LLVMBuildCall", dynlib: LLVMLib.}
+    importc: "LLVMBuildPhi".}
+
 proc buildCall2*(a1: BuilderRef; a2: TypeRef; fn: ValueRef; args: ptr ValueRef;
                 numArgs: cuint; name: cstring): ValueRef {.importc: "LLVMBuildCall2",
-    dynlib: LLVMLib.}
+    .}
 proc buildSelect*(a1: BuilderRef; `if`: ValueRef; then: ValueRef; `else`: ValueRef;
                  name: cstring): ValueRef {.importc: "LLVMBuildSelect",
-    dynlib: LLVMLib.}
+    .}
 proc buildVAArg*(a1: BuilderRef; list: ValueRef; ty: TypeRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildVAArg", dynlib: LLVMLib.}
+    importc: "LLVMBuildVAArg".}
 proc buildExtractElement*(a1: BuilderRef; vecVal: ValueRef; index: ValueRef;
                          name: cstring): ValueRef {.
-    importc: "LLVMBuildExtractElement", dynlib: LLVMLib.}
+    importc: "LLVMBuildExtractElement".}
 proc buildInsertElement*(a1: BuilderRef; vecVal: ValueRef; eltVal: ValueRef;
                         index: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildInsertElement", dynlib: LLVMLib.}
+    importc: "LLVMBuildInsertElement".}
 proc buildShuffleVector*(a1: BuilderRef; v1: ValueRef; v2: ValueRef; mask: ValueRef;
                         name: cstring): ValueRef {.
-    importc: "LLVMBuildShuffleVector", dynlib: LLVMLib.}
+    importc: "LLVMBuildShuffleVector".}
 proc buildExtractValue*(a1: BuilderRef; aggVal: ValueRef; index: cuint; name: cstring): ValueRef {.
-    importc: "LLVMBuildExtractValue", dynlib: LLVMLib.}
+    importc: "LLVMBuildExtractValue".}
 proc buildInsertValue*(a1: BuilderRef; aggVal: ValueRef; eltVal: ValueRef;
                       index: cuint; name: cstring): ValueRef {.
-    importc: "LLVMBuildInsertValue", dynlib: LLVMLib.}
+    importc: "LLVMBuildInsertValue".}
 proc buildFreeze*(a1: BuilderRef; val: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildFreeze", dynlib: LLVMLib.}
+    importc: "LLVMBuildFreeze".}
 proc buildIsNull*(a1: BuilderRef; val: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildIsNull", dynlib: LLVMLib.}
+    importc: "LLVMBuildIsNull".}
 proc buildIsNotNull*(a1: BuilderRef; val: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildIsNotNull", dynlib: LLVMLib.}
-proc buildPtrDiff*(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildPtrDiff", dynlib: LLVMLib.}
+    importc: "LLVMBuildIsNotNull".}
+
+proc buildPtrDiff2*(a1: BuilderRef; elemTy: TypeRef; lhs: ValueRef; rhs: ValueRef;
+                   name: cstring): ValueRef {.importc: "LLVMBuildPtrDiff2",
+    .}
 proc buildFence*(b: BuilderRef; ordering: AtomicOrdering; singleThread: Bool;
-                name: cstring): ValueRef {.importc: "LLVMBuildFence", dynlib: LLVMLib.}
+                name: cstring): ValueRef {.importc: "LLVMBuildFence".}
 proc buildAtomicRMW*(b: BuilderRef; op: AtomicRMWBinOp; `ptr`: ValueRef; val: ValueRef;
                     ordering: AtomicOrdering; singleThread: Bool): ValueRef {.
-    importc: "LLVMBuildAtomicRMW", dynlib: LLVMLib.}
+    importc: "LLVMBuildAtomicRMW".}
 proc buildAtomicCmpXchg*(b: BuilderRef; `ptr`: ValueRef; cmp: ValueRef; new: ValueRef;
                         successOrdering: AtomicOrdering;
                         failureOrdering: AtomicOrdering; singleThread: Bool): ValueRef {.
-    importc: "LLVMBuildAtomicCmpXchg", dynlib: LLVMLib.}
+    importc: "LLVMBuildAtomicCmpXchg".}
 ## *
 ##  Get the number of elements in the mask of a ShuffleVector instruction.
 ##
 
 proc getNumMaskElements*(shuffleVectorInst: ValueRef): cuint {.
-    importc: "LLVMGetNumMaskElements", dynlib: LLVMLib.}
+    importc: "LLVMGetNumMaskElements".}
 ## *
 ##  \returns a constant that specifies that the result of a \c ShuffleVectorInst
 ##  is undefined.
 ##
 
-proc getUndefMaskElem*(): cint {.importc: "LLVMGetUndefMaskElem", dynlib: LLVMLib.}
+proc getUndefMaskElem*(): cint {.importc: "LLVMGetUndefMaskElem".}
 ## *
 ##  Get the mask value at position Elt in the mask of a ShuffleVector
 ##  instruction.
@@ -4044,19 +4067,19 @@ proc getUndefMaskElem*(): cint {.importc: "LLVMGetUndefMaskElem", dynlib: LLVMLi
 ##
 
 proc getMaskValue*(shuffleVectorInst: ValueRef; elt: cuint): cint {.
-    importc: "LLVMGetMaskValue", dynlib: LLVMLib.}
+    importc: "LLVMGetMaskValue".}
 proc isAtomicSingleThread*(atomicInst: ValueRef): Bool {.
-    importc: "LLVMIsAtomicSingleThread", dynlib: LLVMLib.}
+    importc: "LLVMIsAtomicSingleThread".}
 proc setAtomicSingleThread*(atomicInst: ValueRef; singleThread: Bool) {.
-    importc: "LLVMSetAtomicSingleThread", dynlib: LLVMLib.}
+    importc: "LLVMSetAtomicSingleThread".}
 proc getCmpXchgSuccessOrdering*(cmpXchgInst: ValueRef): AtomicOrdering {.
-    importc: "LLVMGetCmpXchgSuccessOrdering", dynlib: LLVMLib.}
+    importc: "LLVMGetCmpXchgSuccessOrdering".}
 proc setCmpXchgSuccessOrdering*(cmpXchgInst: ValueRef; ordering: AtomicOrdering) {.
-    importc: "LLVMSetCmpXchgSuccessOrdering", dynlib: LLVMLib.}
+    importc: "LLVMSetCmpXchgSuccessOrdering".}
 proc getCmpXchgFailureOrdering*(cmpXchgInst: ValueRef): AtomicOrdering {.
-    importc: "LLVMGetCmpXchgFailureOrdering", dynlib: LLVMLib.}
+    importc: "LLVMGetCmpXchgFailureOrdering".}
 proc setCmpXchgFailureOrdering*(cmpXchgInst: ValueRef; ordering: AtomicOrdering) {.
-    importc: "LLVMSetCmpXchgFailureOrdering", dynlib: LLVMLib.}
+    importc: "LLVMSetCmpXchgFailureOrdering".}
 ## *
 ##  @}
 ##
@@ -4071,13 +4094,13 @@ proc setCmpXchgFailureOrdering*(cmpXchgInst: ValueRef; ordering: AtomicOrdering)
 ##
 
 proc createModuleProviderForExistingModule*(m: ModuleRef): ModuleProviderRef {.
-    importc: "LLVMCreateModuleProviderForExistingModule", dynlib: LLVMLib.}
+    importc: "LLVMCreateModuleProviderForExistingModule".}
 ## *
 ##  Destroys the module M.
 ##
 
 proc disposeModuleProvider*(m: ModuleProviderRef) {.
-    importc: "LLVMDisposeModuleProvider", dynlib: LLVMLib.}
+    importc: "LLVMDisposeModuleProvider".}
 ## *
 ##  @}
 ##
@@ -4089,24 +4112,24 @@ proc disposeModuleProvider*(m: ModuleProviderRef) {.
 
 proc createMemoryBufferWithContentsOfFile*(path: cstring;
     outMemBuf: ptr MemoryBufferRef; outMessage: cstringArray): Bool {.
-    importc: "LLVMCreateMemoryBufferWithContentsOfFile", dynlib: LLVMLib.}
+    importc: "LLVMCreateMemoryBufferWithContentsOfFile".}
 proc createMemoryBufferWithSTDIN*(outMemBuf: ptr MemoryBufferRef;
                                  outMessage: cstringArray): Bool {.
-    importc: "LLVMCreateMemoryBufferWithSTDIN", dynlib: LLVMLib.}
+    importc: "LLVMCreateMemoryBufferWithSTDIN".}
 proc createMemoryBufferWithMemoryRange*(inputData: cstring;
                                        inputDataLength: csize_t;
                                        bufferName: cstring;
                                        requiresNullTerminator: Bool): MemoryBufferRef {.
-    importc: "LLVMCreateMemoryBufferWithMemoryRange", dynlib: LLVMLib.}
+    importc: "LLVMCreateMemoryBufferWithMemoryRange".}
 proc createMemoryBufferWithMemoryRangeCopy*(inputData: cstring;
     inputDataLength: csize_t; bufferName: cstring): MemoryBufferRef {.
-    importc: "LLVMCreateMemoryBufferWithMemoryRangeCopy", dynlib: LLVMLib.}
+    importc: "LLVMCreateMemoryBufferWithMemoryRangeCopy".}
 proc getBufferStart*(memBuf: MemoryBufferRef): cstring {.
-    importc: "LLVMGetBufferStart", dynlib: LLVMLib.}
+    importc: "LLVMGetBufferStart".}
 proc getBufferSize*(memBuf: MemoryBufferRef): csize_t {.
-    importc: "LLVMGetBufferSize", dynlib: LLVMLib.}
+    importc: "LLVMGetBufferSize".}
 proc disposeMemoryBuffer*(memBuf: MemoryBufferRef) {.
-    importc: "LLVMDisposeMemoryBuffer", dynlib: LLVMLib.}
+    importc: "LLVMDisposeMemoryBuffer".}
 ## *
 ##  @}
 ##
@@ -4120,7 +4143,7 @@ proc disposeMemoryBuffer*(memBuf: MemoryBufferRef) {.
 ##     @see llvm::PassRegistry::getPassRegistry
 
 proc getGlobalPassRegistry*(): PassRegistryRef {.
-    importc: "LLVMGetGlobalPassRegistry", dynlib: LLVMLib.}
+    importc: "LLVMGetGlobalPassRegistry".}
 ## *
 ##  @}
 ##
@@ -4135,50 +4158,50 @@ proc getGlobalPassRegistry*(): PassRegistryRef {.
 ##     @see llvm::PassManager::PassManager
 
 proc createPassManager*(): PassManagerRef {.importc: "LLVMCreatePassManager",
-    dynlib: LLVMLib.}
+    .}
 ## * Constructs a new function-by-function pass pipeline over the module
 ##     provider. It does not take ownership of the module provider. This type of
 ##     pipeline is suitable for code generation and JIT compilation tasks.
 ##     @see llvm::FunctionPassManager::FunctionPassManager
 
 proc createFunctionPassManagerForModule*(m: ModuleRef): PassManagerRef {.
-    importc: "LLVMCreateFunctionPassManagerForModule", dynlib: LLVMLib.}
+    importc: "LLVMCreateFunctionPassManagerForModule".}
 ## * Deprecated: Use LLVMCreateFunctionPassManagerForModule instead.
 
 proc createFunctionPassManager*(mp: ModuleProviderRef): PassManagerRef {.
-    importc: "LLVMCreateFunctionPassManager", dynlib: LLVMLib.}
+    importc: "LLVMCreateFunctionPassManager".}
 ## * Initializes, executes on the provided module, and finalizes all of the
 ##     passes scheduled in the pass manager. Returns 1 if any of the passes
 ##     modified the module, 0 otherwise.
 ##     @see llvm::PassManager::run(Module&)
 
 proc runPassManager*(pm: PassManagerRef; m: ModuleRef): Bool {.
-    importc: "LLVMRunPassManager", dynlib: LLVMLib.}
+    importc: "LLVMRunPassManager".}
 ## * Initializes all of the function passes scheduled in the function pass
 ##     manager. Returns 1 if any of the passes modified the module, 0 otherwise.
 ##     @see llvm::FunctionPassManager::doInitialization
 
 proc initializeFunctionPassManager*(fpm: PassManagerRef): Bool {.
-    importc: "LLVMInitializeFunctionPassManager", dynlib: LLVMLib.}
+    importc: "LLVMInitializeFunctionPassManager".}
 ## * Executes all of the function passes scheduled in the function pass manager
 ##     on the provided function. Returns 1 if any of the passes modified the
 ##     function, false otherwise.
 ##     @see llvm::FunctionPassManager::run(Function&)
 
 proc runFunctionPassManager*(fpm: PassManagerRef; f: ValueRef): Bool {.
-    importc: "LLVMRunFunctionPassManager", dynlib: LLVMLib.}
+    importc: "LLVMRunFunctionPassManager".}
 ## * Finalizes all of the function passes scheduled in the function pass
 ##     manager. Returns 1 if any of the passes modified the module, 0 otherwise.
 ##     @see llvm::FunctionPassManager::doFinalization
 
 proc finalizeFunctionPassManager*(fpm: PassManagerRef): Bool {.
-    importc: "LLVMFinalizeFunctionPassManager", dynlib: LLVMLib.}
+    importc: "LLVMFinalizeFunctionPassManager".}
 ## * Frees the memory of a pass pipeline. For function pipelines, does not free
 ##     the module provider.
 ##     @see llvm::PassManagerBase::~PassManagerBase.
 
 proc disposePassManager*(pm: PassManagerRef) {.importc: "LLVMDisposePassManager",
-    dynlib: LLVMLib.}
+    .}
 ## *
 ##  @}
 ##
@@ -4193,15 +4216,15 @@ proc disposePassManager*(pm: PassManagerRef) {.importc: "LLVMDisposePassManager"
 ##     time define LLVM_ENABLE_THREADS.  This function always returns
 ##     LLVMIsMultithreaded().
 
-proc startMultithreaded*(): Bool {.importc: "LLVMStartMultithreaded", dynlib: LLVMLib.}
+proc startMultithreaded*(): Bool {.importc: "LLVMStartMultithreaded".}
 ## * Deprecated: Multi-threading can only be enabled/disabled with the compile
 ##     time define LLVM_ENABLE_THREADS.
 
-proc stopMultithreaded*() {.importc: "LLVMStopMultithreaded", dynlib: LLVMLib.}
+proc stopMultithreaded*() {.importc: "LLVMStopMultithreaded".}
 ## * Check whether LLVM is executing in thread-safe mode or not.
 ##     @see llvm::llvm_is_multithreaded
 
-proc isMultithreaded*(): Bool {.importc: "LLVMIsMultithreaded", dynlib: LLVMLib.}
+proc isMultithreaded*(): Bool {.importc: "LLVMIsMultithreaded".}
 ## *
 ##  @}
 ##
@@ -4214,11 +4237,3 @@ proc isMultithreaded*(): Bool {.importc: "LLVMIsMultithreaded", dynlib: LLVMLib.
 
 ## !!!Ignored construct:  LLVM_C_EXTERN_C_END #  LLVM_C_CORE_H [NewLine]
 ## Error: expected ';'!!!
-
-type
-  VerifierFailureAction* {.size: sizeof(cint).} = enum
-    AbortProcessAction
-    PrintMessageAction
-    ReturnStatusAction
-
-proc verifyModule*(M: ModuleRef, Action: VerifierFailureAction, outMessage: cstringArray): Bool {.importc: "LLVMVerifyModule", dynlib: LLVMLib.}

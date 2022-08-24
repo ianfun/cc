@@ -27,7 +27,7 @@
 ##
 
 proc linkModules2*(dest: ModuleRef; src: ModuleRef): Bool {.
-    importc: "LLVMLinkModules2", dynlib: LLVMLib.}
+    importc: "LLVMLinkModules2".}
 ## !!!Ignored construct:  LLVM_C_EXTERN_C_END *
 ##  @}
 ##  # [NewLine]

@@ -33,7 +33,7 @@
 ##
 
 proc parseCommandLineOptions*(argc: cint; argv: cstringArray; overview: cstring) {.
-    importc: "LLVMParseCommandLineOptions", dynlib: LLVMLib.}
+    importc: "LLVMParseCommandLineOptions".}
 ## *
 ##  This function will search through all previously loaded dynamic
 ##  libraries for the symbol \p symbolName. If it is found, the address of
@@ -43,7 +43,7 @@ proc parseCommandLineOptions*(argc: cint; argv: cstringArray; overview: cstring)
 ##
 
 proc searchForAddressOfSymbol*(symbolName: cstring): pointer {.
-    importc: "LLVMSearchForAddressOfSymbol", dynlib: LLVMLib.}
+    importc: "LLVMSearchForAddressOfSymbol".}
 ## *
 ##  This functions permanently adds the symbol \p symbolName with the
 ##  value \p symbolValue.  These symbols are searched before any
@@ -53,7 +53,7 @@ proc searchForAddressOfSymbol*(symbolName: cstring): pointer {.
 ##
 
 proc addSymbol*(symbolName: cstring; symbolValue: pointer) {.
-    importc: "LLVMAddSymbol", dynlib: LLVMLib.}
+    importc: "LLVMAddSymbol".}
 ## *
 ##  @}
 ##

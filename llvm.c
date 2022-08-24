@@ -11,6 +11,12 @@ g++ llvm.c -I/usr/lib/llvm-10/include -fno-exceptions -D_GNU_SOURCE -D__STDC_CON
 #include <stdlib.h>
 
 int main() {
+    LLVMInitializeAllTargets();
+    LLVMInitializeAllTargetMCs();
+    LLVMInitializeAllTargetInfos();
+    LLVMPassRegistryRef passreg = LLVMGetGlobalPassRegistry();
+    LLVMInitializeCore(passreg);
+    
     LLVMModuleRef mod = LLVMModuleCreateWithName("my_module");
     LLVMTypeRef param_types[] = { LLVMInt32Type(), LLVMInt32Type() };
     LLVMTypeRef ret_type = LLVMFunctionType(LLVMInt32Type(), param_types, 2, 0);
@@ -30,7 +36,6 @@ int main() {
     char *error = NULL;
     LLVMVerifyModule(mod, LLVMAbortProcessAction, &error);
     LLVMDisposeMessage(error);
-
     if (LLVMWriteBitcodeToFile(mod, "sum.bc") != 0) {
         fprintf(stderr, "error writing bitcode to file, skipping\n");
     }

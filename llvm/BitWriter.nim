@@ -27,22 +27,23 @@
 ## * Writes a module to an open file descriptor. Returns 0 on success.
 
 proc writeBitcodeToFD*(m: ModuleRef; fd: cint; shouldClose: cint; unbuffered: cint): cint {.
-    importc: "LLVMWriteBitcodeToFD", dynlib: LLVMLib.}
+    importc: "LLVMWriteBitcodeToFD".}
 ## * Deprecated for LLVMWriteBitcodeToFD. Writes a module to an open file
 ##     descriptor. Returns 0 on success. Closes the Handle.
 
 proc writeBitcodeToFileHandle*(m: ModuleRef; handle: cint): cint {.
-    importc: "LLVMWriteBitcodeToFileHandle", dynlib: LLVMLib.}
+    importc: "LLVMWriteBitcodeToFileHandle".}
+## * Writes a module to a new memory buffer and returns it.
+
+proc writeBitcodeToFile*(m: ModuleRef; Path: cstring): cint {.
+    importc: "LLVMWriteBitcodeToFile".}
 ## * Writes a module to a new memory buffer and returns it.
 
 proc writeBitcodeToMemoryBuffer*(m: ModuleRef): MemoryBufferRef {.
-    importc: "LLVMWriteBitcodeToMemoryBuffer", dynlib: LLVMLib.}
+    importc: "LLVMWriteBitcodeToMemoryBuffer".}
 ## *
 ##  @}
 ##
 
 ## !!!Ignored construct:  LLVM_C_EXTERN_C_END # [NewLine]
 ## Error: expected ';'!!!
-
-proc writeBitcodeToFile*(m: ModuleRef, path: cstring): cint {.
-    importc: "LLVMWriteBitcodeToFile", dynlib: LLVMLib.}

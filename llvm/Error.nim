@@ -33,8 +33,7 @@ type
 ##  value (i.e. non-null).
 ##
 
-proc getErrorTypeId*(err: ErrorRef): ErrorTypeId {.importc: "LLVMGetErrorTypeId",
-    dynlib: LLVMLib.}
+proc getErrorTypeId*(err: ErrorRef): ErrorTypeId {.importc: "LLVMGetErrorTypeId".}
 ## *
 ##  Dispose of the given error without handling it. This operation consumes the
 ##  error, and the given LLVMErrorRef value is not usable once this call returns.
@@ -42,7 +41,7 @@ proc getErrorTypeId*(err: ErrorRef): ErrorTypeId {.importc: "LLVMGetErrorTypeId"
 ##  to some other consuming operation, e.g. LLVMGetErrorMessage.
 ##
 
-proc consumeError*(err: ErrorRef) {.importc: "LLVMConsumeError", dynlib: LLVMLib.}
+proc consumeError*(err: ErrorRef) {.importc: "LLVMConsumeError".}
 ## *
 ##  Returns the given string's error message. This operation consumes the error,
 ##  and the given LLVMErrorRef value is not usable once this call returns.
@@ -50,26 +49,23 @@ proc consumeError*(err: ErrorRef) {.importc: "LLVMConsumeError", dynlib: LLVMLib
 ##  LLVMDisposeErrorMessage.
 ##
 
-proc getErrorMessage*(err: ErrorRef): cstring {.importc: "LLVMGetErrorMessage",
-    dynlib: LLVMLib.}
+proc getErrorMessage*(err: ErrorRef): cstring {.importc: "LLVMGetErrorMessage".}
 ## *
 ##  Dispose of the given error message.
 ##
 
-proc disposeErrorMessage*(errMsg: cstring) {.importc: "LLVMDisposeErrorMessage",
-    dynlib: LLVMLib.}
+proc disposeErrorMessage*(errMsg: cstring) {.importc: "LLVMDisposeErrorMessage".}
 ## *
 ##  Returns the type id for llvm StringError.
 ##
 
-proc getStringErrorTypeId*(): ErrorTypeId {.importc: "LLVMGetStringErrorTypeId",
-    dynlib: LLVMLib.}
+proc getStringErrorTypeId*(): ErrorTypeId {.importc: "LLVMGetStringErrorTypeId".}
 ## *
 ##  Create a StringError.
 ##
 
 proc createStringError*(errMsg: cstring): ErrorRef {.
-    importc: "LLVMCreateStringError", dynlib: LLVMLib.}
+    importc: "LLVMCreateStringError".}
 ## *
 ##  @}
 ##

@@ -1,4 +1,146 @@
-import llvm/llvm
+type
+  OpaqueMemoryBuffer = object
+  OpaqueAttributeRef{.pure, final.} = object
+  OpaqueContext{.pure, final.} = object
+  OpaqueModule{.pure, final.} = object
+  OpaqueType{.pure, final.} = object
+  OpaqueValue{.pure, final.} = object
+  OpaqueBasicBlock{.pure, final.} = object
+  OpaqueBuilder{.pure, final.} = object
+  OpaqueModuleProvider{.pure, final.} = object
+  OpaquePassManager{.pure, final.} = object
+  OpaquePassRegistry{.pure, final.} = object
+  OpaqueUse{.pure, final.} = object
+  OpaqueDiagnosticInfo{.pure, final.} = object
+  OpaqueTargetMachine{.pure, final.} = object
+  OpaquePassManagerBuilder{.pure, final.} = object
+  OpaqueMetaData{.pure, final.} = object
+  OpaqueDIBuilder{.pure, final.} = object
+  target{.pure, final.} = object
+  OpaqueJITEventListener{.pure, final.} = object
+  OpaqueNamedMDNode{.pure, final.} = object
+  opaqueValueMetadataEntry{.pure, final.} = object
+  comdat{.pure, final.} = object
+  opaqueModuleFlagEntry{.pure, final.} = object
+  OpaqueBinary{.pure, final.} = object
+  int64T = int64
+  uint64T = uint64
+  uint8T = uint8
+  int32T = int32
+  uint32T = uint32
+  Bool* = cint
+  AttributeIndex* = cuint
+  OpaqueTargetData{.pure, final.} = object
+  TargetDataRef* = ptr OpaqueTargetData
+  OpaqueTargetLibraryInfotData{.pure, final.} = object
+  TargetLibraryInfoRef* = ptr OpaqueTargetLibraryInfotData
+  Opcode {.pure, size: sizeof(cint).} = cint
+  DIFlags* = cint
+  DWARFTypeEncoding* = cuint
+  MetadataKind* = cuint
+  ByteOrdering* {.size: sizeof(cint).} = enum
+    BigEndian, LittleEndian
+  TargetMachineRef* = ptr OpaqueTargetMachine
+  PassManagerBuilderRef* = ptr OpaquePassManagerBuilder
+  VerifierFailureAction {.size: sizeof(cint), pure.} = enum
+    AbortProcessAction, PrintMessageAction, ReturnStatusAction
+
+const
+  False*: Bool = 0
+  True*: Bool = 1
+
+include llvm/Types
+include llvm/Support
+include llvm/Core
+include llvm/BitWriter
+include llvm/Analysis
+#include llvm/Target
+include llvm/TargetMachine
+include llvm/Transforms/PassManagerBuilder
+include LLVMTarget
+
+proc typeOfX*(val: ValueRef): TypeRef {.importc: "LLVMTypeOf".}
+
+proc `$`*(v: ValueRef): string =
+  let tmp = v.printValueToString()
+  result = $tmp
+  disposeMessage(tmp)
+
+proc `$`*(v: TypeRef): string =
+  let tmp = v.printTypeToString()
+  result = $tmp
+  disposeMessage(tmp)
+
+const
+   LLVMRet*            = 1.Opcode
+   LLVMBr*             = 2.Opcode
+   LLVMSwitch*         = 3.Opcode
+   LLVMIndirectBr*     = 4.Opcode
+   LLVMInvoke*         = 5.Opcode
+   LLVMUnreachable*    = 7.Opcode
+   LLVMCallBr*         = 67.Opcode
+   LLVMFNeg*           = 66.Opcode
+   LLVMAdd*            = 8.Opcode
+   LLVMFAdd*           = 9.Opcode
+   LLVMSub*            = 10.Opcode
+   LLVMFSub*           = 11.Opcode
+   LLVMMul*            = 12.Opcode
+   LLVMFMul*           = 13.Opcode
+   LLVMUDiv*           = 14.Opcode
+   LLVMSDiv*           = 15.Opcode
+   LLVMFDiv*           = 16.Opcode
+   LLVMURem*           = 17.Opcode
+   LLVMSRem*           = 18.Opcode
+   LLVMFRem*           = 19.Opcode
+   LLVMShl*            = 20.Opcode
+   LLVMLShr*           = 21.Opcode
+   LLVMAShr*           = 22.Opcode
+   LLVMAnd*            = 23.Opcode
+   LLVMOr*             = 24.Opcode
+   LLVMXor*            = 25.Opcode
+   LLVMAlloca*         = 26.Opcode
+   LLVMLoad*           = 27.Opcode
+   LLVMStore*          = 28.Opcode
+   LLVMGetElementPtr*  = 29.Opcode
+   LLVMTrunc*          = 30.Opcode
+   LLVMZExt*           = 31.Opcode
+   LLVMSExt*           = 32.Opcode
+   LLVMFPToUI*         = 33.Opcode
+   LLVMFPToSI*         = 34.Opcode
+   LLVMUIToFP*         = 35.Opcode
+   LLVMSIToFP*         = 36.Opcode
+   LLVMFPTrunc*        = 37.Opcode
+   LLVMFPExt*          = 38.Opcode
+   LLVMPtrToInt*       = 39.Opcode
+   LLVMIntToPtr*       = 40.Opcode
+   LLVMBitCast*        = 41.Opcode
+   LLVMAddrSpaceCast*  = 60.Opcode
+   LLVMICmp*           = 42.Opcode
+   LLVMFCmp*           = 43.Opcode
+   LLVMPHI*            = 44.Opcode
+   LLVMCall*           = 45.Opcode
+   LLVMSelect*         = 46.Opcode
+   LLVMUserOp1*        = 47.Opcode
+   LLVMUserOp2*        = 48.Opcode
+   LLVMVAArg*          = 49.Opcode
+   LLVMExtractElement* = 50.Opcode
+   LLVMInsertElement*  = 51.Opcode
+   LLVMShuffleVector*  = 52.Opcode
+   LLVMExtractValue*   = 53.Opcode
+   LLVMInsertValue*    = 54.Opcode
+   LLVMFreeze*         = 68.Opcode
+   LLVMFence*          = 55.Opcode
+   LLVMAtomicCmpXchg*  = 56.Opcode
+   LLVMAtomicRMW*      = 57.Opcode
+   LLVMResume*         = 58.Opcode
+   LLVMLandingPad*     = 59.Opcode
+   LLVMCleanupRet*     = 61.Opcode
+   LLVMCatchRet*       = 62.Opcode
+   LLVMCatchPad*       = 63.Opcode
+   LLVMCleanupPad*     = 64.Opcode
+   LLVMCatchSwitch*    = 65.Opcode
+
+
 import token
 
 type
@@ -19,7 +161,7 @@ proc init_backend*() =
   initializeAllTargetInfos()
   initializeAllTargetMCs()
   module = moduleCreateWithName("main")
-  var target: llvm.TargetRef
+  var target: TargetRef
   let tr = getDefaultTargetTriple()
   discard getTargetFromTriple(tr, addr target, nil)
   var machine = createTargetMachine(target, tr, "", "", CodeGenLevelDefault, RelocDefault, CodeModelDefault)
@@ -82,15 +224,15 @@ proc gen_false*(): Value =
 
 proc gen_int*(i: culonglong, tags: uint32): Value =
     if (tags and TYBOOL) != 0:
-        constInt(int1Type(), i, llvm.False)
+        constInt(int1Type(), i, False)
     elif (tags and (TYINT8 or TYUINT8)) != 0:
-        constInt(int8Type(), i, llvm.False)
+        constInt(int8Type(), i, False)
     elif (tags and (TYINT16 or TYUINT16)) != 0:
-        constInt(int16Type(), i, llvm.False)
+        constInt(int16Type(), i, False)
     elif (tags and (TYINT32 or TYUINT32)) != 0:
-        constInt(int32Type(), i, llvm.False)
+        constInt(int32Type(), i, False)
     elif (tags and (TYINT64 or TYUINT64)) != 0:
-        constInt(int64Type(), i, llvm.False)
+        constInt(int64Type(), i, False)
     else:
         assert false
         nil
@@ -120,9 +262,9 @@ proc gen_add*(a, b: Value): Value =
 proc gen_getParam*(argindex: cuint): Value =
   getParam(currentfunction, argindex)
 
-proc gen_decl_struct*(name: string, elems: openarray[Type]): Type =
-  var record = structCreateNamed(getGlobalContext(), "mystruct")
-  structSetBody(record, elems, 0)
+#proc gen_decl_struct*(name: string, elems: openarray[Type]): Type =
+#  var record = structCreateNamed(getGlobalContext(), "mystruct")
+#  structSetBody(record, elems, 0)
 
 proc new_var*(t: Type): Value =
   buildAlloca(builder, t, "var.new")
@@ -333,24 +475,24 @@ proc gen_dowhile*(test: Expr, body: Stmt) =
 # the compiler may generate a table(array), so require `O(1)` time indexing
 proc getOp(a: BinOP): Opcode =
   case a:
-  of token.Add: llvm.Add
-  of token.FAdd: llvm.FAdd
-  of token.Sub: llvm.Sub
-  of token.FSub: llvm.FSub
-  of token.Mul: llvm.Mul
-  of token.FMul: llvm.FMul
-  of token.UDiv: llvm.UDiv
-  of token.SDiv: llvm.SDiv
-  of token.FDiv: llvm.FDiv
-  of token.URem: llvm.URem
-  of token.SRem: llvm.SRem
-  of token.FRem: llvm.FRem
-  of token.Shr: llvm.LShr
-  of token.AShr: llvm.AShr
-  of token.Shl: llvm.Shl
-  of token.And: llvm.And
-  of token.Xor: llvm.Xor
-  of token.Or: llvm.Or
+  of token.Add: LLVMAdd
+  of token.FAdd: LLVMFAdd
+  of token.Sub: LLVMSub
+  of token.FSub: LLVMFSub
+  of token.Mul: LLVMMul
+  of token.FMul: LLVMFMul
+  of token.UDiv: LLVMUDiv
+  of token.SDiv: LLVMSDiv
+  of token.FDiv: LLVMFDiv
+  of token.URem: LLVMURem
+  of token.SRem: LLVMSRem
+  of token.FRem: LLVMFRem
+  of token.Shr: LLVMLShr
+  of token.AShr: LLVMAShr
+  of token.Shl: LLVMShl
+  of token.And: LLVMAnd
+  of token.Xor: LLVMXor
+  of token.Or: LLVMOr
   else: assert(false);cast[Opcode](0)
 
 proc getICmpOp(a: BinOP): IntPredicate =

@@ -1,4 +1,8 @@
-import "."/[token, lexer, parser, llvmbackend]
+# build in LLVM-10
+# run `llvm-config --system-libs -libs` to get your libs
+{.passL: "-lLLVM-10".}
+
+import "."/[token, lexer, parser, llvm]
 
 newParser()
 p.filename = "<stdin>"
