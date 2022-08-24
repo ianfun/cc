@@ -39,7 +39,8 @@
 ##
 
 type
-  OrcExecutorAddress* = uint64T
+  OrcExecutorAddress* = uint64
+  OrcJITTargetAddress* = uint64
 
 ## *
 ##  Represents generic linkage flags for a symbol definition.
@@ -47,10 +48,11 @@ type
 
 type
   JITSymbolGenericFlags* {.size: sizeof(cint).} = enum
-    JITSymbolGenericFlagsNone = 0, JITSymbolGenericFlagsExported = 1U'i64 shl 0,
-    JITSymbolGenericFlagsWeak = 1U'i64 shl 1,
-    JITSymbolGenericFlagsCallable = 1U'i64 shl 2,
-    JITSymbolGenericFlagsMaterializationSideEffectsOnly = 1U'i64 shl 3
+    JITSymbolGenericFlagsNone = 0, 
+    JITSymbolGenericFlagsExported = 1,
+    JITSymbolGenericFlagsWeak = 2,
+    JITSymbolGenericFlagsCallable = 4,
+    JITSymbolGenericFlagsMaterializationSideEffectsOnly = 8
 
 
 ## *
@@ -84,6 +86,8 @@ type
 ##  A reference to an orc::ExecutionSession instance.
 ##
 
+
+
 type
   OrcExecutionSessionRef* = ptr orcOpaqueExecutionSession
 
@@ -91,8 +95,10 @@ type
 ##  Error reporter function.
 ##
 
+type OrcLLJITBuilderObjectLinkingLayerCreatorFunction = proc (ctx: pointer, ES: OrcExecutionSessionRef, Triple: cstring)
+
 type
-  OrcErrorReporterFunction* = proc (ctx: pointer; err: ErrorRef)
+  OrcErrorReporterFunction* = proc (ctx: pointer; err: ErrorRef) {.cdecl, gcsafe.}
 
 ## *
 ##  A reference to an orc::SymbolStringPool.

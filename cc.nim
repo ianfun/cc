@@ -1,6 +1,6 @@
-# build in LLVM-10
+# build in LLVM-15
 # run `llvm-config --system-libs -libs` to get your libs
-{.passL: "-lLLVM-10".}
+{.passL: "-lLLVM-15".}
 
 import "."/[token, lexer, parser, llvm]
 
@@ -14,7 +14,8 @@ when true:
     let r = translation_unit()
     init_backend()
     gen(r)
-    writeModuleToFile("main.ll")
+#    writeModuleToFile("main.ll")
+    runjit()
 
 when false:
     while p.tok.tok != TEOF:

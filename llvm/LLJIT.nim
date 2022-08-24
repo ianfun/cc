@@ -38,7 +38,9 @@
 ##  Object linking layers returned by this function will become owned by the
 ##  LLJIT instance. The client is not responsible for managing their lifetimes
 ##  after the function returns.
-##  typedef LLVMOrcObjectLayerRef ( * LLVMOrcLLJITBuilderObjectLinkingLayerCreatorFunction ) ( void * Ctx , LLVMOrcExecutionSessionRef ES , const char * Triple ) ;
+
+
+
 ## Error: expected ';'!!!
 
 ## *

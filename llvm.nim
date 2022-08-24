@@ -13,7 +13,30 @@ type
   OpaqueUse{.pure, final.} = object
   OpaqueDiagnosticInfo{.pure, final.} = object
   OpaqueTargetMachine{.pure, final.} = object
-  OpaquePassManagerBuilder{.pure, final.} = object
+  orcOpaqueLLJITBuilder*{.pure, final.} = object
+  orcOpaqueLLJIT*{.pure, final.} = object
+  orcOpaqueSymbolStringPool*{.pure, final.} = object
+  orcOpaqueSymbolStringPoolEntry*{.pure, final.} = object
+  orcOpaqueJITDylib*{.pure, final.} = object
+  orcOpaqueJITTargetMachineBuilder*{.pure, final.} = object
+  orcOpaqueMaterializationUnit*{.pure, final.} = object
+  orcOpaqueMaterializationResponsibility*{.pure, final.} = object
+  orcOpaqueResourceTracker*{.pure, final.} = object
+  orcOpaqueDefinitionGenerator*{.pure, final.} = object
+  orcOpaqueLookupState{.pure, final.} = object
+  orcOpaqueThreadSafeContext{.pure, final.} = object
+  orcOpaqueObjectTransformLayer*{.pure, final.} = object
+  orcOpaqueExecutionSession*{.pure, final.} = object
+  orcOpaqueIRTransformLayer*{.pure, final.} = object
+  opaqueError*{.pure, final.} = object
+  orcOpaqueObjectLayer*{.pure, final.} = object
+  orcOpaqueObjectLinkingLayer*{.pure, final.} = object
+  orcOpaqueIndirectStubsManager*{.pure, final.} = object
+  orcOpaqueLazyCallThroughManager*{.pure, final.} = object
+  orcOpaqueDumpObjects*{.pure, final.} = object
+  ErrorRef*{.pure, final.} = ptr opaqueError
+  orcOpaqueThreadSafeModule*{.pure, final.} = object
+  OpaquePassManagerBuilder*{.pure, final.} = object
   OpaqueMetaData{.pure, final.} = object
   OpaqueDIBuilder{.pure, final.} = object
   target{.pure, final.} = object
@@ -51,12 +74,15 @@ const
 
 include llvm/Types
 include llvm/Support
+include llvm/Error
 include llvm/Core
 include llvm/BitWriter
 include llvm/Analysis
 #include llvm/Target
 include llvm/TargetMachine
 include llvm/Transforms/PassManagerBuilder
+include llvm/Orc
+include llvm/LLJIT
 include LLVMTarget
 
 proc typeOfX*(val: ValueRef): TypeRef {.importc: "LLVMTypeOf".}
@@ -156,10 +182,9 @@ var
 proc name(n: cstring): cstring = n
 
 proc init_backend*() =
-  initializeAllAsmPrinters()
-  initializeAllTargets()
-  initializeAllTargetInfos()
-  initializeAllTargetMCs()
+  initializeCore(getGlobalPassRegistry())
+  initializeNativeTarget()
+  initializeNativeAsmPrinter()
   module = moduleCreateWithName("main")
   var target: TargetRef
   let tr = getDefaultTargetTriple()
@@ -599,4 +624,79 @@ proc gen*(e: Expr): Value =
   of EArray:
     nil
 
+proc jit_error(msg: string) =
+  stderr.writeLine("llvm jit error: " & msg)
+
+proc jit_error(msg: cstring) =
+  stderr.write("llvm jit error: ")
+  stderr.writeLine(msg)
+
+proc jit_error(err: ErrorRef) =
+  var msg = getErrorMessage(err)
+  stdout.writeLine(msg)
+  disposeErrorMessage(msg)
+
+proc orc_error_report(ctx: pointer; err: ErrorRef) {.cdecl, gcsafe.} =
+  jit_error(err)
+
+proc runjit*() =
+    var jit: OrcLLJITRef 
+
+    var lljitBuilder = orcCreateLLJITBuilder()
+    
+    var err = orcCreateLLJIT(addr jit, lljitBuilder)
+    if err != nil:
+      jit_error(err)
+      return
+
+    orcExecutionSessionSetErrorReporter(orcLLJITGetExecutionSession(jit), orc_error_report, nil)
+
+    var prefix = orcLLJITGetGlobalPrefix(jit)
+
+    echo "prefix=", repr(prefix)
+
+    var gen1: OrcDefinitionGeneratorRef
+    var gen2: OrcDefinitionGeneratorRef
+    err = orcCreateDynamicLibrarySearchGeneratorForProcess(addr gen1, prefix, nil, nil)
+
+    err = orcCreateDynamicLibrarySearchGeneratorForPath(addr gen2, "/lib/x86_64-linux-gnu/libc.so.6", prefix, nil, nil)
+    if err != nil:
+      jit_error(err)
+      return
+
+    var jd = orcLLJITGetMainJITDylib(jit)
+    orcJITDylibAddGenerator(jd, gen1)
+    orcJITDylibAddGenerator(jd, gen2)
+
+
+    var ctx = orcCreateNewThreadSafeContext();
+    var thread_safe_mod = orcCreateNewThreadSafeModule(module, ctx)
+    orcDisposeThreadSafeContext(ctx)
+    err = orcLLJITAddLLVMIRModule(jit, jd, thread_safe_mod)
+    if err != nil:
+      jit_error(err)
+      return
+
+    var main: OrcExecutorAddress = 0
+    
+    err = orcLLJITLookup(jit, addr main, "puts")
+    if err != nil:
+      jit_error(err)
+      return
+    
+    if main == 0:
+      jit_error("cannot find main function")
+      return
+
+
+    # proc (argc: cint, argv: ptr UncheckedArray[ptr cstring]): cint {.cdecl, gcsafe.}
+    let fmain = cast[proc (s: cstring): cint {.cdecl, gcsafe.}](main)
+    echo "running main:"
+    let ret = fmain("Hello Jit!")
+    echo "finished!"
+
+    err = orcDisposeLLJIT(jit)
+    if err != nil:
+      jit_error(err)
+      return
 

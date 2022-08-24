@@ -21,9 +21,11 @@ $ nim c cc # nim c cc.nim
 $ ./cc # input files
 ```
 
-## Backend
+## LLVM API
 
-LLVM C-API
+Build in **LLVM 15**, C-API
+
+other version may not able to compile!
 
 ## References
 
