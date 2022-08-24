@@ -1085,7 +1085,7 @@ proc nextTok*() =
                 eat()
                 if p.c notin CSkip:
                     break
-            if p.flags == PFPP:
+            if p.flags == PFPP and p.want_expr == false:
                 make_tok(TSpace)
                 return
             continue
@@ -1187,7 +1187,9 @@ proc nextTok*() =
                 while p.tok.tok == TSpace:
                     nextTok()
                 var ok: bool
+                p.want_expr = true
                 let e = constant_expression()
+                p.want_expr = false
                 if e == nil:
                     parse_error("expect constant_expression")
                     ok = false
@@ -1233,7 +1235,9 @@ proc nextTok*() =
                     return
                 if p.ok == false:
                     var ok: bool
+                    p.want_expr = true
                     let e = constant_expression()
+                    p.want_expr = false
                     if e == nil:
                         parse_error("expect constant_expression")
                         ok = false

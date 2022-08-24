@@ -1,6 +1,7 @@
-./main
-./main.exe
-./main.out
+./cc
+./cc.exe
+./cc.out
 ./*.out
 ./*.exe
 ./llvm
+./*.ll

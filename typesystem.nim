@@ -4,6 +4,19 @@ const
    sizoefint = sizeof(cint).csize_t
    sizeofpointer = sizeof(pointer).csize_t
 
+proc isFloating*(ty: CType): bool =
+    bool(ty.tags and (TYFLOAT or TYDOUBLE))
+
+proc isSigned*(ty: CType): bool =
+    bool(ty.tags and (
+        TYBOOL or
+        TYINT8 or
+        TYINT16 or
+        TYINT16 or
+        TYINT32 or
+        TYINT64
+    ))
+
 proc getsizeof*(ty: CType): csize_t =
     case ty.spec:
     of TYPRIM:

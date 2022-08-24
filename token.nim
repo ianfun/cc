@@ -8,6 +8,7 @@ type
 
 type
   intmax_t* = int64
+  uintmax_t* = uint64
 
 type Token* = enum
   TNul=0, TNewLine=int('\n'),
@@ -145,36 +146,49 @@ type
         f*: float64
     PostfixOP* = enum
       PNop="<nop>"
-      OPostfixIncrement="++", OPostfixDecrement="--"
+      PostfixIncrement="++", PostfixDecrement="--"
     UnaryOP* = enum
-      UNop="<nop>"
-      OUnaryPlus="+", OUnaryMinus="-", OLogicalNot="!", OAddressOf="&", OAlignOf="_Alignof",
-      OPrefixIncrement="++", OPrefixDecrement="--", ODereference="*", OBitwiseNot="~"
+      UNop
+      Pos, # it like nop, but it will do integer promotion
+      Neg, FNeg,
+      Not, AddressOf,
+      PrefixIncrement, PrefixDecrement, Dereference, LogicalNot
     BinOP* = enum
-      BNop="<nop>",
-      OMemberAccess=".", OPointerMemberAccess="->",
-      OMultiplication="*", ODivision="/", Oremainder="%",
-      OAddition="+", OSubtraction="-",
-      Oshl="<<", Oshr=">>",
-      OGe=">=", OGt=">", OLe="<=", OLt="<",
-      OEq="==", ONe="!=",
-      OBitwiseAnd="&",
-      OBitwiseXor="^",
-      OBitwiseOr="|",
-      OLogicalAnd="&&",
-      OLogicalOr="||",
-      OAsign="=",
-      OAsignAdd="+=",
-      OAsignSub="-=",
-      OAsignMul="*=",
-      OAsignDiv="/=",
-      OAsignRem="%=",
-      OAsignShl="<<=",
-      OAsignShr=">>=",
-      OAsignBitAnd="&=",
-      OAsignBitOr="|=",
-      OAsignBitXor="^=",
-      Comma=","
+      Nop=0,
+      # Arithmetic operators
+      Add, FAdd, 
+      Sub, FSub,
+      Mul, FMul, # no SMul!
+      UDiv, SDiv, FDiv, 
+      URem, SRem, FRem,
+      Shr, AShr, Shl, # or sar in GNU Assembly
+
+      And, Xor, Or,
+
+      LogicalAnd, LogicalOr, 
+      Asign,
+      AsignAdd,
+      AsignSub,
+      AsignMul,
+      AsignDiv,
+      AsignRem,
+      AsignShl,
+      AsignShr,
+      AsignBitAnd,
+      AsignBitOr,
+      AsignBitXor,
+      
+      Comma,
+      
+      MemberAccess=".", PointerMemberAccess="->",
+      # compare operators
+      EQ, NE, 
+      UGT, UGE, ULT, ULE, 
+      SGT, SGE, SLT, SLE,
+      # ordered float compare
+      FEQ, FNE, 
+      FGT, FGE, FLT, FLE
+
     Codepoint* = uint32
     PPMacroFlags* = enum
       MOBJ, MFUNC, MBuiltin
@@ -226,6 +240,7 @@ type
       line*: int
       col*: int
       c*: char
+      want_expr*: bool
       lastc*: uint16
       filename*, path*: string
       macros*: Table[string, PPMacro]
@@ -325,9 +340,9 @@ type
       of SStructDecl, SUnionDecl, SEnumDecl:
         stype*: CType
     ExprKind* = enum
-      EBin, EUnary, EPostFix, EIntLit, ECharLit, EFloatLit,
+      EBin, EUnary, EPostFix, EIntLit, EFloatLit,
       EVar, ECondition, ECast, ECall, ESubscript, 
-      ECppVar, EArray
+      EArray
     Expr* = ref object
       ty*: CType
       case k*: ExprKind
@@ -340,12 +355,11 @@ type
       of EPostFix:
         pop*: PostfixOP
         poperand*: Expr
-      of EIntLit, ECharLit:
+      of EIntLit:
         ival*: int
       of EFloatLit:
         fval*: float
-        ftag*: FTag
-      of EVar, ECppVar:
+      of EVar:
         sval*: string
       of EArray:
         arr*: seq[Expr]
@@ -591,13 +605,11 @@ proc `$`*(e: Expr): string =
     $e.poperand & $e.pop
   of EUnary:
     $e.uop & $e.uoperand
-  of ECharLit:
-    show(char(e.ival))
   of EIntLit:
     $e.ival
   of EFloatLit:
     $e.fval
-  of EVar, ECppVar:
+  of EVar:
     e.sval
   of ECondition:
     $e.cond & '?' & $e.cleft & ':' & $e.cright
@@ -835,6 +847,7 @@ proc stdin_hook*() =
   stdout.write(">>> ")
 
 proc reset*() =
+  p.want_expr = false
   p.counter = 0
   p.tok = TokenV(tok: TNul, tags: TVNormal)
   p.col = 1

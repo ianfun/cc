@@ -10,85 +10,81 @@ proc evali*(e: Expr): intmax_t =
   case e.k:
   of EBin:
       case e.bop:
-      of OAddition:
+      of Add:
         evali(e.lhs) + evali(e.rhs)
-      of OSubtraction:
+      of Sub:
         evali(e.lhs) - evali(e.rhs)
-      of OMultiplication:
+      of Mul:
         evali(e.lhs) * evali(e.rhs)
-      of ODivision:
+      of UDiv:
+        cast[intmax_t](cast[uintmax_t](evali(e.lhs)) div cast[uintmax_t](evali(e.rhs)))
+      of SDiv:
         evali(e.lhs) div evali(e.rhs)
-      of Oremainder:
-        evali(e.lhs) mod evali(e.rhs)
-      of Oshl:
-        evali(e.lhs) shl evali(e.rhs)
-      of OShr:
+      of URem:
+        cast[intmax_t](cast[uintmax_t](evali(e.lhs)) mod cast[uintmax_t](evali(e.rhs)))
+      of Shr:
+        cast[intmax_t](cast[uintmax_t](evali(e.lhs)) shr cast[uintmax_t](evali(e.rhs)))
+      of AShr:
+        # https://stackoverflow.com/questions/53746160/how-to-implement-arithmetic-right-shift-in-c
+        # https://stackoverflow.com/questions/7622/are-the-shift-operators-arithmetic-or-logical-in-c
         evali(e.lhs) shr evali(e.rhs)
-      of OGe:
-        if evali(e.lhs) >= evali(e.rhs): 1 else: 0
-      of OGt:
-        if evali(e.lhs) > evali(e.rhs): 1 else: 0
-      of OEq:
+      of EQ:
         if evali(e.lhs) == evali(e.rhs): 1 else: 0
-      of ONe:
+      of NE:
         if evali(e.lhs) != evali(e.rhs): 1 else: 0
-      of OLe:
+      of SGE:
+        if evali(e.lhs) >= evali(e.rhs): 1 else: 0
+      of SGT:
+        if evali(e.lhs) > evali(e.rhs): 1 else: 0
+      of SLE:
         if evali(e.lhs) <= evali(e.rhs): 1 else: 0
-      of OLt:
+      of SLT:
         if evali(e.lhs) < evali(e.rhs): 1 else: 0
-      of OBitwiseAnd:
+      of UGE:
+        if cast[uintmax_t](evali(e.lhs)) >= cast[uintmax_t](evali(e.rhs)): 1 else: 0
+      of UGT:
+        if cast[uintmax_t](evali(e.lhs)) > cast[uintmax_t](evali(e.rhs)): 1 else: 0
+      of ULE:
+        if cast[uintmax_t](evali(e.lhs)) <= cast[uintmax_t](evali(e.rhs)): 1 else: 0
+      of ULT:
+        if cast[uintmax_t](evali(e.lhs)) < cast[uintmax_t](evali(e.rhs)): 1 else: 0
+      of And:
         evali(e.lhs) and evali(e.rhs)
-      of OBitwiseXor:
+      of Xor:
         evali(e.lhs) xor evali(e.rhs)
-      of OBitwiseOr:
+      of Or:
         evali(e.lhs) or evali(e.rhs)
-      of OLogicalAnd:
+      of LogicalAnd:
         evali(e.lhs) && evali(e.rhs)
-      of OLogicalOr:
+      of LogicalOr:
         evali(e.lhs) || evali(e.rhs)
       else:
-        echo "bad binary op!"
+        error("cannot eval constant-expression: " & $e)
         intmax_t(0)
-  of EPostFix:
-    echo "bad postfix!"
-    0
   of EUnary:
     case e.uop:
-    of OUnaryPlus:
+    of Pos:
       evali(e.uoperand)
-    of OUnaryMinus:
+    of Neg:
       -evali(e.uoperand)
-    of OLogicalNot:
+    of LogicalNot:
       ! evali(e.uoperand)
-    of OBitwiseNot:
+    of Not:
       not evali(e.uoperand)
     else:
-      echo "bad uop"
-      0
-  of ECharLit, EIntLit:
+      error("cannot eval constant-expression: bad unary operator: " & $e)
+      intmax_t(0)
+  of EIntLit:
     e.ival
   of EFloatLit:
-    echo "bad float"
-    0
+    error("floating constant in constant-expression")
+    intmax_t(0)
   of ECondition:
     if evali(e.cond) != 0: evali(e.cleft) else: evali(e.cright)
-  of ECast:
-    echo "bad cast"
-    0
-  of ESubscript:
-    echo "bad subscript"
-    0
-  of ECall:
-    echo "bad call"
-    0
-  of ECppVar:
-    0
-  of EVar:
-    echo "bad var"
-    0
-  of EArray:
-    echo "bad array"
-    0
+  else:
+    error("cannot eval constant-expression: " & $e)
+    intmax_t(0)
+
 
 proc eval_const_expression*(e: Expr): intmax_t =
   evali(e)

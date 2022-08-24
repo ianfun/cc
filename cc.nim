@@ -1,4 +1,4 @@
-import "."/[token, lexer, parser]
+import "."/[token, lexer, parser, llvmbackend]
 
 newParser()
 p.filename = "<stdin>"
@@ -6,8 +6,11 @@ p.path = "<stdin>"
 addStdin()
 getToken()
 
-when false:
-    translation_unit()
+when true:
+    let r = translation_unit()
+    init_backend()
+    gen(r)
+    writeModuleToFile("main.ll")
 
 when false:
     while p.tok.tok != TEOF:
@@ -15,7 +18,7 @@ when false:
         stdout.write(' ')
         getToken()
 
-when true:
+when false:
     let e = expression()
     if e != nil:
         echo e.k

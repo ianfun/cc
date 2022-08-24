@@ -88,7 +88,7 @@ proc penum*(): CType
 
 proc static_assert*(): Stmt
 
-proc translation_unit*()
+proc translation_unit*(): Stmt
 
 proc statament*(): Stmt
 
@@ -762,6 +762,13 @@ proc static_assert*(): Stmt =
     consume()
     return Stmt(k: SStaticAssertDecl, assertexpr: e, msg: msg)
 
+proc checkRetType(ty: CType) =
+    if ty.spec == TYFUNCTION:
+        if (ty.ret.tags and (TYREGISTER)) != 0:
+            warning("'register' in function has no effect")
+        if (ty.ret.tags and (TYTHREAD_LOCAL)) != 0:
+            warning("'_Thread_local' in function has no effect")    
+
 proc declaration*(): Stmt =
     ## parse variable declaration or function definition
     ## 
@@ -786,16 +793,13 @@ proc declaration*(): Stmt =
                 expect("declarator")
                 return nil
             if st.k == SFunction:
+                checkRetType(st.functy)
                 putsymtype(st.funcname, st.functy)
                 return st
             assert st.k == SVarDecl1
             if (st.var1type.tags and TYINLINE) != 0:
                 warning("inline declaration is in block scope has no effect")
-            if st.var1type.spec == TYFUNCTION:
-                if (st.var1type.tags or (TYREGISTER)) != 0:
-                    warning("'register' in function has no effect")
-                if (st.var1type.tags or (TYTHREAD_LOCAL)) != 0:
-                    warning("'_Thread_local' in function has no effect")
+            checkRetType(st.var1type)
             result.vars.add((st.var1name, st.var1type, nil))
             putsymtype(st.var1name, st.var1type)
             if p.tok.tok == TAssign:
@@ -856,17 +860,22 @@ proc type_name*(): (CType, bool) =
 proc unary_expression*(): Expr =
     let tok = p.tok.tok
     case tok:
-    of TNot, TMul, TBitAnd, TBitNot:
+    of TNot:
+        let e = cast_expression()
+        if e == nil:
+            return nil
+        result = unary(e, LogicalNot, CType(tags: TYINT, spec: TYPRIM))
+        return result
+    of TMul, TBitAnd, TBitNot:
         consume()
         let e = cast_expression()
         if e == nil:
             return nil
         let op = (
             case tok:
-            of TNot: OLogicalNot
-            of TMul: ODereference
-            of TBitAnd: OAddressOf
-            of TBitNot: OBitwiseNot
+            of TMul: Dereference
+            of TBitAnd: AddressOf
+            of TBitNot: Not
             else: UNop
         )
         result = unary(e, op, e.ty)
@@ -879,8 +888,8 @@ proc unary_expression*(): Expr =
             return nil
         let op = (
             case tok:
-            of TAdd: OUnaryPlus
-            of TDash: OUnaryMinus
+            of TAdd: Pos
+            of TDash: Neg
             else: UNop
         )
         result = unary(e, op, e.ty)
@@ -891,7 +900,7 @@ proc unary_expression*(): Expr =
         let e = unary_expression()
         if e == nil:
             return nil
-        return unary(e, if tok == TAddAdd: OPrefixIncrement else: OPrefixDecrement, e.ty)
+        return unary(e, if tok == TAddAdd: PrefixIncrement else: PrefixDecrement, e.ty)
     of Ksizeof:
         consume()
         if p.tok.tok == TLbracket:
@@ -973,7 +982,7 @@ proc primary_expression*(): Expr =
                 tags = TYUINT32
         else:
             assert false
-        result = Expr(k: ECharLit, ival: p.tok.i, ty: CType(tags: tags, spec: TYPRIM))
+        result = Expr(k: EIntLit, ival: p.tok.i, ty: CType(tags: tags, spec: TYPRIM))
         consume()
     of TNumberLit:
         var tags = TYINT
@@ -1058,15 +1067,18 @@ proc primary_expression*(): Expr =
             consume()
         else:
             assert false
-    of TIdentifier:
-        let ty = getsymtype(p.tok.s)
-        if ty == nil:
-            type_error("symbol not found: " & p.tok.s)
-            return nil
-        result = Expr(k: EVar, sval: p.tok.s, ty: ty)
-        consume()
     of CPPident:
-        result = Expr(k: ECppVar, sval: p.tok.s, ty: CType(tags: TYINT, spec: TYPRIM))
+        result = Expr(k: EIntLit, ival: 0, ty: CType(tags: TYINT, spec: TYPRIM))  
+        consume()
+    of TIdentifier:
+        if p.want_expr:
+            result = Expr(k: EIntLit, ival: 0, ty: CType(tags: TYINT, spec: TYPRIM))  
+        else: 
+            let ty = getsymtype(p.tok.s)
+            if ty == nil:
+                type_error("symbol not found: " & p.tok.s)
+                return nil
+            result = Expr(k: EVar, sval: p.tok.s, ty: ty)
         consume()
     of TLbracket:
         consume()
@@ -1151,7 +1163,7 @@ proc postfix_expression*(): Expr =
     let e = primary_expression()
     case p.tok.tok:
     of TSubSub, TAddAdd:
-        let op = if p.tok.tok == TAddAdd: OPostfixIncrement else: OPostfixDecrement
+        let op = if p.tok.tok == TAddAdd: PostfixIncrement else: PostfixDecrement
         consume()
         return postfix(e, op, e.ty)
     of TArrow, TDot: # member access
@@ -1174,7 +1186,7 @@ proc postfix_expression*(): Expr =
             note("maybe you mean: '->'")
         for i in 0..<len(e.ty.selems):
             if p.tok.s == e.ty.selems[i][0]:
-                return binop(e, (if isarrow: OMemberAccess else: OPointerMemberAccess), Expr(k: EVar, sval: p.tok.s), e.ty.selems[i][1])
+                return binop(e, (if isarrow: MemberAccess else: PointerMemberAccess), Expr(k: EVar, sval: p.tok.s), e.ty.selems[i][1])
         type_error("struct/union " & $e.ty.sname & " has no member " & p.tok.s)
         return nil
     of TLbracket: # function call
@@ -1254,7 +1266,7 @@ proc multiplicative_expression*(): Expr =
                 return nil
             checkArithmetic(result, r)
             conv(result, r)
-            result = binop(result, OMultiplication, r, r.ty)
+            result = binop(result, if isFloating(r.ty): FMul else: Mul, r, r.ty)
         of TSlash:
             consume()
             var r = cast_expression()
@@ -1262,7 +1274,7 @@ proc multiplicative_expression*(): Expr =
                 return nil
             checkArithmetic(result, r)
             conv(result, r)
-            result = binop(result, ODivision, r, r.ty)
+            result = binop(result, if isFloating(r.ty): FDiv else: (if isSigned(r.ty): SDiv else: UDiv), r, r.ty)
         of TPercent:
             consume()
             var r = cast_expression()
@@ -1270,7 +1282,7 @@ proc multiplicative_expression*(): Expr =
                 return nil
             checkInteger(result, r)
             conv(result, r)
-            result = binop(result, Oremainder, r, r.ty)
+            result = binop(result, if isFloating(r.ty): FRem else: (if isSigned(r.ty): SRem else: URem)  ,r, r.ty)
         else:
             return result
 
@@ -1285,7 +1297,10 @@ proc additive_expression*(): Expr =
                 return nil
             checkScalar(result, r)
             conv(result, r)
-            result = binop(result, OAddition, r, r.ty)
+            if isFloating(r.ty):
+                result = binop(result, FAdd, r, r.ty)
+            else:
+                result = binop(result, Add, r, r.ty)
         of TDash:
             consume()
             var r = multiplicative_expression()
@@ -1293,7 +1308,10 @@ proc additive_expression*(): Expr =
                 return nil
             checkScalar(result, r)
             conv(result, r)
-            result = binop(result, OSubtraction, r, r.ty)
+            if isFloating(r.ty):
+                result = binop(result, FSub, r, r.ty)
+            else:
+                result = binop(result, Sub, r, r.ty)
         else:
             return result
 
@@ -1309,7 +1327,7 @@ proc shift_expression*(): Expr =
             checkInteger(result, r)
             integer_promotions(result)
             integer_promotions(r)
-            result = binop(result, OShl, r, result.ty)
+            result = binop(result, Shl, r, result.ty)
         of Tshr:
             consume()
             var r = additive_expression()
@@ -1318,7 +1336,10 @@ proc shift_expression*(): Expr =
             checkInteger(result, r)
             integer_promotions(result)
             integer_promotions(r)
-            result = binop(result, OShr, r, result.ty)
+            if isSigned(r.ty):
+                result = binop(result, AShr, r, result.ty)
+            else:
+                result = binop(result, Shr, r, result.ty)
         else:
             return result
 
@@ -1332,28 +1353,28 @@ proc relational_expression*(): Expr =
             if r == nil:
                 return nil
             checkSpec(result, r)
-            result = binop(result, OLt, r, result.ty)
+            result = binop(result, if isFloating(r.ty): FLT else: (if isSigned(r.ty): SLT else: ULT), r, result.ty)
         of TLe:
             consume()
             var r = shift_expression()
             if r == nil:
                 return nil
             checkSpec(result, r)
-            result = binop(result, OLe, r, result.ty)
+            result = binop(result, if isFloating(r.ty): FLE else: (if isSigned(r.ty): SLE else: ULE), r, result.ty)
         of TGt:
             consume()
             var r = shift_expression()
             if r == nil:
                 return nil
             checkSpec(result, r)
-            result = binop(result, OGt, r, result.ty)
+            result = binop(result, if isFloating(r.ty): FGT else: (if isSigned(r.ty): SGT else: UGT), r, result.ty)
         of TGe:
             consume()
             var r = shift_expression()
             if r == nil:
                 return nil
             checkSpec(result, r)
-            result = binop(result, OGe, r, result.ty)
+            result = binop(result, if isFloating(r.ty): FGE else: (if isSigned(r.ty): SGE else: UGE), r, result.ty)
         else:
             return result
 
@@ -1367,14 +1388,14 @@ proc equality_expression*(): Expr =
             if r == nil:
                 return nil
             checkSpec(result, r)
-            result = binop(result, OEq, r, result.ty)
+            result = binop(result, if isFloating(r.ty): FEQ else: EQ, r, result.ty)
         of TNe:
             consume()
             var r = relational_expression()
             if r == nil:
                 return nil
             checkSpec(result, r)
-            result = binop(result, ONe, r, result.ty)
+            result = binop(result, if isFloating(r.ty): FNE else: NE, r, result.ty)
         else:
             return result
 
@@ -1389,7 +1410,7 @@ proc AND_expression*(): Expr =
                 return nil
             checkInteger(result, r)
             conv(result, r)
-            result = binop(result, OBitwiseAnd, r, result.ty)
+            result = binop(result, And, r, result.ty)
         else:
             return result
 
@@ -1404,7 +1425,7 @@ proc exclusive_OR_expression*(): Expr =
                 return nil
             checkInteger(result, r)
             conv(result, r)
-            result = binop(result, OBitwiseXor, r, result.ty)
+            result = binop(result, Xor, r, result.ty)
         else:
             return result
 
@@ -1419,7 +1440,7 @@ proc inclusive_OR_expression*(): Expr =
                 return nil
             checkInteger(result, r)
             conv(result, r)
-            result = binop(result, OBitwiseOr, r, result.ty)
+            result = binop(result, Or, r, result.ty)
         else:
             return result
 
@@ -1433,7 +1454,7 @@ proc logical_AND_expression*(): Expr =
             if r == nil:
                 return nil
             checkScalar(result, r)
-            result = binop(result, OLogicalAnd, r, CType(tags: TYINT, spec: TYPRIM))
+            result = binop(result, LogicalAnd, r, CType(tags: TYINT, spec: TYPRIM))
         else:
             return result
 
@@ -1447,7 +1468,7 @@ proc logical_OR_expression*(): Expr =
             if r == nil:
                 return nil
             checkScalar(result, r)
-            result = binop(result, OLogicalOr, r, CType(tags: TYINT, spec: TYPRIM))
+            result = binop(result, LogicalOr, r, CType(tags: TYINT, spec: TYPRIM))
         else:
             return result
 
@@ -1464,7 +1485,6 @@ proc expression*(): Expr =
             return result
 
 proc conditional_expression*(start: Expr): Expr =
-    consume()
     var lhs = logical_OR_expression()
     if lhs == nil:
         expect("expression")
@@ -1494,18 +1514,18 @@ proc conditional_expression*(): Expr =
 
 proc get_assignment_op(a: Token): BinOP =
     case a:
-    of TAssign: OAsign
-    of TAsignAdd: OAsignAdd
-    of TAsignSub: OAsignSub
-    of TAsignMul: OAsignMul
-    of TAsignDiv: OAsignDiv
-    of TAsignRem: OAsignRem
-    of TAsignShl: OAsignShl
-    of TAsignShr: OAsignShr
-    of TAsignBitAnd: OAsignBitAnd
-    of TAsignBitOr: OAsignBitOr
-    of TAsignBitXor: OAsignBitXor
-    else: BNop
+    of TAssign: Asign
+    of TAsignAdd: AsignAdd
+    of TAsignSub: AsignSub
+    of TAsignMul: AsignMul
+    of TAsignDiv: AsignDiv
+    of TAsignRem: AsignRem
+    of TAsignShl: AsignShl
+    of TAsignShr: AsignShr
+    of TAsignBitAnd: AsignBitAnd
+    of TAsignBitOr: AsignBitOr
+    of TAsignBitXor: AsignBitXor
+    else: Nop
 
 proc assignment_expression*(): Expr =
     result = logical_OR_expression()
@@ -1515,7 +1535,7 @@ proc assignment_expression*(): Expr =
     if tok == TQuestionMark:
         return conditional_expression(result)
     let op = get_assignment_op(tok)
-    if op != BNop:
+    if op != Nop:
         consume()
         var e = assignment_expression()
         if e == nil:
@@ -1525,13 +1545,17 @@ proc assignment_expression*(): Expr =
         castto(e, result.ty)
         result = binop(result, op, e, result.ty)
 
-proc translation_unit*() =
+proc translation_unit*(): Stmt =
     ## parse a file, the entry point of program
+    ##
+    ## never return nil
+    result = Stmt(k: SCompound)
     while p.tok.tok != TEOF:
         let s = declaration()
         if s == nil:
             break
         echo s
+        result.stmts.add(s)
 
 proc compound_statement*(): Stmt =
     result = Stmt(k: SCompound)
