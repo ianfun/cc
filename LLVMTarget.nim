@@ -120,7 +120,7 @@ proc initializeAllTargetInfos*() =
      initializeXCoreTargetInfo()
      initializeAVRTargetInfo()
 
-proc initializeAllTargets( ) =
+proc initializeAllTargets*() =
   initializeAArch64Target() 
   initializeAMDGPUTarget() 
   initializeARMTarget() 
@@ -158,7 +158,7 @@ proc initializeAllTargetMCs*() =
   initializeXCoreTargetMC() 
   initializeAVRTargetMC() 
 
-proc initializeAllAsmPrinters() =
+proc initializeAllAsmPrinters*() =
   initializeAArch64AsmPrinter() 
   initializeAMDGPUAsmPrinter() 
   initializeARMAsmPrinter() 

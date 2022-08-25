@@ -21,6 +21,12 @@ $ nim c cc # nim c cc.nim
 $ ./cc # input files
 ```
 
+build C file
+
+```bash
+g++ -x c `llvm-config --cflags` test.c `llvm-config --ldflags --libs all --system-libs` -o test
+```
+
 ## LLVM API
 
 Build in **LLVM 15**, C-API

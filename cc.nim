@@ -3,7 +3,7 @@
 {.passL: "-lLLVM-15".}
 
 import "."/[token, lexer, parser, llvm]
-
+init_backend()
 newParser()
 p.filename = "<stdin>"
 p.path = "<stdin>"
@@ -12,10 +12,10 @@ getToken()
 
 when true:
     let r = translation_unit()
-    init_backend()
     gen(r)
-#    writeModuleToFile("main.ll")
-    runjit()
+    if verify():
+      writeModuleToFile("main.ll")
+      runjit()
 
 when false:
     while p.tok.tok != TEOF:
@@ -31,3 +31,4 @@ when false:
         echo e
 
 closeParser()
+shutdown_backend()

@@ -178,6 +178,8 @@ var
   builder*: BuilderRef
   machine*: TargetMachineRef
   currentfunction*: Value
+  tsCtx*: OrcThreadSafeContextRef
+  ctx*: ContextRef
 
 proc name(n: cstring): cstring = n
 
@@ -185,7 +187,9 @@ proc init_backend*() =
   initializeCore(getGlobalPassRegistry())
   initializeNativeTarget()
   initializeNativeAsmPrinter()
-  module = moduleCreateWithName("main")
+  tsCtx = orcCreateNewThreadSafeContext()
+  ctx = orcThreadSafeContextGetContext(tsCtx)
+  module = moduleCreateWithNameInContext("main", ctx)
   var target: TargetRef
   let tr = getDefaultTargetTriple()
   discard getTargetFromTriple(tr, addr target, nil)
@@ -195,9 +199,8 @@ proc init_backend*() =
   setTarget(module, tr)
   builder = createBuilder()
 
-proc verify*() =
-  var err: cstring
-  discard verifyModule(module, PrintMessageAction, cast[cstringArray](addr err))
+proc shutdown_backend*() =
+  shutdown()
 
 proc writeBitcodeToFile*(path: string) =
   discard writeBitcodeToFile(module, path)
@@ -207,6 +210,12 @@ proc llvm_error(msg: string) =
 
 proc llvm_error(msg: cstring) =
   stderr.write(msg)
+
+proc verify*(): bool =
+  var err: cstring
+  result = bool(verifyModule(module, PrintMessageAction, cast[cstringArray](addr err)))
+  if not result:
+    llvm_error(err)
 
 proc writeModuleToFile*(path: string) =
   var err: cstring = ""
@@ -639,12 +648,16 @@ proc jit_error(err: ErrorRef) =
 proc orc_error_report(ctx: pointer; err: ErrorRef) {.cdecl, gcsafe.} =
   jit_error(err)
 
-proc runjit*() =
-    var jit: OrcLLJITRef 
 
-    var lljitBuilder = orcCreateLLJITBuilder()
+proc getThreadSafeModule*(): OrcThreadSafeModuleRef =
+    result = orcCreateNewThreadSafeModule(module, tsCtx)
+    orcDisposeThreadSafeContext(tsCtx)
+
+proc runjit*() =
+    var thread_safe_mod = getThreadSafeModule()
+    var jit: OrcLLJITRef 
     
-    var err = orcCreateLLJIT(addr jit, lljitBuilder)
+    var err = orcCreateLLJIT(addr jit, nil)
     if err != nil:
       jit_error(err)
       return
@@ -652,8 +665,6 @@ proc runjit*() =
     orcExecutionSessionSetErrorReporter(orcLLJITGetExecutionSession(jit), orc_error_report, nil)
 
     var prefix = orcLLJITGetGlobalPrefix(jit)
-
-    echo "prefix=", repr(prefix)
 
     var gen1: OrcDefinitionGeneratorRef
     var gen2: OrcDefinitionGeneratorRef
@@ -668,10 +679,6 @@ proc runjit*() =
     orcJITDylibAddGenerator(jd, gen1)
     orcJITDylibAddGenerator(jd, gen2)
 
-
-    var ctx = orcCreateNewThreadSafeContext();
-    var thread_safe_mod = orcCreateNewThreadSafeModule(module, ctx)
-    orcDisposeThreadSafeContext(ctx)
     err = orcLLJITAddLLVMIRModule(jit, jd, thread_safe_mod)
     if err != nil:
       jit_error(err)
@@ -679,7 +686,7 @@ proc runjit*() =
 
     var main: OrcExecutorAddress = 0
     
-    err = orcLLJITLookup(jit, addr main, "puts")
+    err = orcLLJITLookup(jit, addr main, "sum")
     if err != nil:
       jit_error(err)
       return
@@ -688,12 +695,10 @@ proc runjit*() =
       jit_error("cannot find main function")
       return
 
-
-    # proc (argc: cint, argv: ptr UncheckedArray[ptr cstring]): cint {.cdecl, gcsafe.}
-    let fmain = cast[proc (s: cstring): cint {.cdecl, gcsafe.}](main)
+    let fmain = cast[proc (argc: cint, argv: ptr UncheckedArray[ptr cstring]): cint {.cdecl, gcsafe.}](main)
     echo "running main:"
-    let ret = fmain("Hello Jit!")
-    echo "finished!"
+    let ret = fmain(100, nil)
+    echo "return code: ", ret
 
     err = orcDisposeLLJIT(jit)
     if err != nil:
