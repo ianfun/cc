@@ -3908,7 +3908,7 @@ proc buildFree*(a1: BuilderRef; pointerVal: ValueRef): ValueRef {.
     importc: "LLVMBuildFree".}
 
 proc buildLoad*(b: BuilderRef, pointerVal: ValueRef; name: cstring): ValueRef {.
-    importc: "LLVMBuildLoad2".}
+    importc: "LLVMBuildLoad".}
 
 proc buildLoad2*(a1: BuilderRef; ty: TypeRef; pointerVal: ValueRef; name: cstring): ValueRef {.
     importc: "LLVMBuildLoad2".}

@@ -293,8 +293,8 @@ type
       CsUTF8, CsUTF16, CsUTF32
     StmtKind* = enum
       SSemicolon, SCompound, SGoto, SContinue, SBreak, SReturn, SExpr, SLabled, SIf, 
-      SDoWhile, SWhile, SFor, SSwitch, SStructDecl, SUnionDecl, SEnumDecl, 
-      SVarDecl, SStaticAssertDecl, SDefault, SCase, SFunction, SVarDecl1
+      SDoWhile, SWhile, SFor, SSwitch, SDeclOnly, 
+      SVarDecl, SDefault, SCase, SFunction, SVarDecl1
     StmtList* = seq[Stmt] # compound_stmt, { body }
     Stmt* = ref object
       case k*: StmtKind
@@ -329,20 +329,17 @@ type
         forinit*: Stmt
         forcond*, forincl*: Expr
         forbody*: Stmt
-      of SStaticAssertDecl:
-        assertexpr*: Expr
-        msg*: string
       of SVarDecl1:
         var1name*: string
         var1type*: CType
       of SVarDecl:
         vars*: seq[(string, CType, Expr)]
-      of SStructDecl, SUnionDecl, SEnumDecl:
-        stype*: CType
+      of SDeclOnly:
+        decl*: CType
     ExprKind* = enum
       EBin, EUnary, EPostFix, EIntLit, EFloatLit,
       EVar, ECondition, ECast, ECall, ESubscript, 
-      EArray
+      EArray, EBackend
     Expr* = ref object
       ty*: CType
       case k*: ExprKind
@@ -373,6 +370,8 @@ type
         callargs*: seq[Expr]
       of ESubscript:
         left*, right*: Expr
+      of EBackend:
+        p*: pointer
 
 var p*: Parser = nil
 
@@ -533,10 +532,8 @@ proc `$`*(a: Stmt, level=0): string =
     (if a.forcond==nil: "" else: $a.forcond) & ';' &
     (if a.forincl==nil: "" else: $a.forincl) & ')' &
     `$`(a.forbody, level+1)
-  of SStaticAssertDecl:
-    "_Static_assert(" & $a.assertexpr & a.msg & ");"
-  of SStructDecl, SUnionDecl, SEnumDecl:
-    $(a.stype)
+  of SDeclOnly:
+    $(a.decl)
 
 proc `$`*(a: CType, level=0): string =
   if a == nil:
@@ -621,6 +618,8 @@ proc `$`*(e: Expr): string =
     $e.callfunc & '(' & $joinShow(e.callargs, ", ") & ')'
   of EArray:
     "{" & $e.arr & "}"
+  of EBackend:
+    "<backend>"
 
 proc showToken*(): string =
   case p.tok.tok:
@@ -660,6 +659,9 @@ proc parse_error*(msg: string) =
     if p.err == false:
       stderr.writeLine("\e[34m" & p.filename & ": " & $p.line & '.' & $p.col & ": parse error: " & msg & "\e[0m")
       p.err = true
+
+proc verbose*(msg: string) =
+  stdout.writeLine(msg)
 
 proc note*(msg: string) =
     stderr.writeLine("\e[32mnote: " & msg & "\e[0m")

@@ -5,3 +5,7 @@
 ./*.exe
 ./llvm
 ./*.ll
+./*.ll
+./*.S
+./*.s
+./test.nim

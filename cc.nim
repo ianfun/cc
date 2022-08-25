@@ -1,21 +1,33 @@
-# build in LLVM-15
-# run `llvm-config --system-libs -libs` to get your libs
+## Main program
+##
+## build in LLVM-15
+##
+## run `llvm-config --system-libs -libs` to get your libs
+
 {.passL: "-lLLVM-15".}
 
-import "."/[token, lexer, parser, llvm]
-init_backend()
+import "."/[token, parser, llvm]
 newParser()
 p.filename = "<stdin>"
 p.path = "<stdin>"
+verbose("compiling")
 addStdin()
-getToken()
 
 when true:
-    let r = translation_unit()
-    gen(r)
-    if verify():
-      writeModuleToFile("main.ll")
-      runjit()
+    let r = runParser()
+    if p.err == false:
+        verbose("init LLVM backend")
+        if newBackend():
+            verbose("generate code to LLVM IR")
+            gen(r)
+            verbose("running LLVM optimize")
+            optimize()
+            verbose("verify LLVM module")
+            verify()
+            verbose("print module to file")
+            writeModuleToFile("main.ll")
+            verbose("running jit")
+            runjit()
 
 when false:
     while p.tok.tok != TEOF:
@@ -31,4 +43,5 @@ when false:
         echo e
 
 closeParser()
+verbose("shutdown LLVM backend")
 shutdown_backend()
