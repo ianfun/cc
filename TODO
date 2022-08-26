@@ -1,3 +1,4 @@
-* sizeof VLA
+* VLA, sizeof VLA in runtime
 * support GCC __attribute__ 
 * support GCC/MSCV pragmas
+* function with no prototype

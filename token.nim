@@ -1,5 +1,5 @@
 import std/[tables, times, sets, macrocache, strutils]
-import stream
+import stream, appInstance
 
 proc unreachable*() =
   quit "control reaches unreachable code!"
@@ -84,7 +84,7 @@ proc make_ty(): uint32 =
   result = 1'u32 shl tyCounter.value
   tyCounter.inc()
 
-const # optional type tags
+const ## optional type tags
   TYINVALID* = 0'u32
   # TYAUTO* = make_ty()
   TYCONST* = make_ty()
@@ -101,7 +101,9 @@ const # optional type tags
   TYTYPEDEF* = make_ty()
   TYEXPR* = make_ty() # internal flag
 
-const # basic types
+const ## basic types
+  ## note: they value ordered by bit size!
+  ## do not re-order them
   TYVOID* = make_ty()
   TYBOOL* = make_ty()
   TYCOMPLEX* = make_ty()
@@ -116,16 +118,16 @@ const # basic types
   TYFLOAT* = make_ty()
   TYDOUBLE* = make_ty()
 
-const # type alias
+const ## type alias
   TYCHAR* = TYINT8
   TYSHORT* = TYINT16
   TYINT* = TYINT32
-  TYLONG* = TYINT64 # 32 bit in MSVC, 64 bit in GCC/JVM
+  TYLONG* = TYINT64 ## 32 bit in MSVC, 64 bit in GCC/JVM
   TYLONGLONG* = TYINT64
   TYUCHAR* = TYUINT8
   TYUSHORT* = TYUINT16
   TYUINT* = TYUINT32
-  TYULONG* = TYUINT64 # 32 bit in MSVC, 64 bit in GCC/JVM
+  TYULONG* = TYUINT64 ## 32 bit in MSVC, 64 bit in GCC/JVM
   TYULONGLONG* = TYUINT64
   TYLONGDOUBLE* = TYDOUBLE
   TYSIZE_T* = when sizeof(pointer) == 8: TYUINT64 else: TYUINT32
@@ -236,6 +238,7 @@ type
         str*: string
         enc*: uint8
     Parser* = ref object
+      currentfunctionRet*, currentInitTy*: CType
       fstack*: seq[Stream]
       filenamestack*, pathstack*: seq[string]
       locstack: seq[Location]
@@ -345,12 +348,14 @@ type
       of SDeclOnly:
         decl*: CType
     ExprKind* = enum
-      EBin, EUnary, EPostFix, EIntLit, EFloatLit,
+      EBin, EUnary, EPostFix, EIntLit, EFloatLit, EVoid,
       EVar, ECondition, ECast, ECall, ESubscript, EDefault,
-      EArray, EBackend, EString, EPointerMemberAccess, EMemberAccess
+      EArray, EStruct, EBackend, EString, EPointerMemberAccess, EMemberAccess
     Expr* = ref object
       ty*: CType
       case k*: ExprKind
+      of EVoid:
+        voidexpr*: Expr 
       of EBin:
         lhs*, rhs*: Expr
         bop*: BinOP
@@ -368,7 +373,7 @@ type
         str*: string
       of EVar:
         sval*: string
-      of EArray:
+      of EArray, EStruct:
         arr*: seq[Expr]
       of ECondition:
         cond*: Expr
@@ -615,8 +620,12 @@ proc `$`*(e: Expr): string =
   if e == nil:
     return "<nil>"
   case e.k:
+  of EVoid:
+    "(void)" & $e.voidexpr
   of EDefault:
     "<zero>"
+  of EStruct:
+    "<struct-init>"
   of EMemberAccess:
     $e.obj & '.' & $e.idx
   of EPointerMemberAccess:
@@ -668,7 +677,8 @@ proc `$`*(loc: Location): string =
   $loc.line & ':' & $loc.col
 
 proc warning*(msg: string) =
-  stderr.writeLine("\e[33m" & p.filename & ": " & $p.line & '.' & $p.col & ": warning: " & msg & "\e[0m")
+  if ord(app.verboseLevel) >= ord(WWarning):
+    stderr.writeLine("\e[33m" & p.filename & ": " & $p.line & '.' & $p.col & ": warning: " & msg & "\e[0m")
 
 proc error*(msg: string) =
     if p.bad_error == false:
@@ -686,16 +696,19 @@ proc parse_error*(msg: string) =
       stderr.writeLine("\e[34m" & p.filename & ": " & $p.line & '.' & $p.col & ": parse error: " & msg & "\e[0m")
       p.parse_error = true
 
+
 proc eval_error*(msg: string) =
     if p.eval_error == false:
       stderr.writeLine("\e[34m" & p.filename & ": " & $p.line & '.' & $p.col & ": parse error: " & msg & "\e[0m")
       p.eval_error = true
 
 proc verbose*(msg: string) =
-  stdout.writeLine(msg)
+  if ord(app.verboseLevel) >= ord(WVerbose):
+    stdout.writeLine(msg)
 
 proc note*(msg: string) =
-    stderr.writeLine("\e[32mnote: " & msg & "\e[0m")
+    if ord(app.verboseLevel) >= ord(WNote):
+      stderr.writeLine("\e[32mnote: " & msg & "\e[0m")
 
 proc init() =
   for k in int(KwStart)..int(KwEnd):

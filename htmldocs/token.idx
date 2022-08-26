@@ -1,0 +1,397 @@
+unreachable	token.html#unreachable	token: unreachable()	
+intmax_t	token.html#intmax_t	token: intmax_t	
+uintmax_t	token.html#uintmax_t	token: uintmax_t	
+TNul	token.html#TNul	Token.TNul	
+TNewLine	token.html#TNewLine	Token.TNewLine	
+TSpace	token.html#TSpace	Token.TSpace	
+TNot	token.html#TNot	Token.TNot	
+TDoubleQ	token.html#TDoubleQ	Token.TDoubleQ	
+TBash	token.html#TBash	Token.TBash	
+TDolor	token.html#TDolor	Token.TDolor	
+TPercent	token.html#TPercent	Token.TPercent	
+TBitAnd	token.html#TBitAnd	Token.TBitAnd	
+TSignleQ	token.html#TSignleQ	Token.TSignleQ	
+TLbracket	token.html#TLbracket	Token.TLbracket	
+TRbracket	token.html#TRbracket	Token.TRbracket	
+TMul	token.html#TMul	Token.TMul	
+TAdd	token.html#TAdd	Token.TAdd	
+TComma	token.html#TComma	Token.TComma	
+TDash	token.html#TDash	Token.TDash	
+TDot	token.html#TDot	Token.TDot	
+TSlash	token.html#TSlash	Token.TSlash	
+TColon	token.html#TColon	Token.TColon	
+TSemicolon	token.html#TSemicolon	Token.TSemicolon	
+TLt	token.html#TLt	Token.TLt	
+TAssign	token.html#TAssign	Token.TAssign	
+TGt	token.html#TGt	Token.TGt	
+TQuestionMark	token.html#TQuestionMark	Token.TQuestionMark	
+TMouse	token.html#TMouse	Token.TMouse	
+TLSquareBrackets	token.html#TLSquareBrackets	Token.TLSquareBrackets	
+TBackslash	token.html#TBackslash	Token.TBackslash	
+TRSquareBrackets	token.html#TRSquareBrackets	Token.TRSquareBrackets	
+TXor	token.html#TXor	Token.TXor	
+TUnderscore	token.html#TUnderscore	Token.TUnderscore	
+TGraveAccent	token.html#TGraveAccent	Token.TGraveAccent	
+TLcurlyBracket	token.html#TLcurlyBracket	Token.TLcurlyBracket	
+TBitOr	token.html#TBitOr	Token.TBitOr	
+TRcurlyBracket	token.html#TRcurlyBracket	Token.TRcurlyBracket	
+TBitNot	token.html#TBitNot	Token.TBitNot	
+T255	token.html#T255	Token.T255	
+Kauto	token.html#Kauto	Token.Kauto	
+Kfor	token.html#Kfor	Token.Kfor	
+Kgoto	token.html#Kgoto	Token.Kgoto	
+Kif	token.html#Kif	Token.Kif	
+Kinline	token.html#Kinline	Token.Kinline	
+Kint	token.html#Kint	Token.Kint	
+Kchar	token.html#Kchar	Token.Kchar	
+Klong	token.html#Klong	Token.Klong	
+Kregister	token.html#Kregister	Token.Kregister	
+Krestrict	token.html#Krestrict	Token.Krestrict	
+Kreturn	token.html#Kreturn	Token.Kreturn	
+Kshort	token.html#Kshort	Token.Kshort	
+Kelse	token.html#Kelse	Token.Kelse	
+Kenum	token.html#Kenum	Token.Kenum	
+Kextern	token.html#Kextern	Token.Kextern	
+Kdouble	token.html#Kdouble	Token.Kdouble	
+Kdo	token.html#Kdo	Token.Kdo	
+Kdefault	token.html#Kdefault	Token.Kdefault	
+Kfloat	token.html#Kfloat	Token.Kfloat	
+Ksigned	token.html#Ksigned	Token.Ksigned	
+Ksizeof	token.html#Ksizeof	Token.Ksizeof	
+Kstatic	token.html#Kstatic	Token.Kstatic	
+Kstruct	token.html#Kstruct	Token.Kstruct	
+Kswitch	token.html#Kswitch	Token.Kswitch	
+Kcase	token.html#Kcase	Token.Kcase	
+Ktypedef	token.html#Ktypedef	Token.Ktypedef	
+Kunion	token.html#Kunion	Token.Kunion	
+Kcontinue	token.html#Kcontinue	Token.Kcontinue	
+Kunsigned	token.html#Kunsigned	Token.Kunsigned	
+Kvoid	token.html#Kvoid	Token.Kvoid	
+Kvolatile	token.html#Kvolatile	Token.Kvolatile	
+Kwhile	token.html#Kwhile	Token.Kwhile	
+Kconst	token.html#Kconst	Token.Kconst	
+Kbreak	token.html#Kbreak	Token.Kbreak	
+K_Alignas	token.html#K_Alignas	Token.K_Alignas	
+K_Alignof	token.html#K_Alignof	Token.K_Alignof	
+K_Atomic	token.html#K_Atomic	Token.K_Atomic	
+K_Bool	token.html#K_Bool	Token.K_Bool	
+K_Complex	token.html#K_Complex	Token.K_Complex	
+K_Decimal128	token.html#K_Decimal128	Token.K_Decimal128	
+K_Decimal32	token.html#K_Decimal32	Token.K_Decimal32	
+K_Decimal64	token.html#K_Decimal64	Token.K_Decimal64	
+K_Generic	token.html#K_Generic	Token.K_Generic	
+K_Imaginary	token.html#K_Imaginary	Token.K_Imaginary	
+K_Noreturn	token.html#K_Noreturn	Token.K_Noreturn	
+K_Static_assert	token.html#K_Static_assert	Token.K_Static_assert	
+K_Thread_local	token.html#K_Thread_local	Token.K_Thread_local	
+TAddAdd	token.html#TAddAdd	Token.TAddAdd	
+TSubSub	token.html#TSubSub	Token.TSubSub	
+TArrow	token.html#TArrow	Token.TArrow	
+Tshl	token.html#Tshl	Token.Tshl	
+Tshr	token.html#Tshr	Token.Tshr	
+TGe	token.html#TGe	Token.TGe	
+TLe	token.html#TLe	Token.TLe	
+TEq	token.html#TEq	Token.TEq	
+TNe	token.html#TNe	Token.TNe	
+TLogicalOr	token.html#TLogicalOr	Token.TLogicalOr	
+TLogicalAnd	token.html#TLogicalAnd	Token.TLogicalAnd	
+TAsignAdd	token.html#TAsignAdd	Token.TAsignAdd	
+TAsignSub	token.html#TAsignSub	Token.TAsignSub	
+TAsignMul	token.html#TAsignMul	Token.TAsignMul	
+TAsignDiv	token.html#TAsignDiv	Token.TAsignDiv	
+TAsignRem	token.html#TAsignRem	Token.TAsignRem	
+TAsignShl	token.html#TAsignShl	Token.TAsignShl	
+TAsignShr	token.html#TAsignShr	Token.TAsignShr	
+TAsignBitAnd	token.html#TAsignBitAnd	Token.TAsignBitAnd	
+TAsignBitOr	token.html#TAsignBitOr	Token.TAsignBitOr	
+TAsignBitXor	token.html#TAsignBitXor	Token.TAsignBitXor	
+TEllipsis	token.html#TEllipsis	Token.TEllipsis	
+TNumberLit	token.html#TNumberLit	Token.TNumberLit	
+TFloatLit	token.html#TFloatLit	Token.TFloatLit	
+TCharLit	token.html#TCharLit	Token.TCharLit	
+TIdentifier	token.html#TIdentifier	Token.TIdentifier	
+CPPIdent	token.html#CPPIdent	Token.CPPIdent	
+TStringLit	token.html#TStringLit	Token.TStringLit	
+TPPNumber	token.html#TPPNumber	Token.TPPNumber	
+PPPlaceholder	token.html#PPPlaceholder	Token.PPPlaceholder	
+PPSharp	token.html#PPSharp	Token.PPSharp	
+PPSharpSharp	token.html#PPSharpSharp	Token.PPSharpSharp	
+PPMacroPop	token.html#PPMacroPop	Token.PPMacroPop	
+TEOF	token.html#TEOF	Token.TEOF	
+Token	token.html#Token	token: Token	
+TYINVALID	token.html#TYINVALID	token: TYINVALID	
+TYCONST	token.html#TYCONST	token: TYCONST	
+TYRESTRICT	token.html#TYRESTRICT	token: TYRESTRICT	
+TYVOLATILE	token.html#TYVOLATILE	token: TYVOLATILE	
+TYATOMIC	token.html#TYATOMIC	token: TYATOMIC	
+TYINLINE	token.html#TYINLINE	token: TYINLINE	
+TYSTATIC	token.html#TYSTATIC	token: TYSTATIC	
+TYNORETURN	token.html#TYNORETURN	token: TYNORETURN	
+TYALIGNAS	token.html#TYALIGNAS	token: TYALIGNAS	
+TYEXTERN	token.html#TYEXTERN	token: TYEXTERN	
+TYREGISTER	token.html#TYREGISTER	token: TYREGISTER	
+TYTHREAD_LOCAL	token.html#TYTHREAD_LOCAL	token: TYTHREAD_LOCAL	
+TYTYPEDEF	token.html#TYTYPEDEF	token: TYTYPEDEF	
+TYEXPR	token.html#TYEXPR	token: TYEXPR	
+TYVOID	token.html#TYVOID	token: TYVOID	
+TYBOOL	token.html#TYBOOL	token: TYBOOL	
+TYCOMPLEX	token.html#TYCOMPLEX	token: TYCOMPLEX	
+TYINT8	token.html#TYINT8	token: TYINT8	
+TYINT16	token.html#TYINT16	token: TYINT16	
+TYINT32	token.html#TYINT32	token: TYINT32	
+TYINT64	token.html#TYINT64	token: TYINT64	
+TYUINT8	token.html#TYUINT8	token: TYUINT8	
+TYUINT16	token.html#TYUINT16	token: TYUINT16	
+TYUINT32	token.html#TYUINT32	token: TYUINT32	
+TYUINT64	token.html#TYUINT64	token: TYUINT64	
+TYFLOAT	token.html#TYFLOAT	token: TYFLOAT	
+TYDOUBLE	token.html#TYDOUBLE	token: TYDOUBLE	
+TYCHAR	token.html#TYCHAR	token: TYCHAR	
+TYSHORT	token.html#TYSHORT	token: TYSHORT	
+TYINT	token.html#TYINT	token: TYINT	
+TYLONG	token.html#TYLONG	token: TYLONG	
+TYLONGLONG	token.html#TYLONGLONG	token: TYLONGLONG	
+TYUCHAR	token.html#TYUCHAR	token: TYUCHAR	
+TYUSHORT	token.html#TYUSHORT	token: TYUSHORT	
+TYUINT	token.html#TYUINT	token: TYUINT	
+TYULONG	token.html#TYULONG	token: TYULONG	
+TYULONGLONG	token.html#TYULONGLONG	token: TYULONGLONG	
+TYLONGDOUBLE	token.html#TYLONGDOUBLE	token: TYLONGDOUBLE	
+TYSIZE_T	token.html#TYSIZE_T	token: TYSIZE_T	
+prim	token.html#prim	token: prim	
+signed	token.html#signed	token: signed	
+unsigned	token.html#unsigned	token: unsigned	
+VI	token.html#VI	CValueKind.VI	
+VF	token.html#VF	CValueKind.VF	
+CValueKind	token.html#CValueKind	token: CValueKind	
+CValue	token.html#CValue	token: CValue	
+PostfixIncrement	token.html#PostfixIncrement	PostfixOP.PostfixIncrement	
+PostfixDecrement	token.html#PostfixDecrement	PostfixOP.PostfixDecrement	
+PostfixOP	token.html#PostfixOP	token: PostfixOP	
+Pos	token.html#Pos	UnaryOP.Pos	
+UNeg	token.html#UNeg	UnaryOP.UNeg	
+SNeg	token.html#SNeg	UnaryOP.SNeg	
+FNeg	token.html#FNeg	UnaryOP.FNeg	
+Not	token.html#Not	UnaryOP.Not	
+AddressOf	token.html#AddressOf	UnaryOP.AddressOf	
+PrefixIncrement	token.html#PrefixIncrement	UnaryOP.PrefixIncrement	
+PrefixDecrement	token.html#PrefixDecrement	UnaryOP.PrefixDecrement	
+Dereference	token.html#Dereference	UnaryOP.Dereference	
+LogicalNot	token.html#LogicalNot	UnaryOP.LogicalNot	
+UnaryOP	token.html#UnaryOP	token: UnaryOP	
+Nop	token.html#Nop	BinOP.Nop	
+UAdd	token.html#UAdd	BinOP.UAdd	
+SAdd	token.html#SAdd	BinOP.SAdd	
+FAdd	token.html#FAdd	BinOP.FAdd	
+USub	token.html#USub	BinOP.USub	
+SSub	token.html#SSub	BinOP.SSub	
+FSub	token.html#FSub	BinOP.FSub	
+UMul	token.html#UMul	BinOP.UMul	
+SMul	token.html#SMul	BinOP.SMul	
+FMul	token.html#FMul	BinOP.FMul	
+UDiv	token.html#UDiv	BinOP.UDiv	
+SDiv	token.html#SDiv	BinOP.SDiv	
+FDiv	token.html#FDiv	BinOP.FDiv	
+URem	token.html#URem	BinOP.URem	
+SRem	token.html#SRem	BinOP.SRem	
+FRem	token.html#FRem	BinOP.FRem	
+Shr	token.html#Shr	BinOP.Shr	
+AShr	token.html#AShr	BinOP.AShr	
+Shl	token.html#Shl	BinOP.Shl	
+And	token.html#And	BinOP.And	
+Xor	token.html#Xor	BinOP.Xor	
+Or	token.html#Or	BinOP.Or	
+LogicalAnd	token.html#LogicalAnd	BinOP.LogicalAnd	
+LogicalOr	token.html#LogicalOr	BinOP.LogicalOr	
+Assign	token.html#Assign	BinOP.Assign	
+SAddP	token.html#SAddP	BinOP.SAddP	
+Comma	token.html#Comma	BinOP.Comma	
+EQ	token.html#EQ	BinOP.EQ	
+NE	token.html#NE	BinOP.NE	
+UGT	token.html#UGT	BinOP.UGT	
+UGE	token.html#UGE	BinOP.UGE	
+ULT	token.html#ULT	BinOP.ULT	
+ULE	token.html#ULE	BinOP.ULE	
+SGT	token.html#SGT	BinOP.SGT	
+SGE	token.html#SGE	BinOP.SGE	
+SLT	token.html#SLT	BinOP.SLT	
+SLE	token.html#SLE	BinOP.SLE	
+FEQ	token.html#FEQ	BinOP.FEQ	
+FNE	token.html#FNE	BinOP.FNE	
+FGT	token.html#FGT	BinOP.FGT	
+FGE	token.html#FGE	BinOP.FGE	
+FLT	token.html#FLT	BinOP.FLT	
+FLE	token.html#FLE	BinOP.FLE	
+BinOP	token.html#BinOP	token: BinOP	
+Trunc	token.html#Trunc	CastOp.Trunc	
+ZExt	token.html#ZExt	CastOp.ZExt	
+SExt	token.html#SExt	CastOp.SExt	
+FPToUI	token.html#FPToUI	CastOp.FPToUI	
+FPToSI	token.html#FPToSI	CastOp.FPToSI	
+UIToFP	token.html#UIToFP	CastOp.UIToFP	
+SIToFP	token.html#SIToFP	CastOp.SIToFP	
+FPTrunc	token.html#FPTrunc	CastOp.FPTrunc	
+FPExt	token.html#FPExt	CastOp.FPExt	
+PtrToInt	token.html#PtrToInt	CastOp.PtrToInt	
+IntToPtr	token.html#IntToPtr	CastOp.IntToPtr	
+BitCast	token.html#BitCast	CastOp.BitCast	
+CastOp	token.html#CastOp	token: CastOp	
+Codepoint	token.html#Codepoint	token: Codepoint	
+MOBJ	token.html#MOBJ	PPMacroFlags.MOBJ	
+MFUNC	token.html#MFUNC	PPMacroFlags.MFUNC	
+MBuiltin	token.html#MBuiltin	PPMacroFlags.MBuiltin	
+PPMacroFlags	token.html#PPMacroFlags	token: PPMacroFlags	
+PPMacro	token.html#PPMacro	token: PPMacro	
+PFNormal	token.html#PFNormal	ParseFlags.PFNormal	
+PFPP	token.html#PFPP	ParseFlags.PFPP	
+ParseFlags	token.html#ParseFlags	token: ParseFlags	
+TVNormal	token.html#TVNormal	TokenVTags.TVNormal	
+TVSVal	token.html#TVSVal	TokenVTags.TVSVal	
+TVIVal	token.html#TVIVal	TokenVTags.TVIVal	
+TVFval	token.html#TVFval	TokenVTags.TVFval	
+TVStr	token.html#TVStr	TokenVTags.TVStr	
+TokenVTags	token.html#TokenVTags	token: TokenVTags	
+Iint	token.html#Iint	ITag.Iint	
+Ilong	token.html#Ilong	ITag.Ilong	
+Iulong	token.html#Iulong	ITag.Iulong	
+Ilonglong	token.html#Ilonglong	ITag.Ilonglong	
+Iulonglong	token.html#Iulonglong	ITag.Iulonglong	
+Iuint	token.html#Iuint	ITag.Iuint	
+ITag	token.html#ITag	token: ITag	
+Fdobule	token.html#Fdobule	FTag.Fdobule	
+Ffloat	token.html#Ffloat	FTag.Ffloat	
+FTag	token.html#FTag	token: FTag	
+TokenV	token.html#TokenV	token: TokenV	
+Parser	token.html#Parser	token: Parser	
+TYPRIM	token.html#TYPRIM	CTypeSpec.TYPRIM	
+TYPOINTER	token.html#TYPOINTER	CTypeSpec.TYPOINTER	
+TYSTRUCT	token.html#TYSTRUCT	CTypeSpec.TYSTRUCT	
+TYUNION	token.html#TYUNION	CTypeSpec.TYUNION	
+TYENUM	token.html#TYENUM	CTypeSpec.TYENUM	
+TYBITFIELD	token.html#TYBITFIELD	CTypeSpec.TYBITFIELD	
+TYARRAY	token.html#TYARRAY	CTypeSpec.TYARRAY	
+TYFUNCTION	token.html#TYFUNCTION	CTypeSpec.TYFUNCTION	
+CTypeSpec	token.html#CTypeSpec	token: CTypeSpec	
+CType	token.html#CType	token: CType	
+CsInt	token.html#CsInt	ConstantKind.CsInt	
+CsULong	token.html#CsULong	ConstantKind.CsULong	
+CsLong	token.html#CsLong	ConstantKind.CsLong	
+CsULongLong	token.html#CsULongLong	ConstantKind.CsULongLong	
+CsLongLong	token.html#CsLongLong	ConstantKind.CsLongLong	
+CsChar8	token.html#CsChar8	ConstantKind.CsChar8	
+CsChar16	token.html#CsChar16	ConstantKind.CsChar16	
+CsChar32	token.html#CsChar32	ConstantKind.CsChar32	
+CsDouble	token.html#CsDouble	ConstantKind.CsDouble	
+CsFloat	token.html#CsFloat	ConstantKind.CsFloat	
+CsUTF8	token.html#CsUTF8	ConstantKind.CsUTF8	
+CsUTF16	token.html#CsUTF16	ConstantKind.CsUTF16	
+CsUTF32	token.html#CsUTF32	ConstantKind.CsUTF32	
+ConstantKind	token.html#ConstantKind	token: ConstantKind	
+SSemicolon	token.html#SSemicolon	StmtKind.SSemicolon	
+SCompound	token.html#SCompound	StmtKind.SCompound	
+SGoto	token.html#SGoto	StmtKind.SGoto	
+SContinue	token.html#SContinue	StmtKind.SContinue	
+SBreak	token.html#SBreak	StmtKind.SBreak	
+SReturn	token.html#SReturn	StmtKind.SReturn	
+SExpr	token.html#SExpr	StmtKind.SExpr	
+SLabled	token.html#SLabled	StmtKind.SLabled	
+SIf	token.html#SIf	StmtKind.SIf	
+SDoWhile	token.html#SDoWhile	StmtKind.SDoWhile	
+SWhile	token.html#SWhile	StmtKind.SWhile	
+SFor	token.html#SFor	StmtKind.SFor	
+SSwitch	token.html#SSwitch	StmtKind.SSwitch	
+SDeclOnly	token.html#SDeclOnly	StmtKind.SDeclOnly	
+SVarDecl	token.html#SVarDecl	StmtKind.SVarDecl	
+SDefault	token.html#SDefault	StmtKind.SDefault	
+SCase	token.html#SCase	StmtKind.SCase	
+SFunction	token.html#SFunction	StmtKind.SFunction	
+SVarDecl1	token.html#SVarDecl1	StmtKind.SVarDecl1	
+StmtKind	token.html#StmtKind	token: StmtKind	
+StmtList	token.html#StmtList	token: StmtList	
+Stmt	token.html#Stmt	token: Stmt	
+EBin	token.html#EBin	ExprKind.EBin	
+EUnary	token.html#EUnary	ExprKind.EUnary	
+EPostFix	token.html#EPostFix	ExprKind.EPostFix	
+EIntLit	token.html#EIntLit	ExprKind.EIntLit	
+EFloatLit	token.html#EFloatLit	ExprKind.EFloatLit	
+EVoid	token.html#EVoid	ExprKind.EVoid	
+EVar	token.html#EVar	ExprKind.EVar	
+ECondition	token.html#ECondition	ExprKind.ECondition	
+ECast	token.html#ECast	ExprKind.ECast	
+ECall	token.html#ECall	ExprKind.ECall	
+ESubscript	token.html#ESubscript	ExprKind.ESubscript	
+EDefault	token.html#EDefault	ExprKind.EDefault	
+EArray	token.html#EArray	ExprKind.EArray	
+EStruct	token.html#EStruct	ExprKind.EStruct	
+EBackend	token.html#EBackend	ExprKind.EBackend	
+EString	token.html#EString	ExprKind.EString	
+EPointerMemberAccess	token.html#EPointerMemberAccess	ExprKind.EPointerMemberAccess	
+EMemberAccess	token.html#EMemberAccess	ExprKind.EMemberAccess	
+ExprKind	token.html#ExprKind	token: ExprKind	
+Expr	token.html#Expr	token: Expr	
+p	token.html#p	token: p	
+err	token.html#err	token: err(): bool	
+setParser	token.html#setParser,Parser	token: setParser(a: var Parser)	
+getParser	token.html#getParser	token: getParser(): var Parser	
+CSkip	token.html#CSkip	token: CSkip	
+KwStart	token.html#KwStart	token: KwStart	
+KwEnd	token.html#KwEnd	token: KwEnd	
+addTag	token.html#addTag,uint32,string	token: addTag(a: uint32; dst: var string)	
+joinShow6	token.html#joinShow6,seq[]	token: joinShow6(a: seq[(string, CType, Expr)]): string	
+joinShow5	token.html#joinShow5,seq[Stmt],int	token: joinShow5(a: seq[Stmt]; level = 1): string	
+joinShow4	token.html#joinShow4,seq[],int	token: joinShow4(a: seq[(string, intmax_t)]; level = 1): string	
+joinShow3	token.html#joinShow3,seq[],int	token: joinShow3(a: seq[(string, CType)]; level = 1): string	
+joinShow2	token.html#joinShow2,seq[]	token: joinShow2[A, B](a: seq[(A, B)]): string	
+joinShow	token.html#joinShow,seq[T],string	token: joinShow[T](a: seq[T]; c: string = &quot; &quot;): string	
+`$`	token.html#$,Stmt,int	token: `$`(a: Stmt; level = 0): string	
+`$`	token.html#$,CType,int	token: `$`(a: CType; level = 0): string	
+gkeywordtable	token.html#gkeywordtable	token: gkeywordtable	
+show	token.html#show,char	token: show(c: char): string	
+`$`	token.html#$,Expr	token: `$`(e: Expr): string	
+showToken	token.html#showToken	token: showToken(): string	
+`$`	token.html#$,Location	token: `$`(loc: Location): string	
+warning	token.html#warning,string	token: warning(msg: string)	
+error	token.html#error,string	token: error(msg: string)	
+type_error	token.html#type_error,string	token: type_error(msg: string)	
+parse_error	token.html#parse_error,string	token: parse_error(msg: string)	
+eval_error	token.html#eval_error,string	token: eval_error(msg: string)	
+verbose	token.html#verbose,string	token: verbose(msg: string)	
+note	token.html#note,string	token: note(msg: string)	
+isKeyword	token.html#isKeyword,string	token: isKeyword(a: string): Token	
+unsafe_utf8_codepoint	token.html#unsafe_utf8_codepoint,cstring	token: unsafe_utf8_codepoint(s: cstring): (Codepoint, int)	
+writeUTF8toUTF32	token.html#writeUTF8toUTF32,string	token: writeUTF8toUTF32(s: string): seq[Codepoint]	
+writeUTF8toUTF16	token.html#writeUTF8toUTF16,string	token: writeUTF8toUTF16(s: string): seq[uint16]	
+getDefines	token.html#getDefines.i	token: getDefines(): (string, seq[TokenV])	
+macro_define	token.html#macro_define,string,PPMacro	token: macro_define(name: string; m: PPMacro)	
+macro_defined	token.html#macro_defined,string	token: macro_defined(name: string): bool	
+macro_undef	token.html#macro_undef,string	token: macro_undef(name: string)	
+macro_find	token.html#macro_find,string	token: macro_find(name: string): PPMacro	
+fs_read	token.html#fs_read	token: fs_read()	
+stdin_hook	token.html#stdin_hook	token: stdin_hook()	
+reset	token.html#reset	token: reset()	
+newParser	token.html#newParser	token: newParser()	
+addString	token.html#addString,string,string	token: addString(s: string; filename: string)	
+addStdin	token.html#addStdin	token: addStdin()	
+addFile	token.html#addFile,File,string	token: addFile(fd: File; filename: string)	
+addFile	token.html#addFile,string	token: addFile(filename: string)	
+closeParser	token.html#closeParser	token: closeParser()	
+gettypedef	token.html#gettypedef,string	token: gettypedef(name: string): (CType, Location)	
+getLabel	token.html#getLabel,string	token: getLabel(name: string): (int, Location)	
+putLable	token.html#putLable,string,int	token: putLable(name: string; t: int)	
+getstructdef	token.html#getstructdef,string	token: getstructdef(name: string): CType	
+putstructdef	token.html#putstructdef,CType	token: putstructdef(t: CType)	
+getenumdef	token.html#getenumdef,string	token: getenumdef(name: string): CType	
+putenumdef	token.html#putenumdef,CType	token: putenumdef(t: CType)	
+getuniondef	token.html#getuniondef,string	token: getuniondef(name: string): CType	
+putuniondef	token.html#putuniondef,CType	token: putuniondef(t: CType)	
+getsymtype	token.html#getsymtype,string	token: getsymtype(name: string): CType	
+putsymtype	token.html#putsymtype,string,CType	token: putsymtype(name: string; t: CType)	
+enterBlock	token.html#enterBlock	token: enterBlock()	
+leaveBlock	token.html#leaveBlock	token: leaveBlock()	
+checkOnce	token.html#checkOnce,string	token: checkOnce(filename: string): bool	
+addOnce	token.html#addOnce	token: addOnce()	
+addInclude	token.html#addInclude,string	token: addInclude(filename: string): bool	
+putToken	token.html#putToken	token: putToken()	
+beginExpandMacro	token.html#beginExpandMacro,string	token: beginExpandMacro(a: string)	
+endExpandMacro	token.html#endExpandMacro,string	token: endExpandMacro(a: string)	
+isMacroInUse	token.html#isMacroInUse,string	token: isMacroInUse(a: string): bool	

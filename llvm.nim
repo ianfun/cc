@@ -11,7 +11,8 @@
 ## <https://github.com/llvm/llvm-project/blob/release/15.x/llvm/examples/HowToUseLLJIT/HowToUseLLJIT.cpp>
 
 import tables
-import token except putLabel, putstructdef, putenumdef, putuniondef
+import token
+from appInstance import app
 
 type
   OpaqueMemoryBuffer = object
@@ -299,14 +300,20 @@ proc writeBitcodeToFile*(path: string) =
 
 proc optimize*() =
   var passM = createPassManager()
-
-  addInstructionCombiningPass(passM)
-  addReassociatePass(passM)
-  addGVNPass(passM)
-  addCFGSimplificationPass(passM)
-
+  var pb = passManagerBuilderCreate()
+  # addInstructionCombiningPass(passM)
+  # addReassociatePass(passM)
+  # addGVNPass(passM)
+  # addCFGSimplificationPass(passM)
+  passManagerBuilderSetSizeLevel(pb, app.sizeLevel)
+  passManagerBuilderSetOptLevel(pb, app.optLevel)
+  if app.inlineThreshold != 0:
+    passManagerBuilderUseInlinerWithThreshold(pb, app.inlineThreshold)
+  
+  passManagerBuilderPopulateModulePassManager(pb, passM)
   discard runPassManager(passM, b.module)
 
+  passManagerBuilderDispose(pb)
   disposePassManager(passM)
 
 proc verify*() =
@@ -852,6 +859,8 @@ proc gen*(s: Stmt) =
             setExternallyInitialized(g, True)
             setLinkage(g, ExternalLinkage)
           else:
+            if (varty.tags and TYREGISTER) != 0:
+              warning("register is not supported in LLVM backend")
             setLinkage(g, CommonLinkage)
           putVar(name, g)
         else:
@@ -915,7 +924,7 @@ proc getAddress*(e: Expr): Value =
     unreachable()
     nil
 
-proc getPointerElementType(t: Type): Type =
+proc getPointerElementType*(t: Type): Type =
   getElementType(t)
 
 proc gen*(e: Expr): Value =
@@ -971,6 +980,8 @@ proc gen*(e: Expr): Value =
     gen_int(e.ival.culonglong, e.ty.tags)
   of EFloatLit:
     gen_float(e.fval, e.ty.tags)
+  of EVoid:
+    gen(e.voidexpr)
   of EUnary:
     case e.uop:
     of Pos: gen(e.uoperand)
@@ -1005,21 +1016,50 @@ proc gen*(e: Expr): Value =
     var k = getTypeKind(ty)
     if k == PointerTypeKind:
       echo "pointer!"
-      ty = getPointerElementType(ty)
       f = load(f)
-    var l = len(e.callargs)
-    var args = create(Value, l or 1)
-    var arr = cast[ptr UncheckedArray[Value]](args)
-    for i in 0 ..< l:
-      arr[i] = gen(e.callargs[i]) # eval argument from left to right
-    var res = buildCall2(b.builder, ty, f, args, l.cuint, "call")
-    dealloc(args)
-    res
-  of EArray:
-    if len(e.arr) == 0:
-      getZero(e.ty)
-    else:
+      ty = typeOfX(f)
+    k = getTypeKind(ty)
+    if k != FunctionTypeKind:
+      llvm_error("llvm backend: attempt to call not FunctionTypeKind!")
       nil
+    else:
+      var l = len(e.callargs)
+      var args = create(Value, l or 1)
+      var arr = cast[ptr UncheckedArray[Value]](args)
+      for i in 0 ..< l:
+        arr[i] = gen(e.callargs[i]) # eval argument from left to right
+      var res = buildCall2(b.builder, ty, f, args, l.cuint, "call")
+      dealloc(args)
+      res
+  of EStruct:
+    var ty = toBackendType(e.ty)
+    if len(e.arr) == 0:
+      constNull(ty)
+    else:
+      # TODO: bit field, padding
+      var l = len(e.arr)
+      var inits = create(Value, l)
+      var arr = cast[ptr UncheckedArray[Value]](inits)
+      for i in 0 ..< l:
+        arr[i] = gen(e.arr[i])
+      var ret = constNamedStruct(ty, inits, cuint(l))
+      dealloc(inits)
+      ret
+  of EArray:
+    assert e.ty.arrsize == len(e.arr)
+    var elemTy = toBackendType(e.ty.arrtype)
+    var ty = arrayType(elemTy, cuint(e.ty.arrsize))
+    if len(e.arr) == 0:
+      constNull(ty)
+    else:
+        var l = len(e.arr)
+        var inits = create(Value, l)
+        var arr = cast[ptr UncheckedArray[Value]](inits)
+        for i in 0 ..< l:
+          arr[i] = gen(e.arr[i])
+        var ret = constArray(elemTy, inits, cuint(l))
+        dealloc(inits)
+        ret
 
 proc gen_cast*(e: Expr, to: CType, op: CastOp): Value =
   buildCast(b.builder, getCastOp(op), gen(e), toBackendType(to), "cast")

@@ -1,0 +1,8 @@
+Stream	stream.html#Stream	stream: Stream	
+newStringStream	stream.html#newStringStream,string	stream: newStringStream(s: string): Stream	
+newFileStream	stream.html#newFileStream,string	stream: newFileStream(path: string): Stream	
+newFileStream	stream.html#newFileStream,File	stream: newFileStream(fd: File): Stream	
+newStdinStream	stream.html#newStdinStream	stream: newStdinStream(): Stream	
+putc	stream.html#putc,Stream,cint	stream: putc(s: Stream; c: cint)	
+readChar	stream.html#readChar,Stream	stream: readChar(s: Stream): char	
+close	stream.html#close,Stream	stream: close(s: Stream)	

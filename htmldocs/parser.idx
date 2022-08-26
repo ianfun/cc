@@ -1,0 +1,100 @@
+binop	parser.html#binop,Expr,BinOP,Expr,CType	parser: binop(a: Expr; op: BinOP; b: Expr; ty: CType): Expr	
+unary	parser.html#unary,Expr,UnaryOP,CType	parser: unary(e: Expr; op: UnaryOP; ty: CType): Expr	
+isprint	parser.html#isprint,cint	parser: isprint(a: cint): cint	
+hexs	parser.html#hexs	parser: hexs	
+isFloating	parser.html#isFloating,CType	parser: isFloating(ty: CType): bool	
+isSigned	parser.html#isSigned,CType	parser: isSigned(ty: CType): bool	
+getsizeof	parser.html#getsizeof,CType	parser: getsizeof(ty: CType): csize_t	
+getsizeof	parser.html#getsizeof,Expr	parser: getsizeof(e: Expr): csize_t	
+getAlignof	parser.html#getAlignof,CType	parser: getAlignof(ty: CType): csize_t	
+getAlignof	parser.html#getAlignof,Expr	parser: getAlignof(e: Expr): csize_t	
+checkInteger	parser.html#checkInteger,CType	parser: checkInteger(a: CType; scalar = false): bool	
+intcast	parser.html#intcast,Expr,CType	parser: intcast(e: Expr; to: CType): Expr	
+castto	parser.html#castto,Expr,CType	parser: castto(e: Expr; to: CType): Expr	
+to	parser.html#to,Expr,uint32	parser: to(e: var Expr; tag: uint32)	
+integer_promotions	parser.html#integer_promotions,Expr	parser: integer_promotions(e: Expr): Expr	
+integer_promotions	parser.html#integer_promotions,Expr_2	parser: integer_promotions(e: var Expr)	
+conv	parser.html#conv,Expr,Expr	parser: conv(a, b: var Expr)	
+compatible	parser.html#compatible,CType,CType	parser: compatible(p, expected: CType): bool	
+default_argument_promotions	parser.html#default_argument_promotions,Expr	parser: default_argument_promotions(e: Expr): Expr	
+checkInteger	parser.html#checkInteger,Expr,Expr	parser: checkInteger(a, b: Expr)	
+checkScalar	parser.html#checkScalar,Expr,Expr	parser: checkScalar(a, b: Expr)	
+checkArithmetic	parser.html#checkArithmetic,CType	parser: checkArithmetic(a: CType): bool	
+checkArithmetic	parser.html#checkArithmetic,Expr,Expr	parser: checkArithmetic(a, b: Expr)	
+checkSpec	parser.html#checkSpec,Expr,Expr	parser: checkSpec(a, b: var Expr)	
+make_add	parser.html#make_add,Expr,Expr	parser: make_add(result, r: var Expr)	
+make_sub	parser.html#make_sub,Expr,Expr	parser: make_sub(result, r: var Expr)	
+make_shl	parser.html#make_shl,Expr,Expr	parser: make_shl(result, r: var Expr)	
+make_shr	parser.html#make_shr,Expr,Expr	parser: make_shr(result, r: var Expr)	
+make_bitop	parser.html#make_bitop,Expr,Expr,BinOP	parser: make_bitop(result, r: var Expr; op: BinOP)	
+make_mul	parser.html#make_mul,Expr,Expr	parser: make_mul(result, r: var Expr)	
+make_div	parser.html#make_div,Expr,Expr	parser: make_div(result, r: var Expr)	
+make_rem	parser.html#make_rem,Expr,Expr	parser: make_rem(result, r: var Expr)	
+getMacro	parser.html#getMacro,string	parser: getMacro(name: string): PPMacro	
+hex	parser.html#hex,uint	parser: hex(a: uint): string	
+stringizing	parser.html#stringizing,char	parser: stringizing(a: char): string	
+stringizing	parser.html#stringizing,string	parser: stringizing(a: string): string	
+stringizing	parser.html#stringizing,TokenV	parser: stringizing(a: TokenV): string	
+stringizing	parser.html#stringizing,seq[TokenV]	parser: stringizing(a: seq[TokenV]): string	
+getToken	parser.html#getToken	parser: getToken()	
+isalnum	parser.html#isalnum,char	parser: isalnum(c: char): bool	
+do_eat	parser.html#do_eat	parser: do_eat()	
+eat	parser.html#eat	parser: eat()	
+read_pp_number	parser.html#read_pp_number,string,float,int	parser: read_pp_number(s: string; f: var float; n: var int): int	
+constant_expression	parser.html#constant_expression	parser: constant_expression(): Expr	
+evali	parser.html#evali,Expr	parser: evali(e: Expr): intmax_t	
+nextTok	parser.html#nextTok	parser: nextTok()	
+program	parser.html#program	parser: program	
+pc	parser.html#pc	parser: pc	
+Direct	parser.html#Direct	DeclaratorFlags.Direct	
+Abstract	parser.html#Abstract	DeclaratorFlags.Abstract	
+Function	parser.html#Function	DeclaratorFlags.Function	
+DeclaratorFlags	parser.html#DeclaratorFlags	parser: DeclaratorFlags	
+abstract_decorator	parser.html#abstract_decorator.t,,	parser: abstract_decorator(base, f): untyped	
+postfix	parser.html#postfix,Expr,PostfixOP,CType	parser: postfix(e: Expr; op: PostfixOP; ty: CType): Expr	
+consume	parser.html#consume	parser: consume()	
+eval_const_expression	parser.html#eval_const_expression,Expr	parser: eval_const_expression(e: Expr): intmax_t	
+eval_const_expression_bool	parser.html#eval_const_expression_bool,Expr	parser: eval_const_expression_bool(e: Expr): bool	
+type_specifier_set	parser.html#type_specifier_set	parser: type_specifier_set	
+function_specifier_set	parser.html#function_specifier_set	parser: function_specifier_set	
+storage_class_specifier_set	parser.html#storage_class_specifier_set	parser: storage_class_specifier_set	
+type_qualifier_set	parser.html#type_qualifier_set	parser: type_qualifier_set	
+declaration_specifier_set	parser.html#declaration_specifier_set	parser: declaration_specifier_set	
+merge_types	parser.html#merge_types,seq[Token]	parser: merge_types(ts: seq[Token]): CType	
+type_qualifier_list	parser.html#type_qualifier_list,CType	parser: type_qualifier_list(ty: var CType)	
+read_enum_sepcs	parser.html#read_enum_sepcs,CType,Token	parser: read_enum_sepcs(c: var CType; sepc: Token)	
+read_struct_union_sepcs	parser.html#read_struct_union_sepcs,CType,Token	parser: read_struct_union_sepcs(c: var CType; sepc: Token)	
+specifier_qualifier_list	parser.html#specifier_qualifier_list	parser: specifier_qualifier_list(): CType	
+declarator	parser.html#declarator,CType	parser: declarator(base: CType; flags = Direct): Stmt	
+initializer_list	parser.html#initializer_list	parser: initializer_list(): Expr	
+direct_declarator	parser.html#direct_declarator,CType	parser: direct_declarator(base: CType; flags = Direct): Stmt	
+direct_declarator_end	parser.html#direct_declarator_end,CType,string	parser: direct_declarator_end(base: CType; name: string): Stmt	
+struct_union	parser.html#struct_union,Token	parser: struct_union(t: Token): CType	
+penum	parser.html#penum	parser: penum(): CType	
+parameter_type_list	parser.html#parameter_type_list	parser: parameter_type_list(): (bool, seq[(string, CType)])	
+declaration_specifiers	parser.html#declaration_specifiers	parser: declaration_specifiers(): CType	
+static_assert	parser.html#static_assert	parser: static_assert(): Stmt	
+declaration	parser.html#declaration	parser: declaration(): Stmt	
+cast_expression	parser.html#cast_expression	parser: cast_expression(): Expr	
+type_name	parser.html#type_name	parser: type_name(): (CType, bool)	
+unary_expression	parser.html#unary_expression	parser: unary_expression(): Expr	
+primary_expression	parser.html#primary_expression	parser: primary_expression(): Expr	
+postfix_expression	parser.html#postfix_expression	parser: postfix_expression(): Expr	
+multiplicative_expression	parser.html#multiplicative_expression	parser: multiplicative_expression(): Expr	
+additive_expression	parser.html#additive_expression	parser: additive_expression(): Expr	
+shift_expression	parser.html#shift_expression	parser: shift_expression(): Expr	
+relational_expression	parser.html#relational_expression	parser: relational_expression(): Expr	
+equality_expression	parser.html#equality_expression	parser: equality_expression(): Expr	
+AND_expression	parser.html#AND_expression	parser: AND_expression(): Expr	
+exclusive_OR_expression	parser.html#exclusive_OR_expression	parser: exclusive_OR_expression(): Expr	
+inclusive_OR_expression	parser.html#inclusive_OR_expression	parser: inclusive_OR_expression(): Expr	
+logical_AND_expression	parser.html#logical_AND_expression	parser: logical_AND_expression(): Expr	
+logical_OR_expression	parser.html#logical_OR_expression	parser: logical_OR_expression(): Expr	
+expression	parser.html#expression	parser: expression(): Expr	
+conditional_expression	parser.html#conditional_expression,Expr	parser: conditional_expression(start: Expr): Expr	
+conditional_expression	parser.html#conditional_expression	parser: conditional_expression(): Expr	
+assignment_expression	parser.html#assignment_expression	parser: assignment_expression(): Expr	
+translation_unit	parser.html#translation_unit	parser: translation_unit(): Stmt	
+runParser	parser.html#runParser	parser: runParser(): Stmt	
+compound_statement	parser.html#compound_statement	parser: compound_statement(): Stmt	
+statament	parser.html#statament	parser: statament(): Stmt	

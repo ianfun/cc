@@ -22,6 +22,9 @@
 ##  * See llvm::PassManagerBuilder. LLVMPassManagerBuilderRef LLVMPassManagerBuilderCreate ( void ) ;
 ## Error: expected ';'!!!
 
+proc passManagerBuilderCreate*(): PassManagerBuilderRef {.
+    importc: "LLVMPassManagerBuilderCreate".}
+
 proc passManagerBuilderDispose*(pmb: PassManagerBuilderRef) {.
     importc: "LLVMPassManagerBuilderDispose".}
 ## * See llvm::PassManagerBuilder::OptLevel.

@@ -32,6 +32,9 @@ proc expect(msg: string) =
     ## emit `expect ...` error message
     parse_error("expect " & msg & ", got " & showToken())
 
+proc inTheExpression(e: Expr) =
+    parse_error("in the expression " & $e)
+
 proc getToken*()
 
 proc eat*()
@@ -139,19 +142,90 @@ proc getAlignof*(ty: CType): csize_t =
 proc getAlignof*(e: Expr): csize_t =
     getAlignof(e.ty)
 
-proc make_cast(e: Expr, tag: uint32): Expr =
-    return e
+proc checkInteger*(a: CType, scalar=false): bool =
+    if a.spec != TYPRIM:
+        if scalar and a.spec == TYPOINTER:
+            return true
+        return false
+    return bool(
+        a.tags and (
+            TYINT8 or TYINT16 or TYINT32 or TYINT64 or 
+            TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64 or 
+            TYBOOL
+        )
+    )
+
+proc intcast*(e: Expr, to: CType): Expr = 
+    if bool(to.tags and (TYINT8 or TYINT16 or TYINT32 or TYINT64 or 
+        TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64)) and 
+       bool(e.ty.tags and (TYINT8 or TYINT16 or TYINT32 or TYINT64 or 
+        TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64 or TYBOOL)):
+        if to.tags == e.ty.tags:
+            return Expr(k: ECast, castop: BitCast, castval: e, ty: to)
+        if to.tags > e.ty.tags:
+            if isSigned(to):
+                return Expr(k: ECast, castop: SExt, castval: e, ty: to)
+            else:
+                return Expr(k: ECast, castop: ZExt, castval: e, ty: to)
+        else:
+            return Expr(k: ECast, castop: Trunc, castval: e, ty: to)
+    type_error("cannot cast " & $e & " to " & $to)
+    return nil
+
+proc castto*(e: Expr, to: CType): Expr =
+    if bool(e.ty.tags and TYVOID):
+        type_error("cannot cast 'void' expression to type " & $to)
+        return nil
+    if checkInteger(e.ty, scalar=true) == false or checkInteger(to, scalar=true) == false:
+        type_error("cast uoperand shall have scalar type")
+        return nil
+    if bool(to.tags and TYBOOL):
+        return binop(e, NE, Expr(k: EDefault, ty: e.ty), CType(tags: TYBOOL, spec: TYPRIM))
+    if bool(to.tags and (TYFLOAT or TYDOUBLE)) and e.ty.spec == TYPOINTER:
+        type_error("A floating type shall not be converted to any pointer type")
+        return nil
+    if bool(e.ty.tags and (TYFLOAT or TYDOUBLE)) and to.spec == TYPOINTER:
+        type_error("A floating type shall not be converted to any pointer type")
+        return nil
+    if e.ty.spec == TYPOINTER and to.spec == TYPOINTER:
+        return Expr(k: ECast, castop: BitCast, castval: e, ty: to)
+    if bool(e.ty.tags and TYDOUBLE) and bool(e.ty.tags and TYFLOAT):
+        return Expr(k: ECast, castop: FPTrunc, castval: e, ty: to)
+    if bool(e.ty.tags and TYFLOAT) and bool(e.ty.tags and TYDOUBLE):
+        return Expr(k: ECast, castop: FPExt, castval: e, ty: to)
+    if bool(e.ty.tags and (TYINT8 or TYINT16 or TYINT32 or TYINT64 or 
+        TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64 or TYBOOL)):
+        if to.spec == TYPOINTER:
+            return Expr(k: ECast, castop: IntToPtr, castval: e, ty: to)
+        if bool(to.tags and (TYFLOAT or TYDOUBLE)):
+            if isSigned(to):
+                return Expr(k: ECast, castop: FPToSI, castval: e, ty: to)
+            else:
+                return Expr(k: ECast, castop: FPToUI, castval: e, ty: to)
+    elif bool(to.tags and (TYINT8 or TYINT16 or TYINT32 or TYINT64 or 
+        TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64)):
+        if e.ty.spec == TYPOINTER:
+            return Expr(k: ECast, castop: IntToPtr, castval: e, ty: to)
+        if bool(e.ty.tags and (TYFLOAT or TYDOUBLE)):
+            if isSigned(e.ty):
+                return Expr(k: ECast, castop: SIToFP, castval: e, ty: to)
+            else:
+                return Expr(k: ECast, castop: UIToFP, castval: e, ty: to)
+    return intcast(e, to)
 
 proc to*(e: var Expr, tag: uint32) =
     if e.ty.tags != tag:
-        e = make_cast(e, e.ty.tags)
+        e = castto(e, CType(tags: tag, spec: TYPRIM))
 
-proc castto*(e: Expr, t: CType): Expr =
-    make_cast(e, t.tags)
+proc integer_promotions*(e: Expr): Expr =
+    if e.ty.spec == TYBITFIELD or getsizeof(e) < sizoefint:
+        castto(e, CType(tags: TYINT, spec: TYPRIM))
+    else:
+        e
 
-proc integer_promotions*(a: var Expr) =
-    if a.ty.spec == TYBITFIELD or getsizeof(a) < sizoefint:
-        to(a, TYINT)
+proc integer_promotions*(e: var Expr) =
+    if e.ty.spec == TYBITFIELD or getsizeof(e) < sizoefint:
+        to(e, TYINT)
 
 proc conv*(a, b: var Expr) =
     a.ty.tags = a.ty.tags and prim
@@ -201,26 +275,14 @@ proc conv*(a, b: var Expr) =
                     to(a, b.ty.tags)
 
 
-proc compatible*(e: var CType, expected: CType): bool =
+proc compatible*(p, expected: CType): bool =
     true
 
-proc varargs_conv*(e: var Expr) =
-    discard
-
-proc checkInteger*(a: CType, scalar=false): bool =
-    if a.spec != TYPRIM:
-        if scalar and a.spec == TYPOINTER:
-            return true
-        return false
-    if (a.tags and TYLONGDOUBLE) != 0:
-        return false
-    if (a.tags and TYDOUBLE) != 0:
-        return false
-    if (a.tags and TYFLOAT) != 0:
-        return false
-    if (a.tags and TYCOMPLEX) != 0:
-        return false
-    return true
+proc default_argument_promotions*(e: Expr): Expr =
+    if bool(e.ty.tags and TYFLOAT):
+        castto(e, CType(tags: TYDOUBLE, spec: TYPRIM))
+    else:
+        integer_promotions(e)
 
 proc checkInteger*(a, b: Expr) =
     let ok = checkInteger(a.ty) and checkInteger(b.ty)
@@ -2472,13 +2534,19 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
         if p.tok.tok == TLcurlyBracket: # function definition
             for (name, vty) in ty.params:
                 putsymtype(name, vty)
-            let body = compound_statement()
+            var body: Stmt
+            block:
+                var oldRet = p.currentfunctionRet
+                body = compound_statement()
+                p.currentfunctionRet = oldRet
             if body == nil:
                 expect("function body")
                 return nil
             if len(body.stmts) == 0 or (body.stmts[^1].k != SReturn and body.stmts[^1].k != SGoto):
-                body.stmts &= Stmt(k: SReturn, exprbody: Expr(k: EDefault, ty: ty.ret))
-            return Stmt(funcname: name, k: SFunction, functy: ty, funcbody: body)
+                if bool(ty.ret.tags and TYVOID):
+                    warning("no 'return' statement in a function should return a value")
+                body.stmts &= Stmt(k: SReturn, exprbody: if bool(ty.ret.tags and TYVOID): nil else: Expr(k: EDefault, ty: ty.ret))
+            return Stmt(funcname: name, k: SFunction, functy: CType(tags: TYINVALID, spec: TYPOINTER, p: ty), funcbody: body)
         return direct_declarator_end(ty, name)
     else:
         return Stmt(k: SVarDecl1, var1name: name, var1type: base)
@@ -2787,8 +2855,13 @@ proc declaration*(): Stmt =
             result.vars.add((st.var1name, st.var1type, nil))
             putsymtype(st.var1name, st.var1type)
             if p.tok.tok == TAssign:
+                var init: Expr
                 consume()
-                let init = initializer_list()
+                block:
+                    var old = p.currentInitTy
+                    p.currentInitTy = st.var1type
+                    init = initializer_list()
+                    p.currentInitTy = old
                 if init == nil:
                     expect("initializer-list")
                     return nil
@@ -2817,9 +2890,18 @@ proc cast_expression*(): Expr =
                 expect("`)`")
                 return nil
             consume()
+            if p.tok.tok == TLcurlyBracket:
+                block:
+                    var old = p.currentInitTy
+                    p.currentInitTy = n
+                    result = initializer_list()
+                    p.currentInitTy = old
+                return result
             let e = cast_expression()
             if e == nil:
                 return nil
+            if (n.tags and TYVOID) != 0:
+                return Expr(k: EVoid, voidexpr: e, ty: CType(tags: TYVOID, spec: TYPRIM))
             return castto(e, n)
         putToken()
         p.tok = TokenV(tok: TLbracket, tags: TVNormal)
@@ -3166,7 +3248,7 @@ proc postfix_expression*(): Expr =
             return nil
         if not (e.ty.spec == TYSTRUCT or e.ty.spec == TYUNION):
             type_error("member access is not struct or union")
-            note("in the expression " & $e)
+            inTheExpression(e)
             return nil
         if isarrow and e.ty.spec != TYPOINTER:
             type_error("pointer member access('->') must be used in a pointer")
@@ -3185,7 +3267,7 @@ proc postfix_expression*(): Expr =
         return nil
     of TLbracket: # function call
         consume()
-        if e.ty.spec != TYFUNCTION:
+        if e.ty.spec != TYPOINTER or e.ty.p.spec != TYFUNCTION:
             type_error("expression " & $e & " is of type " & $e.ty & " and is not callable")
             return nil
         var args: seq[Expr]
@@ -3204,31 +3286,30 @@ proc postfix_expression*(): Expr =
                 elif p.tok.tok == TRbracket:
                     consume()
                     break
-        if len(e.ty.params) > 0 and e.ty.params[^1][1] == nil: # varargs
-            if len(args) < (len(e.ty.params) - 1):
+        let params = e.ty.params
+        if len(params) > 0 and params[^1][1] == nil: # varargs
+            if len(args) < (len(params) - 1):
                 type_error("too few arguments to variable argument function")
-                note("at lease " & $(len(e.ty.params) - 0) & " arguments needed")
+                note("at lease " & $(len(params) - 0) & " arguments needed")
                 return nil
-        elif len(e.ty.params) != len(args):
-            type_error("expect " & $(len(e.ty.params)) & " parameters, " & $len(args) & " provided")
-            note("in the expression " & $e)
+        elif len(params) != len(args):
+            type_error("expect " & $(len(params)) & " parameters, " & $len(args) & " provided")
+            inTheExpression(e)
             return nil
         var i = 0
-        var ivarargs = false
         while true:
-            if i == len(e.ty.params):
+            if i == len(params):
                 break
-            if e.ty.params[i][1] == nil:
-                ivarargs = true
+            if params[i][1] == nil:
+                for j in i ..< len(args):
+                    args[j] = default_argument_promotions(args[j])
                 break
-            if not compatible(args[i].ty, expected=e.ty.params[i][1]):
-                type_error("incompatible type for argument " & $i & " for calling function " & $e)
-                note("expected " & $e.ty.params[i] & " but argument is of type " & $args[i].ty)
+            if not compatible(args[i].ty, expected=params[i][1]):
+                type_error("function call type incompatible: in argument " & $i & " of calling function " & $e)
+                note("expected " & $params[i] & " but argument is of type " & $args[i].ty)
                 return nil
+            args[i] = castto(args[i], params[i][1])
             inc i
-        if ivarargs:
-            for j in i ..< len(args):
-                varargs_conv(args[i])
         return Expr(k: ECall, callfunc: e, callargs: args, ty: e.ty.ret)
     of TLSquareBrackets: # array subscript
         consume()
@@ -3635,7 +3716,12 @@ proc statament*(): Stmt =
         consume()
         if p.tok.tok == TSemicolon:
             consume()
-            return Stmt(k: SReturn)
+            if bool(p.currentfunctionRet.tags and TYVOID):
+                return Stmt(k: SReturn, exprbody: nil)
+            warning("use default value in 'return' statement")
+            note("function should return a value, but no value provided in 'return'")
+            note("A return statement without an expression shall only appear in a function whose return type is void")
+            return Stmt(k: SReturn, exprbody: Expr(k: EDefault, ty: p.currentfunctionRet))
         let e = expression()
         if e == nil:
             expect("expression")
@@ -3644,7 +3730,16 @@ proc statament*(): Stmt =
             expect("';'")
             return nil
         consume()
-        return Stmt(k: SReturn, exprbody: e)
+        if bool(p.currentfunctionRet.tags and TYVOID):
+            warning("the value of 'return' statement is ignored")
+            warning("'return' a value in function return void")
+            note("A return statement with an expression shall not appear in a function whose return type is void")
+            return Stmt(k: SReturn, exprbody: nil)
+        if not compatible(e.ty, p.currentfunctionRet):
+            type_error("incompatible type in 'return' statement")
+            note("expect " & $p.currentfunctionRet & ", but got " & $e.ty)
+            inTheExpression(e)
+        return Stmt(k: SReturn, exprbody: castto(e, p.currentfunctionRet))
     elif p.tok.tok == Kif:
         consume()
         if p.tok.tok != TLbracket:

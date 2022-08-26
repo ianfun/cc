@@ -1,9 +1,6 @@
-struct Foo
-{
-  int d;
-  char s;
-};
-struct Foo a;
+int xxx(double x){
+  return x;
+}
 
 /*#include "llvm-c/Core.h"
 #include "llvm-c/Error.h"

@@ -6,7 +6,8 @@
 
 {.passL: "-lLLVM-15".}
 
-import "."/[token, parser, llvm]
+import "."/[token, parser, llvm, appInstance]
+discard app
 newParser()
 p.filename = "<stdin>"
 p.path = "<stdin>"
@@ -20,10 +21,10 @@ when true:
         if newBackend():
             verbose("generate code to LLVM IR")
             gen(r)
-            #verbose("running LLVM optimize")
-            #optimize()
-            #verbose("verify LLVM module")
-            #verify()
+            verbose("running LLVM optimize")
+            optimize()
+            verbose("verify LLVM module")
+            verify()
             verbose("print module to file")
             writeModuleToFile("main.ll")
             #verbose("running jit")
