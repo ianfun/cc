@@ -15,6 +15,14 @@
 ## translation-unit:
 ##
 ## Source stream => Lexer => CPP => Parser => code generator => Optmizer => Write output(LLVM IR, Assembly)
+##
+## `myop.h` is defined as
+## ```C
+## #define myopand(a, b) ((a) && (b))
+## #define myopor(a, b) ((a) || (b))
+## #define myopnot(a) (!(a))
+## #define myopneg(a) (-(a))
+## ```
 
 import stream, token, pragmas
 import std/[unicode, math, times, tables]
@@ -32,7 +40,8 @@ proc expect(msg: string) =
     ## emit `expect ...` error message
     parse_error("expect " & msg & ", got " & showToken())
 
-proc inTheExpression(e: Expr) =
+proc inTheExpression*(e: Expr) =
+    ## emit in the expression message
     parse_error("in the expression " & $e)
 
 proc getToken*()
@@ -2061,10 +2070,6 @@ proc nextTok*() =
 
         eat()
 
-var
-  program*: seq[TokenV]
-  pc*: int = 0
-
 proc type_name*(): (CType, bool)
 
 proc expression*(): Expr
@@ -2149,10 +2154,15 @@ proc postfix*(e: Expr, op: PostfixOP, ty: CType): Expr =
 
 proc consume*() =
     ## eat token from lexer and c preprocesser
+    ##
+    ## alias for `getToken`
     getToken()
 
 proc eval_const_expression*(e: Expr): intmax_t =
-  evali(e)
+   ## run the constant expression
+   ##
+   ## if error, setting eval_error
+   evali(e)
 
 proc eval_const_expression_bool*(e: Expr): bool =
   evali(e) != 0
@@ -2189,6 +2199,7 @@ const declaration_specifier_set* =
     function_specifier_set ## declaration specfiers
 
 proc addTag(ty: var CType, t: Token): bool =
+    ## add a tag to type
     let t = (
         case t:
         of Kinline: TYINLINE
@@ -2214,6 +2225,7 @@ proc merge_types*(ts: seq[Token]): CType =
     ## merge many token to a type
     ##
     ## for example:
+    ##
     ##   `long long int const` => const long long
     if ts.len == 0:
         return nil
@@ -2354,9 +2366,11 @@ proc more(s: var seq[Token]) =
         consume()
 
 proc read_enum_sepcs*(c: var CType, sepc: Token) = 
+    # TODO: ...
     discard
 
 proc read_struct_union_sepcs*(c: var CType, sepc: Token) = 
+    # TODO: ...
     discard
 
 proc handle_typedef(s: var seq[Token], ty: CType): CType =
@@ -2425,7 +2439,9 @@ proc specifier_qualifier_list*(): CType =
 
 proc declarator*(base: CType; flags=Direct): Stmt =
     ## take a base type, return the final type and name
+    ##
     ## for example: `static   int     *foo`
+    ##
     ##                base-type    decorator
     var ty = base
     while p.tok.tok == TMul:
@@ -3616,9 +3632,9 @@ proc assignment_expression*(): Expr =
         return result
 
 proc translation_unit*(): Stmt =
-    ## parse a file, the entry point of program
+    ## parse top-level declaration until EOF reaches, the entry point of program
     ##
-    ## never return nil
+    ## never return nil, return a compound statement
     result = Stmt(k: SCompound)
     while p.tok.tok != TEOF:
         let s = declaration()
@@ -3628,10 +3644,14 @@ proc translation_unit*(): Stmt =
         result.stmts.add(s)
 
 proc runParser*(): Stmt =
+    ## eat first token and parse a translation_unit
+    ##
+    ## never return nil, return a compound statement
     getToken()
     return translation_unit()
 
 proc compound_statement*(): Stmt =
+    ## parse mant statements
     result = Stmt(k: SCompound)
     consume()
     enterBlock()
@@ -3898,4 +3918,3 @@ proc statament*(): Stmt =
         return nil
     consume()
     return Stmt(k: SExpr, exprbody: e)
-

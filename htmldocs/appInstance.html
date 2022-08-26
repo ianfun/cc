@@ -101,7 +101,14 @@ window.addEventListener('DOMContentLoaded', main);
 <li>
   <a class="reference reference-toplevel" href="#7" id="57">Types</a>
   <ul class="simple simple-toc-section">
-      <li><a class="reference" href="#VerboseLevel"
+      <li><a class="reference" href="#CC"
+    title="CC = object
+  optLevel*: cuint           ## 0 = -O0, 1 = -O1, 2 = -O2, 3 = -O3
+  sizeLevel*: cuint          ## 0 = none, 1 = -Os, 2 = -Oz
+  inlineThreshold*: cuint
+  output*: string
+  verboseLevel*: VerboseLevel">CC</a></li>
+  <li><a class="reference" href="#VerboseLevel"
     title="VerboseLevel = enum
   WError, WWarning, WNote, WVerbose">VerboseLevel</a></li>
 
@@ -132,6 +139,24 @@ class="link-seesrc" target="_blank">Source</a>
   <div class="section" id="7">
 <h1><a class="toc-backref" href="#7">Types</a></h1>
 <dl class="item">
+<div id="CC">
+<dt><pre><a href="appInstance.html#CC"><span class="Identifier">CC</span></a> <span class="Other">=</span> <span class="Keyword">object</span>
+  <span class="Identifier">optLevel</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">cuint</span>           <span class="Comment">## 0 = -O0, 1 = -O1, 2 = -O2, 3 = -O3</span>
+  <span class="Identifier">sizeLevel</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">cuint</span>          <span class="Comment">## 0 = none, 1 = -Os, 2 = -Oz</span>
+  <span class="Identifier">inlineThreshold</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">cuint</span>
+  <span class="Identifier">output</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
+  <span class="Identifier">verboseLevel</span><span class="Operator">*</span><span class="Other">:</span> <a href="appInstance.html#VerboseLevel"><span class="Identifier">VerboseLevel</span></a>
+</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/appInstance.nim#L5"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/appInstance.nim#L5" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
 <div id="VerboseLevel">
 <dt><pre><a href="appInstance.html#VerboseLevel"><span class="Identifier">VerboseLevel</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
   <span class="Identifier">WError</span><span class="Other">,</span> <span class="Identifier">WWarning</span><span class="Other">,</span> <span class="Identifier">WNote</span><span class="Other">,</span> <span class="Identifier">WVerbose</span></pre></dt>
@@ -151,7 +176,7 @@ class="link-seesrc" target="_blank">Source</a>
 <h1><a class="toc-backref" href="#8">Vars</a></h1>
 <dl class="item">
 <div id="app">
-<dt><pre><a href="appInstance.html#app"><span class="Identifier">app</span></a> <span class="Other">=</span> <span class="Identifier">CC</span><span class="Other">(</span><span class="Identifier">optLevel</span><span class="Other">:</span> <span class="Identifier">cuint</span><span class="Other">(</span><span class="DecNumber">0</span><span class="Other">)</span><span class="Other">,</span> <span class="Identifier">sizeLevel</span><span class="Other">:</span> <span class="Identifier">cuint</span><span class="Other">(</span><span class="DecNumber">0</span><span class="Other">)</span><span class="Other">,</span> <span class="Identifier">inlineThreshold</span><span class="Other">:</span> <span class="DecNumber">0</span><span class="Other">,</span>
+<dt><pre><a href="appInstance.html#app"><span class="Identifier">app</span></a> <span class="Other">=</span> <a href="appInstance.html#CC"><span class="Identifier">CC</span></a><span class="Other">(</span><span class="Identifier">optLevel</span><span class="Other">:</span> <span class="Identifier">cuint</span><span class="Other">(</span><span class="DecNumber">0</span><span class="Other">)</span><span class="Other">,</span> <span class="Identifier">sizeLevel</span><span class="Other">:</span> <span class="Identifier">cuint</span><span class="Other">(</span><span class="DecNumber">0</span><span class="Other">)</span><span class="Other">,</span> <span class="Identifier">inlineThreshold</span><span class="Other">:</span> <span class="DecNumber">0</span><span class="Other">,</span>
          <span class="Identifier">verboseLevel</span><span class="Other">:</span> <span class="Identifier">WNote</span><span class="Other">)</span></pre></dt>
 <dd>
 
@@ -173,7 +198,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-08-26 09:08:43 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-08-26 09:24:26 UTC</small>
       </div>
     </div>
   </div>

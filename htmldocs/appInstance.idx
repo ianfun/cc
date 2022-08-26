@@ -3,4 +3,5 @@ WWarning	appInstance.html#WWarning	VerboseLevel.WWarning
 WNote	appInstance.html#WNote	VerboseLevel.WNote	
 WVerbose	appInstance.html#WVerbose	VerboseLevel.WVerbose	
 VerboseLevel	appInstance.html#VerboseLevel	appInstance: VerboseLevel	
+CC	appInstance.html#CC	appInstance: CC	
 app	appInstance.html#app	appInstance: app	

@@ -1,5 +1,6 @@
 binop	parser.html#binop,Expr,BinOP,Expr,CType	parser: binop(a: Expr; op: BinOP; b: Expr; ty: CType): Expr	
 unary	parser.html#unary,Expr,UnaryOP,CType	parser: unary(e: Expr; op: UnaryOP; ty: CType): Expr	
+inTheExpression	parser.html#inTheExpression,Expr	parser: inTheExpression(e: Expr)	
 isprint	parser.html#isprint,cint	parser: isprint(a: cint): cint	
 hexs	parser.html#hexs	parser: hexs	
 isFloating	parser.html#isFloating,CType	parser: isFloating(ty: CType): bool	
@@ -44,8 +45,6 @@ read_pp_number	parser.html#read_pp_number,string,float,int	parser: read_pp_numbe
 constant_expression	parser.html#constant_expression	parser: constant_expression(): Expr	
 evali	parser.html#evali,Expr	parser: evali(e: Expr): intmax_t	
 nextTok	parser.html#nextTok	parser: nextTok()	
-program	parser.html#program	parser: program	
-pc	parser.html#pc	parser: pc	
 Direct	parser.html#Direct	DeclaratorFlags.Direct	
 Abstract	parser.html#Abstract	DeclaratorFlags.Abstract	
 Function	parser.html#Function	DeclaratorFlags.Function	
