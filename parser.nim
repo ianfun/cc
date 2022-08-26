@@ -16,10 +16,21 @@
 ##
 ## Source stream => Lexer => CPP => Parser => code generator => Optmizer => Write output(LLVM IR, Assembly)
 
-import typesystem
 import stream, token, pragmas
 import std/[unicode, math, times, tables]
 from std/sequtils import count
+
+proc binop*(a: Expr, op: BinOP, b: Expr, ty: CType): Expr = 
+    ## construct a binary operator
+    Expr(k: EBin, lhs: a, rhs: b, bop: op, ty: ty)
+
+proc unary*(e: Expr, op: UnaryOP, ty: CType): Expr = 
+    ## construct a unary operator
+    Expr(k: EUnary, uop: op, uoperand: e, ty: ty)
+
+proc expect(msg: string) =
+    ## emit `expect ...` error message
+    parse_error("expect " & msg & ", got " & showToken())
 
 proc getToken*()
 
@@ -32,22 +43,272 @@ const hexs*: cstring = "0123456789ABCDEF"
 proc builtin_Pragma() =
   getToken()
   if p.tok.tok != TLbracket:
-      parse_error("expect ')'")
+      expect("')'")
       note("the syntax is:\n\t_Pragma(<string>)")
   else:
       getToken()
       if p.tok.tok != TStringLit:
-          parse_error("expect string literal")
+          expect("expect string literal")
           note("the syntax is:\n\t_Pragma(<string>)")
       else:
           var pra = p.tok.s
           getToken()
           if p.tok.tok != TRbracket:
-              parse_error("expect ')'")
+              expect("')'")
           else:
               echo "pragma: ", pra
               getToken()
 
+const
+   sizoefint = sizeof(cint).csize_t
+   sizeofpointer = sizeof(pointer).csize_t
+
+proc isFloating*(ty: CType): bool =
+    bool(ty.tags and (TYFLOAT or TYDOUBLE))
+
+proc isSigned*(ty: CType): bool =
+    bool(ty.tags and (
+        TYBOOL or
+        TYINT8 or
+        TYINT16 or
+        TYINT16 or
+        TYINT32 or
+        TYINT64
+    ))
+
+proc getsizeof*(ty: CType): csize_t =
+    case ty.spec:
+    of TYPRIM:
+        if (ty.tags and TYVOID) != 0:
+            type_error("cannot get size of void")
+            0.csize_t
+        elif (ty.tags and TYBOOL) != 0:
+            1.csize_t
+        elif (ty.tags and TYINT8) != 0:
+            1.csize_t
+        elif (ty.tags and TYUINT8) != 0:
+            1.csize_t
+        elif (ty.tags and TYINT16) != 0:
+            2.csize_t
+        elif (ty.tags and TYUINT16) != 0:
+            2.csize_t
+        elif (ty.tags and TYINT32) != 0:
+            4.csize_t
+        elif (ty.tags and TYUINT32) != 0:
+            4.csize_t
+        elif (ty.tags and TYINT64) != 0:
+            8.csize_t
+        elif (ty.tags and TYUINT64) != 0:
+            8.csize_t
+        elif (ty.tags and TYFLOAT) != 0:
+            4.csize_t
+        elif (ty.tags and TYDOUBLE) != 0:
+            8.csize_t
+        else:
+            type_error("cannot get size of " & $ty)
+            0.csize_t
+    of TYPOINTER:
+        sizeofpointer
+    of TYSTRUCT:
+        var max = 0.csize_t
+        for (_, t) in ty.selems:
+            let tmp = getsizeof(t)
+            if tmp > max:
+                max = tmp
+        max
+    of TYUNION:
+        var sum = 0.csize_t
+        for (_, t) in ty.selems:
+            sum += getsizeof(t)
+        sum
+    of TYENUM:
+        sizoefint
+    of TYBITFIELD:
+        getsizeof(ty.bittype)
+    of TYARRAY:
+        csize_t(ty.arrsize) * getsizeof(ty.arrtype)
+    of TYFUNCTION:
+        sizeofpointer
+
+proc getsizeof*(e: Expr): csize_t =
+    getsizeof(e.ty)
+
+proc getAlignof*(ty: CType): csize_t =
+    getsizeof(ty)
+
+proc getAlignof*(e: Expr): csize_t =
+    getAlignof(e.ty)
+
+proc make_cast(e: Expr, tag: uint32): Expr =
+    return e
+
+proc to*(e: var Expr, tag: uint32) =
+    if e.ty.tags != tag:
+        e = make_cast(e, e.ty.tags)
+
+proc castto*(e: Expr, t: CType): Expr =
+    make_cast(e, t.tags)
+
+proc integer_promotions*(a: var Expr) =
+    if a.ty.spec == TYBITFIELD or getsizeof(a) < sizoefint:
+        to(a, TYINT)
+
+proc conv*(a, b: var Expr) =
+    a.ty.tags = a.ty.tags and prim
+    b.ty.tags = b.ty.tags and prim
+    if a.ty.spec != TYPRIM or b.ty.spec != TYPRIM:
+        return
+    if (a.ty.tags and TYLONGDOUBLE) != 0:
+        to(b, TYLONGDOUBLE)
+    elif (b.ty.tags and TYLONGDOUBLE) != 0:
+        to(a, TYLONGDOUBLE)
+    elif (a.ty.tags and TYDOUBLE) != 0:
+        to(b, TYDOUBLE)
+    elif (b.ty.tags and TYDOUBLE) != 0:
+        to(a, TYDOUBLE)
+    elif (a.ty.tags and TYFLOAT) != 0:
+        to(b, TYFLOAT)
+    elif (b.ty.tags and TYFLOAT) != 0:
+        to(a, TYFLOAT)
+    else:
+        integer_promotions(a)
+        integer_promotions(b)
+        if a.ty.tags == b.ty.tags:
+            return
+        let
+          sizeofa = getsizeof(a.ty)
+          sizeofb = getsizeof(b.ty)
+          isaunsigned = bool(a.ty.tags and unsigned)
+          isbunsigned = bool(b.ty.tags and unsigned)
+        if (isaunsigned and isbunsigned) or (isaunsigned == false and isbunsigned == false):
+            if sizeofa > sizeofb:
+                to(b, a.ty.tags)
+            else:
+                to(a, b.ty.tags)
+        else:
+            if isaunsigned and (sizeofa > sizeofb):
+                to(b, a.ty.tags)
+            elif isbunsigned and (sizeofb > sizeofa):
+                to(a, b.ty.tags)
+            elif isaunsigned==false and sizeofa > sizeofb:
+                to(b, a.ty.tags)
+            elif isbunsigned==false and sizeofb > sizeofa:
+                to(a, b.ty.tags)
+            else:
+                if isaunsigned:
+                    to(b, a.ty.tags)
+                else:
+                    to(a, b.ty.tags)
+
+
+proc compatible*(e: var CType, expected: CType): bool =
+    true
+
+proc varargs_conv*(e: var Expr) =
+    discard
+
+proc checkInteger*(a: CType, scalar=false): bool =
+    if a.spec != TYPRIM:
+        if scalar and a.spec == TYPOINTER:
+            return true
+        return false
+    if (a.tags and TYLONGDOUBLE) != 0:
+        return false
+    if (a.tags and TYDOUBLE) != 0:
+        return false
+    if (a.tags and TYFLOAT) != 0:
+        return false
+    if (a.tags and TYCOMPLEX) != 0:
+        return false
+    return true
+
+proc checkInteger*(a, b: Expr) =
+    let ok = checkInteger(a.ty) and checkInteger(b.ty)
+    if ok == false:
+        type_error("integer expected")
+
+proc checkScalar*(a, b: Expr) =
+    let ok = checkInteger(a.ty, scalar=true) and checkInteger(b.ty, scalar=true)
+    if ok == false:
+        type_error("scalar expected")
+
+proc checkArithmetic*(a: CType): bool =
+    if a.spec != TYPRIM:
+        return false
+    return true
+
+proc checkArithmetic*(a, b: Expr) =
+    let ok = checkArithmetic(a.ty) and checkArithmetic(b.ty)
+    if ok == false:
+        type_error("arithmetic type expected")
+
+proc checkSpec*(a, b: var Expr) =
+    if a.ty.spec != b.ty.spec:
+        type_error("operands type mismatch: " & $a & ", " & $b)
+    else:
+        checkScalar(a, b)
+        conv(a, b)
+
+proc make_add*(result, r: var Expr) =
+    if isFloating(result.ty):
+        result = binop(result, FAdd, r, r.ty)
+        conv(result, r)
+    else:
+        if result.ty.spec == TYPOINTER:
+            if checkInteger(r.ty) == false:
+                type_error("integer expected")
+            result = binop(result, SAddP, r, result.ty)
+        else:
+            checkScalar(result, r)
+            result = binop(result, if isSigned(r.ty): SAdd else: UAdd, r, r.ty)
+
+proc make_sub*(result, r: var Expr) =
+    if isFloating(result.ty):
+        result = binop(result, FSub, r, r.ty)
+        conv(result, r)
+    else:
+        if result.ty.spec == TYPOINTER:
+            if checkInteger(r.ty) == false:
+                type_error("integer expected")
+            result = binop(result, SAddP, unary(r, if isSigned(r.ty): SNeg else: UNeg, r.ty), result.ty)
+        else:
+            checkScalar(result, r)
+            result = binop(result, if isSigned(r.ty): SSub else: USub, r, r.ty) 
+
+proc make_shl*(result, r: var Expr) =
+    checkInteger(result, r)
+    integer_promotions(result)
+    integer_promotions(r)
+    result = binop(result, Shl, r, result.ty)
+
+proc make_shr*(result, r: var Expr) =
+    checkInteger(result, r)
+    integer_promotions(result)
+    integer_promotions(r)
+    if isSigned(r.ty):
+        result = binop(result, AShr, r, result.ty)
+    else:
+        result = binop(result, Shr, r, result.ty)
+
+proc make_bitop*(result, r: var Expr, op: BinOP) =
+    checkInteger(result, r)
+    conv(result, r)
+    result = binop(result, op, r, result.ty)
+
+proc make_mul*(result, r: var Expr) =
+    checkArithmetic(result, r)
+    conv(result, r)
+    result = binop(result, if isFloating(r.ty): FMul else: (if isSigned(r.ty): SMul else: UMul), r, r.ty)
+
+proc make_div*(result, r: var Expr) =
+    checkArithmetic(result, r)
+    conv(result, r)
+    result = binop(result, if isFloating(r.ty): FDiv else: (if isSigned(r.ty): SDiv else: UDiv), r, r.ty)
+
+proc make_rem*(result, r: var Expr) =
+    checkInteger(result, r)
+    conv(result, r)
+    result = binop(result, if isFloating(r.ty): FRem else: (if isSigned(r.ty): SRem else: URem)  ,r, r.ty)
 
 proc getMacro*(name: string): PPMacro =
   case name:
@@ -169,7 +430,7 @@ proc getToken*() =
 
 proc paste_token(a, b: TokenV): TokenV =
     var oldp = p
-    p = Parser(filenamestack: @["##"], pathstack: @["##"], flags: PFPP, line: 1, col: 1, ok: true, err: false, c: ' ', lastc: 256)
+    p = Parser(filenamestack: @["##"], pathstack: @["##"], flags: PFPP, line: 1, col: 1, ok: true, c: ' ', lastc: 256)
     p.tok = TokenV(tok: TNul, tags: TVNormal)
     result = TokenV(tok: TNul, tags: TVNormal)
     let s = stringizing(a) & stringizing(b)
@@ -1090,6 +1351,10 @@ proc conditional_expression*(): Expr
 proc constant_expression*(): Expr =
     conditional_expression()
 
+proc my_UNEG(a: uintmax_t): intmax_t {.importc: "myopneg", nodecl, header: "myop.h".}
+
+proc my_SNEG(a: intmax_t): intmax_t {.importc: "myopneg", nodecl, header: "myop.h".}
+
 proc `&&`(a, b: intmax_t): intmax_t {.importc: "myopand", nodecl, header: "myop.h".}
 
 proc `||`(a, b: intmax_t): intmax_t {.importc: "myopor", nodecl, header: "myop.h".}
@@ -1102,12 +1367,18 @@ proc evali*(e: Expr): intmax_t =
   case e.k:
   of EBin:
       case e.bop:
-      of Add:
+      of SAdd:
         evali(e.lhs) + evali(e.rhs)
-      of Sub:
+      of SSub:
         evali(e.lhs) - evali(e.rhs)
-      of Mul:
+      of SMul:
         evali(e.lhs) * evali(e.rhs)
+      of UAdd:
+        cast[intmax_t](cast[uintmax_t](evali(e.lhs)) + cast[uintmax_t](evali(e.rhs)))
+      of USub:
+        cast[intmax_t](cast[uintmax_t](evali(e.lhs)) - cast[uintmax_t](evali(e.rhs)))
+      of UMul:
+        cast[intmax_t](cast[uintmax_t](evali(e.lhs)) * cast[uintmax_t](evali(e.rhs)))
       of UDiv:
         cast[intmax_t](cast[uintmax_t](evali(e.lhs)) div cast[uintmax_t](evali(e.rhs)))
       of SDiv:
@@ -1151,30 +1422,32 @@ proc evali*(e: Expr): intmax_t =
       of LogicalOr:
         evali(e.lhs) || evali(e.rhs)
       else:
-        error("cannot eval constant-expression: " & $e)
+        eval_error("cannot eval constant-expression: " & $e)
         intmax_t(0)
   of EUnary:
     case e.uop:
     of Pos:
       evali(e.uoperand)
-    of Neg:
-      -evali(e.uoperand)
+    of UNeg:
+      cast[intmax_t](my_UNEG(cast[uintmax_t](evali(e.uoperand))))
+    of SNeg:
+      my_SNEG(evali(e.uoperand))
     of LogicalNot:
       ! evali(e.uoperand)
     of Not:
       not evali(e.uoperand)
     else:
-      error("cannot eval constant-expression: bad unary operator: " & $e)
+      eval_error("cannot eval constant-expression: bad unary operator: " & $e)
       intmax_t(0)
   of EIntLit:
     e.ival
   of EFloatLit:
-    error("floating constant in constant-expression")
+    eval_error("floating constant in constant-expression")
     intmax_t(0)
   of ECondition:
     if evali(e.cond) != 0: evali(e.cleft) else: evali(e.cright)
   else:
-    error("cannot eval constant-expression: " & $e)
+    eval_error("cannot eval constant-expression: " & $e)
     intmax_t(0)
 
 proc nextTok*() =
@@ -1808,16 +2081,6 @@ proc statament*(): Stmt
 
 proc compound_statement*(): Stmt
 
-proc binop*(a: Expr, op: BinOP, b: Expr, ty: CType): Expr = 
-    ## construct a binary operator
-    Expr(k: EBin, lhs: a, rhs: b, bop: op, ty: ty)
-
-
-proc unary*(e: Expr, op: UnaryOP, ty: CType): Expr = 
-    ## construct a unary operator
-    Expr(k: EUnary, uop: op, uoperand: e, ty: ty)
-
-
 proc postfix*(e: Expr, op: PostfixOP, ty: CType): Expr = 
     ## construct a postfix operator
     Expr(k: EPostFix, pop: op, poperand: e, ty: ty)
@@ -1825,10 +2088,6 @@ proc postfix*(e: Expr, op: PostfixOP, ty: CType): Expr =
 proc consume*() =
     ## eat token from lexer and c preprocesser
     getToken()
-
-proc expect(msg: string) =
-    ## emit `expect ...` error message
-    parse_error("expect " & msg & ", got " & showToken())
 
 proc eval_const_expression*(e: Expr): intmax_t =
   evali(e)
@@ -2130,7 +2389,7 @@ proc initializer_list*(): Expr =
         else:
             let e = assignment_expression()
             if e == nil:
-                error("expect expression")
+                parse_error("expect expression")
                 return nil
             result.arr.add(e)
         if p.tok.tok == TComma:
@@ -2173,7 +2432,7 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
         if p.tok.tok == TMul: # int arr[*]
           consume()
           if p.tok.tok != TRSquareBrackets:
-            error("expect ']'")
+            parse_error("expect ']'")
             note("the syntax is:\n\tint arr[*]")
             return nil
           return Stmt(k: SVarDecl1, var1name: name, var1type: ty)
@@ -2193,7 +2452,7 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
                 return nil
             ty.arrsize = eval_const_expression(e)
             if p.tok.tok != TRSquareBrackets:
-               error("expect ']'")
+               parse_error("expect ']'")
                return nil
         consume() # eat ]
         return direct_declarator_end(ty, name)
@@ -2211,10 +2470,14 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
             return nil
         consume()
         if p.tok.tok == TLcurlyBracket: # function definition
+            for (name, vty) in ty.params:
+                putsymtype(name, vty)
             let body = compound_statement()
             if body == nil:
                 expect("function body")
                 return nil
+            if len(body.stmts) == 0 or (body.stmts[^1].k != SReturn and body.stmts[^1].k != SGoto):
+                body.stmts &= Stmt(k: SReturn, exprbody: Expr(k: EDefault, ty: ty.ret))
             return Stmt(funcname: name, k: SFunction, functy: ty, funcbody: body)
         return direct_declarator_end(ty, name)
     else:
@@ -2262,7 +2525,7 @@ proc struct_union*(t: Token): CType =
         if p.tok.tok != TLcurlyBracket: # struct Foo
            return if t==Kstruct: getstructdef(name) else: getuniondef(name)
     elif p.tok.tok != TLcurlyBracket:
-        error("expect '{' for start anonymous struct/union")
+        parse_error("expect '{' for start anonymous struct/union")
         return nil
     if t == Kstruct:
         result = CType(tags: TYINVALID, spec: TYSTRUCT, sname: name)
@@ -2291,7 +2554,7 @@ proc struct_union*(t: Token): CType =
                 while true:
                     let e = struct_declarator(base)
                     if e[1] == nil:
-                        error("expect struct-declarator")
+                        parse_error("expect struct-declarator")
                         return nil
                     result.selems.add(e)
                     if p.tok.tok == TComma:
@@ -2333,7 +2596,7 @@ proc penum*(): CType =
         if p.tok.tok != TLcurlyBracket: # struct Foo
           return getenumdef(name)
     elif p.tok.tok != TLcurlyBracket:
-        error("expect '{' for start anonymous enum")
+        parse_error("expect '{' for start anonymous enum")
         return nil
     result = CType(tags: TYINVALID, spec: TYENUM, ename: name)
     consume()
@@ -2347,7 +2610,7 @@ proc penum*(): CType =
             consume()
             var e = constant_expression()
             c = eval_const_expression(e)
-            if p.err:
+            if err():
                 return nil
         result.eelems.add((s, c))
         putsymtype(s, enum_type)
@@ -2357,7 +2620,7 @@ proc penum*(): CType =
         else:
             break
     if p.tok.tok != TRcurlyBracket:
-        error("expect '}'")
+        parse_error("expect '}'")
     consume()
     if len(result.ename) > 0:
         putenumdef(result)
@@ -2529,7 +2792,11 @@ proc declaration*(): Stmt =
                 if init == nil:
                     expect("initializer-list")
                     return nil
-                result.vars[^1][2] = init
+                if st.var1type.spec == TYFUNCTION:
+                    type_error("function declaration has no initializer")
+                    note("only variables can be initialized")
+                else:
+                    result.vars[^1][2] = init
             if p.tok.tok == TComma:
                 consume()
             elif p.tok.tok == TSemicolon:
@@ -2551,7 +2818,9 @@ proc cast_expression*(): Expr =
                 return nil
             consume()
             let e = cast_expression()
-            return Expr(k: ECast, ty: n, castval: e)
+            if e == nil:
+                return nil
+            return castto(e, n)
         putToken()
         p.tok = TokenV(tok: TLbracket, tags: TVNormal)
     else:
@@ -2582,39 +2851,44 @@ proc unary_expression*(): Expr =
     let tok = p.tok.tok
     case tok:
     of TNot:
+        consume()
         let e = cast_expression()
         if e == nil:
             return nil
         result = unary(e, LogicalNot, CType(tags: TYINT, spec: TYPRIM))
         return result
-    of TMul, TBitAnd, TBitNot:
+    of TMul:
+        consume()
+        let e = cast_expression()
+        if e.ty.spec != TYPOINTER:
+            type_error("pointer expected")
+            return nil
+        result = unary(e, Dereference, e.ty.p)
+        return result
+    of TBitAnd, TBitNot:
         consume()
         let e = cast_expression()
         if e == nil:
             return nil
-        let op = (
-            case tok:
-            of TMul: Dereference
-            of TBitAnd: AddressOf
-            of TBitNot: Not
-            else: UNop
-        )
+        let op = if tok == TBitAnd: AddressOf else: Not
         result = unary(e, op, e.ty)
         integer_promotions(result)
         return result
-    of TAdd, TDash:
+    of TDash:
         consume()
         let e = unary_expression()
         if e == nil:
             return nil
-        let op = (
-            case tok:
-            of TAdd: Pos
-            of TDash: Neg
-            else: UNop
-        )
-        result = unary(e, op, e.ty)
         integer_promotions(result)
+        result = unary(e, if isSigned(e.ty): SNeg else: UNeg, e.ty)
+        return result
+    of TAdd:
+        consume()
+        let e = unary_expression()
+        if e == nil:
+            return nil
+        integer_promotions(result)
+        result = unary(e, Pos, e.ty)
         return result
     of TAddAdd, TSubSub:
         consume()
@@ -2702,7 +2976,7 @@ proc primary_expression*(): Expr =
             else:
                 tags = TYUINT32
         else:
-            assert false
+            unreachable()
         result = Expr(k: EIntLit, ival: p.tok.i, ty: CType(tags: tags, spec: TYPRIM))
         consume()
     of TNumberLit:
@@ -2739,11 +3013,7 @@ proc primary_expression*(): Expr =
                 return
         case enc:
         of 8:
-            var a: seq[Expr]
-            let ty = CType(tags: TYCHAR, spec: TYPRIM)
-            for i in s:
-                a.add(Expr(k: EIntLit, ival: cast[int](i), ty: ty))
-            return Expr(k: EArray, ty: CType(tags: TYINVALID, spec: TYPOINTER, p: ty) , arr: a)
+            return Expr(k: EString, str: s, ty: CType(tags: TYCONST, spec: TYPOINTER, p: CType(tags: TYCHAR, spec: TYPRIM)))
         of 16:
             var a: seq[Expr]
             let ty = CType(tags: TYUSHORT, spec: TYPRIM)
@@ -2757,7 +3027,7 @@ proc primary_expression*(): Expr =
                 a.add(Expr(k: EIntLit, ival: cast[int](i), ty: ty))
             return Expr(k: EArray, ty: CType(tags: TYINVALID, spec: TYPOINTER, p: ty), arr: a)
         else:
-            assert false
+            unreachable()
     of TPPNumber:
         var f: float
         var n: int
@@ -2787,7 +3057,7 @@ proc primary_expression*(): Expr =
             result = Expr(ty: CType(tags: TYUINT, spec: TYPRIM), k: EIntLit, ival: n)
             consume()
         else:
-            assert false
+            unreachable()
     of CPPident:
         result = Expr(k: EIntLit, ival: 0, ty: CType(tags: TYINT, spec: TYPRIM))  
         consume()
@@ -2907,7 +3177,10 @@ proc postfix_expression*(): Expr =
             note("maybe you mean: '->'")
         for i in 0..<len(e.ty.selems):
             if p.tok.s == e.ty.selems[i][0]:
-                return binop(e, (if isarrow: MemberAccess else: PointerMemberAccess), Expr(k: EVar, sval: p.tok.s), e.ty.selems[i][1])
+                consume()
+                if isarrow:
+                    return Expr(k: EPointerMemberAccess, obj: e, idx: i, ty: e.ty.selems[i][1])
+                return Expr(k: EMemberAccess, obj: e, idx: i, ty: e.ty.selems[i][1])
         type_error("struct/union " & $e.ty.sname & " has no member " & p.tok.s)
         return nil
     of TLbracket: # function call
@@ -2952,6 +3225,7 @@ proc postfix_expression*(): Expr =
                 type_error("incompatible type for argument " & $i & " for calling function " & $e)
                 note("expected " & $e.ty.params[i] & " but argument is of type " & $args[i].ty)
                 return nil
+            inc i
         if ivarargs:
             for j in i ..< len(args):
                 varargs_conv(args[i])
@@ -2985,25 +3259,19 @@ proc multiplicative_expression*(): Expr =
             var r = cast_expression()
             if r == nil:
                 return nil
-            checkArithmetic(result, r)
-            conv(result, r)
-            result = binop(result, if isFloating(r.ty): FMul else: Mul, r, r.ty)
+            make_mul(result, r)
         of TSlash:
             consume()
             var r = cast_expression()
             if r == nil:
                 return nil
-            checkArithmetic(result, r)
-            conv(result, r)
-            result = binop(result, if isFloating(r.ty): FDiv else: (if isSigned(r.ty): SDiv else: UDiv), r, r.ty)
+            make_div(result, r)
         of TPercent:
             consume()
             var r = cast_expression()
             if r == nil:
                 return nil
-            checkInteger(result, r)
-            conv(result, r)
-            result = binop(result, if isFloating(r.ty): FRem else: (if isSigned(r.ty): SRem else: URem)  ,r, r.ty)
+            make_rem(result, r)
         else:
             return result
 
@@ -3016,23 +3284,13 @@ proc additive_expression*(): Expr =
             var r = multiplicative_expression()
             if r == nil:
                 return nil
-            checkScalar(result, r)
-            conv(result, r)
-            if isFloating(r.ty):
-                result = binop(result, FAdd, r, r.ty)
-            else:
-                result = binop(result, Add, r, r.ty)
+            make_add(result, r)
         of TDash:
             consume()
             var r = multiplicative_expression()
             if r == nil:
                 return nil
-            checkScalar(result, r)
-            conv(result, r)
-            if isFloating(r.ty):
-                result = binop(result, FSub, r, r.ty)
-            else:
-                result = binop(result, Sub, r, r.ty)
+            make_sub(result, r)
         else:
             return result
 
@@ -3045,22 +3303,13 @@ proc shift_expression*(): Expr =
             var r = additive_expression()
             if r == nil:
                 return nil
-            checkInteger(result, r)
-            integer_promotions(result)
-            integer_promotions(r)
-            result = binop(result, Shl, r, result.ty)
+            make_shl(result, r)
         of Tshr:
             consume()
             var r = additive_expression()
             if r == nil:
                 return nil
-            checkInteger(result, r)
-            integer_promotions(result)
-            integer_promotions(r)
-            if isSigned(r.ty):
-                result = binop(result, AShr, r, result.ty)
-            else:
-                result = binop(result, Shr, r, result.ty)
+            make_shr(result, r)
         else:
             return result
 
@@ -3129,9 +3378,7 @@ proc AND_expression*(): Expr =
             var r = equality_expression()
             if r == nil:
                 return nil
-            checkInteger(result, r)
-            conv(result, r)
-            result = binop(result, And, r, result.ty)
+            make_bitop(result, r, And)
         else:
             return result
 
@@ -3144,9 +3391,7 @@ proc exclusive_OR_expression*(): Expr =
             var r = AND_expression()
             if r == nil:
                 return nil
-            checkInteger(result, r)
-            conv(result, r)
-            result = binop(result, Xor, r, result.ty)
+            make_bitop(result, r, Xor)
         else:
             return result
 
@@ -3159,9 +3404,7 @@ proc inclusive_OR_expression*(): Expr =
             var r = exclusive_OR_expression()
             if r == nil:
                 return nil
-            checkInteger(result, r)
-            conv(result, r)
-            result = binop(result, Or, r, result.ty)
+            make_bitop(result, r, Or)
         else:
             return result
 
@@ -3234,21 +3477,6 @@ proc conditional_expression*(): Expr =
       return conditional_expression(e)
     return e
 
-proc get_assignment_op(a: Token): BinOP =
-    case a:
-    of TAssign: Asign
-    of TAsignAdd: AsignAdd
-    of TAsignSub: AsignSub
-    of TAsignMul: AsignMul
-    of TAsignDiv: AsignDiv
-    of TAsignRem: AsignRem
-    of TAsignShl: AsignShl
-    of TAsignShr: AsignShr
-    of TAsignBitAnd: AsignBitAnd
-    of TAsignBitOr: AsignBitOr
-    of TAsignBitXor: AsignBitXor
-    else: Nop
-
 proc assignment_expression*(): Expr =
     result = logical_OR_expression()
     if result == nil:
@@ -3257,16 +3485,54 @@ proc assignment_expression*(): Expr =
     if tok == TQuestionMark:
         consume()
         return conditional_expression(result)
-    let op = get_assignment_op(tok)
-    if op != Nop:
-        consume()
+    if p.tok.tok in {TAssign, TAsignAdd, TAsignSub, 
+    TAsignMul, TAsignDiv, TAsignRem, TAsignShl, 
+    TAsignShr, TAsignBitAnd, TAsignBitOr, TAsignBitXor}: 
         var e = assignment_expression()
         if e == nil:
-            expect("expression")
-            note("the syntax is:\n\texpr1=expr2, expr3=expr4, ...")
             return nil
-        castto(e, result.ty)
-        result = binop(result, op, e, result.ty)
+        var lhs = deepCopy(result)
+        return binop(lhs, Assign,(
+            case tok:
+            of TAssign:
+                e
+            of TAsignAdd:
+                make_add(result, e)
+                result
+            of TAsignSub:
+                make_sub(result, e)
+                result
+            of TAsignMul:
+                make_mul(result, e)
+                result
+            of TAsignDiv:
+                make_div(result, e)
+                result
+            of TAsignRem:
+                make_rem(result, e)
+                result
+            of TAsignShl:
+                make_shl(result, e)
+                result
+            of TAsignShr:
+                make_shr(result, e)
+                result
+            of TAsignBitAnd:
+                make_bitop(result, e, And)
+                result
+            of TAsignBitOr:
+                make_bitop(result, e, Or)
+                result
+            of TAsignBitXor:
+                make_bitop(result, e, Xor)
+                result
+            else:
+                unreachable()
+                nil
+            )
+        , lhs.ty)
+    else:
+        return result
 
 proc translation_unit*(): Stmt =
     ## parse a file, the entry point of program
@@ -3344,24 +3610,24 @@ proc statament*(): Stmt =
         let l = getLabel(location)[0]
         consume()
         if p.tok.tok != TSemicolon:
-            error("expect ';'")
+            parse_error("expect ';'")
             return nil
         consume()
         if l == -1:
-            error("undeclared label " & location)
+            type_error("undeclared label " & location)
             return nil
         return Stmt(k: SGoto, location: location)
     elif p.tok.tok == Kcontinue:
         consume()
         if p.tok.tok != TSemicolon:
-            error("expect ';'")
+            parse_error("expect ';'")
             return nil
         consume()
         return Stmt(k: SContinue)
     elif p.tok.tok == Kbreak:
         consume()
         if p.tok.tok != TSemicolon:
-            error("expect ';'")
+            expect("';'")
             return nil
         consume()
         return Stmt(k: SBreak)
@@ -3375,7 +3641,7 @@ proc statament*(): Stmt =
             expect("expression")
             return nil
         if p.tok.tok != TSemicolon:
-            error("expect '}'")
+            expect("';'")
             return nil
         consume()
         return Stmt(k: SReturn, exprbody: e)
@@ -3429,12 +3695,17 @@ proc statament*(): Stmt =
         else:
             return Stmt(k: SSwitch, test: e, body: s)  
     elif p.tok.tok == Kfor:
+        # this are valid in C
+        # for(int a;;)                                                                                                                                          
+        # {                                                                                                                                                  
+        #    int a;                                                                                                                                        
+        # }
         consume()
+        enterBlock()
         if p.tok.tok != TLbracket:
             expect("'('")
             return nil
         consume()
-        enterBlock()
         # init-clause may be an expression or a declaration
         var init: Stmt = nil
         if istype(p.tok.tok):
@@ -3464,6 +3735,7 @@ proc statament*(): Stmt =
                 expect("';'")
                 return nil
         consume()
+        # incl-expression
         var forincl: Expr = nil
         if p.tok.tok != TRbracket:
             forincl = expression()
@@ -3474,12 +3746,12 @@ proc statament*(): Stmt =
                 expect("')'")
                 return nil
         consume()
-        let s = statament()
+        var s = statament()
         if s == nil:
             expect("statament")
             return nil
         leaveBlock()
-        return Stmt(k: SFor, forinit: init, forcond: cond, forincl: forincl, forbody: s)
+        return Stmt(k: SFor, forinit: init, forcond: cond, forbody: s, forincl: forincl)
     elif p.tok.tok == Kdo:
         consume()
         let s = statament()
@@ -3503,7 +3775,7 @@ proc statament*(): Stmt =
             return nil
         consume()
         if p.tok.tok != TSemicolon:
-            error("expect ';'")
+            expect("';'")
             return nil
         consume()
         return Stmt(k: SDoWhile, test: e, body: s)

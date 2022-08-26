@@ -1,6 +1,9 @@
 import std/[tables, times, sets, macrocache, strutils]
 import stream
 
+proc unreachable*() =
+  quit "control reaches unreachable code!"
+
 type
   Location = object
     line: int
@@ -145,20 +148,18 @@ type
       of VF:
         f*: float64
     PostfixOP* = enum
-      PNop="<nop>"
       PostfixIncrement="++", PostfixDecrement="--"
     UnaryOP* = enum
-      UNop
       Pos, # it like nop, but it will do integer promotion
-      Neg, FNeg,
+      UNeg, SNeg, FNeg,
       Not, AddressOf,
       PrefixIncrement, PrefixDecrement, Dereference, LogicalNot
     BinOP* = enum
       Nop=0,
       # Arithmetic operators
-      Add, FAdd, 
-      Sub, FSub,
-      Mul, FMul, # no SMul!
+      UAdd, SAdd, FAdd, 
+      USub, SSub, FSub,
+      UMul, SMul, FMul, # no SMul!
       UDiv, SDiv, FDiv, 
       URem, SRem, FRem,
       Shr, AShr, Shl, # or sar in GNU Assembly
@@ -166,21 +167,10 @@ type
       And, Xor, Or,
 
       LogicalAnd, LogicalOr, 
-      Asign,
-      AsignAdd,
-      AsignSub,
-      AsignMul,
-      AsignDiv,
-      AsignRem,
-      AsignShl,
-      AsignShr,
-      AsignBitAnd,
-      AsignBitOr,
-      AsignBitXor,
-      
+      Assign,
+      SAddP, # num add/sub pointer 
       Comma,
-      
-      MemberAccess=".", PointerMemberAccess="->",
+
       # compare operators
       EQ, NE, 
       UGT, UGE, ULT, ULE, 
@@ -188,7 +178,21 @@ type
       # ordered float compare
       FEQ, FNE, 
       FGT, FGE, FLT, FLE
-
+    # https://www.felixcloutier.com/x86/
+    # https://en.wikipedia.org/wiki/X86_instruction_listings
+    CastOp* = enum
+      Trunc,
+      ZExt,
+      SExt,
+      FPToUI, 
+      FPToSI, 
+      UIToFP, 
+      SIToFP, 
+      FPTrunc,
+      FPExt,
+      PtrToInt, 
+      IntToPtr, 
+      BitCast
     Codepoint* = uint32
     PPMacroFlags* = enum
       MOBJ, MFUNC, MBuiltin
@@ -232,7 +236,6 @@ type
         str*: string
         enc*: uint8
     Parser* = ref object
-      err*: bool
       fstack*: seq[Stream]
       filenamestack*, pathstack*: seq[string]
       locstack: seq[Location]
@@ -254,6 +257,11 @@ type
       typedefs*: seq[TableRef[string, (CType, Location)]]
       tokenq*: seq[TokenV]
       counter*: int
+      retTy*: CType # current return type
+      type_error*: bool
+      eval_error*: bool
+      parse_error*: bool
+      bad_error*: bool
     CTypeSpec* = enum
       TYPRIM,
       TYPOINTER,
@@ -338,8 +346,8 @@ type
         decl*: CType
     ExprKind* = enum
       EBin, EUnary, EPostFix, EIntLit, EFloatLit,
-      EVar, ECondition, ECast, ECall, ESubscript, 
-      EArray, EBackend
+      EVar, ECondition, ECast, ECall, ESubscript, EDefault,
+      EArray, EBackend, EString, EPointerMemberAccess, EMemberAccess
     Expr* = ref object
       ty*: CType
       case k*: ExprKind
@@ -356,6 +364,8 @@ type
         ival*: int
       of EFloatLit:
         fval*: float
+      of EString:
+        str*: string
       of EVar:
         sval*: string
       of EArray:
@@ -364,14 +374,20 @@ type
         cond*: Expr
         cleft*, cright*: Expr
       of ECast:
+        castop*: CastOp
         castval*: Expr
       of ECall:
         callfunc*: Expr
         callargs*: seq[Expr]
       of ESubscript:
         left*, right*: Expr
+      of EPointerMemberAccess, EMemberAccess:
+        obj*: Expr
+        idx*: int
       of EBackend:
         p*: pointer
+      of EDefault:
+        discard
 
 var p*: Parser = nil
 
@@ -384,6 +400,9 @@ type
     *: seq[TableRef[string, (CType, Location)]]
     typedefs*: seq[TableRef[string, (CType, Location)]]
 ]#
+
+proc err*(): bool =
+  p.type_error or p.parse_error or p.eval_error
 
 proc setParser*(a: var Parser) =
   p = a
@@ -596,6 +615,14 @@ proc `$`*(e: Expr): string =
   if e == nil:
     return "<nil>"
   case e.k:
+  of EDefault:
+    "<zero>"
+  of EMemberAccess:
+    $e.obj & '.' & $e.idx
+  of EPointerMemberAccess:
+    $e.obj & "->" & $e.idx
+  of EString:
+    repr(e.str)
   of EBin:
     '(' & $e.lhs & ' ' & $e.bop & ' ' & $e.rhs & ')'
   of EPostFix:
@@ -644,21 +671,25 @@ proc warning*(msg: string) =
   stderr.writeLine("\e[33m" & p.filename & ": " & $p.line & '.' & $p.col & ": warning: " & msg & "\e[0m")
 
 proc error*(msg: string) =
-    p.tok = TokenV(tok: TNul, tags: TVNormal)
-    if p.err == false:
+    if p.bad_error == false:
       stderr.writeLine("\e[31m" & p.filename & ": " & $p.line & '.' & $p.col & ": error: " & msg & "\e[0m")
-      p.err = true
+      p.bad_error = true
 
 proc type_error*(msg: string) =
-    if p.err == false:
+    if p.type_error == false:
       stderr.writeLine("\e[35m" & p.filename & ": " & $p.line & '.' & $p.col & ": type error: " & msg & "\e[0m")
-      p.err = true
+      p.type_error = true
 
 proc parse_error*(msg: string) =
     p.tok = TokenV(tok: TNul, tags: TVNormal)
-    if p.err == false:
+    if p.parse_error == false:
       stderr.writeLine("\e[34m" & p.filename & ": " & $p.line & '.' & $p.col & ": parse error: " & msg & "\e[0m")
-      p.err = true
+      p.parse_error = true
+
+proc eval_error*(msg: string) =
+    if p.eval_error == false:
+      stderr.writeLine("\e[34m" & p.filename & ": " & $p.line & '.' & $p.col & ": parse error: " & msg & "\e[0m")
+      p.eval_error = true
 
 proc verbose*(msg: string) =
   stdout.writeLine(msg)
@@ -849,12 +880,15 @@ proc stdin_hook*() =
   stdout.write(">>> ")
 
 proc reset*() =
+  p.bad_error = false
+  p.eval_error = false
+  p.parse_error = false
+  p.type_error = false
   p.want_expr = false
   p.counter = 0
   p.tok = TokenV(tok: TNul, tags: TVNormal)
   p.col = 1
   p.line = 1
-  p.err = false
   p.c = ' '
   p.lastc = 256
   p.flags = PFNormal

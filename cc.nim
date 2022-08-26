@@ -15,19 +15,19 @@ addStdin()
 
 when true:
     let r = runParser()
-    if p.err == false:
+    if err() == false:
         verbose("init LLVM backend")
         if newBackend():
             verbose("generate code to LLVM IR")
             gen(r)
-            verbose("running LLVM optimize")
-            optimize()
-            verbose("verify LLVM module")
-            verify()
+            #verbose("running LLVM optimize")
+            #optimize()
+            #verbose("verify LLVM module")
+            #verify()
             verbose("print module to file")
             writeModuleToFile("main.ll")
-            verbose("running jit")
-            runjit()
+            #verbose("running jit")
+            #runjit()
 
 when false:
     while p.tok.tok != TEOF:

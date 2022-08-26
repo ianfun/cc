@@ -9,3 +9,5 @@
 ./*.S
 ./*.s
 ./test.nim
+./test.c
+./test
