@@ -141,6 +141,9 @@ proc getsizeof*(ty: CType): csize_t =
         csize_t(ty.arrsize) * getsizeof(ty.arrtype)
     of TYFUNCTION:
         sizeofpointer
+    of TYINCOMPLETE:
+        error_incomplete(ty)
+        0.csize_t
 
 proc getsizeof*(e: Expr): csize_t =
     getsizeof(e.ty)
@@ -185,6 +188,20 @@ proc castto*(e: Expr, to: CType): Expr =
     if bool(e.ty.tags and TYVOID):
         type_error("cannot cast 'void' expression to type " & $to)
         return nil
+    if to.spec == TYINCOMPLETE:
+        error_incomplete(to)
+        return nil
+    if (to.spec == TYSTRUCT and e.ty.spec == TYSTRUCT) or (to.spec == TYUNION and e.ty.spec == TYUNION):
+        if to != e.ty:
+            type_error("cannot cast between different struct/unions")
+            return nil
+        return e
+    if e.ty.spec == TYENUM:
+        # cast enum to int
+        return castto(Expr(k: ECast, castop: BitCast, castval: e, ty: CType(tags: TYINT, spec: TYPRIM)), to)
+    if to.spec == TYENUM:
+        # cast xxx to int, then cast(bitcast) to enum
+        return Expr(k: ECast, castop: BitCast, castval: castto(e, CType(tags: TYINT, spec: TYPRIM)), ty: to)
     if checkInteger(e.ty, scalar=true) == false or checkInteger(to, scalar=true) == false:
         type_error("cast uoperand shall have scalar type")
         return nil
@@ -2553,6 +2570,7 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
             var body: Stmt
             block:
                 var oldRet = p.currentfunctionRet
+                p.currentfunctionRet = ty.ret
                 body = compound_statement()
                 p.currentfunctionRet = oldRet
             if body == nil:
@@ -2562,7 +2580,7 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
                 if bool(ty.ret.tags and TYVOID):
                     warning("no 'return' statement in a function should return a value")
                 body.stmts &= Stmt(k: SReturn, exprbody: if bool(ty.ret.tags and TYVOID): nil else: Expr(k: EDefault, ty: ty.ret))
-            return Stmt(funcname: name, k: SFunction, functy: CType(tags: TYINVALID, spec: TYPOINTER, p: ty), funcbody: body)
+            return Stmt(funcname: name, k: SFunction, functy: ty, funcbody: body)
         return direct_declarator_end(ty, name)
     else:
         return Stmt(k: SVarDecl1, var1name: name, var1type: base)
@@ -2837,6 +2855,23 @@ proc checkRetType(ty: CType) =
         if (ty.ret.tags and (TYTHREAD_LOCAL)) != 0:
             warning("'_Thread_local' in function has no effect")    
 
+proc checkInComplete(base: CType) =
+    case base.tag:
+    of TYSTRUCT:
+        type_error("variable has incomplete type `struct " & base.name & '`')
+        note("in forward references of `struct " & base.name & '`')
+        note("add struct definition before use")
+    of TYENUM:
+        type_error("variable has incomplete type `enum " & base.name & '`')
+        note("in forward references of `enum " & base.name & '`')
+        note("add struct definition before use")
+    of TYUNION:
+        type_error("variable has incomplete type `union " & base.name & '`')
+        note("in forward references of `union " & base.name & '`')
+        note("add union definition before use")
+    else:
+        unreachable()
+
 proc declaration*(): Stmt =
     ## parse variable declaration or function definition
     ## 
@@ -2865,6 +2900,9 @@ proc declaration*(): Stmt =
                 putsymtype(st.funcname, st.functy)
                 return st
             assert st.k == SVarDecl1
+            if st.var1type.spec == TYINCOMPLETE:
+                checkInComplete(st.var1type)
+                return nil
             if (st.var1type.tags and TYINLINE) != 0:
                 warning("inline declaration is in block scope has no effect")
             checkRetType(st.var1type)
@@ -3574,6 +3612,21 @@ proc conditional_expression*(): Expr =
       return conditional_expression(e)
     return e
 
+proc assignable(e: Expr): bool =
+    case e.k:
+    of EVar:
+        if e.ty.spec == TYARRAY:
+            type_error("array object is not assignable")
+            false
+        else:
+            true
+    of EUnary:
+        e.uop == Dereference
+    of EPostFix:
+        assignable(e.poperand)
+    else:
+        false
+
 proc assignment_expression*(): Expr =
     result = logical_OR_expression()
     if result == nil:
@@ -3587,6 +3640,9 @@ proc assignment_expression*(): Expr =
     TAsignShr, TAsignBitAnd, TAsignBitOr, TAsignBitXor}: 
         var e = assignment_expression()
         if e == nil:
+            return nil
+        if not assignable(e):
+            type_error("expression " & $e & " is not assignable")
             return nil
         var lhs = deepCopy(result)
         return binop(lhs, Assign,(

@@ -404,15 +404,17 @@ proc toBackendType*(ty: CType): Type =
           floatTypeInContext(b.ctx)
       elif (ty.tags and TYDOUBLE) != 0:
           doubleTypeInContext(b.ctx)
+      elif (ty.tags and TYVOID) != 0:
+          voidTypeInContext(b.ctx)
       else:
         unreachable()
         nil
       )
   of TYPOINTER:
-    if (ty.p.tags and TYVOID) != 0:
-      # `void*` is i8 in llvm
-      return pointerType(int8TypeInContext(b.ctx), 0)
-    return pointerType(toBackendType(ty.p), 0)
+    if app.opaquePointerEnabled:
+      return pointerTypeInContext(b.ctx, 0)
+    else:
+      return pointerType(voidTypeInContext(b.ctx), 0)
   of TYSTRUCT, TYUNION:
     if len(ty.sname) > 0:
       var old = getTags(ty.sname)
@@ -466,7 +468,7 @@ proc toBackendType*(ty: CType): Type =
           putVar(name, constInt(backendint(), val.culonglong, False))
         putTags(ty.ename, backendint())
     return backendint()
-  of TYBITFIELD:
+  of TYBITFIELD, TYINCOMPLETE:
     unreachable()
     return nil
 
@@ -880,16 +882,16 @@ proc neZero*(a: Expr): Expr =
 proc eqZero*(a: Expr): Expr =
   Expr(k: EBin, lhs: a, rhs: Expr(k: EBackend, p: cast[pointer](getZero(a.ty))), bop: EQ)
 
-proc load*(p: Value): Value =
-  buildLoad(b.builder, p, "load")
+proc load*(p: Value, t: Type): Value =
+  buildLoad2(b.builder, t, p, "load")
 
-proc incl*(p: Value) =
-  var l = load(p)
+proc incl*(p: Value, t: Type) =
+  var l = load(p, t)
   var l2 = buildAdd(b.builder, l, constInt(typeOfX(l), 1.culonglong, False), "incl")
   discard buildStore(b.builder, l2, p)
 
-proc decl*(p: Value) =
-  var l = load(p)
+proc decl*(p: Value, t: Type) =
+  var l = load(p, t)
   var l2 = buildSub(b.builder, l, constInt(typeOfX(l), 1.culonglong, False), "incl")
   discard buildStore(b.builder, l2, p)
 
@@ -910,16 +912,19 @@ proc getAddress*(e: Expr): Value =
     case e.pop:
     of PostfixIncrement:
       var basep = gen(e.obj)
-      incl(basep)
+      incl(basep, toBackendType(e.ty))
       basep
     of PostfixDecrement:
       var basep = gen(e.obj)
-      decl(basep)
+      decl(basep, toBackendType(e.ty))
       basep
   of ESubscript:
-    var basep = getAddress(e.left)
-    var r = gen(e.right)
-    buildInBoundsGEP2(b.builder, pointerType(toBackendType(e.ty), 0), basep, addr r, 1, "l.inx")
+    assert e.left.ty.spec == TYPOINTER # the left must be a pointer
+    var ty = toBackendType(e.left.ty.p) # get pointer element type
+    var v = getAddress(e.left) # lookup lvalue
+    var basep = load(v, ty) # load address in lvalue
+    var r = gen(e.right) # get index
+    buildInBoundsGEP2(b.builder, pointerType(ty, 0), basep, addr r, 1, "subs")
   else:
     unreachable()
     nil
@@ -930,12 +935,15 @@ proc getPointerElementType*(t: Type): Type =
 proc gen*(e: Expr): Value =
   case e.k:
   of ESubscript:
-    var basep = getAddress(e.left)
-    var r = gen(e.right)
-    var gaddr = buildInBoundsGEP2(b.builder, pointerType(toBackendType(e.ty), 0), basep, addr r, 1, "l.inx")
-    load(gaddr)
+    assert e.left.ty.spec == TYPOINTER # the left must be a pointer
+    var ty = toBackendType(e.left.ty.p) # get pointer element type
+    var v = getAddress(e.left) # lookup lvalue
+    var basep = load(v, ty) # load address in lvalue
+    var r = gen(e.right) # get index
+    var gaddr = buildInBoundsGEP2(b.builder, pointerType(ty, 0), basep, addr r, 1, "subs")
+    load(gaddr, ty) # return lvalue
   of EMemberAccess, EPointerMemberAccess:
-    load(getAddress(e))
+    load(getAddress(e), toBackendType(e.ty))
   of EString:
     gen_str(e.str)
   of EBackend:
@@ -995,11 +1003,19 @@ proc gen*(e: Expr): Value =
     of Dereference: buildLoad2(b.builder, toBackendType(e.ty), gen(e.uoperand), "deref")
     of LogicalNot: buildICmp(b.builder, IntEQ, gen(e.uoperand), getZero(e.ty), "logicnot")
   of EPostFix:
-    load(getAddress(e))
+    case e.pop:
+    of PostfixIncrement:
+      var basep = gen(e.obj)
+      incl(basep, toBackendType(e.ty))
+      load(basep, toBackendType(e.ty))
+    of PostfixDecrement:
+      var basep = gen(e.obj)
+      decl(basep, toBackendType(e.ty))
+      load(basep, toBackendType(e.ty))
   of EVar:
     var pvar = getVar(e.sval)
     assert pvar != nil
-    load(pvar)
+    load(pvar, toBackendType(e.ty))
   of ECondition:
     gen_condition(e.cond, e.cleft, e.cright)
   of ECast:
@@ -1010,27 +1026,23 @@ proc gen*(e: Expr): Value =
     else:
       constNull(toBackendType(e.ty))
   of ECall:
-    # getNamedFunction
-    var f = gen(e.callfunc) # eval function first
-    var ty = typeOfX(f)
-    var k = getTypeKind(ty)
-    if k == PointerTypeKind:
-      echo "pointer!"
-      f = load(f)
-      ty = typeOfX(f)
-    k = getTypeKind(ty)
-    if k != FunctionTypeKind:
-      llvm_error("llvm backend: attempt to call not FunctionTypeKind!")
-      nil
+    var f: Value
+    var ty: Type
+    if e.callfunc.ty.spec == TYPOINTER: # call from function pointer?
+      ty = toBackendType(e.callfunc.ty.p)
+      f = load(gen(e.callfunc), ty)
     else:
-      var l = len(e.callargs)
-      var args = create(Value, l or 1)
-      var arr = cast[ptr UncheckedArray[Value]](args)
-      for i in 0 ..< l:
-        arr[i] = gen(e.callargs[i]) # eval argument from left to right
-      var res = buildCall2(b.builder, ty, f, args, l.cuint, "call")
-      dealloc(args)
-      res
+      f = gen(e.callfunc) # LLVMGetNamedFunction
+      ty = toBackendType(e.ty)
+    assert getTypeKind(ty) == FunctionTypeKind
+    var l = len(e.callargs)
+    var args = create(Value, l or 1)
+    var arr = cast[ptr UncheckedArray[Value]](args)
+    for i in 0 ..< l:
+      arr[i] = gen(e.callargs[i]) # eval argument from left to right
+    var res = buildCall2(b.builder, ty, f, args, l.cuint, "call")
+    dealloc(args)
+    res
   of EStruct:
     var ty = toBackendType(e.ty)
     if len(e.arr) == 0:

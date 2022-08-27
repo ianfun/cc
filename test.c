@@ -1,8 +1,4 @@
-int xxx(double x){
-  return x;
-}
-
-/*#include "llvm-c/Core.h"
+#include "llvm-c/Core.h"
 #include "llvm-c/Error.h"
 #include "llvm-c/Initialization.h"
 #include "llvm-c/LLJIT.h"
@@ -14,7 +10,11 @@ int main() {
   LLVMInitializeCore(LLVMGetGlobalPassRegistry());
   LLVMInitializeNativeTarget();
   LLVMInitializeNativeAsmPrinter();
+  
+  LLVMContextSetOpaquePointers(LLVMGetGlobalContext(), 0);
+
   LLVMModuleRef M = LLVMModuleCreateWithName("demo");
+
   LLVMTypeRef ParamTypes[] = {};
   LLVMTypeRef SumFunctionType =
       LLVMFunctionType(LLVMInt32Type(), ParamTypes, 0, 0);
@@ -33,5 +33,6 @@ int main() {
   LLVMPrintModuleToFile(M, "main.ll", NULL);
 
   printf("%s\n", "OK!");
-}*/
+}
+
 

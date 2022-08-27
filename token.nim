@@ -2,7 +2,8 @@ import std/[tables, times, sets, macrocache, strutils]
 import stream, appInstance
 
 proc unreachable*() =
-  quit "control reaches unreachable code!"
+  assert false
+#  quit "control reaches unreachable code!"
 
 type
   Location = object
@@ -274,6 +275,7 @@ type
       TYBITFIELD,
       TYARRAY,
       TYFUNCTION,
+      TYINCOMPLETE
     CType* = ref object
       tags*: uint32
       case spec*: CTypeSpec
@@ -297,6 +299,9 @@ type
       of TYARRAY:
         arrsize*: intmax_t
         arrtype*: CType
+      of TYINCOMPLETE:
+        tag*: CTypeSpec
+        name*: string
     ConstantKind* = enum
       CsInt, CsULong, CsLong, CsULongLong, CsLongLong, 
       CsChar8, CsChar16, CsChar32,
@@ -564,6 +569,9 @@ proc `$`*(a: CType, level=0): string =
     return "<nil>"
   result = ""
   case a.spec:
+  of TYINCOMPLETE:
+    let s = if a.tag == TYSTRUCT:  "struct" else: (if a.tag == TYUNION: "union" else: "enum")
+    return s & ' ' & a.name & " <incomplete-type>"
   of TYPRIM: # format style: const int
       addTag(a.tags, result)
       let s = (
@@ -690,12 +698,15 @@ proc type_error*(msg: string) =
       stderr.writeLine("\e[35m" & p.filename & ": " & $p.line & '.' & $p.col & ": type error: " & msg & "\e[0m")
       p.type_error = true
 
+proc error_incomplete*(ty: CType) =
+  let s = if ty.tag == TYSTRUCT:  "struct" else: (if ty.tag == TYUNION: "union" else: "enum")
+  type_error("use of incomplete type '" & s & " " & ty.name & '\'')
+
 proc parse_error*(msg: string) =
     p.tok = TokenV(tok: TNul, tags: TVNormal)
     if p.parse_error == false:
       stderr.writeLine("\e[34m" & p.filename & ": " & $p.line & '.' & $p.col & ": parse error: " & msg & "\e[0m")
       p.parse_error = true
-
 
 proc eval_error*(msg: string) =
     if p.eval_error == false:
@@ -1011,9 +1022,7 @@ proc getstructdef*(name: string): CType =
     let res = getTag(name)
     result = res[0]
     if result == nil:
-        type_error("variable has incomplete type `struct " & name & '`')
-        note("in forward references of `struct " & name & '`')
-        note("add struct definition before use")
+        result = CType(tags: TYINVALID, spec: TYINCOMPLETE, tag: TYSTRUCT, name: name)
     elif result.spec != TYSTRUCT:
         type_error(name & " is not a struct")
 
@@ -1029,9 +1038,7 @@ proc getenumdef*(name: string): CType =
     let res = getTag(name)
     result = res[0]
     if result == nil:
-        type_error("variable has incomplete type `enum " & name & '`')
-        note("in forward references of `enum " & name & '`')
-        note("add struct definition before use")
+        result = CType(tags: TYINVALID, spec: TYINCOMPLETE, tag: TYENUM, name: name)
     elif result.spec != TYENUM:
         type_error(name & " is not a enum")
 
@@ -1047,9 +1054,7 @@ proc getuniondef*(name: string): CType =
     let res = getTag(name)
     result = res[0]
     if result == nil:
-        type_error("variable has incomplete type `union " & name & '`')
-        note("in forward references of `union " & name & '`')
-        note("add union definition before use")
+        result = CType(tags: TYINVALID, spec: TYINCOMPLETE, tag: TYUNION, name: name)
     elif result.spec != TYUNION:
         type_error(name & " is not a union")
 
