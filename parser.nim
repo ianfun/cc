@@ -82,19 +82,19 @@ proc unary*(e: Expr, op: UnaryOP, ty: CType): Expr =
 
 proc showToken*(): string =
   case p.tok.tok:
-  of TNumberLit: $p.tok.i
-  of TPPNumber: p.tok.s
-  of TCharLit: show(char(p.tok.i))
-  of TIdentifier: p.tok.s
-  of TFloatLit: $p.tok.f
-  of TStringLit: '"' & p.tok.s & '"'
+  of TNumberLit: "number " & $p.tok.i
+  of TPPNumber: "number" & p.tok.s
+  of TCharLit: "char " & show(char(p.tok.i))
+  of TIdentifier: "identifier " & p.tok.s
+  of TFloatLit: "float " & $p.tok.f
+  of TStringLit: "string \"" & p.tok.s & '"'
   of TEOF: "<EOF>"
   of TNul: "<null>"
   else:
     if p.tok.tok < T255:
-      show(chr(int(p.tok.tok)))
+      "char " & show(chr(int(p.tok.tok)))
     else:
-      $p.tok.tok
+      "keyword " & $p.tok.tok
 
 proc tokensEq(a, b: seq[TokenV]): bool =
   if a.len != b.len:
@@ -387,8 +387,8 @@ proc isFloating*(ty: CType): bool =
     bool(ty.tags and (TYFLOAT or TYDOUBLE))
 
 proc isSigned*(ty: CType): bool =
+    ## `_Bool` is not signed
     bool(ty.tags and (
-        TYBOOL or
         TYINT8 or
         TYINT16 or
         TYINT16 or
@@ -424,7 +424,14 @@ proc getsizeof*(e: Expr): culonglong =
     getsizeof(e.ty)
 
 proc getAlignof*(ty: CType): culonglong =
-    getsizeof(ty)
+    if ty.spec == TYFUNCTION:
+        return 1
+    if ty.spec == TYENUM:
+        return sizeofint
+    if ty.spec == TYINCOMPLETE:
+        error_incomplete(ty)
+        return 0
+    app.getAlignOf(ty)
 
 proc getAlignof*(e: Expr): culonglong =
     getAlignof(e.ty)
@@ -448,6 +455,17 @@ proc checkScalar(a: CType): bool =
         )
     )
 
+proc intRank*(a: uint32): int =
+    if bool(a and TYBOOL):
+        return 1
+    if bool(a and (TYINT8 or TYUINT8)):
+        return 2
+    if bool(a and (TYINT16 or TYUINT16)):
+        return 3
+    if bool(a and (TYINT32 or TYUINT32)):
+        return 4
+    return 5
+
 proc intcast*(e: Expr, to: CType): Expr = 
     if bool(to.tags and (TYINT8 or TYINT16 or TYINT32 or TYINT64 or 
         TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64)) and 
@@ -455,8 +473,8 @@ proc intcast*(e: Expr, to: CType): Expr =
         TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64 or TYBOOL)):
         if to.tags == e.ty.tags:
             return Expr(k: ECast, castop: BitCast, castval: e, ty: to)
-        if to.tags > e.ty.tags:
-            if isSigned(to):
+        if intRank(to.tags) > intRank(e.ty.tags):
+            if isSigned(to) and not bool(e.ty.tags and TYBOOL):
                 return Expr(k: ECast, castop: SExt, castval: e, ty: to)
             else:
                 return Expr(k: ECast, castop: ZExt, castval: e, ty: to)
@@ -525,19 +543,19 @@ proc castto*(e: Expr, to: CType): Expr =
         if to.spec == TYPOINTER:
             return Expr(k: ECast, castop: IntToPtr, castval: e, ty: to)
         if bool(to.tags and (TYFLOAT or TYDOUBLE)):
-            if isSigned(to):
-                return Expr(k: ECast, castop: FPToSI, castval: e, ty: to)
+            if isSigned(e.ty):
+                return Expr(k: ECast, castop: SIToFP, castval: e, ty: to)
             else:
-                return Expr(k: ECast, castop: FPToUI, castval: e, ty: to)
+                return Expr(k: ECast, castop: UIToFP, castval: e, ty: to)
     elif bool(to.tags and (TYINT8 or TYINT16 or TYINT32 or TYINT64 or 
         TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64)):
         if e.ty.spec == TYPOINTER:
             return Expr(k: ECast, castop: PtrToInt, castval: e, ty: to)
         if bool(e.ty.tags and (TYFLOAT or TYDOUBLE)):
-            if isSigned(e.ty):
-                return Expr(k: ECast, castop: SIToFP, castval: e, ty: to)
+            if isSigned(to):
+                return Expr(k: ECast, castop: FPToSI, castval: e, ty: to)
             else:
-                return Expr(k: ECast, castop: UIToFP, castval: e, ty: to)
+                return Expr(k: ECast, castop: FPToUI, castval: e, ty: to)
     return intcast(e, to)
 
 proc to*(e: var Expr, tag: uint32) =
@@ -1041,6 +1059,12 @@ proc merge_types*(ts: seq[Token]): CType =
         return nil
       result.tags = result.tags or (if bool(unsigned): TYUCHAR else: TYCHAR)
       return result
+    if bool(i):
+      if (i + su) != len(b):
+        type_error("extra `int` declaration specifier")
+        return nil
+      result.tags = result.tags or (if bool(unsigned): TYUINT else: TYINT)
+      return result
     type_error("cannot combine types: " & $b)
     return nil
 
@@ -1496,6 +1520,22 @@ proc declaration_specifiers*(): CType =
     warning("type defaults to 'int' in declaration")
     return CType(tags: TYINVALID or TYINT, spec: TYPRIM)
 
+proc parse_asm*(): Stmt =
+   consume() # eat asm
+   if p.tok.tok != TLbracket:
+       expectLB()
+       return nil
+   consume() # eat '('
+   if p.tok.tok != TStringLit:
+       expect("string literal")
+       return nil
+   result = Stmt(k: SAsm, asms: p.tok.str)
+   consume() # eat string
+   if p.tok.tok != TRbracket:
+       expectRB()
+       return nil
+   consume() # eat ')'
+
 proc static_assert*(): Stmt =
     consume()
     if p.tok.tok != TLbracket:
@@ -1574,7 +1614,7 @@ proc declaration*(): Stmt =
     ## this is different from ISO C grammar
     if p.tok.tok == K_Static_assert:
         return static_assert()
-    else:
+    block:
         var base = declaration_specifiers()
         if base == nil:
             expect("declaration-specifiers")
@@ -1622,7 +1662,7 @@ proc declaration*(): Stmt =
                     type_error("function declaration has no initializer")
                     note("only variables can be initialized")
                 else:
-                    result.vars[^1][2] = init
+                    result.vars[^1][2] = castto(init, st.var1type)
             if p.tok.tok == TComma:
                 consume()
             elif p.tok.tok == TSemicolon:
@@ -2642,7 +2682,7 @@ proc assignment_expression*(): Expr =
             expectExpression()
             return nil
         var lhs = deepCopy(result)
-        return binop(lhs, Assign,(
+        return binop(lhs, Assign, castto(
             case tok:
             of TAssign:
                 e
@@ -2679,8 +2719,7 @@ proc assignment_expression*(): Expr =
             else:
                 unreachable()
                 nil
-            )
-        , lhs.ty)
+            , lhs.ty), lhs.ty)
     else:
         return result
 
@@ -2689,10 +2728,18 @@ proc translation_unit*(): Stmt =
     ##
     ## never return nil, return a compound statement
     result = Stmt(k: SCompound)
+    var s: Stmt
     while p.tok.tok != TEOF:
-        let s = declaration()
+        if p.tok.tok == KAsm:
+           s = parse_asm()
+           if p.tok.tok != TSemicolon:
+             expect("';'")
+             s = nil
+           consume()
+        else:
+           s = declaration()
         if s == nil:
-            break
+          break
         echo s
         result.stmts.add(s)
 
@@ -2724,6 +2771,13 @@ proc compound_statement*(): Stmt =
 
 proc statament*(): Stmt =
     ## parse a statement
+    if p.tok.tok == KAsm:
+        result = parse_asm()
+        if p.tok.tok != TSemicolon:
+           expect("';'")
+           return nil
+        consume()
+        return result
     if p.tok.tok == TSemicolon:
         consume()
         return Stmt(k: SSemicolon)

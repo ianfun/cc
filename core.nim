@@ -83,7 +83,7 @@ type Token* = enum
   Kunsigned="unsigned", Kvoid="void", Kvolatile="volatile", 
   Kwhile="while", Kconst="const", Kbreak="break",
   K_Alignas="_Alignas", K_Alignof="_Alignof", K_Atomic="_Atomic", 
-  K_Bool="_Bool", K_Complex="Complex", 
+  K_Bool="_Bool", K_Complex="Complex", K_asm="__asm__"
   K_Decimal128="_Decimal128", K_Decimal32="_Decimal32", 
   K_Decimal64="_Decimal64", K_Generic="_Generic", 
   K_Imaginary="_Imaginary", K_Noreturn="_Noreturn", K_Static_assert="_Static_assert",
@@ -279,7 +279,7 @@ type
         enc*: uint8
     StmtKind* = enum
       SSemicolon, SCompound, SGoto, SContinue, SBreak, SReturn, SExpr, SLabled, SIf, 
-      SDoWhile, SWhile, SFor, SSwitch, SDeclOnly, 
+      SDoWhile, SWhile, SFor, SSwitch, SDeclOnly, SAsm
       SVarDecl, SDefault, SCase, SFunction, SVarDecl1
     StmtList* = seq[Stmt] # compound_stmt, { body }
     Stmt* = ref object
@@ -288,6 +288,8 @@ type
         funcname*: string
         functy*: CType
         funcbody*: Stmt
+      of SAsm:
+        asms*: string
       of SCompound:
         stmts*: StmtList
       of SDefault:
@@ -469,6 +471,8 @@ proc `$`*(a: Stmt, level=0): string =
   if a == nil:
     return "<nil>"
   case a.k:
+  of SAsm:
+    "__asm__(" & a.asms & ')'
   of SFunction:
     "Function " & a.funcname & " :\n" & $a.functy & `$`(a.funcbody, level + 1)
   of SVarDecl1:
@@ -607,7 +611,7 @@ proc `$`*(e: Expr): string =
   of ECondition:
     $e.cond & '?' & $e.cleft & ':' & $e.cright
   of ECast:
-    '(' & $e.ty & ')' & $e.castval
+    '(' & $e.ty & ')' & $e.castval & "(" & $e.castop & ')'
   of ESubscript:
     $e.left & '[' & $e.right & ']'
   of ECall:
@@ -759,6 +763,7 @@ type
       pointersize*: culonglong
       getSizeof*: proc (ty: CType): culonglong
       getoffsetof*: proc (ty: CType, idx: int): culonglong
+      getAlignOf*: proc (ty: CType): culonglong
 
       ## lexer
       lex*: proc ()
@@ -774,7 +779,7 @@ type
       pragmas*: proc (p: string)
 
 var app* = CC(
-    optLevel: 0.cuint, 
+    optLevel: 3.cuint, 
     sizeLevel: 0.cuint, 
     inlineThreshold: 0, 
     verboseLevel: WVerbose, 

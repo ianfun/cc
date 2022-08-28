@@ -122,6 +122,8 @@ include LLVMTarget
 
 proc typeOfX*(val: ValueRef): TypeRef {.importc: "LLVMTypeOf".}
 
+proc constIntIsZero*(constantVal: ValueRef): Bool {.importc: "LLVMConstIntIsZero".}
+
 proc `$`*(v: ValueRef): string =
   let tmp = v.printValueToString()
   result = $tmp
@@ -238,16 +240,21 @@ proc llvm_error*(msg: cstring) =
 
 proc wrap*(ty: CType): Type
 
-proc llvmGetsizeof*(ty: CType): culonglong =
-  ## the type cannot be nil or void!
-  storeSizeOfType(b.layout, wrap(ty))
+proc wrap2*(ty: CType): Type
 
-proc llvmOffsetof*(ty: CType, idx: int): culonglong =
+proc llvmGetAlignOf*(ty: CType): culonglong =
+  aBIAlignmentOfType(b.layout, wrap2(ty))
+
+proc llvmGetsizeof*(ty: CType): culonglong =
+  storeSizeOfType(b.layout, wrap2(ty))
+
+proc llvmGetOffsetof*(ty: CType, idx: int): culonglong =
   offsetOfElement(b.layout, wrap(ty), cuint(idx))
 
 proc newBackend*(module_name: cstring = "main", source_file: cstring = nil) =
   initializeCore(getGlobalPassRegistry())
   initializeNativeTarget()
+  initializeNativeAsmParser()
   initializeNativeAsmPrinter()
   initializeAllAsmParsers()
   b = Backend(
@@ -272,9 +279,20 @@ proc dumpVersionInfo*() =
   var arr = [cstring("llvm"), cstring("--version")]
   parseCommandLineOptions(2, cast[cstringArray](addr arr[0]), nil)
 
+proc handle_asm(s: string) =
+  if b.currentfunction == nil:
+    # module level asm
+    appendModuleInlineAsm(b.module, cstring(s), len(s).csize_t)
+  else:
+    var asmtype = functionType(voidTypeInContext(b.ctx), nil, 0, False)
+    var f = getInlineAsm(asmtype, cstring(s), len(s).csize_t, nil, 0, True, False, InlineAsmDialectATT, False)
+    var c = buildCall2(b.builder, asmtype, f, nil, 0, "") 
+    setTailCall(c, True)
+
 proc setBackend*() =
   app.getSizeof = llvmGetsizeof
-  app.getoffsetof = llvmOffsetof
+  app.getoffsetof = llvmGetOffsetof
+  app.getAlignOf = llvmGetAlignOf
   newBackend()
   app.pointersize = pointerSize(b.layout)
 
@@ -431,6 +449,42 @@ proc load*(p: Value, t: Type): Value =
 
 proc store*(p: Value, v: Value) =
   discard buildStore(b.builder, v, p)
+
+proc wrap2*(ty: CType): Type =
+  case ty.spec:
+  of TYPRIM:
+    return (
+      if (ty.tags and (TYINT8 or TYUINT8)) != 0:
+          int8TypeInContext(b.ctx)
+      elif (ty.tags and (TYINT16 or TYUINT16)) != 0:
+          int16TypeInContext(b.ctx)
+      elif (ty.tags and (TYINT32 or TYUINT32)) != 0:
+          int32TypeInContext(b.ctx)
+      elif (ty.tags and (TYINT64 or TYUINT64)) != 0:
+          int64TypeInContext(b.ctx)
+      elif (ty.tags and TYFLOAT) != 0:
+          floatTypeInContext(b.ctx)
+      elif (ty.tags and TYDOUBLE) != 0:
+          doubleTypeInContext(b.ctx)
+      elif (ty.tags and TYVOID) != 0:
+          voidTypeInContext(b.ctx)
+      else:
+        unreachable()
+        nil
+      )
+  of TYPOINTER:
+    return pointerTypeInContext(b.ctx, 0)
+  of TYSTRUCT, TYUNION:
+    let l = len(ty.selems)
+    var buf = create(Type, l or 1)
+    var arr = cast[ptr UncheckedArray[Type]](buf)
+    for i in 0 ..< l:
+      arr[i] = wrap(ty.selems[i][1])
+    return structTypeInContext(b.ctx, buf, cuint(l), False)
+  of TYARRAY:
+    return arrayType(wrap(ty.arrtype), cuint(ty.arrsize))
+  of TYINCOMPLETE, TYBITFIELD, TYENUM, TYFUNCTION:
+    unreachable()
 
 proc wrap*(ty: CType): Type =
   ## wrap a CType to LLVM Type
@@ -895,6 +949,8 @@ proc gen*(s: Stmt) =
     discard buildBr(b.builder, b.topContinue)
   of SBreak:
     discard buildBr(b.builder, b.topBreak)
+  of SAsm:
+    handle_asm(s.asms)
   of SSwitch:
     unreachable()
   of SDefault:
@@ -1119,6 +1175,7 @@ proc gen*(e: Expr): Value =
       arr[i] = gen(e.callargs[i]) # eval argument from left to right
     var res = buildCall2(b.builder, ty, f, args, l.cuint, "")
     dealloc(args)
+    setTailCall(res, True)
     res
   of EStruct:
     var ty = wrap(e.ty)

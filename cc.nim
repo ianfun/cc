@@ -4,7 +4,8 @@
 ##
 ## run `llvm-config --system-libs -libs` to get your libs
 
-{.passL: "-lLLVM-15".}
+{.passL: "-lLLVM-15 llvmAPI".}
+
 
 import core
 
