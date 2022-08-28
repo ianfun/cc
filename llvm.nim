@@ -11,7 +11,7 @@
 ##
 ## the main export function is `gen()`
 ##
-## application should call setBackend to set this backend before call `app.getSizeof()`, and newBackend to initialize backend before call `gen()`
+## application should call setBackend to initialize backend, call `app.getSizeof()` to get sizeof CType, and call `gen()` to build whole *translation-unit* to single LLVM Module
 ##
 ## when there no need for calling `gen()` function, call `shutdownBackend()` to shutdown LLVM
 ##
@@ -236,14 +236,11 @@ proc llvm_error*(msg: cstring) =
 
 proc wrap*(ty: CType): Type
 
-proc llvmGetsizeof*(ty: CType): int =
+proc llvmGetsizeof*(ty: CType): culonglong =
   ## the type cannot be nil or void!
-  storeSizeOfType(b.layout, wrap(ty)).int
+  storeSizeOfType(b.layout, wrap(ty))
 
-proc setBackend*() =
-  app.getSizeof = llvmGetsizeof
-
-proc newBackend*(module_name: cstring = "main", source_file: cstring = nil): bool =
+proc newBackend*(module_name: cstring = "main", source_file: cstring = nil) =
   initializeCore(getGlobalPassRegistry())
   initializeNativeTarget()
   initializeNativeAsmPrinter()
@@ -261,12 +258,14 @@ proc newBackend*(module_name: cstring = "main", source_file: cstring = nil): boo
   let tr = getDefaultTargetTriple()
   if getTargetFromTriple(tr, addr b.target, nil) == True:
     llvm_error("LLVMGetTargetFromTriple failed")
-    return false
   b.machine = createTargetMachine(b.target, tr, "", "", CodeGenLevelDefault, RelocDefault, CodeModelDefault)
   b.layout = createTargetDataLayout(b.machine)
   setModuleDataLayout(b.module, b.layout)
   setTarget(b.module, tr)
-  return true
+
+proc setBackend*() =
+  app.getSizeof = llvmGetsizeof
+  newBackend()
 
 proc enterScope*() =
   ## not token.enterBlock

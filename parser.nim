@@ -366,9 +366,12 @@ proc isprint*(a: cint): cint {.importc: "isprint", nodecl, header: "ctype.h".}
 
 const hexs*: cstring = "0123456789ABCDEF"
 
-const
-   sizoefint = sizeof(cint).csize_t
-   sizeofpointer = sizeof(pointer).csize_t
+when TYINT == TYINT32:
+    const sizeofint = 4.culonglong
+else:
+    const sizeofint = 8.culonglong
+
+const sizeofpointer = sizeof(pointer).culonglong
 
 proc isFloating*(ty: CType): bool =
     bool(ty.tags and (TYFLOAT or TYDOUBLE))
@@ -383,70 +386,37 @@ proc isSigned*(ty: CType): bool =
         TYINT64
     ))
 
-proc getsizeof*(ty: CType): csize_t =
-    case ty.spec:
-    of TYPRIM:
-        if (ty.tags and TYVOID) != 0:
-            type_error("cannot get size of void")
-            0.csize_t
-        elif (ty.tags and TYBOOL) != 0:
-            1.csize_t
-        elif (ty.tags and TYINT8) != 0:
-            1.csize_t
-        elif (ty.tags and TYUINT8) != 0:
-            1.csize_t
-        elif (ty.tags and TYINT16) != 0:
-            2.csize_t
-        elif (ty.tags and TYUINT16) != 0:
-            2.csize_t
-        elif (ty.tags and TYINT32) != 0:
-            4.csize_t
-        elif (ty.tags and TYUINT32) != 0:
-            4.csize_t
-        elif (ty.tags and TYINT64) != 0:
-            8.csize_t
-        elif (ty.tags and TYUINT64) != 0:
-            8.csize_t
-        elif (ty.tags and TYFLOAT) != 0:
-            4.csize_t
-        elif (ty.tags and TYDOUBLE) != 0:
-            8.csize_t
-        else:
-            type_error("cannot get size of " & $ty)
-            0.csize_t
-    of TYPOINTER:
-        sizeofpointer
-    of TYSTRUCT:
-        var max = 0.csize_t
-        for (_, t) in ty.selems:
-            let tmp = getsizeof(t)
-            if tmp > max:
-                max = tmp
-        max
-    of TYUNION:
-        var sum = 0.csize_t
-        for (_, t) in ty.selems:
-            sum += getsizeof(t)
-        sum
-    of TYENUM:
-        sizoefint
-    of TYBITFIELD:
-        getsizeof(ty.bittype)
-    of TYARRAY:
-        csize_t(ty.arrsize) * getsizeof(ty.arrtype)
-    of TYFUNCTION:
-        sizeofpointer
-    of TYINCOMPLETE:
+proc getsizeof*(ty: CType): culonglong =
+    if ty.spec == TYINCOMPLETE:
         error_incomplete(ty)
-        0.csize_t
+        return 0
+    if ty.spec == TYPRIM:
+        if (ty.tags and TYVOID) != 0:
+            type_error("cannot get sizeof void")
+            return 0
+        if (ty.tags and (TYINT8 or TYUINT8)) != 0:
+          return 1
+        if (ty.tags and (TYINT16 or TYUINT16)) != 0:
+          return 2
+        if (ty.tags and (TYINT32 or TYUINT32)) != 0:
+          return 4
+        if (ty.tags and (TYINT64 or TYUINT64)) != 0:
+            return 8
+    if ty.spec == TYBITFIELD:
+        return getSizeof(ty.bittype)
+    if ty.spec == TYENUM:
+        return sizeofint
+    if ty.spec == TYPOINTER:
+        return sizeofpointer
+    return app.getSizeof(ty)
 
-proc getsizeof*(e: Expr): csize_t =
+proc getsizeof*(e: Expr): culonglong =
     getsizeof(e.ty)
 
-proc getAlignof*(ty: CType): csize_t =
+proc getAlignof*(ty: CType): culonglong =
     getsizeof(ty)
 
-proc getAlignof*(e: Expr): csize_t =
+proc getAlignof*(e: Expr): culonglong =
     getAlignof(e.ty)
 
 proc checkInteger*(a: CType): bool =
@@ -564,13 +534,13 @@ proc to*(e: var Expr, tag: uint32) =
         e = castto(e, CType(tags: tag, spec: TYPRIM))
 
 proc integer_promotions*(e: Expr): Expr =
-    if e.ty.spec == TYBITFIELD or getsizeof(e) < sizoefint:
+    if e.ty.spec == TYBITFIELD or getsizeof(e) < sizeofint:
         castto(e, CType(tags: TYINT, spec: TYPRIM))
     else:
         e
 
 proc integer_promotions*(e: var Expr) =
-    if e.ty.spec == TYBITFIELD or getsizeof(e) < sizoefint:
+    if e.ty.spec == TYBITFIELD or getsizeof(e) < sizeofint:
         to(e, TYINT)
 
 proc conv*(a, b: var Expr) =

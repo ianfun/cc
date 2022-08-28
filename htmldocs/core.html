@@ -119,7 +119,7 @@ window.addEventListener('DOMContentLoaded', main);
   output*: string
   verboseLevel*: VerboseLevel
   opaquePointerEnabled*: bool
-  getSizeof*: proc (ty: CType): int
+  getSizeof*: proc (ty: CType): culonglong
   lex*: proc ()
   cpp*: proc ()
   eval_const_expression*: proc (e: Expr): intmax_t
@@ -683,7 +683,7 @@ class="link-seesrc" target="_blank">Source</a>
   <span class="Identifier">output</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
   <span class="Identifier">verboseLevel</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#VerboseLevel"><span class="Identifier">VerboseLevel</span></a>
   <span class="Identifier">opaquePointerEnabled</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span>
-  <span class="Identifier">getSizeof</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="core.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">int</span>
+  <span class="Identifier">getSizeof</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="core.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">culonglong</span>
   <span class="Identifier">lex</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Other">)</span>
   <span class="Identifier">cpp</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Other">)</span>
   <span class="Identifier">eval_const_expression</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">e</span><span class="Other">:</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">)</span><span class="Other">:</span> <a href="core.html#intmax_t"><span class="Identifier">intmax_t</span></a>
@@ -2096,7 +2096,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-08-28 00:08:32 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-08-28 00:30:44 UTC</small>
       </div>
     </div>
   </div>

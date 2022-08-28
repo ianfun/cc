@@ -749,7 +749,7 @@ type
       output*: string
       verboseLevel*: VerboseLevel
       opaquePointerEnabled*: bool
-      getSizeof*: proc (ty: CType): int
+      getSizeof*: proc (ty: CType): culonglong
       lex*: proc ()
       cpp*: proc ()
       eval_const_expression*: proc (e: Expr): intmax_t

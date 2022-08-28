@@ -43,10 +43,10 @@ isprint	parser.html#isprint,cint	parser: isprint(a: cint): cint
 hexs	parser.html#hexs	parser: hexs	
 isFloating	parser.html#isFloating,CType	parser: isFloating(ty: CType): bool	
 isSigned	parser.html#isSigned,CType	parser: isSigned(ty: CType): bool	
-getsizeof	parser.html#getsizeof,CType	parser: getsizeof(ty: CType): csize_t	
-getsizeof	parser.html#getsizeof,Expr	parser: getsizeof(e: Expr): csize_t	
-getAlignof	parser.html#getAlignof,CType	parser: getAlignof(ty: CType): csize_t	
-getAlignof	parser.html#getAlignof,Expr	parser: getAlignof(e: Expr): csize_t	
+getsizeof	parser.html#getsizeof,CType	parser: getsizeof(ty: CType): culonglong	
+getsizeof	parser.html#getsizeof,Expr	parser: getsizeof(e: Expr): culonglong	
+getAlignof	parser.html#getAlignof,CType	parser: getAlignof(ty: CType): culonglong	
+getAlignof	parser.html#getAlignof,Expr	parser: getAlignof(e: Expr): culonglong	
 checkInteger	parser.html#checkInteger,CType	parser: checkInteger(a: CType): bool	
 intcast	parser.html#intcast,Expr,CType	parser: intcast(e: Expr; to: CType): Expr	
 type_equal	parser.html#type_equal,CType,CType	parser: type_equal(a, b: CType): bool	
