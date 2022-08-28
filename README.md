@@ -1,5 +1,7 @@
 # cc
 
+![](screenshots.png)
+
 C Compiler written in [Nim](https://nim-lang.org/)
 
 ## About
