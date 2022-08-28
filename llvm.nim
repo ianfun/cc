@@ -17,8 +17,9 @@
 ##
 ## `runjit()` will run module.
 
-import std/[tables]
+import std/[tables, exitprocs]
 import core, parser
+
 
 type
   OpaqueMemoryBuffer*{.pure, final.} = object
@@ -225,6 +226,7 @@ type
       topBreak*: Label
       topContinue*: Label
       target*: TargetRef
+      triple*: cstring
 
 var b*: Backend
 
@@ -239,6 +241,9 @@ proc wrap*(ty: CType): Type
 proc llvmGetsizeof*(ty: CType): culonglong =
   ## the type cannot be nil or void!
   storeSizeOfType(b.layout, wrap(ty))
+
+proc llvmOffsetof*(ty: CType, idx: int): culonglong =
+  offsetOfElement(b.layout, wrap(ty), cuint(idx))
 
 proc newBackend*(module_name: cstring = "main", source_file: cstring = nil) =
   initializeCore(getGlobalPassRegistry())
@@ -255,17 +260,23 @@ proc newBackend*(module_name: cstring = "main", source_file: cstring = nil) =
   b.module = moduleCreateWithNameInContext(module_name, b.ctx)
   if source_file != nil:
     setSourceFileName(b.module, source_file, source_file.len.csize_t)
-  let tr = getDefaultTargetTriple()
-  if getTargetFromTriple(tr, addr b.target, nil) == True:
+  b.triple = getDefaultTargetTriple()
+  if getTargetFromTriple(b.triple, addr b.target, nil) == True:
     llvm_error("LLVMGetTargetFromTriple failed")
-  b.machine = createTargetMachine(b.target, tr, "", "", CodeGenLevelDefault, RelocDefault, CodeModelDefault)
+  b.machine = createTargetMachine(b.target, b.triple, "", "", CodeGenLevelAggressive, RelocDefault, CodeModelDefault)
   b.layout = createTargetDataLayout(b.machine)
   setModuleDataLayout(b.module, b.layout)
-  setTarget(b.module, tr)
+  setTarget(b.module, b.triple)
+
+proc dumpVersionInfo*() =
+  var arr = [cstring("llvm"), cstring("--version")]
+  parseCommandLineOptions(2, cast[cstringArray](addr arr[0]), nil)
 
 proc setBackend*() =
   app.getSizeof = llvmGetsizeof
+  app.getoffsetof = llvmOffsetof
   newBackend()
+  app.pointersize = pointerSize(b.layout)
 
 proc enterScope*() =
   ## not token.enterBlock
@@ -307,6 +318,8 @@ proc putTags*(name: string, t: Type) =
   b.tags[^1][name] = t
 
 proc shutdownBackend*() =
+  if b.triple != nil:
+    disposeMessage(b.triple)
   shutdown()
 
 proc writeBitcodeToFile*(path: string) =
@@ -391,14 +404,33 @@ proc gen_int*(i: culonglong, tags: uint32): Value =
 proc gen_float*(f: float, tag: uint32): Value =
   constReal(if (tag and TYFLOAT) != 0: floatTypeInContext(b.ctx) else: doubleTypeInContext(b.ctx), f)
 
-proc gen_str*(val: string): Value =
-  buildGlobalStringPtr(b.builder, val, "str")
+proc gen_str*(val: string, ty: var Type): Value =
+  var gstr = constStringInContext(b.ctx, cstring(val), len(val).cuint, False)
+  ty = typeOfX(gstr)
+  result = addGlobal(b.module, ty, "")
+  setGlobalConstant(result, True)
+  setLinkage(result, PrivateLinkage)
+  setInitializer(result, gstr)
+
+proc gen_str_ptr*(val: string): Value =
+  var ty: Type
+  var s = gen_str(val, ty)
+  var zero = constInt(int32Type(), 0, False)
+  var indices = [zero, zero]
+  buildInBoundsGEP2(b.builder, pointerType(ty, 0), s, addr indices[0], 2, "")
 
 proc backendint*(): Type =
+    ## note: we do not used `intTypeInContext()` for int
     if TYINT == TYINT32:
       int32TypeInContext(b.ctx)
     else:
       int64TypeInContext(b.ctx)
+
+proc load*(p: Value, t: Type): Value =
+  buildLoad2(b.builder, t, p, "load")
+
+proc store*(p: Value, v: Value) =
+  discard buildStore(b.builder, v, p)
 
 proc wrap*(ty: CType): Type =
   ## wrap a CType to LLVM Type
@@ -429,20 +461,30 @@ proc wrap*(ty: CType): Type =
     if app.opaquePointerEnabled:
       return pointerTypeInContext(b.ctx, 0)
     else:
-      return pointerType(voidTypeInContext(b.ctx), 0)
+      # `return pointerType(voidTypeInContext(b.ctx), 0)`
+      # clang use `i8*` for `void*` and `char*`
+      return pointerType(int8TypeInContext(b.ctx), 0)
   of TYSTRUCT, TYUNION:
     if len(ty.sname) > 0:
-      var old = getTags(ty.sname)
-      if old != nil:
-        return old
+      # try to find old definition or declaration
+      result = getTags(ty.sname)
+      if result != nil:
+        if isOpaqueStruct(result) == False:
+          # the struct has call setBody, do nothing
+          return result
+      else:
+        # the struct name is not created
+        # create a opaque struct
+        result = structCreateNamed(b.ctx, cstring(ty.sname))
       let l = len(ty.selems)
       var buf = create(Type, l or 1)
       var arr = cast[ptr UncheckedArray[Type]](buf)
       for i in 0 ..< l:
         arr[i] = wrap(ty.selems[i][1])
-      result = structCreateNamed(b.ctx, cstring(ty.sname))
+      # set struct body
       structSetBody(result, buf, cuint(l), False)
       dealloc(buf)
+      # record it
       putTags(ty.sname, result)
       return result
 
@@ -452,7 +494,6 @@ proc wrap*(ty: CType): Type =
     for i in 0 ..< l:
       arr[i] = wrap(ty.selems[i][1])
     result = structTypeInContext(b.ctx, buf, cuint(l), False)
-
   of TYFUNCTION:
     let l = len(ty.params)
     var buf = create(Type, l or 1)
@@ -476,14 +517,24 @@ proc wrap*(ty: CType): Type =
   of TYARRAY:
     return arrayType(wrap(ty.arrtype), cuint(ty.arrsize))
   of TYENUM:
-    if len(ty.ename) > 0:
-      let s = getTags(ty.ename)
-      if s == nil:
-        for (name, val) in ty.eelems:
-          putVar(name, constInt(backendint(), val.culonglong, False))
-        putTags(ty.ename, backendint())
     return backendint()
-  of TYBITFIELD, TYINCOMPLETE:
+  of TYINCOMPLETE:
+    case ty.tag:
+    of TYSTRUCT:
+      result = getTags(ty.sname)
+      if result != nil:
+        return result
+      return structCreateNamed(b.ctx, cstring(ty.sname))
+    of TYUNION:
+      result = getTags(ty.sname)
+      if result != nil:
+        return result
+      return structCreateNamed(b.ctx, cstring(ty.sname))
+    of TYENUM:
+      return backendint()
+    else:
+      unreachable()
+  of TYBITFIELD:
     unreachable()
     return nil
 
@@ -793,9 +844,9 @@ proc gen*(s: Stmt) =
         var i = 0
         var iter = getFirstParam(b.currentfunction)
         while iter != nil:
-          var val = buildAlloca(b.builder, typesarr[i], cstring(s.functy.params[i][0]))
-          discard buildStore(b.builder, iter, val)
-          putVar(s.functy.params[i][0], val)
+          var p = buildAlloca(b.builder, typesarr[i], cstring(s.functy.params[i][0]))
+          store(p, iter)
+          putVar(s.functy.params[i][0], p)
           iter = getNextParam(iter)
           inc i
         dealloc(fparamsTypes)
@@ -877,13 +928,13 @@ proc gen*(s: Stmt) =
           else:
             if (varty.tags and TYREGISTER) != 0:
               warning("register is not supported in LLVM backend")
-            setLinkage(g, CommonLinkage)
+          # setLinkage(g, CommonLinkage)
           putVar(name, g)
         else:
           var val = buildAlloca(b.builder, ty, cstring(name))
           if init != nil:
             let initv = gen(init)
-            discard buildStore(b.builder, initv, val)
+            store(val, initv)
           putVar(name, val)
   of SVarDecl1:
     unreachable()
@@ -896,18 +947,15 @@ proc neZero*(a: Expr): Expr =
 proc eqZero*(a: Expr): Expr =
   Expr(k: EBin, lhs: a, rhs: Expr(k: EBackend, p: cast[pointer](getZero(a.ty))), bop: EQ)
 
-proc load*(p: Value, t: Type): Value =
-  buildLoad2(b.builder, t, p, "load")
-
 proc incl*(p: Value, t: Type) =
   var l = load(p, t)
   var l2 = buildAdd(b.builder, l, constInt(t, 1.culonglong, False), "incl")
-  discard buildStore(b.builder, l2, p)
+  store(p, l2)
 
 proc decl*(p: Value, t: Type) =
   var l = load(p, t)
   var l2 = buildSub(b.builder, l, constInt(t, 1.culonglong, False), "incl")
-  discard buildStore(b.builder, l2, p)
+  store(p, l2)
 
 proc getAddress*(e: Expr): Value =
   # return address
@@ -948,6 +996,11 @@ proc getPointerElementType*(t: Type): Type =
 
 proc gen*(e: Expr): Value =
   case e.k:
+  of ArrToAddress:
+    var arr = getAddress(e.voidexpr)
+    var ty = wrap(e.ty.p)
+    var idx = [constInt(int32Type(), 0, False), constInt(int32Type(), 0, False)]
+    buildInBoundsGEP2(b.builder, ty, arr, addr idx[0], 2, "")
   of ESubscript:
     assert e.left.ty.spec == TYPOINTER # the left must be a pointer
     var ty = wrap(e.left.ty.p) # get pointer element type
@@ -959,11 +1012,16 @@ proc gen*(e: Expr): Value =
   of EMemberAccess, EPointerMemberAccess:
     load(getAddress(e), wrap(e.ty))
   of EString:
-    gen_str(e.str)
+    gen_str_ptr(e.str)
   of EBackend:
     cast[Value](e.p)
   of EBin:
     case e.bop:
+    of Assign:
+      var v = gen(e.rhs)
+      let basep = getAddress(e.lhs)
+      store(basep, v)
+      load(basep, wrap(e.ty))
     of SAdd:
       var l = gen(e.lhs)
       var r = gen(e.rhs)
@@ -1011,20 +1069,20 @@ proc gen*(e: Expr): Value =
     of UNeg: buildNeg(b.builder, gen(e.uoperand), "uneg")
     of FNeg: buildFNeg(b.builder, gen(e.uoperand), "fneg")
     of Not: buildNot(b.builder, gen(e.uoperand), "not")
-    of AddressOf: nil
+    of AddressOf: getAddress(e.uoperand)
     of PrefixIncrement: 
       var ty = wrap(e.ty)
       let basep = getAddress(e.uoperand)
       var l = load(basep, ty)
       var l2 = buildAdd(b.builder, l, constInt(ty, 1.culonglong, False), "incl")
-      discard buildStore(b.builder, l2, basep)
+      store(basep, l2)
       load(basep, ty)
     of PrefixDecrement:
       var ty = wrap(e.ty)
       let basep = getAddress(e.uoperand)
       var l = load(basep, ty)
       var l2 = buildSub(b.builder, l, constInt(ty, 1.culonglong, False), "incl")
-      discard buildStore(b.builder, l2, basep)
+      store(basep, l2)
       load(basep, ty)
     of Dereference: buildLoad2(b.builder, wrap(e.ty), gen(e.uoperand), "deref")
     of LogicalNot: buildICmp(b.builder, IntEQ, gen(e.uoperand), getZero(e.ty), "logicnot")
@@ -1052,21 +1110,14 @@ proc gen*(e: Expr): Value =
     else:
       constNull(wrap(e.ty))
   of ECall:
-    var f: Value
-    var ty: Type
-    if e.callfunc.ty.spec == TYPOINTER: # call from function pointer?
-      ty = wrap(e.callfunc.ty.p)
-      f = load(gen(e.callfunc), ty)
-    else:
-      f = gen(e.callfunc) # LLVMGetNamedFunction
-      ty = wrap(e.ty)
-    assert getTypeKind(ty) == FunctionTypeKind
+    var ty = wrap(e.callfunc.ty)
+    var f = getAddress(e.callfunc)
     var l = len(e.callargs)
     var args = create(Value, l or 1)
     var arr = cast[ptr UncheckedArray[Value]](args)
     for i in 0 ..< l:
       arr[i] = gen(e.callargs[i]) # eval argument from left to right
-    var res = buildCall2(b.builder, ty, f, args, l.cuint, "call")
+    var res = buildCall2(b.builder, ty, f, args, l.cuint, "")
     dealloc(args)
     res
   of EStruct:
@@ -1100,10 +1151,8 @@ proc gen*(e: Expr): Value =
         ret
 
 proc gen_cast*(e: Expr, to: CType, op: CastOp): Value =
-  echo e
-  echo to
-  echo op
-  buildCast(b.builder, getCastOp(op), gen(e), wrap(to), "cast")
+  var c = gen(e)
+  buildCast(b.builder, getCastOp(op), c, wrap(to), "cast")
 
 proc jit_error*(msg: string) =
   stderr.writeLine("llvm jit error: " & msg)
@@ -1185,10 +1234,11 @@ proc runjit*() =
 
     dealloc(mainargs)
 
+    exitprocs.setProgramResult(ret)
+
     verbose("main() return: " & $ret)
 
     err = orcDisposeLLJIT(jit)
     if err != nil:
       jit_error(err)
       return
-

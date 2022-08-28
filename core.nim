@@ -141,7 +141,7 @@ const ## optional type tags
   TYREGISTER* = make_ty()
   TYTHREAD_LOCAL* = make_ty()
   TYTYPEDEF* = make_ty()
-  TYEXPR* = make_ty() # internal flag
+  TYLVALUE* = make_ty()
 
 const ## basic types
   ## note: they value ordered by bit size!
@@ -325,11 +325,12 @@ type
     ExprKind* = enum
       EBin, EUnary, EPostFix, EIntLit, EFloatLit, EVoid,
       EVar, ECondition, ECast, ECall, ESubscript, EDefault,
-      EArray, EStruct, EBackend, EString, EPointerMemberAccess, EMemberAccess
+      EArray, EStruct, EBackend, EString, 
+      EPointerMemberAccess, EMemberAccess, ArrToAddress
     Expr* = ref object
       ty*: CType
       case k*: ExprKind
-      of EVoid:
+      of EVoid, ArrToAddress:
         voidexpr*: Expr 
       of EBin:
         lhs*, rhs*: Expr
@@ -579,6 +580,8 @@ proc `$`*(e: Expr): string =
   case e.k:
   of EVoid:
     "(void)" & $e.voidexpr
+  of ArrToAddress:
+    $e.voidexpr
   of EDefault:
     "<zero>"
   of EStruct:
@@ -621,12 +624,13 @@ proc initCore() =
   for k in int(KwStart)..int(KwEnd):
     gkeywordtable[$cast[Token](k)] = cast[Token](k)
 
-template init*(lexer, cpp, parser, backend): untyped =
+template init*(lexer, cpp, parser, eval, backend): untyped =
   initCore()
-  import lexer, cpp, parser, backend
+  import lexer, cpp, parser, eval, backend
   setLexer()
   setCpp()
   setParser()
+  setEval()
   setBackend()
 
 template shutdown*() =
@@ -743,16 +747,29 @@ iterator getDefines*(): (string, seq[TokenV]) =
 
 type
     CC*{.final.} = object
+      ## command line options
       optLevel*: cuint ## 0 = -O0, 1 = -O1, 2 = -O2, 3 = -O3
       sizeLevel*: cuint ## 0 = none, 1 = -Os, 2 = -Oz
       inlineThreshold*: cuint
       output*: string
       verboseLevel*: VerboseLevel
       opaquePointerEnabled*: bool
+
+      ## backend
+      pointersize*: culonglong
       getSizeof*: proc (ty: CType): culonglong
+      getoffsetof*: proc (ty: CType, idx: int): culonglong
+
+      ## lexer
       lex*: proc ()
+
+      ## C preprocessor
       cpp*: proc ()
+
+      ## constant evaluator
       eval_const_expression*: proc (e: Expr): intmax_t
+
+      ## pragma handler
       pragma*: proc (tokens: seq[TokenV])
       pragmas*: proc (p: string)
 

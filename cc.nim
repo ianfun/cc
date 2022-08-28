@@ -8,7 +8,7 @@
 
 import core
 
-core.init(lexer, cpp, parser, llvm)
+core.init(lexer, cpp, parser, eval, llvm)
 p.filename = "<stdin>"
 p.path = "<stdin>"
 verbose("compiling")
@@ -17,7 +17,6 @@ addStdin()
 let r = runParser()
 
 if err() == false:
-    verbose("init LLVM backend")
     verbose("generate code to LLVM IR")
     gen(r)
     verbose("running LLVM optimize")
@@ -26,7 +25,7 @@ if err() == false:
     verify()
     verbose("print module to file")
     writeModuleToFile("main.ll")
-    #verbose("running jit")
-    #runjit()
+    verbose("running jit")
+    runjit()
 
 core.shutdown()

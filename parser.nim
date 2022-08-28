@@ -138,6 +138,18 @@ proc expect*(msg: string) =
     ## emit `expect ...` error message
     parse_error("expect " & msg & ", got " & showToken())
 
+proc expectExpression*() =
+    expect("expression")
+
+proc expectStatement*() =
+    expect("statement")
+
+proc expectLB*() =
+    expect("'('")
+
+proc expectRB*() =
+    expect("')'")
+
 proc err*(): bool =
   p.type_error or p.parse_error or p.eval_error
 
@@ -371,8 +383,6 @@ when TYINT == TYINT32:
 else:
     const sizeofint = 8.culonglong
 
-const sizeofpointer = sizeof(pointer).culonglong
-
 proc isFloating*(ty: CType): bool =
     bool(ty.tags and (TYFLOAT or TYDOUBLE))
 
@@ -407,7 +417,7 @@ proc getsizeof*(ty: CType): culonglong =
     if ty.spec == TYENUM:
         return sizeofint
     if ty.spec == TYPOINTER:
-        return sizeofpointer
+        return app.pointersize
     return app.getSizeof(ty)
 
 proc getsizeof*(e: Expr): culonglong =
@@ -462,7 +472,8 @@ proc type_equal*(a, b: CType): bool =
     else:
         case a.spec: 
         of TYPRIM:
-            a.tags == b.tags
+            var ig = not (TYLVALUE or TYCONST or TYVOLATILE or TYRESTRICT)
+            (a.tags and ig) == (b.tags and ig)
         of TYPOINTER:
             type_equal(a.p, b.p)
         of TYENUM, TYSTRUCT, TYUNION:
@@ -521,7 +532,7 @@ proc castto*(e: Expr, to: CType): Expr =
     elif bool(to.tags and (TYINT8 or TYINT16 or TYINT32 or TYINT64 or 
         TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64)):
         if e.ty.spec == TYPOINTER:
-            return Expr(k: ECast, castop: IntToPtr, castval: e, ty: to)
+            return Expr(k: ECast, castop: PtrToInt, castval: e, ty: to)
         if bool(e.ty.tags and (TYFLOAT or TYDOUBLE)):
             if isSigned(e.ty):
                 return Expr(k: ECast, castop: SIToFP, castval: e, ty: to)
@@ -1109,7 +1120,7 @@ proc specifier_qualifier_list*(): CType =
                     expect("type-name")
                     return nil
                 if p.tok.tok != TRbracket:
-                    expect("')'")
+                    expectRB()
                     return nil
                 consume()
                 more(s)
@@ -1182,7 +1193,7 @@ proc direct_declarator*(base: CType; flags=Direct): Stmt =
             expect("declarator")
             return nil
         if p.tok.tok != TRbracket:
-            expect("')'")
+            expectRB()
             return nil
         consume()
         if st.k == SFunction:
@@ -1218,7 +1229,7 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
         if p.tok.tok != TRSquareBrackets:
             let e = assignment_expression()
             if e == nil:
-                expect("expression")
+                expectExpression()
                 return nil
             ty.arrsize = app.eval_const_expression(e)
             if p.tok.tok != TRSquareBrackets:
@@ -1236,7 +1247,7 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
             else:
                 return nil
         if p.tok.tok != TRbracket:
-            expect("')'")
+            expectRB()
             return nil
         consume()
         if p.tok.tok == TLcurlyBracket: # function definition
@@ -1265,7 +1276,7 @@ proc struct_declarator(base: CType): (string, CType) =
         consume()
         let e = constant_expression()
         if e == nil:
-            expect("expression")
+            expectExpression()
             note("in bit field declaration")
             return ("", nil)
         let bitsize = app.eval_const_expression(e)
@@ -1278,7 +1289,7 @@ proc struct_declarator(base: CType): (string, CType) =
             consume()
             let e = constant_expression()
             if e == nil:
-                expect("expression")
+                expectExpression()
                 note("in bit field declaration")
                 return
             let bitsize = app.eval_const_expression(e)
@@ -1354,8 +1365,6 @@ proc struct_union*(t: Token): CType =
             putenumdef(result)
     return result
 
-let enum_type = CType(tags: TYEXPR or TYINT, spec: TYPRIM)
-
 proc penum*(): CType =
     ## parse a enum, return it
     ## for example: 
@@ -1390,7 +1399,7 @@ proc penum*(): CType =
             if err():
                 return nil
         result.eelems.add((s, c))
-        putsymtype(s, enum_type)
+        putsymtype(s, CType(tags: TYINT, spec: TYPRIM))
         inc c
         if p.tok.tok == TComma:
             consume()
@@ -1466,7 +1475,7 @@ proc declaration_specifiers*(): CType =
                     expect("type-name")
                     return nil
                 if p.tok.tok != TRbracket:
-                    expect("')'")
+                    expectRB()
                     return nil
                 consume()
                 more(s)
@@ -1490,7 +1499,7 @@ proc declaration_specifiers*(): CType =
 proc static_assert*(): Stmt =
     consume()
     if p.tok.tok != TLbracket:
-        expect("'('")
+        expectLB()
         return nil
     consume()
     var msg = ""
@@ -1511,7 +1520,7 @@ proc static_assert*(): Stmt =
             msg = p.tok.str
         consume()
         if p.tok.tok != TRbracket:
-            expect("')'")
+            expectRB()
             return nil
         consume()
     else:
@@ -1547,6 +1556,18 @@ proc checkInComplete(base: CType) =
     else:
         unreachable()
 
+proc assignable(e: Expr): bool =
+    if e.ty.spec == TYPOINTER:
+        if bool(e.ty.tags and TYLVALUE) and e.ty.p.spec == TYARRAY:
+            type_error("array is not assignable")
+            return false
+        return true
+    if bool(e.ty.tags and TYLVALUE):
+        return true
+    type_error("expression is not assignable")
+    inTheExpression(e)
+    return false
+
 proc declaration*(): Stmt =
     ## parse variable declaration or function definition
     ## 
@@ -1571,6 +1592,7 @@ proc declaration*(): Stmt =
                 expect("declarator")
                 return nil
             if st.k == SFunction:
+                # function has not lvalue
                 checkRetType(st.functy)
                 putsymtype(st.funcname, st.functy)
                 return st
@@ -1581,6 +1603,8 @@ proc declaration*(): Stmt =
             if (st.var1type.tags and TYINLINE) != 0:
                 warning("inline declaration is in block scope has no effect")
             checkRetType(st.var1type)
+            # variable has lvalue
+            st.var1type.tags = st.var1type.tags or TYLVALUE
             result.vars.add((st.var1name, st.var1type, nil))
             putsymtype(st.var1name, st.var1type)
             if p.tok.tok == TAssign:
@@ -1674,17 +1698,34 @@ proc unary_expression*(): Expr =
         if e.ty.spec != TYPOINTER:
             type_error("pointer expected")
             return nil
-        result = unary(e, Dereference, e.ty.p)
+        var ty = e.ty.p
+        ty.tags = ty.tags or TYLVALUE
+        result = unary(e, Dereference, ty)
         return result
-    of TBitAnd, TBitNot:
+    of TBitNot:
         consume()
         let e = cast_expression()
         if e == nil:
             return nil
-        let op = if tok == TBitAnd: AddressOf else: Not
-        result = unary(e, op, e.ty)
+        result = unary(e, Not, e.ty)
         integer_promotions(result)
         return result
+    of TBitAnd:
+        consume()
+        var e = expression()
+        if e == nil:
+            return nil
+        if e.k == ArrToAddress:
+            e.ty.tags = TYINVALID
+            return e
+        if not bool(e.ty.tags and TYLVALUE):
+            type_error("cannot take the address of an rvalue")
+            inTheExpression(e)
+            return nil
+        if (e.k == EUnary and e.uop == AddressOf) and e.ty.p.spec == TYFUNCTION:
+            e.ty.tags = TYINVALID
+            return e
+        return unary(e, AddressOf, CType(tags: TYINVALID, spec:TYPOINTER, p: e.ty))
     of TDash:
         consume()
         let e = unary_expression()
@@ -1719,23 +1760,23 @@ proc unary_expression*(): Expr =
                 if ty[1] == true:
                     type_error("invalid application of 'sizeof' to a function type")
                 if p.tok.tok != TRbracket:
-                    expect("')'")
+                    expectRB()
                     return nil
                 consume()
                 return Expr(ty: CType(tags: TYSIZE_T, spec: TYPRIM), k: EIntLit, ival: cast[int](getsizeof(ty[0])))
             let e = unary_expression()
             if e == nil:
-                expect("expression")
+                expectExpression()
                 return nil
             if p.tok.tok != TRbracket:
-                expect("')'")
+                expectRB()
                 return nil
             consume()
             return Expr(ty: CType(tags: TYSIZE_T, spec: TYPRIM), k: EIntLit, ival: cast[int](getsizeof(e)))
         else:
             let e = unary_expression()
             if e == nil:
-                expect("expression")
+                expectExpression()
                 return nil
             return Expr(ty: CType(tags: TYSIZE_T, spec: TYPRIM), k: EIntLit, ival: cast[int](getsizeof(e)))
     of K_Alignof:
@@ -1755,11 +1796,11 @@ proc unary_expression*(): Expr =
         else:
             let e = constant_expression()
             if e == nil:
-                expect("expression")
+                expectExpression()
                 return nil
             result = Expr(ty: CType(tags: TYSIZE_T, spec: TYPRIM), k: EIntLit, ival: cast[int](getAlignof(e)))
         if p.tok.tok != TRbracket:
-            expect("')'")
+            expectRB()
             return nil
         consume()
         return result
@@ -2147,27 +2188,39 @@ proc primary_expression*(): Expr =
             if ty == nil:
                 type_error("symbol not found: " & p.tok.s)
                 return nil
-            result = Expr(k: EVar, sval: p.tok.s, ty: ty)
+            case ty.spec:
+            of TYFUNCTION:
+                result = unary(
+                    Expr(k: EVar, sval: p.tok.s, ty: ty), AddressOf, 
+                    CType(tags: TYLVALUE, spec: TYPOINTER, p: ty)
+                )
+            of TYARRAY:
+                result = Expr(
+                    k: ArrToAddress, voidexpr: Expr(k: EVar, sval: p.tok.s, ty: ty), 
+                    ty: CType(tags: TYLVALUE, spec: TYPOINTER, p: ty)
+                )
+            else:
+                result = Expr(k: EVar, sval: p.tok.s, ty: ty)
         consume()
     of TLbracket:
         consume()
         result = expression()
         if result == nil:
-            expect("expression")
+            expectExpression()
             return nil
         if p.tok.tok != TRbracket:
-            expect("')'")
+            expectRB()
             return nil
         consume()
     of K_Generic:
         consume()
         if p.tok.tok != TLbracket:
-            expect("'('")
+            expectLB()
             return nil
         consume()
         let test = assignment_expression()
         if test == nil:
-            expect("expression")
+            expectExpression()
             note("the syntax is:\n\t_Generic(expr, type1: expr, type2: expr, ..., default: expr)")
             return nil
         if p.tok.tok != TComma:
@@ -2196,7 +2249,7 @@ proc primary_expression*(): Expr =
             consume()
             let e = assignment_expression()
             if e == nil:
-                expect("expression")
+                expectExpression()
                 note("the syntax is:\n\t_Generic(expr, type1: expr, type2: expr, ..., default: expr)")
                 return nil
             if tname == nil:
@@ -2232,6 +2285,8 @@ proc postfix_expression*(): Expr =
     let e = primary_expression()
     case p.tok.tok:
     of TSubSub, TAddAdd:
+        if not assignable(e):
+            return nil
         let op = if p.tok.tok == TAddAdd: PostfixIncrement else: PostfixDecrement
         consume()
         return postfix(e, op, e.ty)
@@ -2263,8 +2318,19 @@ proc postfix_expression*(): Expr =
         return nil
     of TLbracket: # function call
         consume()
-        if e.ty.spec != TYPOINTER or e.ty.p.spec != TYFUNCTION:
-            type_error("expression " & $e & " is of type " & $e.ty & " and is not callable")
+        var ty: CType
+        var f = e
+        if f.ty.spec == TYPOINTER:
+            if e.ty.p.spec != TYFUNCTION:
+                type_error("call function is not a function pointer")
+                inTheExpression(e)
+                return nil
+            ty = f.ty.p
+            f = f.uoperand
+        elif f.ty.spec != TYFUNCTION:
+            type_error("call function is not a function or function pointer")
+            note("expression has type " & $f.ty)
+            inTheExpression(f)
             return nil
         var args: seq[Expr]
         if p.tok.tok == TRbracket:
@@ -2273,7 +2339,7 @@ proc postfix_expression*(): Expr =
             while true:
                 let a = assignment_expression()
                 if a == nil:
-                    expect("expression")
+                    expectExpression()
                     note("the syntax is:\n\tfunction-name(argument)")
                     return nil
                 args.add(a)
@@ -2282,7 +2348,7 @@ proc postfix_expression*(): Expr =
                 elif p.tok.tok == TRbracket:
                     consume()
                     break
-        let params = e.ty.params
+        let params = ty.params
         if len(params) > 0 and params[^1][1] == nil: # varargs
             if len(args) < (len(params) - 1):
                 type_error("too few arguments to variable argument function")
@@ -2290,7 +2356,7 @@ proc postfix_expression*(): Expr =
                 return nil
         elif len(params) != len(args):
             type_error("expect " & $(len(params)) & " parameters, " & $len(args) & " provided")
-            inTheExpression(e)
+            inTheExpression(f)
             return nil
         var i = 0
         while true:
@@ -2301,29 +2367,29 @@ proc postfix_expression*(): Expr =
                     args[j] = default_argument_promotions(args[j])
                 break
             if not compatible(args[i].ty, expected=params[i][1]):
-                type_error("function call type incompatible: in argument " & $i & " of calling function " & $e)
+                type_error("function call type incompatible: in argument " & $i & " of calling function " & $f)
                 note("expected " & $params[i] & " but argument is of type " & $args[i].ty)
                 return nil
             args[i] = castto(args[i], params[i][1])
             inc i
-        return Expr(k: ECall, callfunc: e, callargs: args, ty: e.ty.ret)
+        return Expr(k: ECall, callfunc: f, callargs: args, ty: ty.ret)
     of TLSquareBrackets: # array subscript
         consume()
-        let e = expression()
+        var e = expression()
         if e == nil:
-            expect("expression")
+            expectExpression()
             note("the syntax is:\n\tarray[expression]")
             return nil
         if p.tok.tok != TRSquareBrackets:
             expect("']'")
             return
-        if e.ty.spec == TYPOINTER:
-            discard
-        else:
-            type_error("expression " & $e & " is of type " & $e.ty & ", and is not subscriptable")
+        if e.ty.spec != TYPOINTER:
+            type_error("array subscript is not a pointer")
             return nil
         consume()
-        return Expr(k: ESubscript, left: e, right: e, ty: e.ty.p)
+        var ty = e.ty.p
+        ty.tags = ty.tags or TYLVALUE
+        return Expr(k: ESubscript, left: e, right: e, ty: ty)
     else:
         return e
 
@@ -2390,6 +2456,9 @@ proc shift_expression*(): Expr =
         else:
             return result
 
+proc boolToInt*(e: Expr): Expr =
+    Expr(k: ECast, castop: ZExt, castval: e, ty: CType(tags: TYINT, spec: TYPRIM))
+
 proc relational_expression*(): Expr =
     result = shift_expression()
     while true:
@@ -2400,28 +2469,28 @@ proc relational_expression*(): Expr =
             if r == nil:
                 return nil
             checkSpec(result, r)
-            result = binop(result, if isFloating(r.ty): FLT else: (if isSigned(r.ty): SLT else: ULT), r, result.ty)
+            result =  boolToInt(binop(result, if isFloating(r.ty): FLT else: (if isSigned(r.ty): SLT else: ULT), r, CType(tags: TYBOOL, spec: TYPRIM)))
         of TLe:
             consume()
             var r = shift_expression()
             if r == nil:
                 return nil
             checkSpec(result, r)
-            result = binop(result, if isFloating(r.ty): FLE else: (if isSigned(r.ty): SLE else: ULE), r, result.ty)
+            result = boolToInt(binop(result, if isFloating(r.ty): FLE else: (if isSigned(r.ty): SLE else: ULE), r, CType(tags: TYBOOL, spec: TYPRIM)))
         of TGt:
             consume()
             var r = shift_expression()
             if r == nil:
                 return nil
             checkSpec(result, r)
-            result = binop(result, if isFloating(r.ty): FGT else: (if isSigned(r.ty): SGT else: UGT), r, result.ty)
+            result = boolToInt(binop(result, if isFloating(r.ty): FGT else: (if isSigned(r.ty): SGT else: UGT), r, CType(tags: TYBOOL, spec: TYPRIM)))
         of TGe:
             consume()
             var r = shift_expression()
             if r == nil:
                 return nil
             checkSpec(result, r)
-            result = binop(result, if isFloating(r.ty): FGE else: (if isSigned(r.ty): SGE else: UGE), r, result.ty)
+            result = boolToInt(binop(result, if isFloating(r.ty): FGE else: (if isSigned(r.ty): SGE else: UGE), r, CType(tags: TYBOOL, spec: TYPRIM)))
         else:
             return result
 
@@ -2435,14 +2504,14 @@ proc equality_expression*(): Expr =
             if r == nil:
                 return nil
             checkSpec(result, r)
-            result = binop(result, if isFloating(r.ty): FEQ else: EQ, r, result.ty)
+            result = boolToInt(binop(result, if isFloating(r.ty): FEQ else: EQ, r, CType(tags: TYBOOL, spec: TYPRIM)))
         of TNe:
             consume()
             var r = relational_expression()
             if r == nil:
                 return nil
             checkSpec(result, r)
-            result = binop(result, if isFloating(r.ty): FNE else: NE, r, result.ty)
+            result = boolToInt(binop(result, if isFloating(r.ty): FNE else: NE, r, CType(tags: TYBOOL, spec: TYPRIM)))
         else:
             return result
 
@@ -2529,14 +2598,14 @@ proc expression*(): Expr =
 proc conditional_expression*(start: Expr): Expr =
     var lhs = logical_OR_expression()
     if lhs == nil:
-        expect("expression")
+        expectExpression()
         return nil
     if p.tok.tok != TColon:
         return lhs
     consume()
     var rhs = conditional_expression()
     if rhs == nil:
-        expect("expression")
+        expectExpression()
         note("the syntax is:\n\texpr ? a ? b")
         return nil
     if not compatible(lhs.ty, rhs.ty):
@@ -2554,21 +2623,6 @@ proc conditional_expression*(): Expr =
       return conditional_expression(e)
     return e
 
-proc assignable(e: Expr): bool =
-    case e.k:
-    of EVar:
-        if e.ty.spec == TYARRAY:
-            type_error("array object is not assignable")
-            false
-        else:
-            true
-    of EUnary:
-        e.uop == Dereference
-    of EPostFix:
-        assignable(e.poperand)
-    else:
-        false
-
 proc assignment_expression*(): Expr =
     result = logical_OR_expression()
     if result == nil:
@@ -2580,11 +2634,12 @@ proc assignment_expression*(): Expr =
     if p.tok.tok in {TAssign, TAsignAdd, TAsignSub, 
     TAsignMul, TAsignDiv, TAsignRem, TAsignShl, 
     TAsignShr, TAsignBitAnd, TAsignBitOr, TAsignBitXor}: 
+        if not assignable(result):
+            return nil
+        consume()
         var e = assignment_expression()
         if e == nil:
-            return nil
-        if not assignable(e):
-            type_error("expression " & $e & " is not assignable")
+            expectExpression()
             return nil
         var lhs = deepCopy(result)
         return binop(lhs, Assign,(
@@ -2686,7 +2741,7 @@ proc statament*(): Stmt =
         consume()
         let s = statament()
         if s == nil:
-            expect("statament")
+            expectStatement()
             return nil
         return Stmt(k: Scase, case_expr: e, case_stmt: s)
     elif p.tok.tok == Kdefault:
@@ -2742,7 +2797,7 @@ proc statament*(): Stmt =
             return Stmt(k: SReturn, exprbody: Expr(k: EDefault, ty: p.currentfunctionRet))
         let e = expression()
         if e == nil:
-            expect("expression")
+            expectExpression()
             return nil
         if p.tok.tok != TSemicolon:
             expect("';'")
@@ -2761,47 +2816,47 @@ proc statament*(): Stmt =
     elif p.tok.tok == Kif:
         consume()
         if p.tok.tok != TLbracket:
-            expect("'('")
+            expectLB()
             return nil
         consume()
         let e = expression()
         if e == nil:
-            expect("expression")
+            expectExpression()
             return nil
         if p.tok.tok != TRbracket:
-            expect("')'")
+            expectRB()
             return nil
         consume()
         let s = statament()
         if s == nil:
-            expect("statament")
+            expectStatement()
             return nil
         var elsebody: Stmt = nil
         if p.tok.tok == Kelse:
             consume()
             elsebody = statament()
             if elsebody == nil:
-                expect("statament")
+                expectStatement()
                 return nil
         return Stmt(k: SIf, iftest: e, ifbody: s, elsebody: elsebody)
     elif p.tok.tok == Kwhile or p.tok.tok == Kswitch:
         let tok = p.tok.tok
         consume()
         if p.tok.tok != TLbracket:
-            expect("'('")
+            expectLB()
             return nil
         consume()
         let e = expression()
         if e == nil:
-            expect("expression")
+            expectExpression()
             return nil
         if p.tok.tok != TRbracket:
-            expect("')'")
+            expectRB()
             return nil
         consume()
         let s = statament()
         if s == nil:
-            expect("statament")
+            expectStatement()
             return nil
         if tok == Kwhile:
             return Stmt(k: SWhile, test: e, body: s)
@@ -2816,7 +2871,7 @@ proc statament*(): Stmt =
         consume()
         enterBlock()
         if p.tok.tok != TLbracket:
-            expect("'('")
+            expectLB()
             return nil
         consume()
         # init-clause may be an expression or a declaration
@@ -2830,7 +2885,7 @@ proc statament*(): Stmt =
             if p.tok.tok != TSemicolon:
                 let ex = expression()
                 if ex == nil:
-                    expect("expression")
+                    expectExpression()
                     return nil
                 init = Stmt(k: SExpr, exprbody: ex)
                 if p.tok.tok != TSemicolon:
@@ -2842,7 +2897,7 @@ proc statament*(): Stmt =
         if p.tok.tok != TSemicolon:
             cond = expression()
             if cond == nil:
-                expect("expression")
+                expectExpression()
                 return nil
             if p.tok.tok != TSemicolon:
                 expect("';'")
@@ -2853,15 +2908,15 @@ proc statament*(): Stmt =
         if p.tok.tok != TRbracket:
             forincl = expression()
             if forincl == nil:
-                expect("expression")
+                expectExpression()
                 return nil
             if p.tok.tok != TRbracket:
-                expect("')'")
+                expectRB()
                 return nil
         consume()
         var s = statament()
         if s == nil:
-            expect("statament")
+            expectStatement()
             return nil
         leaveBlock()
         return Stmt(k: SFor, forinit: init, forcond: cond, forbody: s, forincl: forincl)
@@ -2869,22 +2924,22 @@ proc statament*(): Stmt =
         consume()
         let s = statament()
         if s == nil:
-            expect("statament")
+            expectStatement()
             return nil
         if p.tok.tok != Kwhile:
             expect("'while'")
             return nil
         consume()
         if p.tok.tok != TLbracket:
-            expect("'('")
+            expectLB()
             return nil
         consume()
         let e = expression()
         if e == nil:
-            expect("expression")
+            expectExpression()
             return nil
         if p.tok.tok != TRbracket:
-            expect("')'")
+            expectRB()
             return nil
         consume()
         if p.tok.tok != TSemicolon:
@@ -2899,7 +2954,7 @@ proc statament*(): Stmt =
             consume()
             let s = statament()
             if s == nil:
-                expect("statament")
+                expectStatement()
                 note("to add a empty statement, use:\n\tlabel: ;")
                 return nil
             putLable(val, 100)
@@ -2909,7 +2964,7 @@ proc statament*(): Stmt =
             p.tok = TokenV(tok: TIdentifier, tags: TVSVal, s: val)
     let e = expression()
     if e == nil:
-        expect("expression")
+        expectExpression()
         return nil
     if p.tok.tok != TSemicolon:
         expect("';'")
