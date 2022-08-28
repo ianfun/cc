@@ -24,9 +24,53 @@
 ## #define myopneg(a) (-(a))
 ## ```
 
-import stream, token, pragmas
-import std/[unicode, math, times, tables]
+import stream, core
+import std/[math, tables, sets]
 from std/sequtils import count
+
+type
+    Parser* = ref object
+      currentfunctionRet*, currentInitTy*: CType
+      fstack*: seq[Stream]
+      filenamestack*, pathstack*: seq[string]
+      locstack*: seq[Location]
+      tok*: TokenV
+      line*: int
+      col*: int
+      c*: char
+      want_expr*: bool
+      lastc*: uint16
+      filename*, path*: string
+      macros*: Table[string, PPMacro]
+      flags*: ParseFlags
+      ppstack*: seq[uint8]
+      ok*: bool
+      onces*, expansion_list*: HashSet[string]
+      # 6.2.3 Name spaces of identifiers
+      lables*: seq[TableRef[string, (int, Location)]]
+      tags*: seq[TableRef[string, (CType, Location)]]
+      typedefs*: seq[TableRef[string, (CType, Location)]]
+      tokenq*: seq[TokenV]
+      counter*: int
+      retTy*: CType # current return type
+      type_error*: bool
+      eval_error*: bool
+      parse_error*: bool
+      bad_error*: bool
+
+var p*: Parser = nil
+
+proc parse_error*(msg: string) =
+    p.tok = TokenV(tok: TNul, tags: TVNormal)
+    if p.parse_error == false:
+      stderr.writeLine("\e[34m" & p.filename & ": " & $p.line & '.' & $p.col & ": parse error: " & msg & "\e[0m")
+      p.parse_error = true
+
+proc setParser*(a: var Parser) =
+  p = a
+
+proc getParser*(): var Parser = 
+  p
 
 proc binop*(a: Expr, op: BinOP, b: Expr, ty: CType): Expr = 
     ## construct a binary operator
@@ -36,40 +80,291 @@ proc unary*(e: Expr, op: UnaryOP, ty: CType): Expr =
     ## construct a unary operator
     Expr(k: EUnary, uop: op, uoperand: e, ty: ty)
 
-proc expect(msg: string) =
+proc showToken*(): string =
+  case p.tok.tok:
+  of TNumberLit: $p.tok.i
+  of TPPNumber: p.tok.s
+  of TCharLit: show(char(p.tok.i))
+  of TIdentifier: p.tok.s
+  of TFloatLit: $p.tok.f
+  of TStringLit: '"' & p.tok.s & '"'
+  of TEOF: "<EOF>"
+  of TNul: "<null>"
+  else:
+    if p.tok.tok < T255:
+      show(chr(int(p.tok.tok)))
+    else:
+      $p.tok.tok
+
+proc tokensEq(a, b: seq[TokenV]): bool =
+  if a.len != b.len:
+    return false
+  for i in 0..<len(a):
+    let x = a[i]
+    let y = b[i]
+    if x.tok != y.tok:
+      return false
+    case x.tok:
+      of TStringLit, TPPNumber, TIdentifier:
+        if x.s != y.s:
+          return false
+      else:
+        continue
+  return true
+
+proc ppMacroEq(a, b: PPMacro): bool =
+  result = (a.flags == b.flags) and
+  (if a.flags == MFUNC: (a.ivarargs == b.ivarargs) else: true) and
+  tokensEq(a.tokens, b.tokens)  
+
+proc warning*(msg: string) =
+  if ord(app.verboseLevel) >= ord(WWarning):
+    stderr.writeLine("\e[33m" & p.filename & ": " & $p.line & '.' & $p.col & ": warning: " & msg & "\e[0m")
+
+proc macro_define*(name: string, m: PPMacro) =
+  let pr = p.macros.getOrDefault(name, nil)
+  if pr != nil:
+    if not ppMacroEq(pr, m):
+      warning("macro " & name & " redefined")
+  p.macros[name] = m
+
+proc macro_defined*(name: string): bool =
+  p.macros.contains(name)
+
+proc macro_undef*(name: string) =
+  p.macros.del(name)
+
+proc expect*(msg: string) =
     ## emit `expect ...` error message
     parse_error("expect " & msg & ", got " & showToken())
+
+proc err*(): bool =
+  p.type_error or p.parse_error or p.eval_error
+
+proc error*(msg: string) =
+    if p.bad_error == false:
+      stderr.writeLine("\e[31m" & p.filename & ": " & $p.line & '.' & $p.col & ": error: " & msg & "\e[0m")
+      p.bad_error = true
+
+proc type_error*(msg: string) =
+    if p.type_error == false:
+      stderr.writeLine("\e[35m" & p.filename & ": " & $p.line & '.' & $p.col & ": type error: " & msg & "\e[0m")
+      p.type_error = true
+
+proc error_incomplete*(ty: CType) =
+  let s = if ty.tag == TYSTRUCT:  "struct" else: (if ty.tag == TYUNION: "union" else: "enum")
+  type_error("use of incomplete type '" & s & " " & ty.name & '\'')
 
 proc inTheExpression*(e: Expr) =
     ## emit in the expression message
     parse_error("in the expression " & $e)
 
-proc getToken*()
+proc reset*() =
+  p.bad_error = false
+  p.eval_error = false
+  p.parse_error = false
+  p.type_error = false
+  p.want_expr = false
+  p.counter = 0
+  p.tok = TokenV(tok: TNul, tags: TVNormal)
+  p.col = 1
+  p.line = 1
+  p.c = ' '
+  p.lastc = 256
+  p.flags = PFNormal
+  p.ok = true
+  p.pathstack.setLen 0
+  p.ppstack.setLen 0
+  p.fstack.setLen 0
+  p.filenamestack.setLen 0
+  p.locstack.setLen 0
+  p.macros.clear()
+  p.filename.setLen 0
+  p.path.setLen 0
+  p.onces.clear()
+  p.expansion_list.clear()
+  p.tags.setLen 0
+  p.typedefs.setLen 0
+  p.lables.setLen 0
+  p.tags.add(newTable[string, typeof(p.tags[0][""])]())
+  p.typedefs.add(newTable[string, typeof(p.typedefs[0][""])]())
+  p.lables.add(newTable[string, typeof(p.lables[0][""])]())
+  p.tokenq.setLen 0
+  for (name, v) in getDefines():
+    p.macros[name] = PPMacro(tokens: v, flags: MOBJ)
 
-proc eat*()
+proc addString*(s: string, filename: string) =
+  p.fstack.add(newStringStream(s))
+  p.filenamestack.add(p.filename)
+  p.pathstack.add(p.path)
+  p.locstack.add(Location(line: p.line, col: p.col))
+  p.filename = filename
+  p.path = filename
+  p.line = 1
+  p.col = 1
+
+proc addStdin*() =
+  p.fstack.add(newStdinStream())
+  p.filenamestack.add(p.filename)
+  p.pathstack.add(p.path)
+  p.locstack.add(Location(line: p.line, col: p.col))
+  p.filename = "<stdin>"
+  p.path = "/dev/stdin"
+  p.line = 1
+  p.col = 1
+
+proc addFile*(fd: File, filename: string) =
+  let f = newFileStream(fd)
+  p.fstack.add(f)
+  p.filenamestack.add(p.filename)
+  p.pathstack.add(p.path)
+  p.locstack.add(Location(line: p.line, col: p.col))
+  p.filename = filename
+  p.path = filename
+  p.line = 1
+  p.col = 1
+
+proc addFile*(filename: string) =
+  let f = newFileStream(filename)
+  if f == nil:
+    return
+  p.fstack.add(f)
+  p.filenamestack.add(p.filename)
+  p.pathstack.add(p.path)
+  p.locstack.add(Location(line: p.line, col: p.col))
+  p.filename = filename
+  p.path = filename
+  p.line = 1
+  p.col = 1
+
+proc closeParser*() =
+  for fd in p.fstack:
+    fd.close()
+
+proc getTag(name: string): (CType, Location) =
+  for i in countdown(len(p.tags)-1, 0):
+    result = p.tags[i].getOrDefault(name, (nil, Location()))
+    if result[0] != nil:
+      return result
+
+proc gettypedef*(name: string): (CType, Location) =
+  for i in countdown(len(p.typedefs)-1, 0):
+    result = p.typedefs[i].getOrDefault(name, (nil, Location()))
+    if result[0] != nil:
+      return result
+
+proc getLabel*(name: string): (int, Location) =
+  for i in countdown(len(p.lables)-1, 0):
+    result = p.lables[i].getOrDefault(name, (-1, Location()))
+    if result[0] != -1:
+      return result
+  return (-1, Location())
+
+proc putLable*(name: string, t: int) =
+    let (l, loc) = getLabel(name)
+    if  l != -1:
+      error("duplicate label: " & name)
+      note(name & "was defined at " & $loc)
+      return
+    p.lables[^1][name] = (t, Location(line: p.line, col: p.col))
+
+proc getstructdef*(name: string): CType =
+    let res = getTag(name)
+    result = res[0]
+    if result == nil:
+        result = CType(tags: TYINVALID, spec: TYINCOMPLETE, tag: TYSTRUCT, name: name)
+    elif result.spec != TYSTRUCT:
+        type_error(name & " is not a struct")
+
+proc putstructdef*(t: CType) =
+    let (o, loc) = getTag(t.sname)
+    if o != nil:
+        error("struct " & t.sname & " aleady defined")
+        note(o.sname & "was defined at " & $loc)
+    else:
+        p.tags[^1][t.sname] = (t, Location(line: p.line, col: p.col))
+
+proc getenumdef*(name: string): CType =
+    let res = getTag(name)
+    result = res[0]
+    if result == nil:
+        result = CType(tags: TYINVALID, spec: TYINCOMPLETE, tag: TYENUM, name: name)
+    elif result.spec != TYENUM:
+        type_error(name & " is not a enum")
+
+proc putenumdef*(t: CType) =
+    let (o, loc) = getTag(t.ename)
+    if o != nil:
+        error("enum " & t.ename & " aleady defined")
+        note(o.ename & "was defined at " & $loc)
+    else:
+        p.tags[^1][t.ename] = (t, Location(line: p.line, col: p.col))
+
+proc getuniondef*(name: string): CType =
+    let res = getTag(name)
+    result = res[0]
+    if result == nil:
+        result = CType(tags: TYINVALID, spec: TYINCOMPLETE, tag: TYUNION, name: name)
+    elif result.spec != TYUNION:
+        type_error(name & " is not a union")
+
+proc putuniondef*(t: CType) =
+    let o = getTag(t.sname)
+    if o[0] != nil:
+        error("`union` " & t.sname & " aleady defined")
+        note(o[0].sname & "was defined at " & $o[1])
+    else:
+        p.tags[^1][t.sname] = (t, Location(line: p.line, col: p.col))
+
+proc getsymtype*(name: string): CType =
+  result = gettypedef(name)[0]
+
+# typedef, symbol
+proc putsymtype*(name: string, t: CType) =
+  let ty = getsymtype(name)
+  if ty != nil:
+    error(name & " redeclared")
+    return
+  p.typedefs[^1][name] = (t, Location(line: p.line, col: p.col))
+
+proc enterBlock*() =
+  p.typedefs.add(newTable[string, typeof(p.typedefs[0][""])]())
+  p.tags.add(newTable[string, typeof(p.tags[0][""])]())
+  p.lables.add(newTable[string, typeof(p.lables[0][""])]())
+
+proc leaveBlock*() =
+  discard p.typedefs.pop()
+  discard p.tags.pop()
+  discard p.lables.pop()
+
+proc checkOnce*(filename: string): bool =
+    return p.onces.contains(filename)
+
+proc addOnce*() =
+    p.onces.incl p.path
+
+proc addInclude*(filename: string): bool =
+    if checkOnce(filename) == true:
+        return true
+    let s = newFileStream(filename)
+    if s == nil:
+        return false
+    p.fstack.add(s)
+    p.filenamestack.add(p.filename)
+    p.pathstack.add(p.path)
+    p.locstack.add(Location(line: p.line, col: p.col))
+    p.filename = filename
+    p.path = filename
+    p.line = 1
+    p.col = 1
+    return true
+
+proc putToken*() = 
+    p.tokenq.add(p.tok)
 
 proc isprint*(a: cint): cint {.importc: "isprint", nodecl, header: "ctype.h".}
 
 const hexs*: cstring = "0123456789ABCDEF"
-
-proc builtin_Pragma() =
-  getToken()
-  if p.tok.tok != TLbracket:
-      expect("')'")
-      note("the syntax is:\n\t_Pragma(<string>)")
-  else:
-      getToken()
-      if p.tok.tok != TStringLit:
-          expect("expect string literal")
-          note("the syntax is:\n\t_Pragma(<string>)")
-      else:
-          var pra = p.tok.s
-          getToken()
-          if p.tok.tok != TRbracket:
-              expect("')'")
-          else:
-              echo "pragma: ", pra
-              getToken()
 
 const
    sizoefint = sizeof(cint).csize_t
@@ -154,16 +449,22 @@ proc getAlignof*(ty: CType): csize_t =
 proc getAlignof*(e: Expr): csize_t =
     getAlignof(e.ty)
 
-proc checkInteger*(a: CType, scalar=false): bool =
-    if a.spec != TYPRIM:
-        if scalar and a.spec == TYPOINTER:
-            return true
-        return false
-    return bool(
+proc checkInteger*(a: CType): bool =
+    return (a.spec == TYPRIM) and 
+    bool(
         a.tags and (
             TYINT8 or TYINT16 or TYINT32 or TYINT64 or 
             TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64 or 
             TYBOOL
+        )
+    )
+
+proc checkScalar(a: CType): bool =
+    return a.spec == TYPOINTER or 
+    (
+        a.spec == TYPRIM and
+        (
+            (a.tags and TYVOID) == 0
         )
     )
 
@@ -182,9 +483,28 @@ proc intcast*(e: Expr, to: CType): Expr =
         else:
             return Expr(k: ECast, castop: Trunc, castval: e, ty: to)
     type_error("cannot cast " & $e & " to " & $to)
+    note("expression " & $e & " has type " & $e.ty)
     return nil
 
+proc type_equal*(a, b: CType): bool =
+    if a.spec != b.spec:
+        false
+    else:
+        case a.spec: 
+        of TYPRIM:
+            a.tags == b.tags
+        of TYPOINTER:
+            type_equal(a.p, b.p)
+        of TYENUM, TYSTRUCT, TYUNION:
+            cast[pointer](a) == cast[pointer](b)
+        of TYINCOMPLETE:
+            a.name == b.name
+        else:
+            false
+
 proc castto*(e: Expr, to: CType): Expr =
+    if type_equal(e.ty, to):
+        return e
     if bool(e.ty.tags and TYVOID):
         type_error("cannot cast 'void' expression to type " & $to)
         return nil
@@ -202,7 +522,7 @@ proc castto*(e: Expr, to: CType): Expr =
     if to.spec == TYENUM:
         # cast xxx to int, then cast(bitcast) to enum
         return Expr(k: ECast, castop: BitCast, castval: castto(e, CType(tags: TYINT, spec: TYPRIM)), ty: to)
-    if checkInteger(e.ty, scalar=true) == false or checkInteger(to, scalar=true) == false:
+    if checkScalar(e.ty) == false or checkScalar(to) == false:
         type_error("cast uoperand shall have scalar type")
         return nil
     if bool(to.tags and TYBOOL):
@@ -215,9 +535,9 @@ proc castto*(e: Expr, to: CType): Expr =
         return nil
     if e.ty.spec == TYPOINTER and to.spec == TYPOINTER:
         return Expr(k: ECast, castop: BitCast, castval: e, ty: to)
-    if bool(e.ty.tags and TYDOUBLE) and bool(e.ty.tags and TYFLOAT):
+    if bool(e.ty.tags and TYDOUBLE) and bool(to.tags and TYFLOAT):
         return Expr(k: ECast, castop: FPTrunc, castval: e, ty: to)
-    if bool(e.ty.tags and TYFLOAT) and bool(e.ty.tags and TYDOUBLE):
+    if bool(e.ty.tags and TYFLOAT) and bool(to.tags and TYDOUBLE):
         return Expr(k: ECast, castop: FPExt, castval: e, ty: to)
     if bool(e.ty.tags and (TYINT8 or TYINT16 or TYINT32 or TYINT64 or 
         TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64 or TYBOOL)):
@@ -316,7 +636,7 @@ proc checkInteger*(a, b: Expr) =
         type_error("integer expected")
 
 proc checkScalar*(a, b: Expr) =
-    let ok = checkInteger(a.ty, scalar=true) and checkInteger(b.ty, scalar=true)
+    let ok = checkScalar(a.ty) and checkScalar(b.ty)
     if ok == false:
         type_error("scalar expected")
 
@@ -398,26 +718,6 @@ proc make_rem*(result, r: var Expr) =
     conv(result, r)
     result = binop(result, if isFloating(r.ty): FRem else: (if isSigned(r.ty): SRem else: URem)  ,r, r.ty)
 
-proc getMacro*(name: string): PPMacro =
-  case name:
-  of "__COUNTER__":
-    result = PPMacro(tokens: @[TokenV(tok: TPPNumber, tags: TVSVal, s: $p.counter)], flags: MOBJ)
-    inc p.counter
-  of "__LINE__":
-    result = PPMacro(tokens: @[TokenV(tok: TPPNumber, tags: TVSVal, s: $p.line)], flags: MOBJ)
-  of "__FILE__":
-    result = PPMacro(tokens: @[TokenV(tok: TStringLit, tags: TVSVal, s: p.filename)], flags: MOBJ)
-  of "__DATE__":
-    let n = now()
-    result = PPMacro(tokens: @[TokenV(tok: TStringLit, tags: TVSVal, s: n.format(initTimeFormat("MMM dd yyyy")))], flags: MOBJ)
-  of "__TIME__":
-    let n = now()
-    result = PPMacro(tokens: @[TokenV(tok: TStringLit, tags: TVSVal, s: n.format(initTimeFormat("hh:mm:ss")))], flags: MOBJ)
-  of "_Pragma":
-    result = PPMacro(flags: MBuiltin, fn: builtin_Pragma)
-  else:
-    result = p.macros.getOrDefault(name, nil)
-
 proc reverse(a: var string) =
     var l = len(a) - 1
     for i in 0 ..< (len(a) div 2):
@@ -493,1599 +793,9 @@ proc stringizing*(a: seq[TokenV]): string =
     for t in a:
         result.add(stringizing(t))
 
-proc read_pp_number*(s: string, f: var float, n: var int): int
 
-proc nextTok*()
-
-proc checkMacro()
-
-proc getToken*() =
-    ## CPP layer(Preprocessing)
-    if len(p.tokenq) == 0:
-        nextTok()
-    else:
-        p.tok = p.tokenq.pop()
-    if p.tok.tok == CPPIdent:
-        let o = p.flags
-        p.flags = PFPP
-        checkMacro()
-        p.flags = o
-        if p.tok.tok == TNewLine:
-            getToken()
-    elif p.tok.tok == PPMacroPop:
-        endExpandMacro(p.tok.s)
-        getToken()
-
-proc paste_token(a, b: TokenV): TokenV =
-    var oldp = p
-    p = Parser(filenamestack: @["##"], pathstack: @["##"], flags: PFPP, line: 1, col: 1, ok: true, c: ' ', lastc: 256)
-    p.tok = TokenV(tok: TNul, tags: TVNormal)
-    result = TokenV(tok: TNul, tags: TVNormal)
-    let s = stringizing(a) & stringizing(b)
-    p.fstack.add(newStringStream(s))
-    nextTok()
-    if p.tok.tok == TSpace:
-        nextTok() 
-    if p.fstack.len != 0:
-        discard # more then one tokens? invalid
-    elif p.tok.tok == TNul:
-        discard # parse failed!
-    else:
-        result = p.tok
-    p = oldp
-    if result.tok == TNul:
-        parse_error('\'' & s & "' is an invalid preprocessing token")
-        note("after join '##'")
-
-proc concatenation(a: var seq[TokenV]): bool =
-    if len(a) <= 2:
-        return false
-    var i = len(a)
-    while true:
-        dec i
-        if a[i].tok == PPSharpSharp:
-            break
-        if i == 0:
-            return false
-    if i == 0 or (i+1) == len(a):
-        return false
-    var start = i - 1
-    var last = i + 1
-    let r = paste_token(a[last], a[start])
-    if r.tok != TNul:
-        # (start) (i) (last)
-        a.del(start)
-        # (i-1) (last-1)
-        a.del(i-1)
-        # (last-2)
-        a[last - 2] = r
-        return true
-    return false
-
-proc removeSpace(a: var seq[TokenV]) =
-    if len(a) > 0:
-        while a[^1].tok == TSpace:
-            discard a.pop()
-            if len(a) == 0:
-                return
-        while a[0].tok == TSpace:
-            a.del(0)
-            if len(a) == 0:
-                return
-
-proc macroCheck(m: PPMacro, args: var seq[seq[TokenV]], name: string): bool =
-    for i in mitems(args):
-        removeSpace(i)
-    if len(args[0]) == 0:
-        args.del(0)
-    if m.ivarargs:
-        if len(args) < len(m.params):
-            parse_error("function-like macro " & name & " expect at least " & $len(m.params) & " arguments, but " & $len(args) & " provided")
-            return false
-    else:
-        if len(args) != len(m.params):
-            parse_error("function-like macro " & name & " expect " & $len(m.params) & " arguments, but got " & $len(args) & " provided")
-            return false
-    return true
-
-proc checkMacro() =
-    var name = p.tok.s
-    let m = getMacro(name)
-    if m != nil:
-        case m.flags:
-        of MOBJ:
-            if len(m.tokens) > 0:
-                beginExpandMacro(name)
-                p.tokenq.add(TokenV(tok: PPMacroPop, tags: TVSVal, s: name))
-                var cp = m.tokens                
-                while concatenation(cp):
-                    discard
-                for i in countdown(len(cp)-1, 0):
-                    let t = cp[i]
-                    if t.tok != TSpace:
-                        if t.tok == CPPIdent:
-                            if isMacroInUse(t.s):
-                                note("self-referential macro '" & t.s & "' skipped")
-                                t.tok = TIdentifier
-                        p.tokenq.add(t)
-            getToken()
-        of MFUNC:
-            var my = p.tok
-            getToken()
-            if p.tok.tok == TLbracket:
-                getToken()
-                var args: seq[seq[TokenV]]
-                args.add(default(seq[TokenV]))
-                while true:
-                    if p.tok.tok == TEOF:
-                        parse_error("unexpected EOF while parsing function-like macro arguments")
-                        return
-                    if p.tok.tok == TRbracket:
-                        break
-                    elif p.tok.tok == TComma:
-                        args.add(default(seq[TokenV]))
-                    elif p.tok.tok == TNewLine: # $6.10.3-10 new-line is considered a normal white-space character
-                        args[^1].add(TokenV(tok: TSpace, tags: TVNormal))
-                        p.flags = PFPP
-                        eat()
-                    else:
-                        args[^1].add(p.tok)
-                    getToken()
-                if macroCheck(m, args, name) == false:
-                    return
-                if len(m.tokens) > 0:
-                    var cp: seq[TokenV]
-                    for i in m.tokens:
-                        if i.tok != TSpace:
-                            cp.add(i)
-                    var i = len(cp)
-                    var s: seq[TokenV]
-                    beginExpandMacro(name)
-                    while true:
-                        dec i
-                        let t = cp[i]
-                        case t.tok:
-                        of TSpace:
-                            discard
-                        of CPPIdent:
-                            let k = m.params.find(t.s)
-                            if k != -1:
-                                if i > 0 and cp[i-1].tok == PPSharp:
-                                    s.add(TokenV(tok: TStringLit, tags: TVSVal, s: stringizing(args[k])))
-                                    dec i
-                                else:
-                                    for j in args[k]:
-                                        s.add(j)
-                            else:
-                                if isMacroInUse(t.s):
-                                    note("self-referential macro '" & t.s & "' skipped")
-                                    t.tok = TIdentifier
-                                s.add(t)
-                        else:
-                            s.add(t)
-                        if i == 0:
-                            break
-                    while concatenation(s):
-                        discard
-                    
-                    p.tokenq.add(TokenV(tok: PPMacroPop, tags: TVSVal, s: name))
-                    for i in s:
-                        p.tokenq.add(i)
-                getToken()
-            else:
-                if p.tok.tok != TNewLine:
-                    putToken()
-                p.tok = my
-                p.tok.tok = TIdentifier
-        of MBuiltin:
-            m.fn()
-    else:
-        p.tok.tok = TIdentifier
-
-proc isalnum*(c: char): bool =
-    return c in {'A'..'Z', 'a'..'z', '0'..'9'}
-
-proc lowleveleat() =
-    fs_read()
-
-
-proc do_eat*() =
-    lowleveleat()
-    if p.c == '/':
-        lowleveleat()
-        if p.c == '*':
-            while true:
-                lowleveleat()
-                if p.c == '*':
-                    lowleveleat()
-                    if p.c == '/':
-                        p.c = ' ' # make a space: GNU CPP do it
-                        break
-                elif p.c == '\0':
-                    parse_error("expect '*/' before EOF")
-                    return
-        elif p.c == '/':
-            while true:
-                lowleveleat()
-                if p.c == '\n' or p.c == '\0':
-                    break
-        else:
-            p.lastc = uint16(p.c)
-            p.c = '/'
-    elif p.c == '\\':
-        let c = p.c
-        lowleveleat()
-        if p.c == '\n':
-            do_eat()
-        else:
-            p.lastc = uint16(p.c)
-            p.c = c
-
-proc eat*() =
-    ## skip any C/C++ style comments
-    ## https://gcc.gnu.org/onlinedocs/gcc-12.1.0/cpp/Initial-processing.html
-    if p.lastc <= 255:
-        p.c = char(p.lastc)
-        p.lastc = 256
-        return
-    do_eat()
-
-proc make_tok(op: Token) {.inline.} =
-    p.tok = TokenV(tok: op, tags: TVNormal)
-
-proc make_ch_lit(ch: char) {.inline.} =
-    p.tok.i = ch.int
-
-proc readHexChar(): Codepoint =
-    var n = Codepoint(0)
-    while true:
-        if p.c in {'0'..'9'}:
-            n = (n shl 4.Codepoint) or (Codepoint(p.c) - '0'.Codepoint)
-        elif p.c in {'a'..'f'}:
-            n = (n shl 4.Codepoint) or (Codepoint(p.c) - 'a'.Codepoint + 10.Codepoint)
-        elif p.c in {'A'..'F'}:
-            n = (n shl 4.Codepoint) or (Codepoint(p.c) - 'A'.Codepoint + 10.Codepoint)
-        else:
-            return n
-        eat()
-
-proc readFloatSuffix() =
-    if p.c == 'F' or p.c == 'f':
-        p.tok.ftag = Ffloat
-
-proc readSuffix() =
-    if p.c == 'U' or p.c == 'u':
-        case p.tok.itag:
-        of Iint:
-            p.tok.itag = Iuint
-        of Ilong:
-            p.tok.itag = Iulong
-        of Ilonglong:
-            p.tok.itag = Iulonglong
-        else:
-            parse_error("double 'u' suffix in integer constant")
-            return
-    else:
-        case p.tok.itag:
-        of Iint:
-            p.tok.itag = Ilong
-        of Iuint:
-            p.tok.itag = Iulong
-        of Ilong:
-            p.tok.itag = Ilonglong
-        of Iulong:
-            p.tok.itag = Iulonglong
-        of Ilonglong, Iulonglong:
-            parse_error("more than 2 'l' suffix in integer constant")
-            return
-
-proc validUCN(codepoint: Codepoint) =
-    if codepoint > 0x10FFFF:
-        warning("codepoint too large")
-    if codepoint >= 0xD800 and codepoint <= 0xDFFF:
-        warning("universal character in surrogate range")
-
-proc validUCNName(codepoint: Codepoint) =
-    if codepoint <= 0x009F'u32 and codepoint != Codepoint('`') and codepoint != Codepoint('$') and codepoint != Codepoint('@'):
-        warning("codepoint " & $codepoint &  " cannot be a universal character name")
-
-proc readUChar(count: int): Codepoint =
-    var n = 0'u32
-    var i = 0
-    while true:
-        inc i
-        if p.c in {'0'..'9'}:
-            n = (n shl 4) or (Codepoint(p.c) - '0'.Codepoint)
-        elif p.c in {'a'..'f'}:
-            n = (n shl 4) or (Codepoint(p.c) - 'a'.Codepoint + 10'u32)
-        elif p.c in {'A'..'F'}:
-            n = (n shl 4) or (Codepoint(p.c) - 'A'.Codepoint + 10'u32)
-        else:
-            warning("expect " & $count & " hex digits for universal character")
-            break
-        eat()
-        if i == count:
-            break
-    validUCN(n)
-    return n
-
-proc readEscape(): Codepoint =
-    eat()
-    case p.c:
-    of 'a':
-        eat()
-        return '\a'.Codepoint
-    of 'b':
-        eat()
-        return '\b'.Codepoint
-    of 'f':
-        eat()
-        return '\f'.Codepoint
-    of 'n':
-        eat()
-        return '\n'.Codepoint
-    of 'r':
-        eat()
-        return '\r'.Codepoint
-    of 't':
-        eat()
-        return '\t'.Codepoint
-    of 'v':
-        eat()
-        return '\v'.Codepoint
-    of 'e':
-        eat()
-        return '\x1b'.Codepoint
-    of 'x':
-        eat()
-        readHexChar()
-    of 'u', 'U':
-        let n = if p.c == 'U': 8 else: 4
-        eat()
-        return readUChar(n)
-    of '0' .. '7':
-        const octalChs = {'0'..'7'}
-        var n = Codepoint(p.c) - '0'.Codepoint
-        eat() # eat first
-        if p.c in octalChs:
-            n = (n shl 3.Codepoint) or (Codepoint(p.c) - '0'.Codepoint)
-            eat() # eat second
-            if p.c in octalChs:
-                n = (n shl 3.Codepoint) or (Codepoint(p.c) - '0'.Codepoint)
-                eat() # eat third
-        return n
-    else:
-        let c = p.c.Codepoint
-        eat()
-        return c
-
-proc readCharLit(tag: ITag = Iint) =
-    p.tok = TokenV(tok: TCharLit, tags: TVIVal, itag: tag)
-    eat() # eat '
-    if p.c == '\\':
-        let codepoint = readEscape()
-        if codepoint > 0xFF:
-            warning("character constant too large")
-        make_ch_lit(char(codepoint and 0xFF))
-    else:
-        make_ch_lit(p.c)
-        eat()
-    if p.c != '\'':
-        parse_error("expect ' , got " & show(p.c))
-    eat()
-
-proc readIdentLit() =
-    while true:
-      if p.c == '\\':
-        eat()
-        if p.c == 'U':
-            eat()
-            let codepoint = readUChar(8)
-            validUCNName(codepoint)
-            p.tok.s.add(Rune(codepoint).toUTF8)
-        elif p.c == 'u':
-            eat()
-            let codepoint = readUChar(4)
-            validUCNName(codepoint)
-            p.tok.s.add(Rune(codepoint).toUTF8)
-        else:
-            parse_error("invalid escape in identifier")
-            return
-      else:
-        if not (isalnum(p.c) or (uint8(p.c) and 0x80'u8) != 0 or p.c == '$' or p.c == '_'):
-            break
-        p.tok.s.add(p.c)
-        eat()
-    if p.flags == PFNormal:
-      let k = isKeyword(p.tok.s)
-      if k != TNul:
-          make_tok(k)
-
-proc decimaltoInt(s: string): int =
-    for c in s:
-        result = (result * 10) + (int(c) - '0'.int)
-
-proc decimal16toInt(s: string): int =
-    for c in s:
-        if c in {'0'..'9'}:
-            result = (result shl 4) or (int(c) - '0'.int)
-        elif c in {'a'..'f'}:
-            result = (result shl 4) or (int(c) - 'a'.int + 10)
-        else:
-            result = (result shl 4) or (int(c) - 'A'.int + 10)
-
-proc decimal2toInt(s: string): int =
-    for c in s:
-        if c == '1':
-            result = (result shl 1) or 1
-        else:
-            result = result shl 1
-
-proc pow10(a: int): int =
-    result = 1
-    for i in 0..<a:
-        result *= 10
-
-proc read_pp_float(s: string, o: var float, c: int, base: int, init = 0.0): int =
-    var f = init
-    var i = c
-    if len(s) == c:
-        parse_error("expect more digits after '.'")
-        return 0
-    var e = 1.0
-    while true:
-        let c = s[i]
-        if base == 16:
-            e /= 16.0
-            if c in {'0'..'9'}:
-                f += float(int(c) - '0'.int) * e
-            elif c in {'a'..'f'}:
-                f += float(int(c) - 'a'.int + 10) * e
-            elif c in {'A'..'F'}:
-                f += float(int(c) - 'A'.int + 10) * e
-            else:
-                break
-        else:
-            if c notin {'0'..'9'}:
-                break
-            e /= 10.0
-            f += float(int(c) - '0'.int) * e
-        inc i
-        if i == len(s):
-            o = f
-            return 2
-    if s[i] in {'P', 'p', 'E', 'e'}:
-        inc i
-        if i == len(s):
-            parse_error("expect exponents")
-            return 0        
-        var negate = false
-        if s[i] == '-':
-            negate = true
-            inc i
-            if i == len(s):
-                parse_error("expect exponent digits")
-                return 0
-        elif s[i] == '+':
-            inc i
-            if i == len(s):
-                parse_error("expect exponent digits")
-                return 0
-        elif s[i] notin {'0'..'9'}:
-            parse_error("expect exponent digits")
-            return 0
-        var exps: string
-        while true:
-            exps.add(s[i])
-            inc i
-            if i == len(s):
-                break
-            if s[i] notin {'0'..'9'}:
-                break
-        let powerby = decimaltoInt(exps)
-        if base == 10:
-            let fr = pow(10.0, float(powerby))
-            if negate:
-                f /= fr
-            else:
-                f *= fr
-        else:
-            f *= pow(2, if negate: -float(powerby) else: float(powerby))
-    result = 2
-    if i != len(s):
-        if s[i] notin {'f', 'F', 'L', 'l'}:
-            parse_error("invalid float suffix: " & s[i])
-            return 0
-        if s[i] == 'F' or s[i] == 'f':
-            result = 3
-    o = f
-    return result
-
-# attempt to paser pp-number to int
-# return value
-#   * 0: <failed>
-#   * 1: int
-#   * 2: double
-#   * 3: float
-#   * 4: long
-#   * 5: long long
-#   * 6: unsigned long
-#   * 7: unsigned long long
-#   * 8: unsigned int
-
-proc read_pp_number*(s: string, f: var float, n: var int): int =
-    var base = 10
-    var i = 0
-    if len(s) == 0:
-        return 0
-    if s[0] == '0':
-        if len(s) == 1:
-            n = 0
-            return 1
-        case s[1]:
-        of 'b', 'B': 
-            base = 2
-            i = 2
-        of 'x', 'X':
-            base = 16
-            i = 2
-        of '0' .. '7':
-            i = 2
-            var num = int(s[1]) - int('0')
-            while true:
-                if i == len(s):
-                    n = num
-                    return 1
-                if s[i] notin {'0'..'7'}:
-                    parse_error("bad octal literal")
-                    return 0
-                num = (num shl 3) or (int(s[i]) - int('0'))
-                inc i
-        of '.':
-            return read_pp_float(s, f, c=2, base=10)
-        else:
-            parse_error("invalid number prefix: " & s[1])
-            return 0
-    elif s[0] == '.':
-        return read_pp_float(s, f, c=1, base=10)
-    elif s[0] notin {'1'..'9'}:
-        parse_error("invalid number")
-        return 0
-    var digits: string
-    while true:
-        if i == s.len:
-          break
-        if base == 10:
-            if s[i] notin {'0'..'9'}:
-                break
-        elif base == 2:
-            if s[i] notin {'0', '1'}:
-                break
-        else: # base == 16
-            if s[i] notin {'0'..'9', 'A'..'F', 'a'..'f'}:
-                break
-        digits.add(s[i])
-        inc i
-    var num = if base == 10: decimaltoInt(digits) else: (if base==2: decimal2toInt(digits) else: decimal16toInt(digits))
-    if i == len(s):
-      n = num
-      return 1
-    elif base == 2:
-        parse_error("invalid binary number suffix: " & s[i])
-    if s[i] == '.':
-        return read_pp_float(s, f, i+1, base=base, init=float(num))
-    result = 1
-    case s[i]:
-    of 'E', 'e', 'P', 'p':
-        result = 2
-        inc i
-        if i == len(s):
-            parse_error("expect exponents")
-            return 0
-        var negate = false
-        if s[i] == '-':
-            negate = true
-            inc i
-            if i == len(s):
-                parse_error("expect exponent digits")
-                return 0
-        elif s[i] == '+':
-            inc i
-            if i == len(s):
-                parse_error("expect exponent digits")
-                return 0
-        elif s[i] notin {'0'..'9'}:
-            parse_error("expect exponent digits")
-            return 0
-        var exps: string
-        while true:
-            exps.add(s[i])
-            inc i
-            if i == len(s):
-                break
-            if s[i] notin {'0'..'9'}:
-                break
-        let powerby = decimaltoInt(exps)
-        if base == 10:
-            var pw = pow10(powerby)
-            if negate:
-                f = float(num) / float(pw)
-            else:
-                f = float(num) * float(pw)
-        else:
-            f = float(num) * pow(2, if negate: -float(powerby) else: float(powerby))
-    else:
-        discard
-    while true:
-        if i == len(s):
-            break
-        case s[i]:
-        of 'F', 'f':
-            if not (result == 2 or result == 3):
-                parse_error("invalid integer suffix " & s[i])
-                return 0
-            result = 3
-            break
-        of 'L', 'l':
-            if result == 2 or result == 3:
-                break
-            case result:
-            of 1: # int => long
-                result = 4
-            of 4: # long => long long
-                result = 5
-            of 8: # unsigned int => unsigned long
-                result = 6
-            of 6: # unsigned long => unsigned long long
-                result = 7
-            else:
-                parse_error("double 'L' suffix in integer constant")
-                return 0
-        of 'U', 'u':
-            if result == 2 or result == 3:
-                parse_error("invalid float suffix " & show(s[i]))
-                return 0
-            case result:
-            of 1:
-                result = 8
-            of 4:
-                result = 6
-            of 5:
-                result = 7
-            else:
-                parse_error("double 'U' suffix in integer constant")
-                return
-        else:
-            if result == 2 or result == 3:
-                parse_error("invalid float suffix: " & show(s[i]))
-            else:
-                parse_error("invalid integer suffix: " & show(s[i]))
-            return 0
-        inc i
-    if result == 3 or result == 2:
-        discard
-    else:
-        n = num
-    return result
-
-proc readHexFloatLit(intPart: float = 0.0) =
-    # read a float start from '.'
-    p.tok = TokenV(tok: TFloatLit, tags: TVFVal, ftag: Fdobule)
-    p.tok.f = intPart
-    var e = 1.0
-    while true:
-        e /= 16.0
-        eat()
-        if p.c in {'0'..'9'}:
-          p.tok.f += float(int(p.c) - '0'.int) * e
-        elif p.c in {'a'..'f'}:
-          p.tok.f += float(int(p.c) - 'a'.int + 10) * e
-        elif p.c in {'A'..'F'}:
-          p.tok.f += float(int(p.c) - 'A'.int + 10) * e
-        else:
-            if p.c in {'L', 'l', 'F', 'f'}:
-                readFloatSuffix()
-                eat()
-                break
-            if p.c != 'P' and p.c != 'p':
-                parse_error("expect p or P in hex floating constant, got " & show(p.c))
-                break
-            eat()
-            var negate = false
-            if p.c == '-':
-                negate = true
-                eat()
-            elif p.c == '+':
-                eat()
-            elif p.c notin {'0'..'9'}:
-                parse_error("expect exponent digits")
-            var exps: string
-            while true:
-                exps.add(p.c)
-                eat()
-                if p.c notin {'0'..'9'}:
-                    break
-            p.tok.f *= pow(2, if negate: -float(decimaltoInt(exps)) else: float(decimaltoInt(exps)))
-            if p.c in {'L', 'l', 'F', 'f'}:
-                readFloatSuffix()
-                eat()
-            break
-
-# read a float start from '.'
-proc readFloatLit(intPart: float = 0.0) =
-    p.tok = TokenV(tok: TFloatLit, tags: TVFval, ftag: Fdobule)
-    p.tok.f = intPart
-    var e = 0
-    while true:
-        inc e
-        if p.c notin {'0'..'9'}:
-            if p.c in {'L', 'l', 'F', 'f'}:
-                readFloatSuffix()
-                eat()
-                break
-            if p.c != 'E' and p.c != 'e':
-                break
-            eat()
-            var negate = false
-            if p.c == '-':
-                negate = true
-                eat()
-            elif p.c == '+':
-                eat()
-            elif p.c notin {'0'..'9'}:
-                parse_error("expect exponent digits")
-                return
-            var exps: string
-            while true:
-                exps.add(p.c)
-                eat()
-                if p.c notin {'0'..'9'}:
-                    break
-            p.tok.f *= pow(10, if negate: -float(decimaltoInt(exps)) else: float(decimaltoInt(exps)))
-            if p.c in {'L', 'l', 'F', 'f'}:
-                readFloatSuffix()
-                eat()
-            break
-        p.tok.f += float(int(p.c) - '0'.int) / pow(10.0, float(e))
-        eat()
-
-proc readNumberLit() =
-    p.tok = TokenV(tok: TNumberLit, tags: TVIVal, itag: Iint)
-    p.tok.i = 0
-    if p.c == '0':
-        eat()
-        case p.c:
-        of '0'..'7': # octal
-          discard
-        of 'x', 'X': # hex
-          eat()
-          if p.c notin {'0'..'9', 'A'..'F', 'a'..'f'}:
-            parse_error("invalid hex literal: " & show(p.c))
-            return
-          while true:
-            if p.c in {'0'..'9'}:
-              p.tok.i = (p.tok.i shl 4) or (int(p.c) - '0'.int)
-            elif p.c in {'a'..'f'}:
-              p.tok.i = (p.tok.i shl 4) or (int(p.c) - 'a'.int + 10)
-            elif p.c in {'A'..'F'}:
-              p.tok.i = (p.tok.i shl 4) or (int(p.c) - 'A'.int + 10)
-            elif p.c in {'L', 'l', 'U', 'u'}:
-              while p.c in {'L', 'l', 'U', 'u'}:
-                eat()
-              return
-            elif p.c == '.':
-                readHexFloatLit(float(p.tok.i))
-                return
-            else:
-              return
-            eat()
-        of 'b', 'B': # binary
-          eat()
-          if p.c != '0' and p.c != '1':
-            parse_error("invalid binary literal: expect 0 or 1, got " & show(p.c))
-            return
-          while true:
-            case p.c:
-            of '0':
-              p.tok.i = p.tok.i shl 1
-            of '1':
-              p.tok.i = (p.tok.i shl 1) or 1
-            else:
-              if p.c in {'0'..'9'}:
-                warning("invalid decimal digit in binary literal")
-              return
-            eat()
-        of '.': # float
-          eat()
-          readFloatLit()
-          return
-        else:
-          return # zero
-    else: # decimal
-      while true:
-        p.tok.i = (10 * p.tok.i) + (int(p.c) - '0'.int)
-        eat()
-        if p.c == '.':
-            eat()
-            readFloatLit(float(p.tok.i))
-            break
-        if p.c in {'L', 'l', 'U', 'u'}:
-            while p.c in {'L', 'l', 'U', 'u'}:
-                readSuffix()
-                eat()
-            break
-        elif p.c notin {'0'..'9'}:
-            if p.c in {'a'..'z', 'A'..'Z'}: # User-defined literals?
-              warning("invalid decimal suffix " & show(p.c))
-              note("user-defined literals is a C++ feature")
-            break
-
-proc readStringLit(enc: uint8) =
-    p.tok = TokenV(tok: TStringLit, tags: TVStr)
-    while true:
-        if p.c == '\\':
-            p.tok.str.add(Rune(readEscape()).toUTF8)
-        elif p.c == '"':
-            eat()
-            break
-        else:
-            if 0xF0 == (0xF8 and Codepoint(p.c)): # 4 byte
-              p.tok.str.add(p.c)
-              eat()
-              p.tok.str.add(p.c)
-              eat()
-              p.tok.str.add(p.c)
-              eat()
-              p.tok.str.add(p.c)
-            elif 0xE0 == (0xF0 and Codepoint(p.c)): # 3 byte
-              p.tok.str.add(p.c)
-              eat()
-              p.tok.str.add(p.c)
-              eat()
-              p.tok.str.add(p.c)
-            elif 0xC0 == (0xE0 and Codepoint(p.c)): # 2 byte
-              p.tok.str.add(p.c)
-              eat()
-              p.tok.str.add(p.c)
-            else: # 1 byte
-              if p.c == '\n':
-                warning("missing terminating '\"' character, read newline as \\n")
-              elif p.c == '\0':
-                parse_error("unexpected EOF")
-                return
-              p.tok.str.add(p.c)
-            eat()
-    p.tok.enc = enc
-
-proc readPPNumberAfterDot() =
-    p.tok.s.add('.')
-    while p.c in {'0'..'9'}:
-        p.tok.s.add(p.c)
-        eat()
-
-proc readPPNumber() =
-    p.tok = TokenV(tok: TPPNumber, tags: TVSVal)
-    if p.c == '0':
-        eat()
-        case p.c:
-        of 'x', 'X':
-            p.tok.s = "0x"
-            while true:
-                eat()
-                if p.c notin {'0'..'9', 'a'..'f', 'A'..'F'}:
-                    break
-                p.tok.s.add(p.c)
-        of 'B', 'b':
-            p.tok.s = "0b"
-            while true:
-                eat()
-                if p.c notin {'0', '1'}:
-                    break
-                p.tok.s.add(p.c)
-        of '0' .. '7':
-            p.tok.s = "0"
-            p.tok.s.add(p.c)
-            while true:
-                eat()
-                if p.c notin {'0'..'7'}:
-                    break
-                p.tok.s.add(p.c)
-        of '.':
-            eat()
-            readPPNumberAfterDot()
-        else:
-            p.tok.s = "0"
-            return
-    else:
-        while true:
-            p.tok.s.add(p.c)
-            eat()
-            if p.c notin {'0'..'9'}:
-                break
-        if p.c == '.':
-            eat()
-            readPPNumberAfterDot()
-    if p.c in {'e', 'p', 'E', 'P'}:
-        p.tok.s.add(p.c)
-        eat()
-        if p.c == '+' or p.c == '-':
-            p.tok.s.add(p.c)
-            eat()
-        while p.c in {'0'..'9'}:
-            p.tok.s.add(p.c)
-            eat()
-    # nodigit
-    elif p.c in {'a'..'z', 'A'..'Z', '_'}:
-        while true:
-            p.tok.s.add(p.c)
-            eat()
-            if p.c notin {'a'..'z', 'A'..'Z', '_'}:
-                break
-    # universal-character-name
-    elif p.c == '\\':
-        eat()
-        let n = if p.c == 'U': 8 else: 4
-        eat()
-        let c = readUChar(n)
-        p.tok.s.add(Rune(c).toUTF8)
-
-proc skipLine() =
-    while p.c != '\n' and p.c != '\0':
-        eat()
-    p.flags = PFNormal
 
 proc conditional_expression*(): Expr
-
-proc constant_expression*(): Expr =
-    conditional_expression()
-
-proc my_UNEG(a: uintmax_t): intmax_t {.importc: "myopneg", nodecl, header: "myop.h".}
-
-proc my_SNEG(a: intmax_t): intmax_t {.importc: "myopneg", nodecl, header: "myop.h".}
-
-proc `&&`(a, b: intmax_t): intmax_t {.importc: "myopand", nodecl, header: "myop.h".}
-
-proc `||`(a, b: intmax_t): intmax_t {.importc: "myopor", nodecl, header: "myop.h".}
-
-proc `!`(a: intmax_t): intmax_t {.importc: "myopnot", nodecl, header: "myop.h".}
-
-proc eval_const_expression_bool*(e: Expr): bool
-
-proc evali*(e: Expr): intmax_t =
-  case e.k:
-  of EBin:
-      case e.bop:
-      of SAdd:
-        evali(e.lhs) + evali(e.rhs)
-      of SSub:
-        evali(e.lhs) - evali(e.rhs)
-      of SMul:
-        evali(e.lhs) * evali(e.rhs)
-      of UAdd:
-        cast[intmax_t](cast[uintmax_t](evali(e.lhs)) + cast[uintmax_t](evali(e.rhs)))
-      of USub:
-        cast[intmax_t](cast[uintmax_t](evali(e.lhs)) - cast[uintmax_t](evali(e.rhs)))
-      of UMul:
-        cast[intmax_t](cast[uintmax_t](evali(e.lhs)) * cast[uintmax_t](evali(e.rhs)))
-      of UDiv:
-        cast[intmax_t](cast[uintmax_t](evali(e.lhs)) div cast[uintmax_t](evali(e.rhs)))
-      of SDiv:
-        evali(e.lhs) div evali(e.rhs)
-      of URem:
-        cast[intmax_t](cast[uintmax_t](evali(e.lhs)) mod cast[uintmax_t](evali(e.rhs)))
-      of Shr:
-        cast[intmax_t](cast[uintmax_t](evali(e.lhs)) shr cast[uintmax_t](evali(e.rhs)))
-      of AShr:
-        # https://stackoverflow.com/questions/53746160/how-to-implement-arithmetic-right-shift-in-c
-        # https://stackoverflow.com/questions/7622/are-the-shift-operators-arithmetic-or-logical-in-c
-        evali(e.lhs) shr evali(e.rhs)
-      of EQ:
-        if evali(e.lhs) == evali(e.rhs): 1 else: 0
-      of NE:
-        if evali(e.lhs) != evali(e.rhs): 1 else: 0
-      of SGE:
-        if evali(e.lhs) >= evali(e.rhs): 1 else: 0
-      of SGT:
-        if evali(e.lhs) > evali(e.rhs): 1 else: 0
-      of SLE:
-        if evali(e.lhs) <= evali(e.rhs): 1 else: 0
-      of SLT:
-        if evali(e.lhs) < evali(e.rhs): 1 else: 0
-      of UGE:
-        if cast[uintmax_t](evali(e.lhs)) >= cast[uintmax_t](evali(e.rhs)): 1 else: 0
-      of UGT:
-        if cast[uintmax_t](evali(e.lhs)) > cast[uintmax_t](evali(e.rhs)): 1 else: 0
-      of ULE:
-        if cast[uintmax_t](evali(e.lhs)) <= cast[uintmax_t](evali(e.rhs)): 1 else: 0
-      of ULT:
-        if cast[uintmax_t](evali(e.lhs)) < cast[uintmax_t](evali(e.rhs)): 1 else: 0
-      of And:
-        evali(e.lhs) and evali(e.rhs)
-      of Xor:
-        evali(e.lhs) xor evali(e.rhs)
-      of Or:
-        evali(e.lhs) or evali(e.rhs)
-      of LogicalAnd:
-        evali(e.lhs) && evali(e.rhs)
-      of LogicalOr:
-        evali(e.lhs) || evali(e.rhs)
-      else:
-        eval_error("cannot eval constant-expression: " & $e)
-        intmax_t(0)
-  of EUnary:
-    case e.uop:
-    of Pos:
-      evali(e.uoperand)
-    of UNeg:
-      cast[intmax_t](my_UNEG(cast[uintmax_t](evali(e.uoperand))))
-    of SNeg:
-      my_SNEG(evali(e.uoperand))
-    of LogicalNot:
-      ! evali(e.uoperand)
-    of Not:
-      not evali(e.uoperand)
-    else:
-      eval_error("cannot eval constant-expression: bad unary operator: " & $e)
-      intmax_t(0)
-  of EIntLit:
-    e.ival
-  of EFloatLit:
-    eval_error("floating constant in constant-expression")
-    intmax_t(0)
-  of ECondition:
-    if evali(e.cond) != 0: evali(e.cleft) else: evali(e.cright)
-  else:
-    eval_error("cannot eval constant-expression: " & $e)
-    intmax_t(0)
-
-proc nextTok*() =
-    ## Tokenize
-    while true:
-        if p.c in CSkip:
-            while true:
-                eat()
-                if p.c notin CSkip:
-                    break
-            if p.flags == PFPP and p.want_expr == false:
-                make_tok(TSpace)
-                return
-            continue
-        if p.c == '#':
-            if p.flags == PFPP:
-                eat()
-                if p.c == '#':
-                    make_tok(PPSharpSharp)
-                    eat()
-                else:
-                    make_tok(PPSharp) 
-                return
-            eat()
-            p.flags = PFPP
-            nextTok() # directive
-            if p.tok.tok != CPPIdent:
-                p.flags = PFNormal
-                parse_error("invalid preprocessing directive: expect an identifier")
-                return
-            case p.tok.s:
-            of "define":
-                nextTok() # name
-                while p.tok.tok == TSpace:
-                    nextTok()
-                if p.tok.tok != CPPIdent:
-                    p.flags = PFNormal
-                    parse_error("macro name should be a identifier, got " & showToken())
-                    note("the syntax is:\n\t#define identifier replacement-list\n\t#define identifier(identifier-list) replacement-list")
-                    return
-                var name = p.tok.s # copy to string
-                nextTok()
-                var m = if p.tok.tok == TLbracket: PPMacro(flags: MFUNC, ivarargs: false) else: PPMacro(flags: MOBJ)
-                if m.flags == MFUNC:
-                    while true:
-                        nextTok()
-                        if p.tok.tok == CPPIdent:
-                            m.params.add(p.tok.s)
-                            nextTok()
-                            if p.tok.tok == TRbracket:
-                                break
-                            elif p.tok.tok == TComma:
-                                continue
-                            else:
-                                parse_error("')' or ',' expected")
-                                p.flags = PFNormal
-                                return
-                        elif p.tok.tok == TEllipsis:
-                            nextTok()
-                            if p.tok.tok != TEllipsis:
-                                parse_error("'.' expected")
-                                p.flags = PFNormal
-                                return
-                            nextTok()
-                            if p.tok.tok != TEllipsis:
-                                parse_error("'.' expected")
-                                p.flags = PFNormal
-                                return
-                            m.ivarargs = true
-                            nextTok()
-                            if p.tok.tok != TRbracket:
-                                parse_error("')' expected")
-                                p.flags = PFNormal
-                                return
-                            break
-                        elif p.tok.tok == CPPIdent and p.tok.s == "__VA_ARGS__":
-                            m.ivarargs = true
-                            nextTok()
-                            if p.tok.tok != TRbracket:
-                                parse_error("')' expected")
-                                p.flags = PFNormal
-                                return
-                            break
-                        elif p.tok.tok == TRbracket:
-                            break
-                    nextTok()
-                while p.tok.tok == TSpace:
-                    nextTok()
-                while true:
-                    if p.flags != PFPP:
-                        break
-                    m.tokens.add(p.tok)
-                    nextTok()
-                if m.tokens.len > 0:
-                    while m.tokens[^1].tok == TSpace:
-                        discard m.tokens.pop()
-                var ok = true
-                if len(m.tokens) >= 1:
-                    if m.tokens[0].tok == PPSharpSharp:
-                        parse_error("'##' cannot appear at start of macro expansion")
-                        ok = false
-                    if len(m.tokens) >= 2:
-                        if m.tokens[^1].tok == PPSharpSharp:
-                            parse_error("'##' cannot appear at end of macro expansion")
-                            ok = false
-                if ok:
-                    macro_define(name, m)
-            of "if":
-                nextTok() # if
-                while p.tok.tok == TSpace:
-                    nextTok()
-                var ok: bool
-                p.want_expr = true
-                let e = constant_expression()
-                p.want_expr = false
-                if e == nil:
-                    parse_error("expect constant_expression")
-                    ok = false
-                else:
-                    ok = eval_const_expression_bool(e)
-                p.ppstack.add(if ok: 1 else: 0)
-                p.ok = ok
-                skipLine()
-            of "ifdef", "ifndef":
-                let ndef = p.tok.s == "ifndef"
-                nextTok()
-                while p.tok.tok == TSpace:
-                    nextTok()
-                if p.tok.tok != CPPIdent:
-                    p.flags = PFNormal
-                    parse_error("expect identifier")
-                    note("the syntax is:\n\t#ifdef identifier\n\t#ifndef identifier")
-                    return
-                let name = p.tok.s # no copy
-                let v = if ndef: not macro_defined(name) else: macro_defined(name)
-                p.ppstack.add(if v: 1 else: 0)
-                p.ok = v
-                skipLine()
-            of "else":
-                if p.ppstack.len == 0:
-                    parse_error("no matching #if")
-                    return
-                if (p.ppstack[^1] and 2) != 0:
-                    parse_error("#else after #else")
-                    return
-                p.ppstack[^1] = p.ppstack[^1] or 2
-                p.ok = not p.ok
-                skipLine()
-            of "elif":
-                nextTok() # elif
-                while p.tok.tok == TSpace:
-                    nextTok()
-                if p.ppstack.len == 0:
-                    parse_error("no matching #if")
-                    return
-                if (p.ppstack[^1] and 2) != 0:
-                    parse_error("#elif after #else")
-                    return
-                if p.ok == false:
-                    var ok: bool
-                    p.want_expr = true
-                    let e = constant_expression()
-                    p.want_expr = false
-                    if e == nil:
-                        parse_error("expect constant_expression")
-                        ok = false
-                    else:
-                        ok = eval_const_expression_bool(e)
-                    p.ok = ok
-                else:
-                    p.ok = false
-                skipLine()
-            of "endif":
-                if p.ppstack.len == 0:
-                    parse_error("no matching #if")
-                    skipLine()
-                    return
-                discard p.ppstack.pop() # p.ppstack.del(p.ppstack.len - 1)
-                if p.ppstack.len == 0:
-                    p.ok = true
-                else:
-                    p.ok = (p.ppstack[^1] or 1) != 0
-                skipLine()
-            of "include":
-                while p.c in CSkip:
-                    eat()
-                var path: string
-                case p.c:
-                of '"':
-                    while true:
-                        eat()
-                        if p.c == '"':
-                            eat()
-                            break
-                        if p.c == '\0' or p.c == '\n':
-                            p.flags = PFNormal
-                            parse_error("unexpected EOF, expect path or '\"'")
-                            return
-                        path.add(p.c)
-                    let r = addInclude(path)
-                    if not r:
-                        parse_error("include file not found: " & path)
-                of '<':
-                    while true:
-                        eat()
-                        if p.c == '>':
-                            eat()
-                            break
-                        if p.c == '\0' or p.c == '\n':
-                            p.flags = PFNormal
-                            parse_error("unexpected EOF, expect path or '>'")
-                            return
-                        path.add(p.c)
-                    let r = addInclude(path)
-                    if not r:
-                        parse_error("include file not found: " & path)
-                else:
-                    parse_error("expect \"FILENAME\" or <FILENAME>")
-                    note("the syntax is:\n\t#include <path>\n\t#include \"path\"")
-                    return
-                skipLine()
-            of "line":
-                while p.c in CSkip:
-                    eat()
-                if p.c notin {'0'..'9'}:
-                    parse_error("expect digits (positive line number)")
-                var s: string
-                while true:
-                    s.add(p.c)
-                    eat()
-                    if p.c in {'0'..'9'}:
-                        continue
-                    break
-                p.line = decimaltoInt(s)
-                while p.c in CSkip:
-                    eat()
-                if p.c == '\0' or p.c == '\n':
-                    discard
-                else:
-                    if p.c != '"':
-                        parse_error("expect \"FILENAME\"")
-                        return
-                    var f: string
-                    while true:
-                        eat()
-                        if p.c == '\n' or p.c == '"' or p.c == '\\' or p.c == '\0':
-                            break
-                        f.add(p.c)
-                    if p.c != '"':
-                        parse_error("'\"' expected")
-                        return
-                    eat()
-                    p.filename = f
-                    skipLine()
-            of "undef":
-                nextTok()
-                while p.tok.tok == TSpace:
-                    nextTok()
-                if p.tok.tok != CPPIdent:
-                    p.flags = PFNormal
-                    parse_error("macro name should be a identifier")
-                    note("the syntax is: #undef identifier")
-                    return
-                macro_undef(p.tok.s)
-                skipLine()
-            of "pragma":
-                nextTok() # eat pragma
-                var pragmas: seq[TokenV]
-                while true:
-                    if p.flags != PFPP:
-                        break
-                    if p.tok.tok != TSpace:
-                        pragmas.add(p.tok)
-                    nextTok()
-                pragma(pragmas)
-                skipLine()
-            of "error", "warning":
-                var s: string
-                let iswarning = p.tok.s == "warning"
-                while p.c == ' ':
-                    eat()
-                while true:
-                    if p.c == '\n' or p.c == '\0':
-                        break
-                    s.add(p.c)
-                    eat()
-                if iswarning:
-                    warning("#warning: " & s)
-                else:
-                    parse_error("#error: " & s)
-                skipLine()
-            else:
-                parse_error("invalid directive: " & p.tok.s)
-                skipLine()
-            eat()
-            continue
-        if p.flags == PFNormal and p.ok == false:
-            while p.c != '\n' and p.c != '\0':
-                eat()
-            if p.c == '\n':
-                eat()
-            elif p.c == '\0':
-                p.flags = PFNormal
-                p.tok = TokenV(tok: TEOF, tags: TVNormal)
-                return
-            continue
-        if p.c == '\n':
-            if p.flags == PFPP:
-                p.flags = PFNormal
-                p.tok = TokenV(tok: TNewLine, tags: TVNormal)
-                return
-            eat()
-            continue
-        if p.c in {'0'..'9'}:
-            if p.flags == PFPP:
-                readPPNumber()
-            else:
-                readNumberLit()
-            return
-        case p.c:
-        of 'u':
-            eat()
-            if p.c == '"':
-                eat()
-                readStringLit(16)
-            elif p.c == '\'':
-                readCharLit(Ilong)
-            elif p.c == '8':
-                eat()
-                if p.c != '"':
-                    if p.c == '\'':
-                        readCharLit()
-                    else:
-                        p.tok = TokenV(tok: CPPIdent, tags: TVSVal, s: "u8")
-                        readIdentLit()
-                else:
-                    eat()
-                    readStringLit(8)
-            else:
-                p.tok = TokenV(tok: CPPIdent, tags: TVSVal, s: "u")
-                readIdentLit()
-            return
-        of 'U':
-          eat()
-          if p.c != '"':
-            if p.c == '\'':
-                readCharLit(Iulong)
-            else:
-                p.tok = TokenV(tok: CPPIdent, tags: TVSVal, s: "U")
-                readIdentLit()
-          else:
-            eat()
-            readStringLit(32)
-          return
-        of 'L':
-            eat()
-            if p.c != '"':
-                if p.c == '\'':
-                    readCharLit(Ilonglong)
-                else:
-                    p.tok = TokenV(tok: CPPIdent, tags: TVSVal, s: "L")
-                    readIdentLit()
-            else:
-                eat()
-                readStringLit(16)
-            return
-        else:
-            discard
-
-        if p.c in {'a'..'z', 'A'..'Z', '\x80' .. '\xFD', '_', '$', '\\'}:
-            p.tok = TokenV(tok: CPPIdent, tags: TVSVal, s: "")
-            readIdentLit()
-            return
-        case p.c:
-        of '.':
-            if p.flags == PFNormal:
-                eat() # first
-                if p.c == '.':
-                    eat() # second
-                    if p.c != '.':
-                        parse_error("'..' is invalid token, do you mean '...'?")
-                        return
-                    eat() # third
-                    make_tok(TEllipsis)    
-                else:
-                    readFloatLit()
-            else:
-                eat() # first '.'
-                if p.c == '.':
-                    make_tok(TDot)
-                else:
-                    p.tok = TokenV(tok: TPPNumber, tags: TVSVal)
-                    readPPNumberAfterDot()
-            return
-        of '\0':
-            if p.flags == PFPP:
-                p.flags = PFNormal
-            p.tok = TokenV(tok: TEOF, tags: TVNormal)
-            return
-        of '(', ')', '~', '?', '{', '}', ',', '[', ']', ';', '@':
-            make_tok(cast[Token](p.c))
-            eat()
-            return
-        of '"':
-            eat()
-            readStringLit(8)
-            return
-        of ':':
-            eat()
-            if p.c == '>':
-                make_tok(TRSquareBrackets)
-                eat()
-            else:
-                make_tok(TColon)
-            return
-        of '-':
-            eat()
-            if p.c == '-':
-                make_tok(TSubSub)
-                eat()
-            elif p.c == '=':
-                make_tok(TAsignSub)
-                eat()
-            else:
-                make_tok(TDash)
-            return
-        of '+':
-            eat()
-            if p.c == '+':
-                make_tok(TAddAdd)
-                eat()
-            elif p.c == '=':
-                make_tok(TAsignAdd)
-                eat()
-            else:
-                make_tok(TAdd)
-            return
-        of '\'':
-            readCharLit()
-            return
-        of '>':
-            eat()
-            if p.c == '=':
-                make_tok(TGe)
-                eat()
-            elif p.c == '>':
-                make_tok(Tshr)
-                eat()
-            else:
-                make_tok(TGt)
-            return
-        of '<':
-            eat()
-            case p.c:
-            of '<':
-                make_tok(Tshl)
-                eat()
-            of '=':
-                make_tok(TLe)
-                eat()
-            of ':':
-                make_tok(TLSquareBrackets)
-                eat()
-            of '%':
-                make_tok(TLcurlyBracket)
-                eat()
-            else:
-                make_tok(TLe)
-            return
-        of '%':
-            eat()
-            if p.c == '=':
-                make_tok(TAsignRem)
-                eat()
-            elif p.c == '>':
-                make_tok(TRcurlyBracket)
-                eat()
-            elif p.c == ':':
-                make_tok(TBash)
-                eat()
-            else:
-                make_tok(TPercent)
-            return
-        of '*':
-            eat()
-            if p.c == '=':
-                make_tok(TAsignMul)
-                eat()
-            else:
-                make_tok(TMul)
-            return
-        of '=':
-            eat()
-            if p.c == '=':
-                make_tok(TEq)
-                eat()
-            else:
-                make_tok(TAssign)
-            return  
-        of '&':
-            eat()
-            if p.c == '=':
-                make_tok(TAsignBitAnd)
-                eat()
-            elif p.c == '&':
-                make_tok(TLogicalAnd)
-                eat()
-            else:
-                make_tok(TBitAnd)
-            return
-        of '|':
-            eat()
-            if p.c == '=':
-                make_tok(TAsignBitOr)
-                eat()
-            elif p.c == '|':
-                make_tok(TLogicalOr)
-                eat()
-            else:
-                make_tok(TBitOr)
-            return
-        of '^':
-            eat()
-            if p.c == '=':
-                make_tok(TAsignBitXor)
-                eat()
-            else:
-                make_tok(TXor)
-            return
-        of '/':
-            eat()
-            if p.c == '=':
-                make_tok(TAsignDiv)
-                eat()
-                return
-            else:
-                make_tok(TSlash)
-                return
-        of '!':
-            eat()
-            if p.c == '=':
-                make_tok(TNe)
-                eat()
-            else:
-                make_tok(TNot)
-            return
-        else:
-          warning("invalid token: " & show(p.c))
-
-        eat()
 
 proc type_name*(): (CType, bool)
 
@@ -2135,6 +845,9 @@ proc declaration_specifiers*(): CType
 
 proc specifier_qualifier_list*(): CType
 
+proc constant_expression*(): Expr =
+    conditional_expression()
+
 type 
     DeclaratorFlags* = enum 
         ## * Direct: declarator with name
@@ -2173,16 +886,8 @@ proc consume*() =
     ## eat token from lexer and c preprocesser
     ##
     ## alias for `getToken`
-    getToken()
+    app.cpp()
 
-proc eval_const_expression*(e: Expr): intmax_t =
-   ## run the constant expression
-   ##
-   ## if error, setting eval_error
-   evali(e)
-
-proc eval_const_expression_bool*(e: Expr): bool =
-  evali(e) != 0
 
 const type_specifier_set* = {
     Kchar, Kint, Kshort, Ksigned, 
@@ -2545,7 +1250,7 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
             if e == nil:
                 expect("expression")
                 return nil
-            ty.arrsize = eval_const_expression(e)
+            ty.arrsize = app.eval_const_expression(e)
             if p.tok.tok != TRSquareBrackets:
                parse_error("expect ']'")
                return nil
@@ -2593,7 +1298,7 @@ proc struct_declarator(base: CType): (string, CType) =
             expect("expression")
             note("in bit field declaration")
             return ("", nil)
-        let bitsize = eval_const_expression(e)
+        let bitsize = app.eval_const_expression(e)
         return ("", CType(tags: TYINVALID, spec: TYBITFIELD, bittype: base, bitsize: bitsize))
     else:
         let d = declarator(base, Direct)
@@ -2606,7 +1311,7 @@ proc struct_declarator(base: CType): (string, CType) =
                 expect("expression")
                 note("in bit field declaration")
                 return
-            let bitsize = eval_const_expression(e)
+            let bitsize = app.eval_const_expression(e)
             return ("", CType(tags: TYINVALID, spec: TYBITFIELD, bittype: if d.k == SFunction: d.functy else: d.var1type, bitsize: bitsize))
         if d.k == SFunction:
             return (d.funcname, d.functy)
@@ -2711,7 +1416,7 @@ proc penum*(): CType =
         if p.tok.tok == TAssign:
             consume()
             var e = constant_expression()
-            c = eval_const_expression(e)
+            c = app.eval_const_expression(e)
             if err():
                 return nil
         result.eelems.add((s, c))
@@ -2820,7 +1525,7 @@ proc static_assert*(): Stmt =
     consume()
     var msg = ""
     let e = constant_expression()
-    let ok = eval_const_expression_bool(e)
+    let ok = app.eval_const_expression(e) != 0
     if p.tok.tok == TRbracket: # no message
         if ok == false:
             error("static assert failed!")
@@ -3090,6 +1795,273 @@ proc unary_expression*(): Expr =
         return result
     else:
         return postfix_expression()
+
+proc decimaltoInt*(s: string): int =
+    for c in s:
+        result = (result * 10) + (int(c) - '0'.int)
+
+proc decimal16toInt*(s: string): int =
+    for c in s:
+        if c in {'0'..'9'}:
+            result = (result shl 4) or (int(c) - '0'.int)
+        elif c in {'a'..'f'}:
+            result = (result shl 4) or (int(c) - 'a'.int + 10)
+        else:
+            result = (result shl 4) or (int(c) - 'A'.int + 10)
+
+proc decimal2toInt*(s: string): int =
+    for c in s:
+        if c == '1':
+            result = (result shl 1) or 1
+        else:
+            result = result shl 1
+
+proc pow10*(a: int): int =
+    result = 1
+    for i in 0..<a:
+        result *= 10
+
+proc read_pp_float(s: string, o: var float, c: int, base: int, init = 0.0): int =
+    var f = init
+    var i = c
+    if len(s) == c:
+        parse_error("expect more digits after '.'")
+        return 0
+    var e = 1.0
+    while true:
+        let c = s[i]
+        if base == 16:
+            e /= 16.0
+            if c in {'0'..'9'}:
+                f += float(int(c) - '0'.int) * e
+            elif c in {'a'..'f'}:
+                f += float(int(c) - 'a'.int + 10) * e
+            elif c in {'A'..'F'}:
+                f += float(int(c) - 'A'.int + 10) * e
+            else:
+                break
+        else:
+            if c notin {'0'..'9'}:
+                break
+            e /= 10.0
+            f += float(int(c) - '0'.int) * e
+        inc i
+        if i == len(s):
+            o = f
+            return 2
+    if s[i] in {'P', 'p', 'E', 'e'}:
+        inc i
+        if i == len(s):
+            parse_error("expect exponents")
+            return 0        
+        var negate = false
+        if s[i] == '-':
+            negate = true
+            inc i
+            if i == len(s):
+                parse_error("expect exponent digits")
+                return 0
+        elif s[i] == '+':
+            inc i
+            if i == len(s):
+                parse_error("expect exponent digits")
+                return 0
+        elif s[i] notin {'0'..'9'}:
+            parse_error("expect exponent digits")
+            return 0
+        var exps: string
+        while true:
+            exps.add(s[i])
+            inc i
+            if i == len(s):
+                break
+            if s[i] notin {'0'..'9'}:
+                break
+        let powerby = decimaltoInt(exps)
+        if base == 10:
+            let fr = pow(10.0, float(powerby))
+            if negate:
+                f /= fr
+            else:
+                f *= fr
+        else:
+            f *= pow(2, if negate: -float(powerby) else: float(powerby))
+    result = 2
+    if i != len(s):
+        if s[i] notin {'f', 'F', 'L', 'l'}:
+            parse_error("invalid float suffix: " & s[i])
+            return 0
+        if s[i] == 'F' or s[i] == 'f':
+            result = 3
+    o = f
+    return result
+
+# attempt to paser pp-number to int
+# return value
+#   * 0: <failed>
+#   * 1: int
+#   * 2: double
+#   * 3: float
+#   * 4: long
+#   * 5: long long
+#   * 6: unsigned long
+#   * 7: unsigned long long
+#   * 8: unsigned int
+
+proc read_pp_number*(s: string, f: var float, n: var int): int =
+    var base = 10
+    var i = 0
+    if len(s) == 0:
+        return 0
+    if s[0] == '0':
+        if len(s) == 1:
+            n = 0
+            return 1
+        case s[1]:
+        of 'b', 'B': 
+            base = 2
+            i = 2
+        of 'x', 'X':
+            base = 16
+            i = 2
+        of '0' .. '7':
+            i = 2
+            var num = int(s[1]) - int('0')
+            while true:
+                if i == len(s):
+                    n = num
+                    return 1
+                if s[i] notin {'0'..'7'}:
+                    parse_error("bad octal literal")
+                    return 0
+                num = (num shl 3) or (int(s[i]) - int('0'))
+                inc i
+        of '.':
+            return read_pp_float(s, f, c=2, base=10)
+        else:
+            parse_error("invalid number prefix: " & s[1])
+            return 0
+    elif s[0] == '.':
+        return read_pp_float(s, f, c=1, base=10)
+    elif s[0] notin {'1'..'9'}:
+        parse_error("invalid number")
+        return 0
+    var digits: string
+    while true:
+        if i == s.len:
+          break
+        if base == 10:
+            if s[i] notin {'0'..'9'}:
+                break
+        elif base == 2:
+            if s[i] notin {'0', '1'}:
+                break
+        else: # base == 16
+            if s[i] notin {'0'..'9', 'A'..'F', 'a'..'f'}:
+                break
+        digits.add(s[i])
+        inc i
+    var num = if base == 10: decimaltoInt(digits) else: (if base==2: decimal2toInt(digits) else: decimal16toInt(digits))
+    if i == len(s):
+      n = num
+      return 1
+    elif base == 2:
+        parse_error("invalid binary number suffix: " & s[i])
+    if s[i] == '.':
+        return read_pp_float(s, f, i+1, base=base, init=float(num))
+    result = 1
+    case s[i]:
+    of 'E', 'e', 'P', 'p':
+        result = 2
+        inc i
+        if i == len(s):
+            parse_error("expect exponents")
+            return 0
+        var negate = false
+        if s[i] == '-':
+            negate = true
+            inc i
+            if i == len(s):
+                parse_error("expect exponent digits")
+                return 0
+        elif s[i] == '+':
+            inc i
+            if i == len(s):
+                parse_error("expect exponent digits")
+                return 0
+        elif s[i] notin {'0'..'9'}:
+            parse_error("expect exponent digits")
+            return 0
+        var exps: string
+        while true:
+            exps.add(s[i])
+            inc i
+            if i == len(s):
+                break
+            if s[i] notin {'0'..'9'}:
+                break
+        let powerby = decimaltoInt(exps)
+        if base == 10:
+            var pw = pow10(powerby)
+            if negate:
+                f = float(num) / float(pw)
+            else:
+                f = float(num) * float(pw)
+        else:
+            f = float(num) * pow(2, if negate: -float(powerby) else: float(powerby))
+    else:
+        discard
+    while true:
+        if i == len(s):
+            break
+        case s[i]:
+        of 'F', 'f':
+            if not (result == 2 or result == 3):
+                parse_error("invalid integer suffix " & s[i])
+                return 0
+            result = 3
+            break
+        of 'L', 'l':
+            if result == 2 or result == 3:
+                break
+            case result:
+            of 1: # int => long
+                result = 4
+            of 4: # long => long long
+                result = 5
+            of 8: # unsigned int => unsigned long
+                result = 6
+            of 6: # unsigned long => unsigned long long
+                result = 7
+            else:
+                parse_error("double 'L' suffix in integer constant")
+                return 0
+        of 'U', 'u':
+            if result == 2 or result == 3:
+                parse_error("invalid float suffix " & show(s[i]))
+                return 0
+            case result:
+            of 1:
+                result = 8
+            of 4:
+                result = 6
+            of 5:
+                result = 7
+            else:
+                parse_error("double 'U' suffix in integer constant")
+                return
+        else:
+            if result == 2 or result == 3:
+                parse_error("invalid float suffix: " & show(s[i]))
+            else:
+                parse_error("invalid integer suffix: " & show(s[i]))
+            return 0
+        inc i
+    if result == 3 or result == 2:
+        discard
+    else:
+        n = num
+    return result
 
 proc primary_expression*(): Expr =
     ## primary expressions:
@@ -3703,7 +2675,7 @@ proc runParser*(): Stmt =
     ## eat first token and parse a translation_unit
     ##
     ## never return nil, return a compound statement
-    getToken()
+    consume()
     return translation_unit()
 
 proc compound_statement*(): Stmt =
@@ -3974,3 +2946,9 @@ proc statament*(): Stmt =
         return nil
     consume()
     return Stmt(k: SExpr, exprbody: e)
+
+proc setParser*() =
+  ## create a Parser, and call `setParser proc<#setParser,Parser>`_, then call `reset proc<#reset>`_
+  var p = Parser()
+  setParser(p)
+  reset()

@@ -1,5 +1,5 @@
 type
-    Fd {.importc: "FILE*", nodecl.} = pointer
+    Fd {.importc: "struct FILE*", nodecl, header: "stdio.h".} = pointer
     StreamType = enum
       FileStream, StringStream, StdinStream
     Stream* = ref object

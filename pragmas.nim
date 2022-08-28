@@ -6,7 +6,7 @@
 ##
 ## https://gcc.gnu.org/onlinedocs/cpp/Pragmas.html
 
-import token
+import core
 
 proc pragma*(s: seq[TokenV]) =
     echo "pragma: ", len(s)

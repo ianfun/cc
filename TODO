@@ -2,3 +2,4 @@
 * support GCC __attribute__ 
 * support GCC/MSCV pragmas
 * function with no prototype
+* inline assembly in LLVM

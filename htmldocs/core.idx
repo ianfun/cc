@@ -1,0 +1,350 @@
+intmax_t	core.html#intmax_t	core: intmax_t	
+uintmax_t	core.html#uintmax_t	core: uintmax_t	
+WError	core.html#WError	VerboseLevel.WError	
+WWarning	core.html#WWarning	VerboseLevel.WWarning	
+WNote	core.html#WNote	VerboseLevel.WNote	
+WVerbose	core.html#WVerbose	VerboseLevel.WVerbose	
+VerboseLevel	core.html#VerboseLevel	core: VerboseLevel	
+TYPRIM	core.html#TYPRIM	CTypeSpec.TYPRIM	
+TYPOINTER	core.html#TYPOINTER	CTypeSpec.TYPOINTER	
+TYSTRUCT	core.html#TYSTRUCT	CTypeSpec.TYSTRUCT	
+TYUNION	core.html#TYUNION	CTypeSpec.TYUNION	
+TYENUM	core.html#TYENUM	CTypeSpec.TYENUM	
+TYBITFIELD	core.html#TYBITFIELD	CTypeSpec.TYBITFIELD	
+TYARRAY	core.html#TYARRAY	CTypeSpec.TYARRAY	
+TYFUNCTION	core.html#TYFUNCTION	CTypeSpec.TYFUNCTION	
+TYINCOMPLETE	core.html#TYINCOMPLETE	CTypeSpec.TYINCOMPLETE	
+CTypeSpec	core.html#CTypeSpec	core: CTypeSpec	
+CType	core.html#CType	core: CType	
+unreachable	core.html#unreachable	core: unreachable()	
+Location	core.html#Location	core: Location	
+TNul	core.html#TNul	Token.TNul	
+TNewLine	core.html#TNewLine	Token.TNewLine	
+TSpace	core.html#TSpace	Token.TSpace	
+TNot	core.html#TNot	Token.TNot	
+TDoubleQ	core.html#TDoubleQ	Token.TDoubleQ	
+TBash	core.html#TBash	Token.TBash	
+TDolor	core.html#TDolor	Token.TDolor	
+TPercent	core.html#TPercent	Token.TPercent	
+TBitAnd	core.html#TBitAnd	Token.TBitAnd	
+TSignleQ	core.html#TSignleQ	Token.TSignleQ	
+TLbracket	core.html#TLbracket	Token.TLbracket	
+TRbracket	core.html#TRbracket	Token.TRbracket	
+TMul	core.html#TMul	Token.TMul	
+TAdd	core.html#TAdd	Token.TAdd	
+TComma	core.html#TComma	Token.TComma	
+TDash	core.html#TDash	Token.TDash	
+TDot	core.html#TDot	Token.TDot	
+TSlash	core.html#TSlash	Token.TSlash	
+TColon	core.html#TColon	Token.TColon	
+TSemicolon	core.html#TSemicolon	Token.TSemicolon	
+TLt	core.html#TLt	Token.TLt	
+TAssign	core.html#TAssign	Token.TAssign	
+TGt	core.html#TGt	Token.TGt	
+TQuestionMark	core.html#TQuestionMark	Token.TQuestionMark	
+TMouse	core.html#TMouse	Token.TMouse	
+TLSquareBrackets	core.html#TLSquareBrackets	Token.TLSquareBrackets	
+TBackslash	core.html#TBackslash	Token.TBackslash	
+TRSquareBrackets	core.html#TRSquareBrackets	Token.TRSquareBrackets	
+TXor	core.html#TXor	Token.TXor	
+TUnderscore	core.html#TUnderscore	Token.TUnderscore	
+TGraveAccent	core.html#TGraveAccent	Token.TGraveAccent	
+TLcurlyBracket	core.html#TLcurlyBracket	Token.TLcurlyBracket	
+TBitOr	core.html#TBitOr	Token.TBitOr	
+TRcurlyBracket	core.html#TRcurlyBracket	Token.TRcurlyBracket	
+TBitNot	core.html#TBitNot	Token.TBitNot	
+T255	core.html#T255	Token.T255	
+Kauto	core.html#Kauto	Token.Kauto	
+Kfor	core.html#Kfor	Token.Kfor	
+Kgoto	core.html#Kgoto	Token.Kgoto	
+Kif	core.html#Kif	Token.Kif	
+Kinline	core.html#Kinline	Token.Kinline	
+Kint	core.html#Kint	Token.Kint	
+Kchar	core.html#Kchar	Token.Kchar	
+Klong	core.html#Klong	Token.Klong	
+Kregister	core.html#Kregister	Token.Kregister	
+Krestrict	core.html#Krestrict	Token.Krestrict	
+Kreturn	core.html#Kreturn	Token.Kreturn	
+Kshort	core.html#Kshort	Token.Kshort	
+Kelse	core.html#Kelse	Token.Kelse	
+Kenum	core.html#Kenum	Token.Kenum	
+Kextern	core.html#Kextern	Token.Kextern	
+Kdouble	core.html#Kdouble	Token.Kdouble	
+Kdo	core.html#Kdo	Token.Kdo	
+Kdefault	core.html#Kdefault	Token.Kdefault	
+Kfloat	core.html#Kfloat	Token.Kfloat	
+Ksigned	core.html#Ksigned	Token.Ksigned	
+Ksizeof	core.html#Ksizeof	Token.Ksizeof	
+Kstatic	core.html#Kstatic	Token.Kstatic	
+Kstruct	core.html#Kstruct	Token.Kstruct	
+Kswitch	core.html#Kswitch	Token.Kswitch	
+Kcase	core.html#Kcase	Token.Kcase	
+Ktypedef	core.html#Ktypedef	Token.Ktypedef	
+Kunion	core.html#Kunion	Token.Kunion	
+Kcontinue	core.html#Kcontinue	Token.Kcontinue	
+Kunsigned	core.html#Kunsigned	Token.Kunsigned	
+Kvoid	core.html#Kvoid	Token.Kvoid	
+Kvolatile	core.html#Kvolatile	Token.Kvolatile	
+Kwhile	core.html#Kwhile	Token.Kwhile	
+Kconst	core.html#Kconst	Token.Kconst	
+Kbreak	core.html#Kbreak	Token.Kbreak	
+K_Alignas	core.html#K_Alignas	Token.K_Alignas	
+K_Alignof	core.html#K_Alignof	Token.K_Alignof	
+K_Atomic	core.html#K_Atomic	Token.K_Atomic	
+K_Bool	core.html#K_Bool	Token.K_Bool	
+K_Complex	core.html#K_Complex	Token.K_Complex	
+K_Decimal128	core.html#K_Decimal128	Token.K_Decimal128	
+K_Decimal32	core.html#K_Decimal32	Token.K_Decimal32	
+K_Decimal64	core.html#K_Decimal64	Token.K_Decimal64	
+K_Generic	core.html#K_Generic	Token.K_Generic	
+K_Imaginary	core.html#K_Imaginary	Token.K_Imaginary	
+K_Noreturn	core.html#K_Noreturn	Token.K_Noreturn	
+K_Static_assert	core.html#K_Static_assert	Token.K_Static_assert	
+K_Thread_local	core.html#K_Thread_local	Token.K_Thread_local	
+TAddAdd	core.html#TAddAdd	Token.TAddAdd	
+TSubSub	core.html#TSubSub	Token.TSubSub	
+TArrow	core.html#TArrow	Token.TArrow	
+Tshl	core.html#Tshl	Token.Tshl	
+Tshr	core.html#Tshr	Token.Tshr	
+TGe	core.html#TGe	Token.TGe	
+TLe	core.html#TLe	Token.TLe	
+TEq	core.html#TEq	Token.TEq	
+TNe	core.html#TNe	Token.TNe	
+TLogicalOr	core.html#TLogicalOr	Token.TLogicalOr	
+TLogicalAnd	core.html#TLogicalAnd	Token.TLogicalAnd	
+TAsignAdd	core.html#TAsignAdd	Token.TAsignAdd	
+TAsignSub	core.html#TAsignSub	Token.TAsignSub	
+TAsignMul	core.html#TAsignMul	Token.TAsignMul	
+TAsignDiv	core.html#TAsignDiv	Token.TAsignDiv	
+TAsignRem	core.html#TAsignRem	Token.TAsignRem	
+TAsignShl	core.html#TAsignShl	Token.TAsignShl	
+TAsignShr	core.html#TAsignShr	Token.TAsignShr	
+TAsignBitAnd	core.html#TAsignBitAnd	Token.TAsignBitAnd	
+TAsignBitOr	core.html#TAsignBitOr	Token.TAsignBitOr	
+TAsignBitXor	core.html#TAsignBitXor	Token.TAsignBitXor	
+TEllipsis	core.html#TEllipsis	Token.TEllipsis	
+TNumberLit	core.html#TNumberLit	Token.TNumberLit	
+TFloatLit	core.html#TFloatLit	Token.TFloatLit	
+TCharLit	core.html#TCharLit	Token.TCharLit	
+TIdentifier	core.html#TIdentifier	Token.TIdentifier	
+CPPIdent	core.html#CPPIdent	Token.CPPIdent	
+TStringLit	core.html#TStringLit	Token.TStringLit	
+TPPNumber	core.html#TPPNumber	Token.TPPNumber	
+PPPlaceholder	core.html#PPPlaceholder	Token.PPPlaceholder	
+PPSharp	core.html#PPSharp	Token.PPSharp	
+PPSharpSharp	core.html#PPSharpSharp	Token.PPSharpSharp	
+PPMacroPop	core.html#PPMacroPop	Token.PPMacroPop	
+TEOF	core.html#TEOF	Token.TEOF	
+Token	core.html#Token	core: Token	
+TYINVALID	core.html#TYINVALID	core: TYINVALID	
+TYCONST	core.html#TYCONST	core: TYCONST	
+TYRESTRICT	core.html#TYRESTRICT	core: TYRESTRICT	
+TYVOLATILE	core.html#TYVOLATILE	core: TYVOLATILE	
+TYATOMIC	core.html#TYATOMIC	core: TYATOMIC	
+TYINLINE	core.html#TYINLINE	core: TYINLINE	
+TYSTATIC	core.html#TYSTATIC	core: TYSTATIC	
+TYNORETURN	core.html#TYNORETURN	core: TYNORETURN	
+TYALIGNAS	core.html#TYALIGNAS	core: TYALIGNAS	
+TYEXTERN	core.html#TYEXTERN	core: TYEXTERN	
+TYREGISTER	core.html#TYREGISTER	core: TYREGISTER	
+TYTHREAD_LOCAL	core.html#TYTHREAD_LOCAL	core: TYTHREAD_LOCAL	
+TYTYPEDEF	core.html#TYTYPEDEF	core: TYTYPEDEF	
+TYEXPR	core.html#TYEXPR	core: TYEXPR	
+TYVOID	core.html#TYVOID	core: TYVOID	
+TYBOOL	core.html#TYBOOL	core: TYBOOL	
+TYCOMPLEX	core.html#TYCOMPLEX	core: TYCOMPLEX	
+TYINT8	core.html#TYINT8	core: TYINT8	
+TYINT16	core.html#TYINT16	core: TYINT16	
+TYINT32	core.html#TYINT32	core: TYINT32	
+TYINT64	core.html#TYINT64	core: TYINT64	
+TYUINT8	core.html#TYUINT8	core: TYUINT8	
+TYUINT16	core.html#TYUINT16	core: TYUINT16	
+TYUINT32	core.html#TYUINT32	core: TYUINT32	
+TYUINT64	core.html#TYUINT64	core: TYUINT64	
+TYFLOAT	core.html#TYFLOAT	core: TYFLOAT	
+TYDOUBLE	core.html#TYDOUBLE	core: TYDOUBLE	
+TYCHAR	core.html#TYCHAR	core: TYCHAR	
+TYSHORT	core.html#TYSHORT	core: TYSHORT	
+TYINT	core.html#TYINT	core: TYINT	
+TYLONG	core.html#TYLONG	core: TYLONG	
+TYLONGLONG	core.html#TYLONGLONG	core: TYLONGLONG	
+TYUCHAR	core.html#TYUCHAR	core: TYUCHAR	
+TYUSHORT	core.html#TYUSHORT	core: TYUSHORT	
+TYUINT	core.html#TYUINT	core: TYUINT	
+TYULONG	core.html#TYULONG	core: TYULONG	
+TYULONGLONG	core.html#TYULONGLONG	core: TYULONGLONG	
+TYLONGDOUBLE	core.html#TYLONGDOUBLE	core: TYLONGDOUBLE	
+TYSIZE_T	core.html#TYSIZE_T	core: TYSIZE_T	
+prim	core.html#prim	core: prim	
+signed	core.html#signed	core: signed	
+unsigned	core.html#unsigned	core: unsigned	
+VI	core.html#VI	CValueKind.VI	
+VF	core.html#VF	CValueKind.VF	
+CValueKind	core.html#CValueKind	core: CValueKind	
+CValue	core.html#CValue	core: CValue	
+PostfixIncrement	core.html#PostfixIncrement	PostfixOP.PostfixIncrement	
+PostfixDecrement	core.html#PostfixDecrement	PostfixOP.PostfixDecrement	
+PostfixOP	core.html#PostfixOP	core: PostfixOP	
+Pos	core.html#Pos	UnaryOP.Pos	
+UNeg	core.html#UNeg	UnaryOP.UNeg	
+SNeg	core.html#SNeg	UnaryOP.SNeg	
+FNeg	core.html#FNeg	UnaryOP.FNeg	
+Not	core.html#Not	UnaryOP.Not	
+AddressOf	core.html#AddressOf	UnaryOP.AddressOf	
+PrefixIncrement	core.html#PrefixIncrement	UnaryOP.PrefixIncrement	
+PrefixDecrement	core.html#PrefixDecrement	UnaryOP.PrefixDecrement	
+Dereference	core.html#Dereference	UnaryOP.Dereference	
+LogicalNot	core.html#LogicalNot	UnaryOP.LogicalNot	
+UnaryOP	core.html#UnaryOP	core: UnaryOP	
+Nop	core.html#Nop	BinOP.Nop	
+UAdd	core.html#UAdd	BinOP.UAdd	
+SAdd	core.html#SAdd	BinOP.SAdd	
+FAdd	core.html#FAdd	BinOP.FAdd	
+USub	core.html#USub	BinOP.USub	
+SSub	core.html#SSub	BinOP.SSub	
+FSub	core.html#FSub	BinOP.FSub	
+UMul	core.html#UMul	BinOP.UMul	
+SMul	core.html#SMul	BinOP.SMul	
+FMul	core.html#FMul	BinOP.FMul	
+UDiv	core.html#UDiv	BinOP.UDiv	
+SDiv	core.html#SDiv	BinOP.SDiv	
+FDiv	core.html#FDiv	BinOP.FDiv	
+URem	core.html#URem	BinOP.URem	
+SRem	core.html#SRem	BinOP.SRem	
+FRem	core.html#FRem	BinOP.FRem	
+Shr	core.html#Shr	BinOP.Shr	
+AShr	core.html#AShr	BinOP.AShr	
+Shl	core.html#Shl	BinOP.Shl	
+And	core.html#And	BinOP.And	
+Xor	core.html#Xor	BinOP.Xor	
+Or	core.html#Or	BinOP.Or	
+LogicalAnd	core.html#LogicalAnd	BinOP.LogicalAnd	
+LogicalOr	core.html#LogicalOr	BinOP.LogicalOr	
+Assign	core.html#Assign	BinOP.Assign	
+SAddP	core.html#SAddP	BinOP.SAddP	
+Comma	core.html#Comma	BinOP.Comma	
+EQ	core.html#EQ	BinOP.EQ	
+NE	core.html#NE	BinOP.NE	
+UGT	core.html#UGT	BinOP.UGT	
+UGE	core.html#UGE	BinOP.UGE	
+ULT	core.html#ULT	BinOP.ULT	
+ULE	core.html#ULE	BinOP.ULE	
+SGT	core.html#SGT	BinOP.SGT	
+SGE	core.html#SGE	BinOP.SGE	
+SLT	core.html#SLT	BinOP.SLT	
+SLE	core.html#SLE	BinOP.SLE	
+FEQ	core.html#FEQ	BinOP.FEQ	
+FNE	core.html#FNE	BinOP.FNE	
+FGT	core.html#FGT	BinOP.FGT	
+FGE	core.html#FGE	BinOP.FGE	
+FLT	core.html#FLT	BinOP.FLT	
+FLE	core.html#FLE	BinOP.FLE	
+BinOP	core.html#BinOP	core: BinOP	
+Trunc	core.html#Trunc	CastOp.Trunc	
+ZExt	core.html#ZExt	CastOp.ZExt	
+SExt	core.html#SExt	CastOp.SExt	
+FPToUI	core.html#FPToUI	CastOp.FPToUI	
+FPToSI	core.html#FPToSI	CastOp.FPToSI	
+UIToFP	core.html#UIToFP	CastOp.UIToFP	
+SIToFP	core.html#SIToFP	CastOp.SIToFP	
+FPTrunc	core.html#FPTrunc	CastOp.FPTrunc	
+FPExt	core.html#FPExt	CastOp.FPExt	
+PtrToInt	core.html#PtrToInt	CastOp.PtrToInt	
+IntToPtr	core.html#IntToPtr	CastOp.IntToPtr	
+BitCast	core.html#BitCast	CastOp.BitCast	
+CastOp	core.html#CastOp	core: CastOp	
+Codepoint	core.html#Codepoint	core: Codepoint	
+MOBJ	core.html#MOBJ	PPMacroFlags.MOBJ	
+MFUNC	core.html#MFUNC	PPMacroFlags.MFUNC	
+MBuiltin	core.html#MBuiltin	PPMacroFlags.MBuiltin	
+PPMacroFlags	core.html#PPMacroFlags	core: PPMacroFlags	
+PPMacro	core.html#PPMacro	core: PPMacro	
+PFNormal	core.html#PFNormal	ParseFlags.PFNormal	
+PFPP	core.html#PFPP	ParseFlags.PFPP	
+ParseFlags	core.html#ParseFlags	core: ParseFlags	
+TVNormal	core.html#TVNormal	TokenVTags.TVNormal	
+TVSVal	core.html#TVSVal	TokenVTags.TVSVal	
+TVIVal	core.html#TVIVal	TokenVTags.TVIVal	
+TVFval	core.html#TVFval	TokenVTags.TVFval	
+TVStr	core.html#TVStr	TokenVTags.TVStr	
+TokenVTags	core.html#TokenVTags	core: TokenVTags	
+Iint	core.html#Iint	ITag.Iint	
+Ilong	core.html#Ilong	ITag.Ilong	
+Iulong	core.html#Iulong	ITag.Iulong	
+Ilonglong	core.html#Ilonglong	ITag.Ilonglong	
+Iulonglong	core.html#Iulonglong	ITag.Iulonglong	
+Iuint	core.html#Iuint	ITag.Iuint	
+ITag	core.html#ITag	core: ITag	
+Fdobule	core.html#Fdobule	FTag.Fdobule	
+Ffloat	core.html#Ffloat	FTag.Ffloat	
+FTag	core.html#FTag	core: FTag	
+TokenV	core.html#TokenV	core: TokenV	
+SSemicolon	core.html#SSemicolon	StmtKind.SSemicolon	
+SCompound	core.html#SCompound	StmtKind.SCompound	
+SGoto	core.html#SGoto	StmtKind.SGoto	
+SContinue	core.html#SContinue	StmtKind.SContinue	
+SBreak	core.html#SBreak	StmtKind.SBreak	
+SReturn	core.html#SReturn	StmtKind.SReturn	
+SExpr	core.html#SExpr	StmtKind.SExpr	
+SLabled	core.html#SLabled	StmtKind.SLabled	
+SIf	core.html#SIf	StmtKind.SIf	
+SDoWhile	core.html#SDoWhile	StmtKind.SDoWhile	
+SWhile	core.html#SWhile	StmtKind.SWhile	
+SFor	core.html#SFor	StmtKind.SFor	
+SSwitch	core.html#SSwitch	StmtKind.SSwitch	
+SDeclOnly	core.html#SDeclOnly	StmtKind.SDeclOnly	
+SVarDecl	core.html#SVarDecl	StmtKind.SVarDecl	
+SDefault	core.html#SDefault	StmtKind.SDefault	
+SCase	core.html#SCase	StmtKind.SCase	
+SFunction	core.html#SFunction	StmtKind.SFunction	
+SVarDecl1	core.html#SVarDecl1	StmtKind.SVarDecl1	
+StmtKind	core.html#StmtKind	core: StmtKind	
+StmtList	core.html#StmtList	core: StmtList	
+Stmt	core.html#Stmt	core: Stmt	
+EBin	core.html#EBin	ExprKind.EBin	
+EUnary	core.html#EUnary	ExprKind.EUnary	
+EPostFix	core.html#EPostFix	ExprKind.EPostFix	
+EIntLit	core.html#EIntLit	ExprKind.EIntLit	
+EFloatLit	core.html#EFloatLit	ExprKind.EFloatLit	
+EVoid	core.html#EVoid	ExprKind.EVoid	
+EVar	core.html#EVar	ExprKind.EVar	
+ECondition	core.html#ECondition	ExprKind.ECondition	
+ECast	core.html#ECast	ExprKind.ECast	
+ECall	core.html#ECall	ExprKind.ECall	
+ESubscript	core.html#ESubscript	ExprKind.ESubscript	
+EDefault	core.html#EDefault	ExprKind.EDefault	
+EArray	core.html#EArray	ExprKind.EArray	
+EStruct	core.html#EStruct	ExprKind.EStruct	
+EBackend	core.html#EBackend	ExprKind.EBackend	
+EString	core.html#EString	ExprKind.EString	
+EPointerMemberAccess	core.html#EPointerMemberAccess	ExprKind.EPointerMemberAccess	
+EMemberAccess	core.html#EMemberAccess	ExprKind.EMemberAccess	
+ExprKind	core.html#ExprKind	core: ExprKind	
+Expr	core.html#Expr	core: Expr	
+CSkip	core.html#CSkip	core: CSkip	
+KwStart	core.html#KwStart	core: KwStart	
+KwEnd	core.html#KwEnd	core: KwEnd	
+addTag	core.html#addTag,uint32,string	core: addTag(a: uint32; dst: var string)	
+joinShow6	core.html#joinShow6,seq[]	core: joinShow6(a: seq[(string, CType, Expr)]): string	
+joinShow5	core.html#joinShow5,seq[Stmt],int	core: joinShow5(a: seq[Stmt]; level = 1): string	
+joinShow4	core.html#joinShow4,seq[],int	core: joinShow4(a: seq[(string, intmax_t)]; level = 1): string	
+joinShow3	core.html#joinShow3,seq[],int	core: joinShow3(a: seq[(string, CType)]; level = 1): string	
+joinShow2	core.html#joinShow2,seq[]	core: joinShow2[A, B](a: seq[(A, B)]): string	
+joinShow	core.html#joinShow,seq[T],string	core: joinShow[T](a: seq[T]; c: string = &quot; &quot;): string	
+`$`	core.html#$,Stmt,int	core: `$`(a: Stmt; level = 0): string	
+`$`	core.html#$,CType,int	core: `$`(a: CType; level = 0): string	
+gkeywordtable	core.html#gkeywordtable	core: gkeywordtable	
+show	core.html#show,char	core: show(c: char): string	
+`$`	core.html#$,Expr	core: `$`(e: Expr): string	
+`$`	core.html#$,Location	core: `$`(loc: Location): string	
+init	core.html#init.t,,,,	core: init(lexer, cpp, parser, backend): untyped	
+shutdown	core.html#shutdown.t	core: shutdown()	
+isKeyword	core.html#isKeyword,string	core: isKeyword(a: string): Token	
+unsafe_utf8_codepoint	core.html#unsafe_utf8_codepoint,cstring	core: unsafe_utf8_codepoint(s: cstring): (Codepoint, int)	
+writeUTF8toUTF32	core.html#writeUTF8toUTF32,string	core: writeUTF8toUTF32(s: string): seq[Codepoint]	
+writeUTF8toUTF16	core.html#writeUTF8toUTF16,string	core: writeUTF8toUTF16(s: string): seq[uint16]	
+getDefines	core.html#getDefines.i	core: getDefines(): (string, seq[TokenV])	
+CC	core.html#CC	core: CC	
+app	core.html#app	core: app	
+verbose	core.html#verbose,string	core: verbose(msg: string)	
+note	core.html#note,string	core: note(msg: string)	

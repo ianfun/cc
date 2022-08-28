@@ -1,18 +1,59 @@
-import std/[tables, times, sets, macrocache, strutils]
-import stream, appInstance
-
-proc unreachable*() =
-  assert false
-#  quit "control reaches unreachable code!"
-
-type
-  Location = object
-    line: int
-    col: int
+import std/[macrocache, strutils, tables]
 
 type
   intmax_t* = int64
   uintmax_t* = uint64
+
+type 
+  VerboseLevel* = enum
+    WError, WWarning, WNote, WVerbose
+
+type
+    CTypeSpec* = enum
+      TYPRIM,
+      TYPOINTER,
+      TYSTRUCT,
+      TYUNION,
+      TYENUM,
+      TYBITFIELD,
+      TYARRAY,
+      TYFUNCTION,
+      TYINCOMPLETE
+    CType* = ref object
+      tags*: uint32
+      case spec*: CTypeSpec
+      of TYPRIM:
+        discard
+      of TYPOINTER:
+        p*: CType
+      of TYSTRUCT, TYUNION:
+        sname*: string
+        selems*: seq[(string, CType)]
+        packed*: bool
+      of TYENUM:
+        ename*: string
+        eelems*: seq[(string, intmax_t)]
+      of TYBITFIELD:
+        bittype*: CType
+        bitsize*: intmax_t
+      of TYFUNCTION:
+        fname*: string
+        ret*: CType
+        params*: seq[(string, CType)]
+      of TYARRAY:
+        arrsize*: intmax_t
+        arrtype*: CType
+      of TYINCOMPLETE:
+        tag*: CTypeSpec
+        name*: string
+
+proc unreachable*() =
+  assert false
+
+type
+  Location* = object
+    line*: int
+    col*: int
 
 type Token* = enum
   TNul=0, TNewLine=int('\n'),
@@ -181,8 +222,6 @@ type
       # ordered float compare
       FEQ, FNE, 
       FGT, FGE, FLT, FLE
-    # https://www.felixcloutier.com/x86/
-    # https://en.wikipedia.org/wiki/X86_instruction_listings
     CastOp* = enum
       Trunc,
       ZExt,
@@ -238,75 +277,6 @@ type
       of TVStr:
         str*: string
         enc*: uint8
-    Parser* = ref object
-      currentfunctionRet*, currentInitTy*: CType
-      fstack*: seq[Stream]
-      filenamestack*, pathstack*: seq[string]
-      locstack: seq[Location]
-      tok*: TokenV
-      line*: int
-      col*: int
-      c*: char
-      want_expr*: bool
-      lastc*: uint16
-      filename*, path*: string
-      macros*: Table[string, PPMacro]
-      flags*: ParseFlags
-      ppstack*: seq[uint8]
-      ok*: bool
-      onces*, expansion_list*: HashSet[string]
-      # 6.2.3 Name spaces of identifiers
-      lables*: seq[TableRef[string, (int, Location)]]
-      tags*: seq[TableRef[string, (CType, Location)]]
-      typedefs*: seq[TableRef[string, (CType, Location)]]
-      tokenq*: seq[TokenV]
-      counter*: int
-      retTy*: CType # current return type
-      type_error*: bool
-      eval_error*: bool
-      parse_error*: bool
-      bad_error*: bool
-    CTypeSpec* = enum
-      TYPRIM,
-      TYPOINTER,
-      TYSTRUCT,
-      TYUNION,
-      TYENUM,
-      TYBITFIELD,
-      TYARRAY,
-      TYFUNCTION,
-      TYINCOMPLETE
-    CType* = ref object
-      tags*: uint32
-      case spec*: CTypeSpec
-      of TYPRIM:
-        discard
-      of TYPOINTER:
-        p*: CType
-      of TYSTRUCT, TYUNION:
-        sname*: string
-        selems*: seq[(string, CType)]
-      of TYENUM:
-        ename*: string
-        eelems*: seq[(string, intmax_t)]
-      of TYBITFIELD:
-        bittype*: CType
-        bitsize*: intmax_t
-      of TYFUNCTION:
-        fname*: string
-        ret*: CType
-        params*: seq[(string, CType)]
-      of TYARRAY:
-        arrsize*: intmax_t
-        arrtype*: CType
-      of TYINCOMPLETE:
-        tag*: CTypeSpec
-        name*: string
-    ConstantKind* = enum
-      CsInt, CsULong, CsLong, CsULongLong, CsLongLong, 
-      CsChar8, CsChar16, CsChar32,
-      CsDouble, CsFloat,
-      CsUTF8, CsUTF16, CsUTF32
     StmtKind* = enum
       SSemicolon, SCompound, SGoto, SContinue, SBreak, SReturn, SExpr, SLabled, SIf, 
       SDoWhile, SWhile, SFor, SSwitch, SDeclOnly, 
@@ -398,27 +368,6 @@ type
         p*: pointer
       of EDefault:
         discard
-
-var p*: Parser = nil
-
-#[ 
-var program*: seq[Stmt]
-
-type
-  Env = ref object
-    vars*: seq[TableRef[string, (int, Location)]]
-    *: seq[TableRef[string, (CType, Location)]]
-    typedefs*: seq[TableRef[string, (CType, Location)]]
-]#
-
-proc err*(): bool =
-  p.type_error or p.parse_error or p.eval_error
-
-proc setParser*(a: var Parser) =
-  p = a
-
-proc getParser*(): var Parser = 
-  p
 
 const
   CSkip* = {' ', '\t', '\f', '\v'} # space, tab, new line, form feed
@@ -665,65 +614,24 @@ proc `$`*(e: Expr): string =
   of EBackend:
     "<backend>"
 
-proc showToken*(): string =
-  case p.tok.tok:
-  of TNumberLit: $p.tok.i
-  of TPPNumber: p.tok.s
-  of TCharLit: show(char(p.tok.i))
-  of TIdentifier: p.tok.s
-  of TFloatLit: $p.tok.f
-  of TStringLit: '"' & p.tok.s & '"'
-  of TEOF: "<EOF>"
-  of TNul: "<null>"
-  else:
-    if p.tok.tok < T255:
-      show(chr(int(p.tok.tok)))
-    else:
-      $p.tok.tok
-
 proc `$`*(loc: Location): string =
   $loc.line & ':' & $loc.col
 
-proc warning*(msg: string) =
-  if ord(app.verboseLevel) >= ord(WWarning):
-    stderr.writeLine("\e[33m" & p.filename & ": " & $p.line & '.' & $p.col & ": warning: " & msg & "\e[0m")
-
-proc error*(msg: string) =
-    if p.bad_error == false:
-      stderr.writeLine("\e[31m" & p.filename & ": " & $p.line & '.' & $p.col & ": error: " & msg & "\e[0m")
-      p.bad_error = true
-
-proc type_error*(msg: string) =
-    if p.type_error == false:
-      stderr.writeLine("\e[35m" & p.filename & ": " & $p.line & '.' & $p.col & ": type error: " & msg & "\e[0m")
-      p.type_error = true
-
-proc error_incomplete*(ty: CType) =
-  let s = if ty.tag == TYSTRUCT:  "struct" else: (if ty.tag == TYUNION: "union" else: "enum")
-  type_error("use of incomplete type '" & s & " " & ty.name & '\'')
-
-proc parse_error*(msg: string) =
-    p.tok = TokenV(tok: TNul, tags: TVNormal)
-    if p.parse_error == false:
-      stderr.writeLine("\e[34m" & p.filename & ": " & $p.line & '.' & $p.col & ": parse error: " & msg & "\e[0m")
-      p.parse_error = true
-
-proc eval_error*(msg: string) =
-    if p.eval_error == false:
-      stderr.writeLine("\e[34m" & p.filename & ": " & $p.line & '.' & $p.col & ": parse error: " & msg & "\e[0m")
-      p.eval_error = true
-
-proc verbose*(msg: string) =
-  if ord(app.verboseLevel) >= ord(WVerbose):
-    stdout.writeLine(msg)
-
-proc note*(msg: string) =
-    if ord(app.verboseLevel) >= ord(WNote):
-      stderr.writeLine("\e[32mnote: " & msg & "\e[0m")
-
-proc init() =
+proc initCore() =
   for k in int(KwStart)..int(KwEnd):
     gkeywordtable[$cast[Token](k)] = cast[Token](k)
+
+template init*(lexer, cpp, parser, backend): untyped =
+  initCore()
+  import lexer, cpp, parser, backend
+  setLexer()
+  setCpp()
+  setParser()
+  setBackend()
+
+template shutdown*() =
+  closeParser()
+  shutdown_backend()
 
 proc isKeyword*(a: string): Token =
   gkeywordtable.getOrDefault(a, TNul)
@@ -771,8 +679,6 @@ proc writeUTF8toUTF16*(s: string): seq[uint16] =
       c -= 0x10000
       result.add(uint16(0xD800 + (c shr 10)))
       result.add(uint16(0xDC00 + (c and 0x3FF)))
-
-init()
 
 when false:
   type
@@ -835,288 +741,33 @@ iterator getDefines*(): (string, seq[TokenV]) =
   of "freebsd":
     yield ("__FreeBSD__", empty())
 
-proc tokensEq(a, b: seq[TokenV]): bool =
-  if a.len != b.len:
-    return false
-  for i in 0..<len(a):
-    let x = a[i]
-    let y = b[i]
-    if x.tok != y.tok:
-      return false
-    case x.tok:
-      of TStringLit, TPPNumber, TIdentifier:
-        if x.s != y.s:
-          return false
-      else:
-        continue
-  return true
+type
+    CC*{.final.} = object
+      optLevel*: cuint ## 0 = -O0, 1 = -O1, 2 = -O2, 3 = -O3
+      sizeLevel*: cuint ## 0 = none, 1 = -Os, 2 = -Oz
+      inlineThreshold*: cuint
+      output*: string
+      verboseLevel*: VerboseLevel
+      opaquePointerEnabled*: bool
+      getSizeof*: proc (ty: CType): int
+      lex*: proc ()
+      cpp*: proc ()
+      eval_const_expression*: proc (e: Expr): intmax_t
+      pragma*: proc (tokens: seq[TokenV])
+      pragmas*: proc (p: string)
 
-proc ppMacroEq(a, b: PPMacro): bool =
-  result = (a.flags == b.flags) and
-  (if a.flags == MFUNC: (a.ivarargs == b.ivarargs) else: true) and
-  tokensEq(a.tokens, b.tokens)  
+var app* = CC(
+    optLevel: 0.cuint, 
+    sizeLevel: 0.cuint, 
+    inlineThreshold: 0, 
+    verboseLevel: WVerbose, 
+    opaquePointerEnabled: true
+)
 
-proc macro_define*(name: string, m: PPMacro) =
-  let pr = p.macros.getOrDefault(name, nil)
-  if pr != nil:
-    if not ppMacroEq(pr, m):
-      warning("macro " & name & " redefined")
-  p.macros[name] = m
+proc verbose*(msg: string) =
+  if ord(app.verboseLevel) >= ord(WVerbose):
+    stdout.writeLine(msg)
 
-proc macro_defined*(name: string): bool =
-  p.macros.contains(name)
-
-proc macro_undef*(name: string) =
-  p.macros.del(name)
-
-proc macro_find*(name: string): PPMacro =
-  p.macros.getOrDefault(name, nil)
-
-proc resetLine() =
-    p.col = 1
-    inc p.line
-
-proc fs_read*() =
-    if p.fstack.len == 0:
-        p.c = '\0'
-    else:
-        let s = p.fstack[^1]
-        p.c = s.readChar()
-        inc p.col
-        if p.c == '\0':
-            let fd = p.fstack.pop()
-            p.filename = p.filenamestack.pop()
-            p.path = p.pathstack.pop()
-            let loc = p.locstack.pop()
-            p.line = loc.line
-            p.col = loc.col
-            fd.close()
-            fs_read() # tail call
-        if p.c == '\n':
-          resetLine()
-        elif p.c == '\r':
-          resetLine()
-          p.c = s.readChar()
-          if p.c != '\n':
-            putc(s, cint(p.c))
-
-proc stdin_hook*() =
-  stdout.write(">>> ")
-
-proc reset*() =
-  p.bad_error = false
-  p.eval_error = false
-  p.parse_error = false
-  p.type_error = false
-  p.want_expr = false
-  p.counter = 0
-  p.tok = TokenV(tok: TNul, tags: TVNormal)
-  p.col = 1
-  p.line = 1
-  p.c = ' '
-  p.lastc = 256
-  p.flags = PFNormal
-  p.ok = true
-  p.pathstack.setLen 0
-  p.ppstack.setLen 0
-  p.fstack.setLen 0
-  p.filenamestack.setLen 0
-  p.locstack.setLen 0
-  p.macros.clear()
-  p.filename.setLen 0
-  p.path.setLen 0
-  p.onces.clear()
-  p.expansion_list.clear()
-  p.tags.setLen 0
-  p.typedefs.setLen 0
-  p.lables.setLen 0
-  p.tags.add(newTable[string, typeof(p.tags[0][""])]())
-  p.typedefs.add(newTable[string, typeof(p.typedefs[0][""])]())
-  p.lables.add(newTable[string, typeof(p.lables[0][""])]())
-  p.tokenq.setLen 0
-  for (name, v) in getDefines():
-    p.macros[name] = PPMacro(tokens: v, flags: MOBJ)
-
-proc newParser*() =
-  ## create a Parser, and call `setParser proc<#setParser,Parser>`_, then call `reset proc<#reset>`_
-  var p = Parser()
-  setParser(p)
-  reset()
-
-proc addString*(s: string, filename: string) =
-  p.fstack.add(newStringStream(s))
-  p.filenamestack.add(p.filename)
-  p.pathstack.add(p.path)
-  p.locstack.add(Location(line: p.line, col: p.col))
-  p.filename = filename
-  p.path = filename
-  p.line = 1
-  p.col = 1
-
-proc addStdin*() =
-  p.fstack.add(newStdinStream())
-  p.filenamestack.add(p.filename)
-  p.pathstack.add(p.path)
-  p.locstack.add(Location(line: p.line, col: p.col))
-  p.filename = "<stdin>"
-  p.path = "/dev/stdin"
-  p.line = 1
-  p.col = 1
-
-proc addFile*(fd: File, filename: string) =
-  let f = newFileStream(fd)
-  p.fstack.add(f)
-  p.filenamestack.add(p.filename)
-  p.pathstack.add(p.path)
-  p.locstack.add(Location(line: p.line, col: p.col))
-  p.filename = filename
-  p.path = filename
-  p.line = 1
-  p.col = 1
-
-proc addFile*(filename: string) =
-  let f = newFileStream(filename)
-  if f == nil:
-    return
-  p.fstack.add(f)
-  p.filenamestack.add(p.filename)
-  p.pathstack.add(p.path)
-  p.locstack.add(Location(line: p.line, col: p.col))
-  p.filename = filename
-  p.path = filename
-  p.line = 1
-  p.col = 1
-
-proc closeParser*() =
-  for fd in p.fstack:
-    fd.close()
-
-proc getTag(name: string): (CType, Location) =
-  for i in countdown(len(p.tags)-1, 0):
-    result = p.tags[i].getOrDefault(name, (nil, Location()))
-    if result[0] != nil:
-      return result
-
-proc gettypedef*(name: string): (CType, Location) =
-  for i in countdown(len(p.typedefs)-1, 0):
-    result = p.typedefs[i].getOrDefault(name, (nil, Location()))
-    if result[0] != nil:
-      return result
-
-proc getLabel*(name: string): (int, Location) =
-  for i in countdown(len(p.lables)-1, 0):
-    result = p.lables[i].getOrDefault(name, (-1, Location()))
-    if result[0] != -1:
-      return result
-  return (-1, Location())
-
-proc putLable*(name: string, t: int) =
-    let (l, loc) = getLabel(name)
-    if  l != -1:
-      error("duplicate label: " & name)
-      note(name & "was defined at " & $loc)
-      return
-    p.lables[^1][name] = (t, Location(line: p.line, col: p.col))
-
-proc getstructdef*(name: string): CType =
-    let res = getTag(name)
-    result = res[0]
-    if result == nil:
-        result = CType(tags: TYINVALID, spec: TYINCOMPLETE, tag: TYSTRUCT, name: name)
-    elif result.spec != TYSTRUCT:
-        type_error(name & " is not a struct")
-
-proc putstructdef*(t: CType) =
-    let (o, loc) = getTag(t.sname)
-    if o != nil:
-        error("struct " & t.sname & " aleady defined")
-        note(o.sname & "was defined at " & $loc)
-    else:
-        p.tags[^1][t.sname] = (t, Location(line: p.line, col: p.col))
-
-proc getenumdef*(name: string): CType =
-    let res = getTag(name)
-    result = res[0]
-    if result == nil:
-        result = CType(tags: TYINVALID, spec: TYINCOMPLETE, tag: TYENUM, name: name)
-    elif result.spec != TYENUM:
-        type_error(name & " is not a enum")
-
-proc putenumdef*(t: CType) =
-    let (o, loc) = getTag(t.ename)
-    if o != nil:
-        error("enum " & t.ename & " aleady defined")
-        note(o.ename & "was defined at " & $loc)
-    else:
-        p.tags[^1][t.ename] = (t, Location(line: p.line, col: p.col))
-
-proc getuniondef*(name: string): CType =
-    let res = getTag(name)
-    result = res[0]
-    if result == nil:
-        result = CType(tags: TYINVALID, spec: TYINCOMPLETE, tag: TYUNION, name: name)
-    elif result.spec != TYUNION:
-        type_error(name & " is not a union")
-
-proc putuniondef*(t: CType) =
-    let o = getTag(t.sname)
-    if o[0] != nil:
-        error("`union` " & t.sname & " aleady defined")
-        note(o[0].sname & "was defined at " & $o[1])
-    else:
-        p.tags[^1][t.sname] = (t, Location(line: p.line, col: p.col))
-
-proc getsymtype*(name: string): CType =
-  result = gettypedef(name)[0]
-
-# typedef, symbol
-proc putsymtype*(name: string, t: CType) =
-  let ty = getsymtype(name)
-  if ty != nil:
-    error(name & " redeclared")
-    return
-  p.typedefs[^1][name] = (t, Location(line: p.line, col: p.col))
-
-proc enterBlock*() =
-  p.typedefs.add(newTable[string, typeof(p.typedefs[0][""])]())
-  p.tags.add(newTable[string, typeof(p.tags[0][""])]())
-  p.lables.add(newTable[string, typeof(p.lables[0][""])]())
-
-proc leaveBlock*() =
-  discard p.typedefs.pop()
-  discard p.tags.pop()
-  discard p.lables.pop()
-
-proc checkOnce*(filename: string): bool =
-    return p.onces.contains(filename)
-
-proc addOnce*() =
-    p.onces.incl p.path
-
-proc addInclude*(filename: string): bool =
-    if checkOnce(filename) == true:
-        return true
-    let s = newFileStream(filename)
-    if s == nil:
-        return false
-    p.fstack.add(s)
-    p.filenamestack.add(p.filename)
-    p.pathstack.add(p.path)
-    p.locstack.add(Location(line: p.line, col: p.col))
-    p.filename = filename
-    p.path = filename
-    p.line = 1
-    p.col = 1
-    return true
-
-proc putToken*() = 
-    p.tokenq.add(p.tok)
-
-proc beginExpandMacro*(a: string) =
-  p.expansion_list.incl a
-
-proc endExpandMacro*(a: string) =
-  p.expansion_list.excl a
-
-proc isMacroInUse*(a: string): bool =
-  p.expansion_list.contains(a)
+proc note*(msg: string) =
+    if ord(app.verboseLevel) >= ord(WNote):
+      stderr.writeLine("\e[32mnote: " & msg & "\e[0m")

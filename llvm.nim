@@ -2,33 +2,39 @@
 ##
 ## LLVM-15 C API
 ##
-## <https://llvm.org/doxygen/group__LLVMCCoreInstructionBuilder.html>
+## https://llvm.org/docs/OpaquePointers.html
 ##
-## <https://llvm.org/doxygen/group__LLVMCCoreValueConstantComposite.html>
+## since `sizeof` is contant expression (operand cannot be VLA), so `LLVMSizeOfTypeInBits()` and `LLVMStoreSizeOfType()`
+## should called when eval constant expression or let compiler give it a assumption(for example, `_Bool` and `char` is 1 bytes, `int32` is 4 bytes ...)
 ##
-## <https://llvm.org/doxygen/group__LLVMCCoreTypeStruct.html>
+## in LLVM, interger type has bits, so it is not necessarily to call LLVM API, but struct and bool type may has align bits or storage size  for a LLVM target
 ##
-## <https://github.com/llvm/llvm-project/blob/release/15.x/llvm/examples/HowToUseLLJIT/HowToUseLLJIT.cpp>
+## the main export function is `gen()`
+##
+## application should call setBackend to set this backend before call `app.getSizeof()`, and newBackend to initialize backend before call `gen()`
+##
+## when there no need for calling `gen()` function, call `shutdownBackend()` to shutdown LLVM
+##
+## `runjit()` will run module.
 
-import tables
-import token
-from appInstance import app
+import std/[tables]
+import core, parser
 
 type
-  OpaqueMemoryBuffer = object
-  OpaqueAttributeRef{.pure, final.} = object
-  OpaqueContext{.pure, final.} = object
-  OpaqueModule{.pure, final.} = object
-  OpaqueType{.pure, final.} = object
-  OpaqueValue{.pure, final.} = object
-  OpaqueBasicBlock{.pure, final.} = object
-  OpaqueBuilder{.pure, final.} = object
-  OpaqueModuleProvider{.pure, final.} = object
-  OpaquePassManager{.pure, final.} = object
-  OpaquePassRegistry{.pure, final.} = object
-  OpaqueUse{.pure, final.} = object
-  OpaqueDiagnosticInfo{.pure, final.} = object
-  OpaqueTargetMachine{.pure, final.} = object
+  OpaqueMemoryBuffer*{.pure, final.} = object
+  OpaqueAttributeRef*{.pure, final.} = object
+  OpaqueContext*{.pure, final.} = object
+  OpaqueModule*{.pure, final.} = object
+  OpaqueType*{.pure, final.} = object
+  OpaqueValue*{.pure, final.} = object
+  OpaqueBasicBlock*{.pure, final.} = object
+  OpaqueBuilder*{.pure, final.} = object
+  OpaqueModuleProvider*{.pure, final.} = object
+  OpaquePassManager*{.pure, final.} = object
+  OpaquePassRegistry*{.pure, final.} = object
+  OpaqueUse*{.pure, final.} = object
+  OpaqueDiagnosticInfo*{.pure, final.} = object
+  OpaqueTargetMachine*{.pure, final.} = object
   orcOpaqueLLJITBuilder*{.pure, final.} = object
   orcOpaqueLLJIT*{.pure, final.} = object
   orcOpaqueSymbolStringPool*{.pure, final.} = object
@@ -50,7 +56,7 @@ type
   orcOpaqueIndirectStubsManager*{.pure, final.} = object
   orcOpaqueLazyCallThroughManager*{.pure, final.} = object
   orcOpaqueDumpObjects*{.pure, final.} = object
-  ErrorRef*{.pure, final.} = ptr opaqueError
+  ErrorRef* = pointer
   orcOpaqueThreadSafeModule*{.pure, final.} = object
   OpaquePassManagerBuilder*{.pure, final.} = object
   OpaqueMetaData{.pure, final.} = object
@@ -69,18 +75,16 @@ type
   uint32T = uint32
   Bool* = cint
   AttributeIndex* = cuint
-  OpaqueTargetData{.pure, final.} = object
-  TargetDataRef* = ptr OpaqueTargetData
-  OpaqueTargetLibraryInfotData{.pure, final.} = object
-  TargetLibraryInfoRef* = ptr OpaqueTargetLibraryInfotData
+  TargetDataRef* = distinct pointer
+  TargetLibraryInfoRef* = distinct pointer
   Opcode {.pure, size: sizeof(cint).} = cint
   DIFlags* = cint
   DWARFTypeEncoding* = cuint
   MetadataKind* = cuint
   ByteOrdering* {.size: sizeof(cint).} = enum
     BigEndian, LittleEndian
-  TargetMachineRef* = ptr OpaqueTargetMachine
-  PassManagerBuilderRef* = ptr OpaquePassManagerBuilder
+  TargetMachineRef* = distinct pointer
+  PassManagerBuilderRef* = distinct pointer
   VerifierFailureAction {.size: sizeof(cint), pure.} = enum
     AbortProcessAction, PrintMessageAction, ReturnStatusAction
 
@@ -201,7 +205,6 @@ type
   Type* = TypeRef ## LLVM Type
   Label* = BasicBlockRef ## LLVM block
 
-
 type
     Backend* = ref object
       # jump labels
@@ -221,6 +224,7 @@ type
       layout*: TargetDataRef
       topBreak*: Label
       topContinue*: Label
+      target*: TargetRef
 
 var b*: Backend
 
@@ -230,24 +234,35 @@ proc llvm_error*(msg: string) =
 proc llvm_error*(msg: cstring) =
   stderr.write(msg)
 
+proc wrap*(ty: CType): Type
+
+proc llvmGetsizeof*(ty: CType): int =
+  ## the type cannot be nil or void!
+  storeSizeOfType(b.layout, wrap(ty)).int
+
+proc setBackend*() =
+  app.getSizeof = llvmGetsizeof
+
 proc newBackend*(module_name: cstring = "main", source_file: cstring = nil): bool =
   initializeCore(getGlobalPassRegistry())
   initializeNativeTarget()
   initializeNativeAsmPrinter()
+  initializeAllAsmParsers()
   b = Backend(
     tsCtx: orcCreateNewThreadSafeContext(),
     builder: createBuilder()
   )
   b.ctx =  orcThreadSafeContextGetContext(b.tsCtx)
+  contextSetDiscardValueNames(b.ctx, True)
+  contextSetOpaquePointers(b.ctx, if app.opaquePointerEnabled: True else: False)
   b.module = moduleCreateWithNameInContext(module_name, b.ctx)
   if source_file != nil:
     setSourceFileName(b.module, source_file, source_file.len.csize_t)
-  var target: TargetRef
   let tr = getDefaultTargetTriple()
-  if getTargetFromTriple(tr, addr target, nil) == True:
+  if getTargetFromTriple(tr, addr b.target, nil) == True:
     llvm_error("LLVMGetTargetFromTriple failed")
     return false
-  b.machine = createTargetMachine(target, tr, "", "", CodeGenLevelDefault, RelocDefault, CodeModelDefault)
+  b.machine = createTargetMachine(b.target, tr, "", "", CodeGenLevelDefault, RelocDefault, CodeModelDefault)
   b.layout = createTargetDataLayout(b.machine)
   setModuleDataLayout(b.module, b.layout)
   setTarget(b.module, tr)
@@ -292,7 +307,7 @@ proc getTags*(name: string): Type =
 proc putTags*(name: string, t: Type) =
   b.tags[^1][name] = t
 
-proc shutdown_backend*() =
+proc shutdownBackend*() =
   shutdown()
 
 proc writeBitcodeToFile*(path: string) =
@@ -386,7 +401,8 @@ proc backendint*(): Type =
     else:
       int64TypeInContext(b.ctx)
 
-proc toBackendType*(ty: CType): Type =
+proc wrap*(ty: CType): Type =
+  ## wrap a CType to LLVM Type
   case ty.spec:
   of TYPRIM:
     return (
@@ -424,7 +440,7 @@ proc toBackendType*(ty: CType): Type =
       var buf = create(Type, l or 1)
       var arr = cast[ptr UncheckedArray[Type]](buf)
       for i in 0 ..< l:
-        arr[i] = toBackendType(ty.selems[i][1])
+        arr[i] = wrap(ty.selems[i][1])
       result = structCreateNamed(b.ctx, cstring(ty.sname))
       structSetBody(result, buf, cuint(l), False)
       dealloc(buf)
@@ -435,7 +451,7 @@ proc toBackendType*(ty: CType): Type =
     var buf = create(Type, l or 1)
     var arr = cast[ptr UncheckedArray[Type]](buf)
     for i in 0 ..< l:
-      arr[i] = toBackendType(ty.selems[i][1])
+      arr[i] = wrap(ty.selems[i][1])
     result = structTypeInContext(b.ctx, buf, cuint(l), False)
 
   of TYFUNCTION:
@@ -451,15 +467,15 @@ proc toBackendType*(ty: CType): Type =
         ivarargs = true
         break
       if ty.params[i][1].spec == TYBITFIELD:
-        arr[i] = toBackendType(ty.params[i][1].bittype)
+        arr[i] = wrap(ty.params[i][1].bittype)
       else:
-        arr[i] = toBackendType(ty.params[i][1])
+        arr[i] = wrap(ty.params[i][1])
       inc i
-    result = functionType(toBackendType(ty.ret), buf, i, if ivarargs: True else: False)
+    result = functionType(wrap(ty.ret), buf, i, if ivarargs: True else: False)
     dealloc(buf)  
     return result
   of TYARRAY:
-    return arrayType(toBackendType(ty.arrtype), cuint(ty.arrsize))
+    return arrayType(wrap(ty.arrtype), cuint(ty.arrsize))
   of TYENUM:
     if len(ty.ename) > 0:
       let s = getTags(ty.ename)
@@ -473,15 +489,15 @@ proc toBackendType*(ty: CType): Type =
     return nil
 
 proc getZero*(ty: CType): Value =
-  constNull(toBackendType(ty))
+  constNull(wrap(ty))
 
 proc getOne*(ty: CType): Value =
   assert ty.spec == TYPRIM
-  constInt(toBackendType(ty), 1, False)
+  constInt(wrap(ty), 1, False)
 
 proc gen_condition*(test: Expr, lhs: Expr, rhs: Expr): Value =
   ## build a `cond ? lhs : rhs` expression
-  var ty = toBackendType(lhs.ty)
+  var ty = wrap(lhs.ty)
   var iftrue = appendBasicBlockInContext(b.ctx, b.currentfunction, "cond.true")
   var iffalse = appendBasicBlockInContext(b.ctx, b.currentfunction, "cond.false")
   var ifend = appendBasicBlockInContext(b.ctx, b.currentfunction, "cond.end")
@@ -505,7 +521,7 @@ proc gen_condition*(test: Expr, lhs: Expr, rhs: Expr): Value =
 
 proc gen_condition*(test: Expr, lhs: Value, rhs: Expr): Value =
   ## build a `cond ? lhs : rhs` expression
-  var ty = toBackendType(rhs.ty)
+  var ty = wrap(rhs.ty)
   var iftrue = appendBasicBlockInContext(b.ctx, b.currentfunction, "cond.true")
   var iffalse = appendBasicBlockInContext(b.ctx, b.currentfunction, "cond.false")
   var ifend = appendBasicBlockInContext(b.ctx, b.currentfunction, "cond.end")
@@ -529,7 +545,7 @@ proc gen_condition*(test: Expr, lhs: Value, rhs: Expr): Value =
 
 proc gen_condition*(test: Expr, lhs: Expr, rhs: Value): Value =
   ## build a `cond ? lhs : rhs` expression
-  var ty = toBackendType(lhs.ty)
+  var ty = wrap(lhs.ty)
   var iftrue = appendBasicBlockInContext(b.ctx, b.currentfunction, "cond.true")
   var iffalse = appendBasicBlockInContext(b.ctx, b.currentfunction, "cond.false")
   var ifend = appendBasicBlockInContext(b.ctx, b.currentfunction, "cond.end")
@@ -730,7 +746,7 @@ proc getCastOp*(a: CastOp): Opcode =
   of SIToFP:
     LLVMSIToFP
   of FPTrunc:
-    LLVMTrunc
+    LLVMFPTrunc
   of FPExt:
     LLVMFPExt
   of PtrToInt:
@@ -744,7 +760,7 @@ proc newFunction*(varty: CType, name: string): Value =
     result = b.vars[0].getOrDefault(name, nil)
     if result != nil:
       return result
-    var fty = toBackendType(varty)
+    var fty = wrap(varty)
     result = addFunction(b.module, name.cstring, fty)
     b.vars[0][name] = result
     for i in 0 ..< len(varty.params):
@@ -766,7 +782,7 @@ proc gen*(s: Stmt) =
   of SFunction:
       enterScope()
       assert s.functy.spec == TYFUNCTION
-      var ty = toBackendType(s.functy)
+      var ty = wrap(s.functy)
       b.currentfunction = newFunction(s.functy, s.funcname)
       var entry = appendBasicBlockInContext(b.ctx, b.currentfunction, "entry")
       positionBuilderAtEnd(b.builder, entry)
@@ -789,11 +805,10 @@ proc gen*(s: Stmt) =
       leaveScope()
   of SReturn:
       if s.exprbody != nil:
-        let g = gen(s.exprbody)
-        if g != nil:
-          discard buildRet(b.builder, g)
-        return
-      discard buildRetVoid(b.builder)
+        discard buildRet(b.builder, gen(s.exprbody))
+        # ret void if gen(s.exprbody) == nil
+      else:
+        discard buildRetVoid(b.builder)
   of SIf:
       if s.elsebody == nil:
         gen_if(s.iftest, s.ifbody)
@@ -812,7 +827,7 @@ proc gen*(s: Stmt) =
     gen_for(s.forcond, s.forbody, s.forinit, s.forincl)
     leaveScope()
   of SDeclOnly:
-    discard toBackendType(s.decl)
+    discard wrap(s.decl)
   of SLabled:
     var ib = appendBasicBlockInContext(b.ctx, b.currentfunction, cstring(s.label))
     positionBuilderAtEnd(b.builder, ib)
@@ -845,7 +860,7 @@ proc gen*(s: Stmt) =
       if varty.spec == TYFUNCTION:
         discard newFunction(varty, name)
       else:
-        var ty = toBackendType(varty)
+        var ty = wrap(varty)
         if b.currentfunction == nil:
           var g = addGlobal(b.module, ty, cstring(name))
           if init == nil:
@@ -887,12 +902,12 @@ proc load*(p: Value, t: Type): Value =
 
 proc incl*(p: Value, t: Type) =
   var l = load(p, t)
-  var l2 = buildAdd(b.builder, l, constInt(typeOfX(l), 1.culonglong, False), "incl")
+  var l2 = buildAdd(b.builder, l, constInt(t, 1.culonglong, False), "incl")
   discard buildStore(b.builder, l2, p)
 
 proc decl*(p: Value, t: Type) =
   var l = load(p, t)
-  var l2 = buildSub(b.builder, l, constInt(typeOfX(l), 1.culonglong, False), "incl")
+  var l2 = buildSub(b.builder, l, constInt(t, 1.culonglong, False), "incl")
   discard buildStore(b.builder, l2, p)
 
 proc getAddress*(e: Expr): Value =
@@ -903,24 +918,24 @@ proc getAddress*(e: Expr): Value =
   of EPointerMemberAccess:
     var basep = gen(e.obj)
     var r = constInt(int32Type(), e.idx.culonglong, False)
-    buildInBoundsGEP2(b.builder, pointerType(toBackendType(e.ty), 0), basep, addr r, 1, "l.pmem")
+    buildInBoundsGEP2(b.builder, pointerType(wrap(e.ty), 0), basep, addr r, 1, "l.pmem")
   of EMemberAccess:
     var basep = getAddress(e.obj)
     var r = constInt(int32Type(), e.idx.culonglong, False)
-    buildInBoundsGEP2(b.builder, pointerType(toBackendType(e.ty), 0), basep, addr r, 1, "l.mem")
+    buildInBoundsGEP2(b.builder, pointerType(wrap(e.ty), 0), basep, addr r, 1, "l.mem")
   of EPostFix:
     case e.pop:
     of PostfixIncrement:
-      var basep = gen(e.obj)
-      incl(basep, toBackendType(e.ty))
+      var basep = getAddress(e.poperand)
+      incl(basep, wrap(e.ty))
       basep
     of PostfixDecrement:
-      var basep = gen(e.obj)
-      decl(basep, toBackendType(e.ty))
+      var basep = getAddress(e.poperand)
+      decl(basep, wrap(e.ty))
       basep
   of ESubscript:
     assert e.left.ty.spec == TYPOINTER # the left must be a pointer
-    var ty = toBackendType(e.left.ty.p) # get pointer element type
+    var ty = wrap(e.left.ty.p) # get pointer element type
     var v = getAddress(e.left) # lookup lvalue
     var basep = load(v, ty) # load address in lvalue
     var r = gen(e.right) # get index
@@ -936,14 +951,14 @@ proc gen*(e: Expr): Value =
   case e.k:
   of ESubscript:
     assert e.left.ty.spec == TYPOINTER # the left must be a pointer
-    var ty = toBackendType(e.left.ty.p) # get pointer element type
+    var ty = wrap(e.left.ty.p) # get pointer element type
     var v = getAddress(e.left) # lookup lvalue
     var basep = load(v, ty) # load address in lvalue
     var r = gen(e.right) # get index
     var gaddr = buildInBoundsGEP2(b.builder, pointerType(ty, 0), basep, addr r, 1, "subs")
     load(gaddr, ty) # return lvalue
   of EMemberAccess, EPointerMemberAccess:
-    load(getAddress(e), toBackendType(e.ty))
+    load(getAddress(e), wrap(e.ty))
   of EString:
     gen_str(e.str)
   of EBackend:
@@ -965,7 +980,7 @@ proc gen*(e: Expr): Value =
     of SAddP:
       var l = gen(e.lhs)
       var r = gen(e.rhs)
-      buildInBoundsGEP2(b.builder, toBackendType(e.ty), l, addr r, 1, "saddp")
+      buildInBoundsGEP2(b.builder, wrap(e.ty), l, addr r, 1, "saddp")
     of EQ..SLE:
       buildICmp(b.builder, getICmpOp(e.bop), gen(e.lhs), gen(e.rhs), "icmp")
     of FEQ..FLE:
@@ -998,24 +1013,36 @@ proc gen*(e: Expr): Value =
     of FNeg: buildFNeg(b.builder, gen(e.uoperand), "fneg")
     of Not: buildNot(b.builder, gen(e.uoperand), "not")
     of AddressOf: nil
-    of PrefixIncrement: nil
-    of PrefixDecrement: nil
-    of Dereference: buildLoad2(b.builder, toBackendType(e.ty), gen(e.uoperand), "deref")
+    of PrefixIncrement: 
+      var ty = wrap(e.ty)
+      let basep = getAddress(e.uoperand)
+      var l = load(basep, ty)
+      var l2 = buildAdd(b.builder, l, constInt(ty, 1.culonglong, False), "incl")
+      discard buildStore(b.builder, l2, basep)
+      load(basep, ty)
+    of PrefixDecrement:
+      var ty = wrap(e.ty)
+      let basep = getAddress(e.uoperand)
+      var l = load(basep, ty)
+      var l2 = buildSub(b.builder, l, constInt(ty, 1.culonglong, False), "incl")
+      discard buildStore(b.builder, l2, basep)
+      load(basep, ty)
+    of Dereference: buildLoad2(b.builder, wrap(e.ty), gen(e.uoperand), "deref")
     of LogicalNot: buildICmp(b.builder, IntEQ, gen(e.uoperand), getZero(e.ty), "logicnot")
   of EPostFix:
     case e.pop:
     of PostfixIncrement:
-      var basep = gen(e.obj)
-      incl(basep, toBackendType(e.ty))
-      load(basep, toBackendType(e.ty))
+      var basep = getAddress(e.poperand)
+      incl(basep, wrap(e.ty))
+      load(basep, wrap(e.ty))
     of PostfixDecrement:
-      var basep = gen(e.obj)
-      decl(basep, toBackendType(e.ty))
-      load(basep, toBackendType(e.ty))
+      var basep = getAddress(e.poperand)
+      decl(basep, wrap(e.ty))
+      load(basep, wrap(e.ty))
   of EVar:
     var pvar = getVar(e.sval)
     assert pvar != nil
-    load(pvar, toBackendType(e.ty))
+    load(pvar, wrap(e.ty))
   of ECondition:
     gen_condition(e.cond, e.cleft, e.cright)
   of ECast:
@@ -1024,16 +1051,16 @@ proc gen*(e: Expr): Value =
     if (e.ty.tags and TYVOID) != 0:
       nil
     else:
-      constNull(toBackendType(e.ty))
+      constNull(wrap(e.ty))
   of ECall:
     var f: Value
     var ty: Type
     if e.callfunc.ty.spec == TYPOINTER: # call from function pointer?
-      ty = toBackendType(e.callfunc.ty.p)
+      ty = wrap(e.callfunc.ty.p)
       f = load(gen(e.callfunc), ty)
     else:
       f = gen(e.callfunc) # LLVMGetNamedFunction
-      ty = toBackendType(e.ty)
+      ty = wrap(e.ty)
     assert getTypeKind(ty) == FunctionTypeKind
     var l = len(e.callargs)
     var args = create(Value, l or 1)
@@ -1044,7 +1071,7 @@ proc gen*(e: Expr): Value =
     dealloc(args)
     res
   of EStruct:
-    var ty = toBackendType(e.ty)
+    var ty = wrap(e.ty)
     if len(e.arr) == 0:
       constNull(ty)
     else:
@@ -1059,7 +1086,7 @@ proc gen*(e: Expr): Value =
       ret
   of EArray:
     assert e.ty.arrsize == len(e.arr)
-    var elemTy = toBackendType(e.ty.arrtype)
+    var elemTy = wrap(e.ty.arrtype)
     var ty = arrayType(elemTy, cuint(e.ty.arrsize))
     if len(e.arr) == 0:
       constNull(ty)
@@ -1074,7 +1101,10 @@ proc gen*(e: Expr): Value =
         ret
 
 proc gen_cast*(e: Expr, to: CType, op: CastOp): Value =
-  buildCast(b.builder, getCastOp(op), gen(e), toBackendType(to), "cast")
+  echo e
+  echo to
+  echo op
+  buildCast(b.builder, getCastOp(op), gen(e), wrap(to), "cast")
 
 proc jit_error*(msg: string) =
   stderr.writeLine("llvm jit error: " & msg)
@@ -1096,6 +1126,9 @@ proc getThreadSafeModule*(): OrcThreadSafeModuleRef =
     orcDisposeThreadSafeContext(b.tsCtx)
 
 proc runjit*() =
+    if targetHasJIT(b.target) == False:
+      llvm_error("this target has no JIT!")
+      return
     var thread_safe_mod = getThreadSafeModule()
     var jit: OrcLLJITRef 
     

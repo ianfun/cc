@@ -1,0 +1,7 @@
+setLexer	lexer.html#setLexer	lexer: setLexer()	
+isalnum	lexer.html#isalnum,char	lexer: isalnum(c: char): bool	
+fs_read	lexer.html#fs_read	lexer: fs_read()	
+stdin_hook	lexer.html#stdin_hook	lexer: stdin_hook()	
+do_eat	lexer.html#do_eat	lexer: do_eat()	
+eat	lexer.html#eat	lexer: eat()	
+nextTok	lexer.html#nextTok	lexer: nextTok()	
