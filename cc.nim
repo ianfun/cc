@@ -5,15 +5,14 @@
 ## run `llvm-config --system-libs -libs` to get your libs
 
 {.passL: "-lLLVM-15 llvmAPI".}
-
-
-import core
+import core, cli
 
 core.init(lexer, cpp, parser, eval, llvm)
+parseCLI()
 p.filename = "<stdin>"
 p.path = "<stdin>"
 verbose("compiling")
-addStdin()
+
 
 let r = runParser()
 

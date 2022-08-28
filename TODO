@@ -1,11 +1,12 @@
 * CLI interface
 * VLA, sizeof VLA in runtime
-* Alignment
 * union
+* align of types
 * bitfield
 * support GCC __attribute__ 
 * support GCC/MSCV pragmas
 * function with no prototype / vararg function
-* inline assembly in LLVM
+* LLVMSetVolatile
+* switch
 * `indirectbr` / Labels as Values <https://gcc.gnu.org/onlinedocs/gcc/Labels-as-Values.html> <http://blog.llvm.org/2010/01/address-of-label-and-indirect-branches.html>
 * builtin functions

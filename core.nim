@@ -750,14 +750,24 @@ iterator getDefines*(): (string, seq[TokenV]) =
     yield ("__FreeBSD__", empty())
 
 type
+    Output* = enum
+      OutputLink,
+      OutputLLVMAssembly, OutputBitcode,
+      OutputObjectFile, OutputAssembly,
+      OutputCheck
     CC*{.final.} = object
       ## command line options
+      mode*: Output
+      runJit*: bool
       optLevel*: cuint ## 0 = -O0, 1 = -O1, 2 = -O2, 3 = -O3
       sizeLevel*: cuint ## 0 = none, 1 = -Os, 2 = -Oz
       inlineThreshold*: cuint
       output*: string
       verboseLevel*: VerboseLevel
       opaquePointerEnabled*: bool
+      
+      ## input files
+      inputs*: seq[string]
 
       ## backend
       pointersize*: culonglong
@@ -779,11 +789,12 @@ type
       pragmas*: proc (p: string)
 
 var app* = CC(
-    optLevel: 3.cuint, 
+    optLevel: 0.cuint, 
     sizeLevel: 0.cuint, 
     inlineThreshold: 0, 
-    verboseLevel: WVerbose, 
-    opaquePointerEnabled: true
+    verboseLevel: WNote,
+    opaquePointerEnabled: true,
+    mode: OutputLink,
 )
 
 proc verbose*(msg: string) =
