@@ -153,6 +153,10 @@ proc expectRB*() =
 proc err*(): bool =
   p.type_error or p.parse_error or p.eval_error
 
+proc note*(msg: string) =
+    if ord(app.verboseLevel) >= ord(WNote):
+      stderr.writeLine("\e[32mnote: " & msg & "\e[0m")
+
 proc error*(msg: string) =
     if p.bad_error == false:
       stderr.writeLine("\e[31m" & p.filename & ": " & $p.line & '.' & $p.col & ": error: " & msg & "\e[0m")

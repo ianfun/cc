@@ -270,7 +270,7 @@ proc newBackend*(module_name: cstring = "main", source_file: cstring = nil) =
   b.triple = getDefaultTargetTriple()
   if getTargetFromTriple(b.triple, addr b.target, nil) == True:
     llvm_error("LLVMGetTargetFromTriple failed")
-  b.machine = createTargetMachine(b.target, b.triple, "", "", CodeGenLevelAggressive, RelocDefault, CodeModelDefault)
+  b.machine = createTargetMachine(b.target, b.triple, "", "", CodeGenLevelAggressive, RelocPIC, CodeModelDefault)
   b.layout = createTargetDataLayout(b.machine)
   setModuleDataLayout(b.module, b.layout)
   setTarget(b.module, b.triple)
@@ -340,9 +340,6 @@ proc shutdownBackend*() =
     disposeMessage(b.triple)
   shutdown()
 
-proc writeBitcodeToFile*(path: string) =
-  discard writeBitcodeToFile(b.module, path)
-
 proc optimize*() =
   var passM = createPassManager()
   var pb = passManagerBuilderCreate()
@@ -370,6 +367,10 @@ proc writeModuleToFile*(path: string) =
   if printModuleToFile(b.module, path, cast[cstringArray](addr err)) == True:
     llvm_error("LLVMPrintModuleToFile")
     llvm_error(err)
+
+proc writeBitcodeToFile*(path: string) =
+  if writeBitcodeToFile(b.module, path) != 0:
+    llvm_error("LLVMWriteBitcodeToFile")
 
 proc writeObjectFile*(path: string) =
   var err: cstring = ""

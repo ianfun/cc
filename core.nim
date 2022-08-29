@@ -795,12 +795,14 @@ var app* = CC(
     verboseLevel: WNote,
     opaquePointerEnabled: true,
     mode: OutputLink,
+    output: "",
+    runJit: false
 )
+
+proc error*() =
+  stderr.write("cc: \e[31merror\e[0m: ")
 
 proc verbose*(msg: string) =
   if ord(app.verboseLevel) >= ord(WVerbose):
-    stdout.writeLine(msg)
+    stderr.writeLine("cc: " & msg)
 
-proc note*(msg: string) =
-    if ord(app.verboseLevel) >= ord(WNote):
-      stderr.writeLine("\e[32mnote: " & msg & "\e[0m")
