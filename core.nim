@@ -7,6 +7,7 @@ type
 type 
   VerboseLevel* = enum
     WError, WWarning, WNote, WVerbose
+  Linker* = enum LLD, GCCLD
 
 type
     CTypeSpec* = enum
@@ -765,7 +766,8 @@ type
       output*: string
       verboseLevel*: VerboseLevel
       opaquePointerEnabled*: bool
-      
+      linker*: Linker
+
       ## input files
       inputs*: seq[string]
 
@@ -796,7 +798,8 @@ var app* = CC(
     opaquePointerEnabled: true,
     mode: OutputLink,
     output: "",
-    runJit: false
+    runJit: false,
+    linker: GCCLD
 )
 
 proc error*() =

@@ -31,6 +31,13 @@ else:
         of OutputCheck:
             discard
         of OutputLink:
-            discard
+            case app.linker:
+            of GCCLD:
+                var path = app.output & ".o"
+                writeObjectFile(path)
+                runLD(cstring(path), cstring(app.output))
+                verbose("output executable: " & app.output)
+            of LLD:
+                discard
 
 core.shutdown()

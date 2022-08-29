@@ -1,4 +1,5 @@
 import os, core, parser
+import posix
 from llvm import dumpVersionInfo
 
 var i = 0
@@ -12,6 +13,25 @@ proc get(): string =
   inc i
 
 type P = proc () {.nimcall.}
+
+proc perror(str: cstring) {.importc: "perror", header: "stdio.h".}
+
+proc runLD*(input, path: cstring) =
+  var pid = fork()
+  if pid < 0:
+    core.error()
+    perror("fork")
+  else:
+    if pid == 0:
+      discard execlp("gcc", "gcc", input, "-o", path, nil)
+      core.error()
+      perror("execlp")
+    else:
+      var status: cint
+      discard waitpid(pid, status, 0)
+      if status != 0:
+          core.error()
+          stderr.writeLine("error: gcc returned " & $status & " exit status")
 
 proc showVersion() =
   echo "CC: C Compiler"
@@ -41,6 +61,8 @@ var cliOptions = [
   ("emit-llvm", 0, cast[P](proc () = app.mode = OutputLLVMAssembly), "output LLVM Assembly"),
   ("emit-bitcode", 0, cast[P](proc () = app.mode = OutputBitcode), "output LLVM bitcode"),
   ("c", 0, cast[P](proc () = app.mode = OutputObjectFile), "output object file"),
+  ("gccld", 0, cast[P](proc () = app.linker = GCCLD), "use ld, The GNU linker"),
+  ("lld", 0, cast[P](proc () = app.linker = LLD), "use LLD, The LLVM linker"),
   ("s", 0, cast[P](proc () = app.mode = OutputAssembly),  "output assembly"),
   ("fsyntax-only", 0, cast[P](proc () = app.mode = OutputCheck), "parse input file, type checking, emit warning and messages.Do not output a file"),
   ("no-opaque-pointers", 0, proc () = app.opaquePointerEnabled = false, "disable opaque pointer"),
@@ -63,8 +85,6 @@ proc help() =
     echo '-', i[0], "\t\t\t\t" ,i[3]
   echo()
   showVersion()
-
-proc perror(str: cstring) {.importc: "perror", header: "stdio.h".}
 
 proc addFile(s: string) =
   if addInclude(s) == false:
