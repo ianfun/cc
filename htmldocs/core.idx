@@ -126,6 +126,7 @@ TAsignShr	core.html#TAsignShr	Token.TAsignShr
 TAsignBitAnd	core.html#TAsignBitAnd	Token.TAsignBitAnd	
 TAsignBitOr	core.html#TAsignBitOr	Token.TAsignBitOr	
 TAsignBitXor	core.html#TAsignBitXor	Token.TAsignBitXor	
+TEllipsis2	core.html#TEllipsis2	Token.TEllipsis2	
 TEllipsis	core.html#TEllipsis	Token.TEllipsis	
 TNumberLit	core.html#TNumberLit	Token.TNumberLit	
 TFloatLit	core.html#TFloatLit	Token.TFloatLit	

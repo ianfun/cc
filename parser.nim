@@ -85,8 +85,14 @@ proc showToken*(): string =
   of TNumberLit: "number " & $p.tok.i
   of TPPNumber: "number" & p.tok.s
   of TCharLit: "char " & show(char(p.tok.i))
-  of TIdentifier: "identifier " & p.tok.s
+  of TIdentifier, CPPIdent: "identifier " & p.tok.s
+  of TSpace: "space"
+  of PPSharp: "'#'"
+  of PPPlaceholder: "<placeholder>"
+  of PPSharpSharp: "'##'"
   of TFloatLit: "float " & $p.tok.f
+  of TEllipsis2: "'..'"
+  of TEllipsis: "'...'"
   of TStringLit: "string \"" & p.tok.s & '"'
   of TEOF: "<EOF>"
   of TNul: "<null>"
@@ -774,8 +780,12 @@ proc stringizing*(a: TokenV): string =
     case a.tok:
         of PPPlaceholder:
             discard
+        of TEllipsis:
+            result.add("...")
+        of TEllipsis2:
+            result.add("..")
         of TSpace:
-            result.add(" ")
+            result.add(' ')
         of TIdentifier, CPPIdent, TPPNumber:
             result.add(a.s)
         of TStringLit:

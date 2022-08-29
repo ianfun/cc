@@ -107,6 +107,7 @@ type Token* = enum
   TAsignBitOr="|=",
   TAsignBitXor="^=",
   
+  TEllipsis2="..",
   TEllipsis="...", # varargs
   TNumberLit="<number>",
   TFloatLit="<float>",

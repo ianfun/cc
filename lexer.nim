@@ -899,12 +899,14 @@ proc nextTok*() =
                 if p.c == '.':
                     eat() # second
                     if p.c != '.':
-                        parse_error("'..' is invalid token, do you mean '...'?")
+                        make_tok(TEllipsis2)
                         return
                     eat() # third
-                    make_tok(TEllipsis)    
-                else:
+                    make_tok(TEllipsis)
+                elif p.c in {'0'..'9'}:
                     readFloatLit()
+                else:
+                    make_tok(TDot)
             else:
                 eat() # first '.'
                 if p.c == '.':

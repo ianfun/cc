@@ -1,0 +1,1177 @@
+OpaqueMemoryBuffer	llvm.html#OpaqueMemoryBuffer	llvm: OpaqueMemoryBuffer	
+OpaqueAttributeRef	llvm.html#OpaqueAttributeRef	llvm: OpaqueAttributeRef	
+OpaqueContext	llvm.html#OpaqueContext	llvm: OpaqueContext	
+OpaqueModule	llvm.html#OpaqueModule	llvm: OpaqueModule	
+OpaqueType	llvm.html#OpaqueType	llvm: OpaqueType	
+OpaqueValue	llvm.html#OpaqueValue	llvm: OpaqueValue	
+OpaqueBasicBlock	llvm.html#OpaqueBasicBlock	llvm: OpaqueBasicBlock	
+OpaqueBuilder	llvm.html#OpaqueBuilder	llvm: OpaqueBuilder	
+OpaqueModuleProvider	llvm.html#OpaqueModuleProvider	llvm: OpaqueModuleProvider	
+OpaquePassManager	llvm.html#OpaquePassManager	llvm: OpaquePassManager	
+OpaquePassRegistry	llvm.html#OpaquePassRegistry	llvm: OpaquePassRegistry	
+OpaqueUse	llvm.html#OpaqueUse	llvm: OpaqueUse	
+OpaqueDiagnosticInfo	llvm.html#OpaqueDiagnosticInfo	llvm: OpaqueDiagnosticInfo	
+OpaqueTargetMachine	llvm.html#OpaqueTargetMachine	llvm: OpaqueTargetMachine	
+orcOpaqueLLJITBuilder	llvm.html#orcOpaqueLLJITBuilder	llvm: orcOpaqueLLJITBuilder	
+orcOpaqueLLJIT	llvm.html#orcOpaqueLLJIT	llvm: orcOpaqueLLJIT	
+orcOpaqueSymbolStringPool	llvm.html#orcOpaqueSymbolStringPool	llvm: orcOpaqueSymbolStringPool	
+orcOpaqueSymbolStringPoolEntry	llvm.html#orcOpaqueSymbolStringPoolEntry	llvm: orcOpaqueSymbolStringPoolEntry	
+orcOpaqueJITDylib	llvm.html#orcOpaqueJITDylib	llvm: orcOpaqueJITDylib	
+orcOpaqueJITTargetMachineBuilder	llvm.html#orcOpaqueJITTargetMachineBuilder	llvm: orcOpaqueJITTargetMachineBuilder	
+orcOpaqueMaterializationUnit	llvm.html#orcOpaqueMaterializationUnit	llvm: orcOpaqueMaterializationUnit	
+orcOpaqueMaterializationResponsibility	llvm.html#orcOpaqueMaterializationResponsibility	llvm: orcOpaqueMaterializationResponsibility	
+orcOpaqueResourceTracker	llvm.html#orcOpaqueResourceTracker	llvm: orcOpaqueResourceTracker	
+orcOpaqueDefinitionGenerator	llvm.html#orcOpaqueDefinitionGenerator	llvm: orcOpaqueDefinitionGenerator	
+orcOpaqueObjectTransformLayer	llvm.html#orcOpaqueObjectTransformLayer	llvm: orcOpaqueObjectTransformLayer	
+orcOpaqueExecutionSession	llvm.html#orcOpaqueExecutionSession	llvm: orcOpaqueExecutionSession	
+orcOpaqueIRTransformLayer	llvm.html#orcOpaqueIRTransformLayer	llvm: orcOpaqueIRTransformLayer	
+opaqueError	llvm.html#opaqueError	llvm: opaqueError	
+orcOpaqueObjectLayer	llvm.html#orcOpaqueObjectLayer	llvm: orcOpaqueObjectLayer	
+orcOpaqueObjectLinkingLayer	llvm.html#orcOpaqueObjectLinkingLayer	llvm: orcOpaqueObjectLinkingLayer	
+orcOpaqueIndirectStubsManager	llvm.html#orcOpaqueIndirectStubsManager	llvm: orcOpaqueIndirectStubsManager	
+orcOpaqueLazyCallThroughManager	llvm.html#orcOpaqueLazyCallThroughManager	llvm: orcOpaqueLazyCallThroughManager	
+orcOpaqueDumpObjects	llvm.html#orcOpaqueDumpObjects	llvm: orcOpaqueDumpObjects	
+ErrorRef	llvm.html#ErrorRef	llvm: ErrorRef	
+orcOpaqueThreadSafeModule	llvm.html#orcOpaqueThreadSafeModule	llvm: orcOpaqueThreadSafeModule	
+OpaquePassManagerBuilder	llvm.html#OpaquePassManagerBuilder	llvm: OpaquePassManagerBuilder	
+Bool	llvm.html#Bool	llvm: Bool	
+AttributeIndex	llvm.html#AttributeIndex	llvm: AttributeIndex	
+TargetDataRef	llvm.html#TargetDataRef	llvm: TargetDataRef	
+TargetLibraryInfoRef	llvm.html#TargetLibraryInfoRef	llvm: TargetLibraryInfoRef	
+DIFlags	llvm.html#DIFlags	llvm: DIFlags	
+DWARFTypeEncoding	llvm.html#DWARFTypeEncoding	llvm: DWARFTypeEncoding	
+MetadataKind	llvm.html#MetadataKind	llvm: MetadataKind	
+ByteOrdering	llvm.html#ByteOrdering	llvm: ByteOrdering	
+TargetMachineRef	llvm.html#TargetMachineRef	llvm: TargetMachineRef	
+PassManagerBuilderRef	llvm.html#PassManagerBuilderRef	llvm: PassManagerBuilderRef	
+False	llvm.html#False	llvm: False	
+True	llvm.html#True	llvm: True	
+MemoryBufferRef	llvm.html#MemoryBufferRef	llvm: MemoryBufferRef	
+ContextRef	llvm.html#ContextRef	llvm: ContextRef	
+ModuleRef	llvm.html#ModuleRef	llvm: ModuleRef	
+TypeRef	llvm.html#TypeRef	llvm: TypeRef	
+ValueRef	llvm.html#ValueRef	llvm: ValueRef	
+BasicBlockRef	llvm.html#BasicBlockRef	llvm: BasicBlockRef	
+MetadataRef	llvm.html#MetadataRef	llvm: MetadataRef	
+NamedMDNodeRef	llvm.html#NamedMDNodeRef	llvm: NamedMDNodeRef	
+ValueMetadataEntry	llvm.html#ValueMetadataEntry	llvm: ValueMetadataEntry	
+BuilderRef	llvm.html#BuilderRef	llvm: BuilderRef	
+DIBuilderRef	llvm.html#DIBuilderRef	llvm: DIBuilderRef	
+ModuleProviderRef	llvm.html#ModuleProviderRef	llvm: ModuleProviderRef	
+PassManagerRef	llvm.html#PassManagerRef	llvm: PassManagerRef	
+PassRegistryRef	llvm.html#PassRegistryRef	llvm: PassRegistryRef	
+UseRef	llvm.html#UseRef	llvm: UseRef	
+AttributeRef	llvm.html#AttributeRef	llvm: AttributeRef	
+DiagnosticInfoRef	llvm.html#DiagnosticInfoRef	llvm: DiagnosticInfoRef	
+ComdatRef	llvm.html#ComdatRef	llvm: ComdatRef	
+ModuleFlagEntry	llvm.html#ModuleFlagEntry	llvm: ModuleFlagEntry	
+JITEventListenerRef	llvm.html#JITEventListenerRef	llvm: JITEventListenerRef	
+BinaryRef	llvm.html#BinaryRef	llvm: BinaryRef	
+parseCommandLineOptions	llvm.html#parseCommandLineOptions,cint,cstringArray,cstring	llvm: parseCommandLineOptions(argc: cint; argv: cstringArray; overview: cstring)	
+searchForAddressOfSymbol	llvm.html#searchForAddressOfSymbol,cstring	llvm: searchForAddressOfSymbol(symbolName: cstring): pointer	
+addSymbol	llvm.html#addSymbol,cstring,pointer	llvm: addSymbol(symbolName: cstring; symbolValue: pointer)	
+ErrorTypeId	llvm.html#ErrorTypeId	llvm: ErrorTypeId	
+getErrorTypeId	llvm.html#getErrorTypeId,ErrorRef	llvm: getErrorTypeId(err: ErrorRef): ErrorTypeId	
+consumeError	llvm.html#consumeError,ErrorRef	llvm: consumeError(err: ErrorRef)	
+getErrorMessage	llvm.html#getErrorMessage,ErrorRef	llvm: getErrorMessage(err: ErrorRef): cstring	
+disposeErrorMessage	llvm.html#disposeErrorMessage,cstring	llvm: disposeErrorMessage(errMsg: cstring)	
+getStringErrorTypeId	llvm.html#getStringErrorTypeId	llvm: getStringErrorTypeId(): ErrorTypeId	
+createStringError	llvm.html#createStringError,cstring	llvm: createStringError(errMsg: cstring): ErrorRef	
+TypeKind	llvm.html#TypeKind	llvm: TypeKind	
+Linkage	llvm.html#Linkage	llvm: Linkage	
+Visibility	llvm.html#Visibility	llvm: Visibility	
+UnnamedAddr	llvm.html#UnnamedAddr	llvm: UnnamedAddr	
+DLLStorageClass	llvm.html#DLLStorageClass	llvm: DLLStorageClass	
+CallConv	llvm.html#CallConv	llvm: CallConv	
+ValueKind	llvm.html#ValueKind	llvm: ValueKind	
+IntPredicate	llvm.html#IntPredicate	llvm: IntPredicate	
+RealPredicate	llvm.html#RealPredicate	llvm: RealPredicate	
+LandingPadClauseTy	llvm.html#LandingPadClauseTy	llvm: LandingPadClauseTy	
+ThreadLocalMode	llvm.html#ThreadLocalMode	llvm: ThreadLocalMode	
+AtomicOrdering	llvm.html#AtomicOrdering	llvm: AtomicOrdering	
+AtomicRMWBinOp	llvm.html#AtomicRMWBinOp	llvm: AtomicRMWBinOp	
+DiagnosticSeverity	llvm.html#DiagnosticSeverity	llvm: DiagnosticSeverity	
+InlineAsmDialect	llvm.html#InlineAsmDialect	llvm: InlineAsmDialect	
+ModuleFlagBehavior	llvm.html#ModuleFlagBehavior	llvm: ModuleFlagBehavior	
+AttributeReturnIndex	llvm.html#AttributeReturnIndex	llvm: AttributeReturnIndex	
+AttributeFunctionIndex	llvm.html#AttributeFunctionIndex	llvm: AttributeFunctionIndex	
+initializeCore	llvm.html#initializeCore,PassRegistryRef	llvm: initializeCore(r: PassRegistryRef)	
+shutdown	llvm.html#shutdown	llvm: shutdown()	
+createMessage	llvm.html#createMessage,cstring	llvm: createMessage(message: cstring): cstring	
+disposeMessage	llvm.html#disposeMessage,cstring	llvm: disposeMessage(message: cstring)	
+DiagnosticHandler	llvm.html#DiagnosticHandler	llvm: DiagnosticHandler	
+YieldCallback	llvm.html#YieldCallback	llvm: YieldCallback	
+contextCreate	llvm.html#contextCreate	llvm: contextCreate(): ContextRef	
+getGlobalContext	llvm.html#getGlobalContext	llvm: getGlobalContext(): ContextRef	
+contextSetDiagnosticHandler	llvm.html#contextSetDiagnosticHandler,ContextRef,DiagnosticHandler,pointer	llvm: contextSetDiagnosticHandler(c: ContextRef; handler: DiagnosticHandler;\n                            diagnosticContext: pointer)	
+contextGetDiagnosticHandler	llvm.html#contextGetDiagnosticHandler,ContextRef	llvm: contextGetDiagnosticHandler(c: ContextRef): DiagnosticHandler	
+contextGetDiagnosticContext	llvm.html#contextGetDiagnosticContext,ContextRef	llvm: contextGetDiagnosticContext(c: ContextRef): pointer	
+contextSetYieldCallback	llvm.html#contextSetYieldCallback,ContextRef,YieldCallback,pointer	llvm: contextSetYieldCallback(c: ContextRef; callback: YieldCallback;\n                        opaqueHandle: pointer)	
+contextShouldDiscardValueNames	llvm.html#contextShouldDiscardValueNames,ContextRef	llvm: contextShouldDiscardValueNames(c: ContextRef): Bool	
+contextSetDiscardValueNames	llvm.html#contextSetDiscardValueNames,ContextRef,Bool	llvm: contextSetDiscardValueNames(c: ContextRef; discard: Bool)	
+contextSetOpaquePointers	llvm.html#contextSetOpaquePointers,ContextRef,Bool	llvm: contextSetOpaquePointers(c: ContextRef; opaquePointers: Bool)	
+contextDispose	llvm.html#contextDispose,ContextRef	llvm: contextDispose(c: ContextRef)	
+getDiagInfoDescription	llvm.html#getDiagInfoDescription,DiagnosticInfoRef	llvm: getDiagInfoDescription(di: DiagnosticInfoRef): cstring	
+getDiagInfoSeverity	llvm.html#getDiagInfoSeverity,DiagnosticInfoRef	llvm: getDiagInfoSeverity(di: DiagnosticInfoRef): DiagnosticSeverity	
+getMDKindIDInContext	llvm.html#getMDKindIDInContext,ContextRef,cstring,cuint	llvm: getMDKindIDInContext(c: ContextRef; name: cstring; sLen: cuint): cuint	
+getMDKindID	llvm.html#getMDKindID,cstring,cuint	llvm: getMDKindID(name: cstring; sLen: cuint): cuint	
+getEnumAttributeKindForName	llvm.html#getEnumAttributeKindForName,cstring,csize_t	llvm: getEnumAttributeKindForName(name: cstring; sLen: csize_t): cuint	
+getLastEnumAttributeKind	llvm.html#getLastEnumAttributeKind	llvm: getLastEnumAttributeKind(): cuint	
+createEnumAttribute	llvm.html#createEnumAttribute,ContextRef,cuint,uint64	llvm: createEnumAttribute(c: ContextRef; kindID: cuint; val: uint64): AttributeRef	
+getEnumAttributeKind	llvm.html#getEnumAttributeKind,AttributeRef	llvm: getEnumAttributeKind(a: AttributeRef): cuint	
+getEnumAttributeValue	llvm.html#getEnumAttributeValue,AttributeRef	llvm: getEnumAttributeValue(a: AttributeRef): uint64	
+createTypeAttribute	llvm.html#createTypeAttribute,ContextRef,cuint,TypeRef	llvm: createTypeAttribute(c: ContextRef; kindID: cuint; typeRef: TypeRef): AttributeRef	
+getTypeAttributeValue	llvm.html#getTypeAttributeValue,AttributeRef	llvm: getTypeAttributeValue(a: AttributeRef): TypeRef	
+createStringAttribute	llvm.html#createStringAttribute,ContextRef,cstring,cuint,cstring,cuint	llvm: createStringAttribute(c: ContextRef; k: cstring; kLength: cuint; v: cstring;\n                      vLength: cuint): AttributeRef	
+getStringAttributeKind	llvm.html#getStringAttributeKind,AttributeRef,ptr.cuint	llvm: getStringAttributeKind(a: AttributeRef; length: ptr cuint): cstring	
+getStringAttributeValue	llvm.html#getStringAttributeValue,AttributeRef,ptr.cuint	llvm: getStringAttributeValue(a: AttributeRef; length: ptr cuint): cstring	
+isEnumAttribute	llvm.html#isEnumAttribute,AttributeRef	llvm: isEnumAttribute(a: AttributeRef): Bool	
+isStringAttribute	llvm.html#isStringAttribute,AttributeRef	llvm: isStringAttribute(a: AttributeRef): Bool	
+isTypeAttribute	llvm.html#isTypeAttribute,AttributeRef	llvm: isTypeAttribute(a: AttributeRef): Bool	
+getTypeByName2	llvm.html#getTypeByName2,ContextRef,cstring	llvm: getTypeByName2(c: ContextRef; name: cstring): TypeRef	
+moduleCreateWithName	llvm.html#moduleCreateWithName,cstring	llvm: moduleCreateWithName(moduleID: cstring): ModuleRef	
+moduleCreateWithNameInContext	llvm.html#moduleCreateWithNameInContext,cstring,ContextRef	llvm: moduleCreateWithNameInContext(moduleID: cstring; c: ContextRef): ModuleRef	
+cloneModule	llvm.html#cloneModule,ModuleRef	llvm: cloneModule(m: ModuleRef): ModuleRef	
+disposeModule	llvm.html#disposeModule,ModuleRef	llvm: disposeModule(m: ModuleRef)	
+getModuleIdentifier	llvm.html#getModuleIdentifier,ModuleRef,ptr.csize_t	llvm: getModuleIdentifier(m: ModuleRef; len: ptr csize_t): cstring	
+setModuleIdentifier	llvm.html#setModuleIdentifier,ModuleRef,cstring,csize_t	llvm: setModuleIdentifier(m: ModuleRef; ident: cstring; len: csize_t)	
+getSourceFileName	llvm.html#getSourceFileName,ModuleRef,ptr.csize_t	llvm: getSourceFileName(m: ModuleRef; len: ptr csize_t): cstring	
+setSourceFileName	llvm.html#setSourceFileName,ModuleRef,cstring,csize_t	llvm: setSourceFileName(m: ModuleRef; name: cstring; len: csize_t)	
+getDataLayoutStr	llvm.html#getDataLayoutStr,ModuleRef	llvm: getDataLayoutStr(m: ModuleRef): cstring	
+getDataLayout	llvm.html#getDataLayout,ModuleRef	llvm: getDataLayout(m: ModuleRef): cstring	
+setDataLayout	llvm.html#setDataLayout,ModuleRef,cstring	llvm: setDataLayout(m: ModuleRef; dataLayoutStr: cstring)	
+getTarget	llvm.html#getTarget,ModuleRef	llvm: getTarget(m: ModuleRef): cstring	
+setTarget	llvm.html#setTarget,ModuleRef,cstring	llvm: setTarget(m: ModuleRef; triple: cstring)	
+copyModuleFlagsMetadata	llvm.html#copyModuleFlagsMetadata,ModuleRef,ptr.csize_t	llvm: copyModuleFlagsMetadata(m: ModuleRef; len: ptr csize_t): ptr ModuleFlagEntry	
+disposeModuleFlagsMetadata	llvm.html#disposeModuleFlagsMetadata,ptr.opaqueModuleFlagEntry	llvm: disposeModuleFlagsMetadata(entries: ptr ModuleFlagEntry)	
+moduleFlagEntriesGetFlagBehavior	llvm.html#moduleFlagEntriesGetFlagBehavior,ptr.opaqueModuleFlagEntry,cuint	llvm: moduleFlagEntriesGetFlagBehavior(entries: ptr ModuleFlagEntry; index: cuint): ModuleFlagBehavior	
+moduleFlagEntriesGetKey	llvm.html#moduleFlagEntriesGetKey,ptr.opaqueModuleFlagEntry,cuint,ptr.csize_t	llvm: moduleFlagEntriesGetKey(entries: ptr ModuleFlagEntry; index: cuint;\n                        len: ptr csize_t): cstring	
+moduleFlagEntriesGetMetadata	llvm.html#moduleFlagEntriesGetMetadata,ptr.opaqueModuleFlagEntry,cuint	llvm: moduleFlagEntriesGetMetadata(entries: ptr ModuleFlagEntry; index: cuint): MetadataRef	
+getModuleFlag	llvm.html#getModuleFlag,ModuleRef,cstring,csize_t	llvm: getModuleFlag(m: ModuleRef; key: cstring; keyLen: csize_t): MetadataRef	
+addModuleFlag	llvm.html#addModuleFlag,ModuleRef,ModuleFlagBehavior,cstring,csize_t,MetadataRef	llvm: addModuleFlag(m: ModuleRef; behavior: ModuleFlagBehavior; key: cstring;\n              keyLen: csize_t; val: MetadataRef)	
+dumpModule	llvm.html#dumpModule,ModuleRef	llvm: dumpModule(m: ModuleRef)	
+printModuleToFile	llvm.html#printModuleToFile,ModuleRef,cstring,cstringArray	llvm: printModuleToFile(m: ModuleRef; filename: cstring; errorMessage: cstringArray): Bool	
+printModuleToString	llvm.html#printModuleToString,ModuleRef	llvm: printModuleToString(m: ModuleRef): cstring	
+getModuleInlineAsm	llvm.html#getModuleInlineAsm,ModuleRef,ptr.csize_t	llvm: getModuleInlineAsm(m: ModuleRef; len: ptr csize_t): cstring	
+setModuleInlineAsm2	llvm.html#setModuleInlineAsm2,ModuleRef,cstring,csize_t	llvm: setModuleInlineAsm2(m: ModuleRef; asm: cstring; len: csize_t)	
+appendModuleInlineAsm	llvm.html#appendModuleInlineAsm,ModuleRef,cstring,csize_t	llvm: appendModuleInlineAsm(m: ModuleRef; asm: cstring; len: csize_t)	
+getInlineAsm	llvm.html#getInlineAsm,TypeRef,cstring,csize_t,cstring,csize_t,Bool,Bool,InlineAsmDialect,Bool	llvm: getInlineAsm(ty: TypeRef; asmString: cstring; asmStringSize: csize_t;\n             constraints: cstring; constraintsSize: csize_t;\n             hasSideEffects: Bool; isAlignStack: Bool;\n             dialect: InlineAsmDialect; canThrow: Bool): ValueRef	
+getModuleContext	llvm.html#getModuleContext,ModuleRef	llvm: getModuleContext(m: ModuleRef): ContextRef	
+getTypeByName	llvm.html#getTypeByName,ModuleRef,cstring	llvm: getTypeByName(m: ModuleRef; name: cstring): TypeRef	
+getFirstNamedMetadata	llvm.html#getFirstNamedMetadata,ModuleRef	llvm: getFirstNamedMetadata(m: ModuleRef): NamedMDNodeRef	
+getLastNamedMetadata	llvm.html#getLastNamedMetadata,ModuleRef	llvm: getLastNamedMetadata(m: ModuleRef): NamedMDNodeRef	
+getNextNamedMetadata	llvm.html#getNextNamedMetadata,NamedMDNodeRef	llvm: getNextNamedMetadata(namedMDNode: NamedMDNodeRef): NamedMDNodeRef	
+getPreviousNamedMetadata	llvm.html#getPreviousNamedMetadata,NamedMDNodeRef	llvm: getPreviousNamedMetadata(namedMDNode: NamedMDNodeRef): NamedMDNodeRef	
+getNamedMetadata	llvm.html#getNamedMetadata,ModuleRef,cstring,csize_t	llvm: getNamedMetadata(m: ModuleRef; name: cstring; nameLen: csize_t): NamedMDNodeRef	
+getOrInsertNamedMetadata	llvm.html#getOrInsertNamedMetadata,ModuleRef,cstring,csize_t	llvm: getOrInsertNamedMetadata(m: ModuleRef; name: cstring; nameLen: csize_t): NamedMDNodeRef	
+getNamedMetadataName	llvm.html#getNamedMetadataName,NamedMDNodeRef,ptr.csize_t	llvm: getNamedMetadataName(namedMD: NamedMDNodeRef; nameLen: ptr csize_t): cstring	
+getNamedMetadataNumOperands	llvm.html#getNamedMetadataNumOperands,ModuleRef,cstring	llvm: getNamedMetadataNumOperands(m: ModuleRef; name: cstring): cuint	
+getNamedMetadataOperands	llvm.html#getNamedMetadataOperands,ModuleRef,cstring,ptr.ValueRef	llvm: getNamedMetadataOperands(m: ModuleRef; name: cstring; dest: ptr ValueRef)	
+addNamedMetadataOperand	llvm.html#addNamedMetadataOperand,ModuleRef,cstring,ValueRef	llvm: addNamedMetadataOperand(m: ModuleRef; name: cstring; val: ValueRef)	
+getDebugLocDirectory	llvm.html#getDebugLocDirectory,ValueRef,ptr.cuint	llvm: getDebugLocDirectory(val: ValueRef; length: ptr cuint): cstring	
+getDebugLocFilename	llvm.html#getDebugLocFilename,ValueRef,ptr.cuint	llvm: getDebugLocFilename(val: ValueRef; length: ptr cuint): cstring	
+getDebugLocLine	llvm.html#getDebugLocLine,ValueRef	llvm: getDebugLocLine(val: ValueRef): cuint	
+getDebugLocColumn	llvm.html#getDebugLocColumn,ValueRef	llvm: getDebugLocColumn(val: ValueRef): cuint	
+addFunction	llvm.html#addFunction,ModuleRef,cstring,TypeRef	llvm: addFunction(m: ModuleRef; name: cstring; functionTy: TypeRef): ValueRef	
+getNamedFunction	llvm.html#getNamedFunction,ModuleRef,cstring	llvm: getNamedFunction(m: ModuleRef; name: cstring): ValueRef	
+getFirstFunction	llvm.html#getFirstFunction,ModuleRef	llvm: getFirstFunction(m: ModuleRef): ValueRef	
+getLastFunction	llvm.html#getLastFunction,ModuleRef	llvm: getLastFunction(m: ModuleRef): ValueRef	
+getNextFunction	llvm.html#getNextFunction,ValueRef	llvm: getNextFunction(fn: ValueRef): ValueRef	
+getPreviousFunction	llvm.html#getPreviousFunction,ValueRef	llvm: getPreviousFunction(fn: ValueRef): ValueRef	
+setModuleInlineAsm	llvm.html#setModuleInlineAsm,ModuleRef,cstring	llvm: setModuleInlineAsm(m: ModuleRef; asm: cstring)	
+getTypeKind	llvm.html#getTypeKind,TypeRef	llvm: getTypeKind(ty: TypeRef): TypeKind	
+typeIsSized	llvm.html#typeIsSized,TypeRef	llvm: typeIsSized(ty: TypeRef): Bool	
+getTypeContext	llvm.html#getTypeContext,TypeRef	llvm: getTypeContext(ty: TypeRef): ContextRef	
+dumpType	llvm.html#dumpType,TypeRef	llvm: dumpType(val: TypeRef)	
+printTypeToString	llvm.html#printTypeToString,TypeRef	llvm: printTypeToString(val: TypeRef): cstring	
+int1TypeInContext	llvm.html#int1TypeInContext,ContextRef	llvm: int1TypeInContext(c: ContextRef): TypeRef	
+int8TypeInContext	llvm.html#int8TypeInContext,ContextRef	llvm: int8TypeInContext(c: ContextRef): TypeRef	
+int16TypeInContext	llvm.html#int16TypeInContext,ContextRef	llvm: int16TypeInContext(c: ContextRef): TypeRef	
+int32TypeInContext	llvm.html#int32TypeInContext,ContextRef	llvm: int32TypeInContext(c: ContextRef): TypeRef	
+int64TypeInContext	llvm.html#int64TypeInContext,ContextRef	llvm: int64TypeInContext(c: ContextRef): TypeRef	
+int128TypeInContext	llvm.html#int128TypeInContext,ContextRef	llvm: int128TypeInContext(c: ContextRef): TypeRef	
+intTypeInContext	llvm.html#intTypeInContext,ContextRef,cuint	llvm: intTypeInContext(c: ContextRef; numBits: cuint): TypeRef	
+int1Type	llvm.html#int1Type	llvm: int1Type(): TypeRef	
+int8Type	llvm.html#int8Type	llvm: int8Type(): TypeRef	
+int16Type	llvm.html#int16Type	llvm: int16Type(): TypeRef	
+int32Type	llvm.html#int32Type	llvm: int32Type(): TypeRef	
+int64Type	llvm.html#int64Type	llvm: int64Type(): TypeRef	
+int128Type	llvm.html#int128Type	llvm: int128Type(): TypeRef	
+intType	llvm.html#intType,cuint	llvm: intType(numBits: cuint): TypeRef	
+getIntTypeWidth	llvm.html#getIntTypeWidth,TypeRef	llvm: getIntTypeWidth(integerTy: TypeRef): cuint	
+halfTypeInContext	llvm.html#halfTypeInContext,ContextRef	llvm: halfTypeInContext(c: ContextRef): TypeRef	
+bFloatTypeInContext	llvm.html#bFloatTypeInContext,ContextRef	llvm: bFloatTypeInContext(c: ContextRef): TypeRef	
+floatTypeInContext	llvm.html#floatTypeInContext,ContextRef	llvm: floatTypeInContext(c: ContextRef): TypeRef	
+doubleTypeInContext	llvm.html#doubleTypeInContext,ContextRef	llvm: doubleTypeInContext(c: ContextRef): TypeRef	
+x86FP80TypeInContext	llvm.html#x86FP80TypeInContext,ContextRef	llvm: x86FP80TypeInContext(c: ContextRef): TypeRef	
+fP128TypeInContext	llvm.html#fP128TypeInContext,ContextRef	llvm: fP128TypeInContext(c: ContextRef): TypeRef	
+pPCFP128TypeInContext	llvm.html#pPCFP128TypeInContext,ContextRef	llvm: pPCFP128TypeInContext(c: ContextRef): TypeRef	
+halfType	llvm.html#halfType	llvm: halfType(): TypeRef	
+bFloatType	llvm.html#bFloatType	llvm: bFloatType(): TypeRef	
+floatType	llvm.html#floatType	llvm: floatType(): TypeRef	
+doubleType	llvm.html#doubleType	llvm: doubleType(): TypeRef	
+x86FP80Type	llvm.html#x86FP80Type	llvm: x86FP80Type(): TypeRef	
+fP128Type	llvm.html#fP128Type	llvm: fP128Type(): TypeRef	
+pPCFP128Type	llvm.html#pPCFP128Type	llvm: pPCFP128Type(): TypeRef	
+functionType	llvm.html#functionType,TypeRef,ptr.TypeRef,cuint,Bool	llvm: functionType(returnType: TypeRef; paramTypes: ptr TypeRef; paramCount: cuint;\n             isVarArg: Bool): TypeRef	
+isFunctionVarArg	llvm.html#isFunctionVarArg,TypeRef	llvm: isFunctionVarArg(functionTy: TypeRef): Bool	
+getReturnType	llvm.html#getReturnType,TypeRef	llvm: getReturnType(functionTy: TypeRef): TypeRef	
+countParamTypes	llvm.html#countParamTypes,TypeRef	llvm: countParamTypes(functionTy: TypeRef): cuint	
+getParamTypes	llvm.html#getParamTypes,TypeRef,ptr.TypeRef	llvm: getParamTypes(functionTy: TypeRef; dest: ptr TypeRef)	
+structTypeInContext	llvm.html#structTypeInContext,ContextRef,ptr.TypeRef,cuint,Bool	llvm: structTypeInContext(c: ContextRef; elementTypes: ptr TypeRef;\n                    elementCount: cuint; packed: Bool): TypeRef	
+structType	llvm.html#structType,ptr.TypeRef,cuint,Bool	llvm: structType(elementTypes: ptr TypeRef; elementCount: cuint; packed: Bool): TypeRef	
+structCreateNamed	llvm.html#structCreateNamed,ContextRef,cstring	llvm: structCreateNamed(c: ContextRef; name: cstring): TypeRef	
+getStructName	llvm.html#getStructName,TypeRef	llvm: getStructName(ty: TypeRef): cstring	
+structSetBody	llvm.html#structSetBody,TypeRef,ptr.TypeRef,cuint,Bool	llvm: structSetBody(structTy: TypeRef; elementTypes: ptr TypeRef; elementCount: cuint;\n              packed: Bool)	
+countStructElementTypes	llvm.html#countStructElementTypes,TypeRef	llvm: countStructElementTypes(structTy: TypeRef): cuint	
+getStructElementTypes	llvm.html#getStructElementTypes,TypeRef,ptr.TypeRef	llvm: getStructElementTypes(structTy: TypeRef; dest: ptr TypeRef)	
+structGetTypeAtIndex	llvm.html#structGetTypeAtIndex,TypeRef,cuint	llvm: structGetTypeAtIndex(structTy: TypeRef; i: cuint): TypeRef	
+isPackedStruct	llvm.html#isPackedStruct,TypeRef	llvm: isPackedStruct(structTy: TypeRef): Bool	
+isOpaqueStruct	llvm.html#isOpaqueStruct,TypeRef	llvm: isOpaqueStruct(structTy: TypeRef): Bool	
+isLiteralStruct	llvm.html#isLiteralStruct,TypeRef	llvm: isLiteralStruct(structTy: TypeRef): Bool	
+getElementType	llvm.html#getElementType,TypeRef	llvm: getElementType(ty: TypeRef): TypeRef	
+getSubtypes	llvm.html#getSubtypes,TypeRef,ptr.TypeRef	llvm: getSubtypes(tp: TypeRef; arr: ptr TypeRef)	
+getNumContainedTypes	llvm.html#getNumContainedTypes,TypeRef	llvm: getNumContainedTypes(tp: TypeRef): cuint	
+arrayType	llvm.html#arrayType,TypeRef,cuint	llvm: arrayType(elementType: TypeRef; elementCount: cuint): TypeRef	
+getArrayLength	llvm.html#getArrayLength,TypeRef	llvm: getArrayLength(arrayTy: TypeRef): cuint	
+pointerType	llvm.html#pointerType,TypeRef,cuint	llvm: pointerType(elementType: TypeRef; addressSpace: cuint): TypeRef	
+pointerTypeIsOpaque	llvm.html#pointerTypeIsOpaque,TypeRef	llvm: pointerTypeIsOpaque(ty: TypeRef): Bool	
+pointerTypeInContext	llvm.html#pointerTypeInContext,ContextRef,cuint	llvm: pointerTypeInContext(c: ContextRef; addressSpace: cuint): TypeRef	
+getPointerAddressSpace	llvm.html#getPointerAddressSpace,TypeRef	llvm: getPointerAddressSpace(pointerTy: TypeRef): cuint	
+vectorType	llvm.html#vectorType,TypeRef,cuint	llvm: vectorType(elementType: TypeRef; elementCount: cuint): TypeRef	
+scalableVectorType	llvm.html#scalableVectorType,TypeRef,cuint	llvm: scalableVectorType(elementType: TypeRef; elementCount: cuint): TypeRef	
+getVectorSize	llvm.html#getVectorSize,TypeRef	llvm: getVectorSize(vectorTy: TypeRef): cuint	
+voidTypeInContext	llvm.html#voidTypeInContext,ContextRef	llvm: voidTypeInContext(c: ContextRef): TypeRef	
+labelTypeInContext	llvm.html#labelTypeInContext,ContextRef	llvm: labelTypeInContext(c: ContextRef): TypeRef	
+x86MMXTypeInContext	llvm.html#x86MMXTypeInContext,ContextRef	llvm: x86MMXTypeInContext(c: ContextRef): TypeRef	
+x86AMXTypeInContext	llvm.html#x86AMXTypeInContext,ContextRef	llvm: x86AMXTypeInContext(c: ContextRef): TypeRef	
+tokenTypeInContext	llvm.html#tokenTypeInContext,ContextRef	llvm: tokenTypeInContext(c: ContextRef): TypeRef	
+metadataTypeInContext	llvm.html#metadataTypeInContext,ContextRef	llvm: metadataTypeInContext(c: ContextRef): TypeRef	
+voidType	llvm.html#voidType	llvm: voidType(): TypeRef	
+labelType	llvm.html#labelType	llvm: labelType(): TypeRef	
+x86MMXType	llvm.html#x86MMXType	llvm: x86MMXType(): TypeRef	
+x86AMXType	llvm.html#x86AMXType	llvm: x86AMXType(): TypeRef	
+for_Each_Value_Subclass	llvm.html#for_Each_Value_Subclass.t,untyped	llvm: for_Each_Value_Subclass(macro: untyped): untyped	
+getValueKind	llvm.html#getValueKind,ValueRef	llvm: getValueKind(val: ValueRef): ValueKind	
+getValueName2	llvm.html#getValueName2,ValueRef,ptr.csize_t	llvm: getValueName2(val: ValueRef; length: ptr csize_t): cstring	
+setValueName2	llvm.html#setValueName2,ValueRef,cstring,csize_t	llvm: setValueName2(val: ValueRef; name: cstring; nameLen: csize_t)	
+dumpValue	llvm.html#dumpValue,ValueRef	llvm: dumpValue(val: ValueRef)	
+printValueToString	llvm.html#printValueToString,ValueRef	llvm: printValueToString(val: ValueRef): cstring	
+replaceAllUsesWith	llvm.html#replaceAllUsesWith,ValueRef,ValueRef	llvm: replaceAllUsesWith(oldVal: ValueRef; newVal: ValueRef)	
+isConstant	llvm.html#isConstant,ValueRef	llvm: isConstant(val: ValueRef): Bool	
+isUndef	llvm.html#isUndef,ValueRef	llvm: isUndef(val: ValueRef): Bool	
+isPoison	llvm.html#isPoison,ValueRef	llvm: isPoison(val: ValueRef): Bool	
+declare_Value_Cast	llvm.html#declare_Value_Cast.t,untyped	llvm: declare_Value_Cast(name: untyped): untyped	
+isAMDString	llvm.html#isAMDString,ValueRef	llvm: isAMDString(val: ValueRef): ValueRef	
+getValueName	llvm.html#getValueName,ValueRef	llvm: getValueName(val: ValueRef): cstring	
+setValueName	llvm.html#setValueName,ValueRef,cstring	llvm: setValueName(val: ValueRef; name: cstring)	
+getFirstUse	llvm.html#getFirstUse,ValueRef	llvm: getFirstUse(val: ValueRef): UseRef	
+getNextUse	llvm.html#getNextUse,UseRef	llvm: getNextUse(u: UseRef): UseRef	
+getUser	llvm.html#getUser,UseRef	llvm: getUser(u: UseRef): ValueRef	
+getUsedValue	llvm.html#getUsedValue,UseRef	llvm: getUsedValue(u: UseRef): ValueRef	
+getOperand	llvm.html#getOperand,ValueRef,cuint	llvm: getOperand(val: ValueRef; index: cuint): ValueRef	
+getOperandUse	llvm.html#getOperandUse,ValueRef,cuint	llvm: getOperandUse(val: ValueRef; index: cuint): UseRef	
+setOperand	llvm.html#setOperand,ValueRef,cuint,ValueRef	llvm: setOperand(user: ValueRef; index: cuint; val: ValueRef)	
+getNumOperands	llvm.html#getNumOperands,ValueRef	llvm: getNumOperands(val: ValueRef): cint	
+constNull	llvm.html#constNull,TypeRef	llvm: constNull(ty: TypeRef): ValueRef	
+constAllOnes	llvm.html#constAllOnes,TypeRef	llvm: constAllOnes(ty: TypeRef): ValueRef	
+getUndef	llvm.html#getUndef,TypeRef	llvm: getUndef(ty: TypeRef): ValueRef	
+getPoison	llvm.html#getPoison,TypeRef	llvm: getPoison(ty: TypeRef): ValueRef	
+isNull	llvm.html#isNull,ValueRef	llvm: isNull(val: ValueRef): Bool	
+constPointerNull	llvm.html#constPointerNull,TypeRef	llvm: constPointerNull(ty: TypeRef): ValueRef	
+constInt	llvm.html#constInt,TypeRef,culonglong,Bool	llvm: constInt(intTy: TypeRef; n: culonglong; signExtend: Bool): ValueRef	
+constIntOfArbitraryPrecision	llvm.html#constIntOfArbitraryPrecision,TypeRef,cuint,ptr.uint64	llvm: constIntOfArbitraryPrecision(intTy: TypeRef; numWords: cuint; words: ptr uint64): ValueRef	
+constIntOfString	llvm.html#constIntOfString,TypeRef,cstring,uint8T	llvm: constIntOfString(intTy: TypeRef; text: cstring; radix: uint8T): ValueRef	
+constIntOfStringAndSize	llvm.html#constIntOfStringAndSize,TypeRef,cstring,cuint,uint8T	llvm: constIntOfStringAndSize(intTy: TypeRef; text: cstring; sLen: cuint;\n                        radix: uint8T): ValueRef	
+constReal	llvm.html#constReal,TypeRef,cdouble	llvm: constReal(realTy: TypeRef; n: cdouble): ValueRef	
+constRealOfString	llvm.html#constRealOfString,TypeRef,cstring	llvm: constRealOfString(realTy: TypeRef; text: cstring): ValueRef	
+constRealOfStringAndSize	llvm.html#constRealOfStringAndSize,TypeRef,cstring,cuint	llvm: constRealOfStringAndSize(realTy: TypeRef; text: cstring; sLen: cuint): ValueRef	
+constIntGetZExtValue	llvm.html#constIntGetZExtValue,ValueRef	llvm: constIntGetZExtValue(constantVal: ValueRef): culonglong	
+constIntGetSExtValue	llvm.html#constIntGetSExtValue,ValueRef	llvm: constIntGetSExtValue(constantVal: ValueRef): clonglong	
+constRealGetDouble	llvm.html#constRealGetDouble,ValueRef,ptr.Bool	llvm: constRealGetDouble(constantVal: ValueRef; losesInfo: ptr Bool): cdouble	
+constStringInContext	llvm.html#constStringInContext,ContextRef,cstring,cuint,Bool	llvm: constStringInContext(c: ContextRef; str: cstring; length: cuint;\n                     dontNullTerminate: Bool): ValueRef	
+constString	llvm.html#constString,cstring,cuint,Bool	llvm: constString(str: cstring; length: cuint; dontNullTerminate: Bool): ValueRef	
+isConstantString	llvm.html#isConstantString,ValueRef	llvm: isConstantString(c: ValueRef): Bool	
+getAsString	llvm.html#getAsString,ValueRef,ptr.csize_t	llvm: getAsString(c: ValueRef; length: ptr csize_t): cstring	
+constStructInContext	llvm.html#constStructInContext,ContextRef,ptr.ValueRef,cuint,Bool	llvm: constStructInContext(c: ContextRef; constantVals: ptr ValueRef; count: cuint;\n                     packed: Bool): ValueRef	
+constStruct	llvm.html#constStruct,ptr.ValueRef,cuint,Bool	llvm: constStruct(constantVals: ptr ValueRef; count: cuint; packed: Bool): ValueRef	
+constArray	llvm.html#constArray,TypeRef,ptr.ValueRef,cuint	llvm: constArray(elementTy: TypeRef; constantVals: ptr ValueRef; length: cuint): ValueRef	
+constNamedStruct	llvm.html#constNamedStruct,TypeRef,ptr.ValueRef,cuint	llvm: constNamedStruct(structTy: TypeRef; constantVals: ptr ValueRef; count: cuint): ValueRef	
+getAggregateElement	llvm.html#getAggregateElement,ValueRef,cuint	llvm: getAggregateElement(c: ValueRef; idx: cuint): ValueRef	
+getElementAsConstant	llvm.html#getElementAsConstant,ValueRef,cuint	llvm: getElementAsConstant(c: ValueRef; idx: cuint): ValueRef	
+constVector	llvm.html#constVector,ptr.ValueRef,cuint	llvm: constVector(scalarConstantVals: ptr ValueRef; size: cuint): ValueRef	
+getConstOpcode	llvm.html#getConstOpcode,ValueRef	llvm: getConstOpcode(constantVal: ValueRef): Opcode	
+alignOf	llvm.html#alignOf,TypeRef	llvm: alignOf(ty: TypeRef): ValueRef	
+sizeOfX	llvm.html#sizeOfX,TypeRef	llvm: sizeOfX(ty: TypeRef): ValueRef	
+constNeg	llvm.html#constNeg,ValueRef	llvm: constNeg(constantVal: ValueRef): ValueRef	
+constNSWNeg	llvm.html#constNSWNeg,ValueRef	llvm: constNSWNeg(constantVal: ValueRef): ValueRef	
+constNUWNeg	llvm.html#constNUWNeg,ValueRef	llvm: constNUWNeg(constantVal: ValueRef): ValueRef	
+constFNeg	llvm.html#constFNeg,ValueRef	llvm: constFNeg(constantVal: ValueRef): ValueRef	
+constNot	llvm.html#constNot,ValueRef	llvm: constNot(constantVal: ValueRef): ValueRef	
+constAdd	llvm.html#constAdd,ValueRef,ValueRef	llvm: constAdd(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef	
+constNSWAdd	llvm.html#constNSWAdd,ValueRef,ValueRef	llvm: constNSWAdd(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef	
+constNUWAdd	llvm.html#constNUWAdd,ValueRef,ValueRef	llvm: constNUWAdd(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef	
+constSub	llvm.html#constSub,ValueRef,ValueRef	llvm: constSub(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef	
+constNSWSub	llvm.html#constNSWSub,ValueRef,ValueRef	llvm: constNSWSub(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef	
+constNUWSub	llvm.html#constNUWSub,ValueRef,ValueRef	llvm: constNUWSub(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef	
+constMul	llvm.html#constMul,ValueRef,ValueRef	llvm: constMul(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef	
+constNSWMul	llvm.html#constNSWMul,ValueRef,ValueRef	llvm: constNSWMul(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef	
+constNUWMul	llvm.html#constNUWMul,ValueRef,ValueRef	llvm: constNUWMul(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef	
+constAnd	llvm.html#constAnd,ValueRef,ValueRef	llvm: constAnd(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef	
+constOr	llvm.html#constOr,ValueRef,ValueRef	llvm: constOr(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef	
+constXor	llvm.html#constXor,ValueRef,ValueRef	llvm: constXor(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef	
+constICmp	llvm.html#constICmp,IntPredicate,ValueRef,ValueRef	llvm: constICmp(predicate: IntPredicate; lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef	
+constFCmp	llvm.html#constFCmp,RealPredicate,ValueRef,ValueRef	llvm: constFCmp(predicate: RealPredicate; lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef	
+constShl	llvm.html#constShl,ValueRef,ValueRef	llvm: constShl(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef	
+constLShr	llvm.html#constLShr,ValueRef,ValueRef	llvm: constLShr(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef	
+constAShr	llvm.html#constAShr,ValueRef,ValueRef	llvm: constAShr(lHSConstant: ValueRef; rHSConstant: ValueRef): ValueRef	
+constGEP	llvm.html#constGEP,ValueRef,ptr.ValueRef,cuint	llvm: constGEP(constantVal: ValueRef; constantIndices: ptr ValueRef; numIndices: cuint): ValueRef	
+constGEP2	llvm.html#constGEP2,TypeRef,ValueRef,ptr.ValueRef,cuint	llvm: constGEP2(ty: TypeRef; constantVal: ValueRef; constantIndices: ptr ValueRef;\n          numIndices: cuint): ValueRef	
+constInBoundsGEP	llvm.html#constInBoundsGEP,TypeRef,ValueRef,ptr.ValueRef,cuint	llvm: constInBoundsGEP(ty: TypeRef; constantVal: ValueRef;\n                 constantIndices: ptr ValueRef; numIndices: cuint): ValueRef	
+constInBoundsGEP2	llvm.html#constInBoundsGEP2,TypeRef,ValueRef,ptr.ValueRef,cuint	llvm: constInBoundsGEP2(ty: TypeRef; constantVal: ValueRef;\n                  constantIndices: ptr ValueRef; numIndices: cuint): ValueRef	
+constTrunc	llvm.html#constTrunc,ValueRef,TypeRef	llvm: constTrunc(constantVal: ValueRef; toType: TypeRef): ValueRef	
+constSExt	llvm.html#constSExt,ValueRef,TypeRef	llvm: constSExt(constantVal: ValueRef; toType: TypeRef): ValueRef	
+constZExt	llvm.html#constZExt,ValueRef,TypeRef	llvm: constZExt(constantVal: ValueRef; toType: TypeRef): ValueRef	
+constFPTrunc	llvm.html#constFPTrunc,ValueRef,TypeRef	llvm: constFPTrunc(constantVal: ValueRef; toType: TypeRef): ValueRef	
+constFPExt	llvm.html#constFPExt,ValueRef,TypeRef	llvm: constFPExt(constantVal: ValueRef; toType: TypeRef): ValueRef	
+constUIToFP	llvm.html#constUIToFP,ValueRef,TypeRef	llvm: constUIToFP(constantVal: ValueRef; toType: TypeRef): ValueRef	
+constSIToFP	llvm.html#constSIToFP,ValueRef,TypeRef	llvm: constSIToFP(constantVal: ValueRef; toType: TypeRef): ValueRef	
+constFPToUI	llvm.html#constFPToUI,ValueRef,TypeRef	llvm: constFPToUI(constantVal: ValueRef; toType: TypeRef): ValueRef	
+constFPToSI	llvm.html#constFPToSI,ValueRef,TypeRef	llvm: constFPToSI(constantVal: ValueRef; toType: TypeRef): ValueRef	
+constPtrToInt	llvm.html#constPtrToInt,ValueRef,TypeRef	llvm: constPtrToInt(constantVal: ValueRef; toType: TypeRef): ValueRef	
+constIntToPtr	llvm.html#constIntToPtr,ValueRef,TypeRef	llvm: constIntToPtr(constantVal: ValueRef; toType: TypeRef): ValueRef	
+constBitCast	llvm.html#constBitCast,ValueRef,TypeRef	llvm: constBitCast(constantVal: ValueRef; toType: TypeRef): ValueRef	
+constAddrSpaceCast	llvm.html#constAddrSpaceCast,ValueRef,TypeRef	llvm: constAddrSpaceCast(constantVal: ValueRef; toType: TypeRef): ValueRef	
+constZExtOrBitCast	llvm.html#constZExtOrBitCast,ValueRef,TypeRef	llvm: constZExtOrBitCast(constantVal: ValueRef; toType: TypeRef): ValueRef	
+constSExtOrBitCast	llvm.html#constSExtOrBitCast,ValueRef,TypeRef	llvm: constSExtOrBitCast(constantVal: ValueRef; toType: TypeRef): ValueRef	
+constTruncOrBitCast	llvm.html#constTruncOrBitCast,ValueRef,TypeRef	llvm: constTruncOrBitCast(constantVal: ValueRef; toType: TypeRef): ValueRef	
+constPointerCast	llvm.html#constPointerCast,ValueRef,TypeRef	llvm: constPointerCast(constantVal: ValueRef; toType: TypeRef): ValueRef	
+constIntCast	llvm.html#constIntCast,ValueRef,TypeRef,Bool	llvm: constIntCast(constantVal: ValueRef; toType: TypeRef; isSigned: Bool): ValueRef	
+constFPCast	llvm.html#constFPCast,ValueRef,TypeRef	llvm: constFPCast(constantVal: ValueRef; toType: TypeRef): ValueRef	
+constSelect	llvm.html#constSelect,ValueRef,ValueRef,ValueRef	llvm: constSelect(constantCondition: ValueRef; constantIfTrue: ValueRef;\n            constantIfFalse: ValueRef): ValueRef	
+constExtractElement	llvm.html#constExtractElement,ValueRef,ValueRef	llvm: constExtractElement(vectorConstant: ValueRef; indexConstant: ValueRef): ValueRef	
+constInsertElement	llvm.html#constInsertElement,ValueRef,ValueRef,ValueRef	llvm: constInsertElement(vectorConstant: ValueRef; elementValueConstant: ValueRef;\n                   indexConstant: ValueRef): ValueRef	
+constShuffleVector	llvm.html#constShuffleVector,ValueRef,ValueRef,ValueRef	llvm: constShuffleVector(vectorAConstant: ValueRef; vectorBConstant: ValueRef;\n                   maskConstant: ValueRef): ValueRef	
+blockAddress	llvm.html#blockAddress,ValueRef,BasicBlockRef	llvm: blockAddress(f: ValueRef; bb: BasicBlockRef): ValueRef	
+constInlineAsm	llvm.html#constInlineAsm,TypeRef,cstring,cstring,Bool,Bool	llvm: constInlineAsm(ty: TypeRef; asmString: cstring; constraints: cstring;\n               hasSideEffects: Bool; isAlignStack: Bool): ValueRef	
+getGlobalParent	llvm.html#getGlobalParent,ValueRef	llvm: getGlobalParent(global: ValueRef): ModuleRef	
+isDeclaration	llvm.html#isDeclaration,ValueRef	llvm: isDeclaration(global: ValueRef): Bool	
+getLinkage	llvm.html#getLinkage,ValueRef	llvm: getLinkage(global: ValueRef): Linkage	
+setLinkage	llvm.html#setLinkage,ValueRef,Linkage	llvm: setLinkage(global: ValueRef; linkage: Linkage)	
+getSection	llvm.html#getSection,ValueRef	llvm: getSection(global: ValueRef): cstring	
+setSection	llvm.html#setSection,ValueRef,cstring	llvm: setSection(global: ValueRef; section: cstring)	
+getVisibility	llvm.html#getVisibility,ValueRef	llvm: getVisibility(global: ValueRef): Visibility	
+setVisibility	llvm.html#setVisibility,ValueRef,Visibility	llvm: setVisibility(global: ValueRef; viz: Visibility)	
+getDLLStorageClass	llvm.html#getDLLStorageClass,ValueRef	llvm: getDLLStorageClass(global: ValueRef): DLLStorageClass	
+setDLLStorageClass	llvm.html#setDLLStorageClass,ValueRef,DLLStorageClass	llvm: setDLLStorageClass(global: ValueRef; class: DLLStorageClass)	
+getUnnamedAddress	llvm.html#getUnnamedAddress,ValueRef	llvm: getUnnamedAddress(global: ValueRef): UnnamedAddr	
+setUnnamedAddress	llvm.html#setUnnamedAddress,ValueRef,UnnamedAddr	llvm: setUnnamedAddress(global: ValueRef; unnamedAddr: UnnamedAddr)	
+globalGetValueType	llvm.html#globalGetValueType,ValueRef	llvm: globalGetValueType(global: ValueRef): TypeRef	
+hasUnnamedAddr	llvm.html#hasUnnamedAddr,ValueRef	llvm: hasUnnamedAddr(global: ValueRef): Bool	
+setUnnamedAddr	llvm.html#setUnnamedAddr,ValueRef,Bool	llvm: setUnnamedAddr(global: ValueRef; hasUnnamedAddr: Bool)	
+getAlignment	llvm.html#getAlignment,ValueRef	llvm: getAlignment(v: ValueRef): cuint	
+setAlignment	llvm.html#setAlignment,ValueRef,cuint	llvm: setAlignment(v: ValueRef; bytes: cuint)	
+globalSetMetadata	llvm.html#globalSetMetadata,ValueRef,cuint,MetadataRef	llvm: globalSetMetadata(global: ValueRef; kind: cuint; md: MetadataRef)	
+globalEraseMetadata	llvm.html#globalEraseMetadata,ValueRef,cuint	llvm: globalEraseMetadata(global: ValueRef; kind: cuint)	
+globalClearMetadata	llvm.html#globalClearMetadata,ValueRef	llvm: globalClearMetadata(global: ValueRef)	
+globalCopyAllMetadata	llvm.html#globalCopyAllMetadata,ValueRef,ptr.csize_t	llvm: globalCopyAllMetadata(value: ValueRef; numEntries: ptr csize_t): ptr ValueMetadataEntry	
+disposeValueMetadataEntries	llvm.html#disposeValueMetadataEntries,ptr.opaqueValueMetadataEntry	llvm: disposeValueMetadataEntries(entries: ptr ValueMetadataEntry)	
+valueMetadataEntriesGetKind	llvm.html#valueMetadataEntriesGetKind,ptr.opaqueValueMetadataEntry,cuint	llvm: valueMetadataEntriesGetKind(entries: ptr ValueMetadataEntry; index: cuint): cuint	
+valueMetadataEntriesGetMetadata	llvm.html#valueMetadataEntriesGetMetadata,ptr.opaqueValueMetadataEntry,cuint	llvm: valueMetadataEntriesGetMetadata(entries: ptr ValueMetadataEntry; index: cuint): MetadataRef	
+addGlobal	llvm.html#addGlobal,ModuleRef,TypeRef,cstring	llvm: addGlobal(m: ModuleRef; ty: TypeRef; name: cstring): ValueRef	
+addGlobalInAddressSpace	llvm.html#addGlobalInAddressSpace,ModuleRef,TypeRef,cstring,cuint	llvm: addGlobalInAddressSpace(m: ModuleRef; ty: TypeRef; name: cstring;\n                        addressSpace: cuint): ValueRef	
+getNamedGlobal	llvm.html#getNamedGlobal,ModuleRef,cstring	llvm: getNamedGlobal(m: ModuleRef; name: cstring): ValueRef	
+getFirstGlobal	llvm.html#getFirstGlobal,ModuleRef	llvm: getFirstGlobal(m: ModuleRef): ValueRef	
+getLastGlobal	llvm.html#getLastGlobal,ModuleRef	llvm: getLastGlobal(m: ModuleRef): ValueRef	
+getNextGlobal	llvm.html#getNextGlobal,ValueRef	llvm: getNextGlobal(globalVar: ValueRef): ValueRef	
+getPreviousGlobal	llvm.html#getPreviousGlobal,ValueRef	llvm: getPreviousGlobal(globalVar: ValueRef): ValueRef	
+deleteGlobal	llvm.html#deleteGlobal,ValueRef	llvm: deleteGlobal(globalVar: ValueRef)	
+getInitializer	llvm.html#getInitializer,ValueRef	llvm: getInitializer(globalVar: ValueRef): ValueRef	
+setInitializer	llvm.html#setInitializer,ValueRef,ValueRef	llvm: setInitializer(globalVar: ValueRef; constantVal: ValueRef)	
+isThreadLocal	llvm.html#isThreadLocal,ValueRef	llvm: isThreadLocal(globalVar: ValueRef): Bool	
+setThreadLocal	llvm.html#setThreadLocal,ValueRef,Bool	llvm: setThreadLocal(globalVar: ValueRef; isThreadLocal: Bool)	
+isGlobalConstant	llvm.html#isGlobalConstant,ValueRef	llvm: isGlobalConstant(globalVar: ValueRef): Bool	
+setGlobalConstant	llvm.html#setGlobalConstant,ValueRef,Bool	llvm: setGlobalConstant(globalVar: ValueRef; isConstant: Bool)	
+getThreadLocalMode	llvm.html#getThreadLocalMode,ValueRef	llvm: getThreadLocalMode(globalVar: ValueRef): ThreadLocalMode	
+setThreadLocalMode	llvm.html#setThreadLocalMode,ValueRef,ThreadLocalMode	llvm: setThreadLocalMode(globalVar: ValueRef; mode: ThreadLocalMode)	
+isExternallyInitialized	llvm.html#isExternallyInitialized,ValueRef	llvm: isExternallyInitialized(globalVar: ValueRef): Bool	
+setExternallyInitialized	llvm.html#setExternallyInitialized,ValueRef,Bool	llvm: setExternallyInitialized(globalVar: ValueRef; isExtInit: Bool)	
+addAlias	llvm.html#addAlias,ModuleRef,TypeRef,ValueRef,cstring	llvm: addAlias(m: ModuleRef; ty: TypeRef; aliasee: ValueRef; name: cstring): ValueRef	
+addAlias2	llvm.html#addAlias2,ModuleRef,TypeRef,cuint,ValueRef,cstring	llvm: addAlias2(m: ModuleRef; valueTy: TypeRef; addrSpace: cuint; aliasee: ValueRef;\n          name: cstring): ValueRef	
+getNamedGlobalAlias	llvm.html#getNamedGlobalAlias,ModuleRef,cstring,csize_t	llvm: getNamedGlobalAlias(m: ModuleRef; name: cstring; nameLen: csize_t): ValueRef	
+getFirstGlobalAlias	llvm.html#getFirstGlobalAlias,ModuleRef	llvm: getFirstGlobalAlias(m: ModuleRef): ValueRef	
+getLastGlobalAlias	llvm.html#getLastGlobalAlias,ModuleRef	llvm: getLastGlobalAlias(m: ModuleRef): ValueRef	
+getNextGlobalAlias	llvm.html#getNextGlobalAlias,ValueRef	llvm: getNextGlobalAlias(ga: ValueRef): ValueRef	
+getPreviousGlobalAlias	llvm.html#getPreviousGlobalAlias,ValueRef	llvm: getPreviousGlobalAlias(ga: ValueRef): ValueRef	
+aliasGetAliasee	llvm.html#aliasGetAliasee,ValueRef	llvm: aliasGetAliasee(alias: ValueRef): ValueRef	
+aliasSetAliasee	llvm.html#aliasSetAliasee,ValueRef,ValueRef	llvm: aliasSetAliasee(alias: ValueRef; aliasee: ValueRef)	
+deleteFunction	llvm.html#deleteFunction,ValueRef	llvm: deleteFunction(fn: ValueRef)	
+hasPersonalityFn	llvm.html#hasPersonalityFn,ValueRef	llvm: hasPersonalityFn(fn: ValueRef): Bool	
+getPersonalityFn	llvm.html#getPersonalityFn,ValueRef	llvm: getPersonalityFn(fn: ValueRef): ValueRef	
+setPersonalityFn	llvm.html#setPersonalityFn,ValueRef,ValueRef	llvm: setPersonalityFn(fn: ValueRef; personalityFn: ValueRef)	
+lookupIntrinsicID	llvm.html#lookupIntrinsicID,cstring,csize_t	llvm: lookupIntrinsicID(name: cstring; nameLen: csize_t): cuint	
+getIntrinsicID	llvm.html#getIntrinsicID,ValueRef	llvm: getIntrinsicID(fn: ValueRef): cuint	
+getIntrinsicDeclaration	llvm.html#getIntrinsicDeclaration,ModuleRef,cuint,ptr.TypeRef,csize_t	llvm: getIntrinsicDeclaration(mod: ModuleRef; id: cuint; paramTypes: ptr TypeRef;\n                        paramCount: csize_t): ValueRef	
+intrinsicGetType	llvm.html#intrinsicGetType,ContextRef,cuint,ptr.TypeRef,csize_t	llvm: intrinsicGetType(ctx: ContextRef; id: cuint; paramTypes: ptr TypeRef;\n                 paramCount: csize_t): TypeRef	
+intrinsicGetName	llvm.html#intrinsicGetName,cuint,ptr.csize_t	llvm: intrinsicGetName(id: cuint; nameLength: ptr csize_t): cstring	
+intrinsicCopyOverloadedName	llvm.html#intrinsicCopyOverloadedName,cuint,ptr.TypeRef,csize_t,ptr.csize_t	llvm: intrinsicCopyOverloadedName(id: cuint; paramTypes: ptr TypeRef;\n                            paramCount: csize_t; nameLength: ptr csize_t): cstring	
+intrinsicCopyOverloadedName2	llvm.html#intrinsicCopyOverloadedName2,ModuleRef,cuint,ptr.TypeRef,csize_t,ptr.csize_t	llvm: intrinsicCopyOverloadedName2(mod: ModuleRef; id: cuint; paramTypes: ptr TypeRef;\n                             paramCount: csize_t; nameLength: ptr csize_t): cstring	
+intrinsicIsOverloaded	llvm.html#intrinsicIsOverloaded,cuint	llvm: intrinsicIsOverloaded(id: cuint): Bool	
+getFunctionCallConv	llvm.html#getFunctionCallConv,ValueRef	llvm: getFunctionCallConv(fn: ValueRef): cuint	
+setFunctionCallConv	llvm.html#setFunctionCallConv,ValueRef,cuint	llvm: setFunctionCallConv(fn: ValueRef; cc: cuint)	
+getGC	llvm.html#getGC,ValueRef	llvm: getGC(fn: ValueRef): cstring	
+setGC	llvm.html#setGC,ValueRef,cstring	llvm: setGC(fn: ValueRef; name: cstring)	
+addAttributeAtIndex	llvm.html#addAttributeAtIndex,ValueRef,AttributeIndex,AttributeRef	llvm: addAttributeAtIndex(f: ValueRef; idx: AttributeIndex; a: AttributeRef)	
+getAttributeCountAtIndex	llvm.html#getAttributeCountAtIndex,ValueRef,AttributeIndex	llvm: getAttributeCountAtIndex(f: ValueRef; idx: AttributeIndex): cuint	
+getAttributesAtIndex	llvm.html#getAttributesAtIndex,ValueRef,AttributeIndex,ptr.AttributeRef	llvm: getAttributesAtIndex(f: ValueRef; idx: AttributeIndex; attrs: ptr AttributeRef)	
+getEnumAttributeAtIndex	llvm.html#getEnumAttributeAtIndex,ValueRef,AttributeIndex,cuint	llvm: getEnumAttributeAtIndex(f: ValueRef; idx: AttributeIndex; kindID: cuint): AttributeRef	
+getStringAttributeAtIndex	llvm.html#getStringAttributeAtIndex,ValueRef,AttributeIndex,cstring,cuint	llvm: getStringAttributeAtIndex(f: ValueRef; idx: AttributeIndex; k: cstring;\n                          kLen: cuint): AttributeRef	
+removeEnumAttributeAtIndex	llvm.html#removeEnumAttributeAtIndex,ValueRef,AttributeIndex,cuint	llvm: removeEnumAttributeAtIndex(f: ValueRef; idx: AttributeIndex; kindID: cuint)	
+removeStringAttributeAtIndex	llvm.html#removeStringAttributeAtIndex,ValueRef,AttributeIndex,cstring,cuint	llvm: removeStringAttributeAtIndex(f: ValueRef; idx: AttributeIndex; k: cstring;\n                             kLen: cuint)	
+addTargetDependentFunctionAttr	llvm.html#addTargetDependentFunctionAttr,ValueRef,cstring,cstring	llvm: addTargetDependentFunctionAttr(fn: ValueRef; a: cstring; v: cstring)	
+countParams	llvm.html#countParams,ValueRef	llvm: countParams(fn: ValueRef): cuint	
+getParams	llvm.html#getParams,ValueRef,ptr.ValueRef	llvm: getParams(fn: ValueRef; params: ptr ValueRef)	
+getParam	llvm.html#getParam,ValueRef,cuint	llvm: getParam(fn: ValueRef; index: cuint): ValueRef	
+getParamParent	llvm.html#getParamParent,ValueRef	llvm: getParamParent(inst: ValueRef): ValueRef	
+getFirstParam	llvm.html#getFirstParam,ValueRef	llvm: getFirstParam(fn: ValueRef): ValueRef	
+getLastParam	llvm.html#getLastParam,ValueRef	llvm: getLastParam(fn: ValueRef): ValueRef	
+getNextParam	llvm.html#getNextParam,ValueRef	llvm: getNextParam(arg: ValueRef): ValueRef	
+getPreviousParam	llvm.html#getPreviousParam,ValueRef	llvm: getPreviousParam(arg: ValueRef): ValueRef	
+setParamAlignment	llvm.html#setParamAlignment,ValueRef,cuint	llvm: setParamAlignment(arg: ValueRef; align: cuint)	
+addGlobalIFunc	llvm.html#addGlobalIFunc,ModuleRef,cstring,csize_t,TypeRef,cuint,ValueRef	llvm: addGlobalIFunc(m: ModuleRef; name: cstring; nameLen: csize_t; ty: TypeRef;\n               addrSpace: cuint; resolver: ValueRef): ValueRef	
+getNamedGlobalIFunc	llvm.html#getNamedGlobalIFunc,ModuleRef,cstring,csize_t	llvm: getNamedGlobalIFunc(m: ModuleRef; name: cstring; nameLen: csize_t): ValueRef	
+getFirstGlobalIFunc	llvm.html#getFirstGlobalIFunc,ModuleRef	llvm: getFirstGlobalIFunc(m: ModuleRef): ValueRef	
+getLastGlobalIFunc	llvm.html#getLastGlobalIFunc,ModuleRef	llvm: getLastGlobalIFunc(m: ModuleRef): ValueRef	
+getNextGlobalIFunc	llvm.html#getNextGlobalIFunc,ValueRef	llvm: getNextGlobalIFunc(iFunc: ValueRef): ValueRef	
+getPreviousGlobalIFunc	llvm.html#getPreviousGlobalIFunc,ValueRef	llvm: getPreviousGlobalIFunc(iFunc: ValueRef): ValueRef	
+getGlobalIFuncResolver	llvm.html#getGlobalIFuncResolver,ValueRef	llvm: getGlobalIFuncResolver(iFunc: ValueRef): ValueRef	
+setGlobalIFuncResolver	llvm.html#setGlobalIFuncResolver,ValueRef,ValueRef	llvm: setGlobalIFuncResolver(iFunc: ValueRef; resolver: ValueRef)	
+eraseGlobalIFunc	llvm.html#eraseGlobalIFunc,ValueRef	llvm: eraseGlobalIFunc(iFunc: ValueRef)	
+removeGlobalIFunc	llvm.html#removeGlobalIFunc,ValueRef	llvm: removeGlobalIFunc(iFunc: ValueRef)	
+mDStringInContext2	llvm.html#mDStringInContext2,ContextRef,cstring,csize_t	llvm: mDStringInContext2(c: ContextRef; str: cstring; sLen: csize_t): MetadataRef	
+mDNodeInContext2	llvm.html#mDNodeInContext2,ContextRef,ptr.MetadataRef,csize_t	llvm: mDNodeInContext2(c: ContextRef; mDs: ptr MetadataRef; count: csize_t): MetadataRef	
+metadataAsValue	llvm.html#metadataAsValue,ContextRef,MetadataRef	llvm: metadataAsValue(c: ContextRef; md: MetadataRef): ValueRef	
+valueAsMetadata	llvm.html#valueAsMetadata,ValueRef	llvm: valueAsMetadata(val: ValueRef): MetadataRef	
+getMDString	llvm.html#getMDString,ValueRef,ptr.cuint	llvm: getMDString(v: ValueRef; length: ptr cuint): cstring	
+getMDNodeNumOperands	llvm.html#getMDNodeNumOperands,ValueRef	llvm: getMDNodeNumOperands(v: ValueRef): cuint	
+getMDNodeOperands	llvm.html#getMDNodeOperands,ValueRef,ptr.ValueRef	llvm: getMDNodeOperands(v: ValueRef; dest: ptr ValueRef)	
+mDStringInContext	llvm.html#mDStringInContext,ContextRef,cstring,cuint	llvm: mDStringInContext(c: ContextRef; str: cstring; sLen: cuint): ValueRef	
+mDString	llvm.html#mDString,cstring,cuint	llvm: mDString(str: cstring; sLen: cuint): ValueRef	
+mDNodeInContext	llvm.html#mDNodeInContext,ContextRef,ptr.ValueRef,cuint	llvm: mDNodeInContext(c: ContextRef; vals: ptr ValueRef; count: cuint): ValueRef	
+mDNode	llvm.html#mDNode,ptr.ValueRef,cuint	llvm: mDNode(vals: ptr ValueRef; count: cuint): ValueRef	
+basicBlockAsValue	llvm.html#basicBlockAsValue,BasicBlockRef	llvm: basicBlockAsValue(bb: BasicBlockRef): ValueRef	
+valueIsBasicBlock	llvm.html#valueIsBasicBlock,ValueRef	llvm: valueIsBasicBlock(val: ValueRef): Bool	
+valueAsBasicBlock	llvm.html#valueAsBasicBlock,ValueRef	llvm: valueAsBasicBlock(val: ValueRef): BasicBlockRef	
+getBasicBlockName	llvm.html#getBasicBlockName,BasicBlockRef	llvm: getBasicBlockName(bb: BasicBlockRef): cstring	
+getBasicBlockParent	llvm.html#getBasicBlockParent,BasicBlockRef	llvm: getBasicBlockParent(bb: BasicBlockRef): ValueRef	
+getBasicBlockTerminator	llvm.html#getBasicBlockTerminator,BasicBlockRef	llvm: getBasicBlockTerminator(bb: BasicBlockRef): ValueRef	
+countBasicBlocks	llvm.html#countBasicBlocks,ValueRef	llvm: countBasicBlocks(fn: ValueRef): cuint	
+getBasicBlocks	llvm.html#getBasicBlocks,ValueRef,ptr.BasicBlockRef	llvm: getBasicBlocks(fn: ValueRef; basicBlocks: ptr BasicBlockRef)	
+getFirstBasicBlock	llvm.html#getFirstBasicBlock,ValueRef	llvm: getFirstBasicBlock(fn: ValueRef): BasicBlockRef	
+getLastBasicBlock	llvm.html#getLastBasicBlock,ValueRef	llvm: getLastBasicBlock(fn: ValueRef): BasicBlockRef	
+getNextBasicBlock	llvm.html#getNextBasicBlock,BasicBlockRef	llvm: getNextBasicBlock(bb: BasicBlockRef): BasicBlockRef	
+getPreviousBasicBlock	llvm.html#getPreviousBasicBlock,BasicBlockRef	llvm: getPreviousBasicBlock(bb: BasicBlockRef): BasicBlockRef	
+getEntryBasicBlock	llvm.html#getEntryBasicBlock,ValueRef	llvm: getEntryBasicBlock(fn: ValueRef): BasicBlockRef	
+insertExistingBasicBlockAfterInsertBlock	llvm.html#insertExistingBasicBlockAfterInsertBlock,BuilderRef,BasicBlockRef	llvm: insertExistingBasicBlockAfterInsertBlock(builder: BuilderRef; bb: BasicBlockRef)	
+appendExistingBasicBlock	llvm.html#appendExistingBasicBlock,ValueRef,BasicBlockRef	llvm: appendExistingBasicBlock(fn: ValueRef; bb: BasicBlockRef)	
+createBasicBlockInContext	llvm.html#createBasicBlockInContext,ContextRef,cstring	llvm: createBasicBlockInContext(c: ContextRef; name: cstring): BasicBlockRef	
+appendBasicBlockInContext	llvm.html#appendBasicBlockInContext,ContextRef,ValueRef,cstring	llvm: appendBasicBlockInContext(c: ContextRef; fn: ValueRef; name: cstring): BasicBlockRef	
+appendBasicBlock	llvm.html#appendBasicBlock,ValueRef,cstring	llvm: appendBasicBlock(fn: ValueRef; name: cstring): BasicBlockRef	
+insertBasicBlockInContext	llvm.html#insertBasicBlockInContext,ContextRef,BasicBlockRef,cstring	llvm: insertBasicBlockInContext(c: ContextRef; bb: BasicBlockRef; name: cstring): BasicBlockRef	
+insertBasicBlock	llvm.html#insertBasicBlock,BasicBlockRef,cstring	llvm: insertBasicBlock(insertBeforeBB: BasicBlockRef; name: cstring): BasicBlockRef	
+deleteBasicBlock	llvm.html#deleteBasicBlock,BasicBlockRef	llvm: deleteBasicBlock(bb: BasicBlockRef)	
+removeBasicBlockFromParent	llvm.html#removeBasicBlockFromParent,BasicBlockRef	llvm: removeBasicBlockFromParent(bb: BasicBlockRef)	
+moveBasicBlockBefore	llvm.html#moveBasicBlockBefore,BasicBlockRef,BasicBlockRef	llvm: moveBasicBlockBefore(bb: BasicBlockRef; movePos: BasicBlockRef)	
+moveBasicBlockAfter	llvm.html#moveBasicBlockAfter,BasicBlockRef,BasicBlockRef	llvm: moveBasicBlockAfter(bb: BasicBlockRef; movePos: BasicBlockRef)	
+getFirstInstruction	llvm.html#getFirstInstruction,BasicBlockRef	llvm: getFirstInstruction(bb: BasicBlockRef): ValueRef	
+getLastInstruction	llvm.html#getLastInstruction,BasicBlockRef	llvm: getLastInstruction(bb: BasicBlockRef): ValueRef	
+hasMetadata	llvm.html#hasMetadata,ValueRef	llvm: hasMetadata(val: ValueRef): cint	
+getMetadata	llvm.html#getMetadata,ValueRef,cuint	llvm: getMetadata(val: ValueRef; kindID: cuint): ValueRef	
+setMetadata	llvm.html#setMetadata,ValueRef,cuint,ValueRef	llvm: setMetadata(val: ValueRef; kindID: cuint; node: ValueRef)	
+instructionGetAllMetadataOtherThanDebugLoc	llvm.html#instructionGetAllMetadataOtherThanDebugLoc,ValueRef,ptr.csize_t	llvm: instructionGetAllMetadataOtherThanDebugLoc(instr: ValueRef;\n    numEntries: ptr csize_t): ptr ValueMetadataEntry	
+getInstructionParent	llvm.html#getInstructionParent,ValueRef	llvm: getInstructionParent(inst: ValueRef): BasicBlockRef	
+getNextInstruction	llvm.html#getNextInstruction,ValueRef	llvm: getNextInstruction(inst: ValueRef): ValueRef	
+getPreviousInstruction	llvm.html#getPreviousInstruction,ValueRef	llvm: getPreviousInstruction(inst: ValueRef): ValueRef	
+instructionRemoveFromParent	llvm.html#instructionRemoveFromParent,ValueRef	llvm: instructionRemoveFromParent(inst: ValueRef)	
+instructionEraseFromParent	llvm.html#instructionEraseFromParent,ValueRef	llvm: instructionEraseFromParent(inst: ValueRef)	
+deleteInstruction	llvm.html#deleteInstruction,ValueRef	llvm: deleteInstruction(inst: ValueRef)	
+getInstructionOpcode	llvm.html#getInstructionOpcode,ValueRef	llvm: getInstructionOpcode(inst: ValueRef): Opcode	
+getICmpPredicate	llvm.html#getICmpPredicate,ValueRef	llvm: getICmpPredicate(inst: ValueRef): IntPredicate	
+getFCmpPredicate	llvm.html#getFCmpPredicate,ValueRef	llvm: getFCmpPredicate(inst: ValueRef): RealPredicate	
+instructionClone	llvm.html#instructionClone,ValueRef	llvm: instructionClone(inst: ValueRef): ValueRef	
+isATerminatorInst	llvm.html#isATerminatorInst,ValueRef	llvm: isATerminatorInst(inst: ValueRef): ValueRef	
+getNumArgOperands	llvm.html#getNumArgOperands,ValueRef	llvm: getNumArgOperands(instr: ValueRef): cuint	
+setInstructionCallConv	llvm.html#setInstructionCallConv,ValueRef,cuint	llvm: setInstructionCallConv(instr: ValueRef; cc: cuint)	
+getInstructionCallConv	llvm.html#getInstructionCallConv,ValueRef	llvm: getInstructionCallConv(instr: ValueRef): cuint	
+setInstrParamAlignment	llvm.html#setInstrParamAlignment,ValueRef,AttributeIndex,cuint	llvm: setInstrParamAlignment(instr: ValueRef; idx: AttributeIndex; align: cuint)	
+addCallSiteAttribute	llvm.html#addCallSiteAttribute,ValueRef,AttributeIndex,AttributeRef	llvm: addCallSiteAttribute(c: ValueRef; idx: AttributeIndex; a: AttributeRef)	
+getCallSiteAttributeCount	llvm.html#getCallSiteAttributeCount,ValueRef,AttributeIndex	llvm: getCallSiteAttributeCount(c: ValueRef; idx: AttributeIndex): cuint	
+getCallSiteAttributes	llvm.html#getCallSiteAttributes,ValueRef,AttributeIndex,ptr.AttributeRef	llvm: getCallSiteAttributes(c: ValueRef; idx: AttributeIndex; attrs: ptr AttributeRef)	
+getCallSiteEnumAttribute	llvm.html#getCallSiteEnumAttribute,ValueRef,AttributeIndex,cuint	llvm: getCallSiteEnumAttribute(c: ValueRef; idx: AttributeIndex; kindID: cuint): AttributeRef	
+getCallSiteStringAttribute	llvm.html#getCallSiteStringAttribute,ValueRef,AttributeIndex,cstring,cuint	llvm: getCallSiteStringAttribute(c: ValueRef; idx: AttributeIndex; k: cstring;\n                           kLen: cuint): AttributeRef	
+removeCallSiteEnumAttribute	llvm.html#removeCallSiteEnumAttribute,ValueRef,AttributeIndex,cuint	llvm: removeCallSiteEnumAttribute(c: ValueRef; idx: AttributeIndex; kindID: cuint)	
+removeCallSiteStringAttribute	llvm.html#removeCallSiteStringAttribute,ValueRef,AttributeIndex,cstring,cuint	llvm: removeCallSiteStringAttribute(c: ValueRef; idx: AttributeIndex; k: cstring;\n                              kLen: cuint)	
+getCalledFunctionType	llvm.html#getCalledFunctionType,ValueRef	llvm: getCalledFunctionType(c: ValueRef): TypeRef	
+getCalledValue	llvm.html#getCalledValue,ValueRef	llvm: getCalledValue(instr: ValueRef): ValueRef	
+isTailCall	llvm.html#isTailCall,ValueRef	llvm: isTailCall(callInst: ValueRef): Bool	
+setTailCall	llvm.html#setTailCall,ValueRef,Bool	llvm: setTailCall(callInst: ValueRef; isTailCall: Bool)	
+getNormalDest	llvm.html#getNormalDest,ValueRef	llvm: getNormalDest(invokeInst: ValueRef): BasicBlockRef	
+getUnwindDest	llvm.html#getUnwindDest,ValueRef	llvm: getUnwindDest(invokeInst: ValueRef): BasicBlockRef	
+setNormalDest	llvm.html#setNormalDest,ValueRef,BasicBlockRef	llvm: setNormalDest(invokeInst: ValueRef; b: BasicBlockRef)	
+setUnwindDest	llvm.html#setUnwindDest,ValueRef,BasicBlockRef	llvm: setUnwindDest(invokeInst: ValueRef; b: BasicBlockRef)	
+getNumSuccessors	llvm.html#getNumSuccessors,ValueRef	llvm: getNumSuccessors(term: ValueRef): cuint	
+getSuccessor	llvm.html#getSuccessor,ValueRef,cuint	llvm: getSuccessor(term: ValueRef; i: cuint): BasicBlockRef	
+setSuccessor	llvm.html#setSuccessor,ValueRef,cuint,BasicBlockRef	llvm: setSuccessor(term: ValueRef; i: cuint; block: BasicBlockRef)	
+isConditional	llvm.html#isConditional,ValueRef	llvm: isConditional(branch: ValueRef): Bool	
+getCondition	llvm.html#getCondition,ValueRef	llvm: getCondition(branch: ValueRef): ValueRef	
+setCondition	llvm.html#setCondition,ValueRef,ValueRef	llvm: setCondition(branch: ValueRef; cond: ValueRef)	
+getSwitchDefaultDest	llvm.html#getSwitchDefaultDest,ValueRef	llvm: getSwitchDefaultDest(switchInstr: ValueRef): BasicBlockRef	
+getAllocatedType	llvm.html#getAllocatedType,ValueRef	llvm: getAllocatedType(alloca: ValueRef): TypeRef	
+isInBounds	llvm.html#isInBounds,ValueRef	llvm: isInBounds(gep: ValueRef): Bool	
+setIsInBounds	llvm.html#setIsInBounds,ValueRef,Bool	llvm: setIsInBounds(gep: ValueRef; inBounds: Bool)	
+getGEPSourceElementType	llvm.html#getGEPSourceElementType,ValueRef	llvm: getGEPSourceElementType(gep: ValueRef): TypeRef	
+addIncoming	llvm.html#addIncoming,ValueRef,ptr.ValueRef,ptr.BasicBlockRef,cuint	llvm: addIncoming(phiNode: ValueRef; incomingValues: ptr ValueRef;\n            incomingBlocks: ptr BasicBlockRef; count: cuint)	
+countIncoming	llvm.html#countIncoming,ValueRef	llvm: countIncoming(phiNode: ValueRef): cuint	
+getIncomingValue	llvm.html#getIncomingValue,ValueRef,cuint	llvm: getIncomingValue(phiNode: ValueRef; index: cuint): ValueRef	
+getIncomingBlock	llvm.html#getIncomingBlock,ValueRef,cuint	llvm: getIncomingBlock(phiNode: ValueRef; index: cuint): BasicBlockRef	
+getNumIndices	llvm.html#getNumIndices,ValueRef	llvm: getNumIndices(inst: ValueRef): cuint	
+getIndices	llvm.html#getIndices,ValueRef	llvm: getIndices(inst: ValueRef): ptr cuint	
+createBuilderInContext	llvm.html#createBuilderInContext,ContextRef	llvm: createBuilderInContext(c: ContextRef): BuilderRef	
+createBuilder	llvm.html#createBuilder	llvm: createBuilder(): BuilderRef	
+positionBuilder	llvm.html#positionBuilder,BuilderRef,BasicBlockRef,ValueRef	llvm: positionBuilder(builder: BuilderRef; block: BasicBlockRef; instr: ValueRef)	
+positionBuilderBefore	llvm.html#positionBuilderBefore,BuilderRef,ValueRef	llvm: positionBuilderBefore(builder: BuilderRef; instr: ValueRef)	
+positionBuilderAtEnd	llvm.html#positionBuilderAtEnd,BuilderRef,BasicBlockRef	llvm: positionBuilderAtEnd(builder: BuilderRef; block: BasicBlockRef)	
+getInsertBlock	llvm.html#getInsertBlock,BuilderRef	llvm: getInsertBlock(builder: BuilderRef): BasicBlockRef	
+clearInsertionPosition	llvm.html#clearInsertionPosition,BuilderRef	llvm: clearInsertionPosition(builder: BuilderRef)	
+insertIntoBuilder	llvm.html#insertIntoBuilder,BuilderRef,ValueRef	llvm: insertIntoBuilder(builder: BuilderRef; instr: ValueRef)	
+insertIntoBuilderWithName	llvm.html#insertIntoBuilderWithName,BuilderRef,ValueRef,cstring	llvm: insertIntoBuilderWithName(builder: BuilderRef; instr: ValueRef; name: cstring)	
+disposeBuilder	llvm.html#disposeBuilder,BuilderRef	llvm: disposeBuilder(builder: BuilderRef)	
+getCurrentDebugLocation2	llvm.html#getCurrentDebugLocation2,BuilderRef	llvm: getCurrentDebugLocation2(builder: BuilderRef): MetadataRef	
+setCurrentDebugLocation2	llvm.html#setCurrentDebugLocation2,BuilderRef,MetadataRef	llvm: setCurrentDebugLocation2(builder: BuilderRef; loc: MetadataRef)	
+setInstDebugLocation	llvm.html#setInstDebugLocation,BuilderRef,ValueRef	llvm: setInstDebugLocation(builder: BuilderRef; inst: ValueRef)	
+addMetadataToInst	llvm.html#addMetadataToInst,BuilderRef,ValueRef	llvm: addMetadataToInst(builder: BuilderRef; inst: ValueRef)	
+builderGetDefaultFPMathTag	llvm.html#builderGetDefaultFPMathTag,BuilderRef	llvm: builderGetDefaultFPMathTag(builder: BuilderRef): MetadataRef	
+builderSetDefaultFPMathTag	llvm.html#builderSetDefaultFPMathTag,BuilderRef,MetadataRef	llvm: builderSetDefaultFPMathTag(builder: BuilderRef; fPMathTag: MetadataRef)	
+setCurrentDebugLocation	llvm.html#setCurrentDebugLocation,BuilderRef,ValueRef	llvm: setCurrentDebugLocation(builder: BuilderRef; L: ValueRef)	
+getCurrentDebugLocation	llvm.html#getCurrentDebugLocation,BuilderRef	llvm: getCurrentDebugLocation(builder: BuilderRef): ValueRef	
+buildRetVoid	llvm.html#buildRetVoid,BuilderRef	llvm: buildRetVoid(a1: BuilderRef): ValueRef	
+buildRet	llvm.html#buildRet,BuilderRef,ValueRef	llvm: buildRet(a1: BuilderRef; v: ValueRef): ValueRef	
+buildAggregateRet	llvm.html#buildAggregateRet,BuilderRef,ptr.ValueRef,cuint	llvm: buildAggregateRet(a1: BuilderRef; retVals: ptr ValueRef; n: cuint): ValueRef	
+buildBr	llvm.html#buildBr,BuilderRef,BasicBlockRef	llvm: buildBr(a1: BuilderRef; dest: BasicBlockRef): ValueRef	
+buildCondBr	llvm.html#buildCondBr,BuilderRef,ValueRef,BasicBlockRef,BasicBlockRef	llvm: buildCondBr(a1: BuilderRef; if: ValueRef; then: BasicBlockRef;\n            else: BasicBlockRef): ValueRef	
+buildSwitch	llvm.html#buildSwitch,BuilderRef,ValueRef,BasicBlockRef,cuint	llvm: buildSwitch(a1: BuilderRef; v: ValueRef; else: BasicBlockRef; numCases: cuint): ValueRef	
+buildIndirectBr	llvm.html#buildIndirectBr,BuilderRef,ValueRef,cuint	llvm: buildIndirectBr(b: BuilderRef; addr: ValueRef; numDests: cuint): ValueRef	
+buildInvoke2	llvm.html#buildInvoke2,BuilderRef,TypeRef,ValueRef,ptr.ValueRef,cuint,BasicBlockRef,BasicBlockRef,cstring	llvm: buildInvoke2(a1: BuilderRef; ty: TypeRef; fn: ValueRef; args: ptr ValueRef;\n             numArgs: cuint; then: BasicBlockRef; catch: BasicBlockRef;\n             name: cstring): ValueRef	
+buildUnreachable	llvm.html#buildUnreachable,BuilderRef	llvm: buildUnreachable(a1: BuilderRef): ValueRef	
+buildResume	llvm.html#buildResume,BuilderRef,ValueRef	llvm: buildResume(b: BuilderRef; exn: ValueRef): ValueRef	
+buildLandingPad	llvm.html#buildLandingPad,BuilderRef,TypeRef,ValueRef,cuint,cstring	llvm: buildLandingPad(b: BuilderRef; ty: TypeRef; persFn: ValueRef; numClauses: cuint;\n                name: cstring): ValueRef	
+buildCleanupRet	llvm.html#buildCleanupRet,BuilderRef,ValueRef,BasicBlockRef	llvm: buildCleanupRet(b: BuilderRef; catchPad: ValueRef; bb: BasicBlockRef): ValueRef	
+buildCatchRet	llvm.html#buildCatchRet,BuilderRef,ValueRef,BasicBlockRef	llvm: buildCatchRet(b: BuilderRef; catchPad: ValueRef; bb: BasicBlockRef): ValueRef	
+buildCatchPad	llvm.html#buildCatchPad,BuilderRef,ValueRef,ptr.ValueRef,cuint,cstring	llvm: buildCatchPad(b: BuilderRef; parentPad: ValueRef; args: ptr ValueRef;\n              numArgs: cuint; name: cstring): ValueRef	
+buildCleanupPad	llvm.html#buildCleanupPad,BuilderRef,ValueRef,ptr.ValueRef,cuint,cstring	llvm: buildCleanupPad(b: BuilderRef; parentPad: ValueRef; args: ptr ValueRef;\n                numArgs: cuint; name: cstring): ValueRef	
+buildCatchSwitch	llvm.html#buildCatchSwitch,BuilderRef,ValueRef,BasicBlockRef,cuint,cstring	llvm: buildCatchSwitch(b: BuilderRef; parentPad: ValueRef; unwindBB: BasicBlockRef;\n                 numHandlers: cuint; name: cstring): ValueRef	
+addCase	llvm.html#addCase,ValueRef,ValueRef,BasicBlockRef	llvm: addCase(switch: ValueRef; onVal: ValueRef; dest: BasicBlockRef)	
+addDestination	llvm.html#addDestination,ValueRef,BasicBlockRef	llvm: addDestination(indirectBr: ValueRef; dest: BasicBlockRef)	
+getNumClauses	llvm.html#getNumClauses,ValueRef	llvm: getNumClauses(landingPad: ValueRef): cuint	
+getClause	llvm.html#getClause,ValueRef,cuint	llvm: getClause(landingPad: ValueRef; idx: cuint): ValueRef	
+addClause	llvm.html#addClause,ValueRef,ValueRef	llvm: addClause(landingPad: ValueRef; clauseVal: ValueRef)	
+isCleanup	llvm.html#isCleanup,ValueRef	llvm: isCleanup(landingPad: ValueRef): Bool	
+setCleanup	llvm.html#setCleanup,ValueRef,Bool	llvm: setCleanup(landingPad: ValueRef; val: Bool)	
+addHandler	llvm.html#addHandler,ValueRef,BasicBlockRef	llvm: addHandler(catchSwitch: ValueRef; dest: BasicBlockRef)	
+getNumHandlers	llvm.html#getNumHandlers,ValueRef	llvm: getNumHandlers(catchSwitch: ValueRef): cuint	
+getHandlers	llvm.html#getHandlers,ValueRef,ptr.BasicBlockRef	llvm: getHandlers(catchSwitch: ValueRef; handlers: ptr BasicBlockRef)	
+getArgOperand	llvm.html#getArgOperand,ValueRef,cuint	llvm: getArgOperand(funclet: ValueRef; i: cuint): ValueRef	
+setArgOperand	llvm.html#setArgOperand,ValueRef,cuint,ValueRef	llvm: setArgOperand(funclet: ValueRef; i: cuint; value: ValueRef)	
+getParentCatchSwitch	llvm.html#getParentCatchSwitch,ValueRef	llvm: getParentCatchSwitch(catchPad: ValueRef): ValueRef	
+setParentCatchSwitch	llvm.html#setParentCatchSwitch,ValueRef,ValueRef	llvm: setParentCatchSwitch(catchPad: ValueRef; catchSwitch: ValueRef)	
+buildAdd	llvm.html#buildAdd,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildAdd(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildNSWAdd	llvm.html#buildNSWAdd,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildNSWAdd(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildNUWAdd	llvm.html#buildNUWAdd,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildNUWAdd(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildFAdd	llvm.html#buildFAdd,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildFAdd(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildSub	llvm.html#buildSub,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildSub(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildNSWSub	llvm.html#buildNSWSub,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildNSWSub(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildNUWSub	llvm.html#buildNUWSub,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildNUWSub(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildFSub	llvm.html#buildFSub,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildFSub(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildMul	llvm.html#buildMul,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildMul(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildNSWMul	llvm.html#buildNSWMul,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildNSWMul(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildNUWMul	llvm.html#buildNUWMul,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildNUWMul(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildFMul	llvm.html#buildFMul,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildFMul(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildUDiv	llvm.html#buildUDiv,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildUDiv(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildExactUDiv	llvm.html#buildExactUDiv,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildExactUDiv(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildSDiv	llvm.html#buildSDiv,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildSDiv(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildExactSDiv	llvm.html#buildExactSDiv,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildExactSDiv(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildFDiv	llvm.html#buildFDiv,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildFDiv(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildURem	llvm.html#buildURem,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildURem(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildSRem	llvm.html#buildSRem,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildSRem(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildFRem	llvm.html#buildFRem,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildFRem(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildShl	llvm.html#buildShl,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildShl(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildLShr	llvm.html#buildLShr,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildLShr(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildAShr	llvm.html#buildAShr,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildAShr(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildAnd	llvm.html#buildAnd,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildAnd(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildOr	llvm.html#buildOr,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildOr(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildXor	llvm.html#buildXor,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildXor(a1: BuilderRef; lhs: ValueRef; rhs: ValueRef; name: cstring): ValueRef	
+buildBinOp	llvm.html#buildBinOp,BuilderRef,Opcode,ValueRef,ValueRef,cstring	llvm: buildBinOp(b: BuilderRef; op: Opcode; lhs: ValueRef; rhs: ValueRef;\n           name: cstring): ValueRef	
+buildNeg	llvm.html#buildNeg,BuilderRef,ValueRef,cstring	llvm: buildNeg(a1: BuilderRef; v: ValueRef; name: cstring): ValueRef	
+buildNSWNeg	llvm.html#buildNSWNeg,BuilderRef,ValueRef,cstring	llvm: buildNSWNeg(b: BuilderRef; v: ValueRef; name: cstring): ValueRef	
+buildNUWNeg	llvm.html#buildNUWNeg,BuilderRef,ValueRef,cstring	llvm: buildNUWNeg(b: BuilderRef; v: ValueRef; name: cstring): ValueRef	
+buildFNeg	llvm.html#buildFNeg,BuilderRef,ValueRef,cstring	llvm: buildFNeg(a1: BuilderRef; v: ValueRef; name: cstring): ValueRef	
+buildNot	llvm.html#buildNot,BuilderRef,ValueRef,cstring	llvm: buildNot(a1: BuilderRef; v: ValueRef; name: cstring): ValueRef	
+buildMalloc	llvm.html#buildMalloc,BuilderRef,TypeRef,cstring	llvm: buildMalloc(a1: BuilderRef; ty: TypeRef; name: cstring): ValueRef	
+buildArrayMalloc	llvm.html#buildArrayMalloc,BuilderRef,TypeRef,ValueRef,cstring	llvm: buildArrayMalloc(a1: BuilderRef; ty: TypeRef; val: ValueRef; name: cstring): ValueRef	
+buildMemSet	llvm.html#buildMemSet,BuilderRef,ValueRef,ValueRef,ValueRef,cuint	llvm: buildMemSet(b: BuilderRef; ptr: ValueRef; val: ValueRef; len: ValueRef;\n            align: cuint): ValueRef	
+buildMemCpy	llvm.html#buildMemCpy,BuilderRef,ValueRef,cuint,ValueRef,cuint,ValueRef	llvm: buildMemCpy(b: BuilderRef; dst: ValueRef; dstAlign: cuint; src: ValueRef;\n            srcAlign: cuint; size: ValueRef): ValueRef	
+buildMemMove	llvm.html#buildMemMove,BuilderRef,ValueRef,cuint,ValueRef,cuint,ValueRef	llvm: buildMemMove(b: BuilderRef; dst: ValueRef; dstAlign: cuint; src: ValueRef;\n             srcAlign: cuint; size: ValueRef): ValueRef	
+buildAlloca	llvm.html#buildAlloca,BuilderRef,TypeRef,cstring	llvm: buildAlloca(a1: BuilderRef; ty: TypeRef; name: cstring): ValueRef	
+buildArrayAlloca	llvm.html#buildArrayAlloca,BuilderRef,TypeRef,ValueRef,cstring	llvm: buildArrayAlloca(a1: BuilderRef; ty: TypeRef; val: ValueRef; name: cstring): ValueRef	
+buildFree	llvm.html#buildFree,BuilderRef,ValueRef	llvm: buildFree(a1: BuilderRef; pointerVal: ValueRef): ValueRef	
+buildLoad	llvm.html#buildLoad,BuilderRef,ValueRef,cstring	llvm: buildLoad(a1: BuilderRef; pointerVal: ValueRef; name: cstring): ValueRef	
+buildLoad2	llvm.html#buildLoad2,BuilderRef,TypeRef,ValueRef,cstring	llvm: buildLoad2(a1: BuilderRef; ty: TypeRef; pointerVal: ValueRef; name: cstring): ValueRef	
+buildStore	llvm.html#buildStore,BuilderRef,ValueRef,ValueRef	llvm: buildStore(a1: BuilderRef; val: ValueRef; ptr: ValueRef): ValueRef	
+buildGEP2	llvm.html#buildGEP2,BuilderRef,TypeRef,ValueRef,ptr.ValueRef,cuint,cstring	llvm: buildGEP2(b: BuilderRef; ty: TypeRef; pointer: ValueRef; indices: ptr ValueRef;\n          numIndices: cuint; name: cstring): ValueRef	
+buildInBoundsGEP2	llvm.html#buildInBoundsGEP2,BuilderRef,TypeRef,ValueRef,ptr.ValueRef,cuint,cstring	llvm: buildInBoundsGEP2(b: BuilderRef; ty: TypeRef; pointer: ValueRef;\n                  indices: ptr ValueRef; numIndices: cuint; name: cstring): ValueRef	
+buildStructGEP2	llvm.html#buildStructGEP2,BuilderRef,TypeRef,ValueRef,cuint,cstring	llvm: buildStructGEP2(b: BuilderRef; ty: TypeRef; pointer: ValueRef; idx: cuint;\n                name: cstring): ValueRef	
+buildGlobalString	llvm.html#buildGlobalString,BuilderRef,cstring,cstring	llvm: buildGlobalString(b: BuilderRef; str: cstring; name: cstring): ValueRef	
+buildGlobalStringPtr	llvm.html#buildGlobalStringPtr,BuilderRef,cstring,cstring	llvm: buildGlobalStringPtr(b: BuilderRef; str: cstring; name: cstring): ValueRef	
+getVolatile	llvm.html#getVolatile,ValueRef	llvm: getVolatile(memoryAccessInst: ValueRef): Bool	
+setVolatile	llvm.html#setVolatile,ValueRef,Bool	llvm: setVolatile(memoryAccessInst: ValueRef; isVolatile: Bool)	
+getWeak	llvm.html#getWeak,ValueRef	llvm: getWeak(cmpXchgInst: ValueRef): Bool	
+setWeak	llvm.html#setWeak,ValueRef,Bool	llvm: setWeak(cmpXchgInst: ValueRef; isWeak: Bool)	
+getOrdering	llvm.html#getOrdering,ValueRef	llvm: getOrdering(memoryAccessInst: ValueRef): AtomicOrdering	
+setOrdering	llvm.html#setOrdering,ValueRef,AtomicOrdering	llvm: setOrdering(memoryAccessInst: ValueRef; ordering: AtomicOrdering)	
+getAtomicRMWBinOp	llvm.html#getAtomicRMWBinOp,ValueRef	llvm: getAtomicRMWBinOp(atomicRMWInst: ValueRef): AtomicRMWBinOp	
+setAtomicRMWBinOp	llvm.html#setAtomicRMWBinOp,ValueRef,AtomicRMWBinOp	llvm: setAtomicRMWBinOp(atomicRMWInst: ValueRef; binOp: AtomicRMWBinOp)	
+buildTrunc	llvm.html#buildTrunc,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildTrunc(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef	
+buildZExt	llvm.html#buildZExt,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildZExt(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef	
+buildSExt	llvm.html#buildSExt,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildSExt(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef	
+buildFPToUI	llvm.html#buildFPToUI,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildFPToUI(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef	
+buildFPToSI	llvm.html#buildFPToSI,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildFPToSI(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef	
+buildUIToFP	llvm.html#buildUIToFP,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildUIToFP(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef	
+buildSIToFP	llvm.html#buildSIToFP,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildSIToFP(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef	
+buildFPTrunc	llvm.html#buildFPTrunc,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildFPTrunc(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef	
+buildFPExt	llvm.html#buildFPExt,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildFPExt(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef	
+buildPtrToInt	llvm.html#buildPtrToInt,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildPtrToInt(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef	
+buildIntToPtr	llvm.html#buildIntToPtr,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildIntToPtr(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef	
+buildBitCast	llvm.html#buildBitCast,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildBitCast(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef	
+buildAddrSpaceCast	llvm.html#buildAddrSpaceCast,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildAddrSpaceCast(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef	
+buildZExtOrBitCast	llvm.html#buildZExtOrBitCast,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildZExtOrBitCast(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef	
+buildSExtOrBitCast	llvm.html#buildSExtOrBitCast,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildSExtOrBitCast(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef	
+buildTruncOrBitCast	llvm.html#buildTruncOrBitCast,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildTruncOrBitCast(a1: BuilderRef; val: ValueRef; destTy: TypeRef;\n                    name: cstring): ValueRef	
+buildCast	llvm.html#buildCast,BuilderRef,Opcode,ValueRef,TypeRef,cstring	llvm: buildCast(b: BuilderRef; op: Opcode; val: ValueRef; destTy: TypeRef;\n          name: cstring): ValueRef	
+buildPointerCast	llvm.html#buildPointerCast,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildPointerCast(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef	
+buildIntCast2	llvm.html#buildIntCast2,BuilderRef,ValueRef,TypeRef,Bool,cstring	llvm: buildIntCast2(a1: BuilderRef; val: ValueRef; destTy: TypeRef; isSigned: Bool;\n              name: cstring): ValueRef	
+buildFPCast	llvm.html#buildFPCast,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildFPCast(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef	
+buildIntCast	llvm.html#buildIntCast,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildIntCast(a1: BuilderRef; val: ValueRef; destTy: TypeRef; name: cstring): ValueRef	
+getCastOpcode	llvm.html#getCastOpcode,ValueRef,Bool,TypeRef,Bool	llvm: getCastOpcode(src: ValueRef; srcIsSigned: Bool; destTy: TypeRef;\n              destIsSigned: Bool): Opcode	
+buildICmp	llvm.html#buildICmp,BuilderRef,IntPredicate,ValueRef,ValueRef,cstring	llvm: buildICmp(a1: BuilderRef; op: IntPredicate; lhs: ValueRef; rhs: ValueRef;\n          name: cstring): ValueRef	
+buildFCmp	llvm.html#buildFCmp,BuilderRef,RealPredicate,ValueRef,ValueRef,cstring	llvm: buildFCmp(a1: BuilderRef; op: RealPredicate; lhs: ValueRef; rhs: ValueRef;\n          name: cstring): ValueRef	
+buildPhi	llvm.html#buildPhi,BuilderRef,TypeRef,cstring	llvm: buildPhi(a1: BuilderRef; ty: TypeRef; name: cstring): ValueRef	
+buildCall2	llvm.html#buildCall2,BuilderRef,TypeRef,ValueRef,ptr.ValueRef,cuint,cstring	llvm: buildCall2(a1: BuilderRef; a2: TypeRef; fn: ValueRef; args: ptr ValueRef;\n           numArgs: cuint; name: cstring): ValueRef	
+buildSelect	llvm.html#buildSelect,BuilderRef,ValueRef,ValueRef,ValueRef,cstring	llvm: buildSelect(a1: BuilderRef; if: ValueRef; then: ValueRef; else: ValueRef;\n            name: cstring): ValueRef	
+buildVAArg	llvm.html#buildVAArg,BuilderRef,ValueRef,TypeRef,cstring	llvm: buildVAArg(a1: BuilderRef; list: ValueRef; ty: TypeRef; name: cstring): ValueRef	
+buildExtractElement	llvm.html#buildExtractElement,BuilderRef,ValueRef,ValueRef,cstring	llvm: buildExtractElement(a1: BuilderRef; vecVal: ValueRef; index: ValueRef;\n                    name: cstring): ValueRef	
+buildInsertElement	llvm.html#buildInsertElement,BuilderRef,ValueRef,ValueRef,ValueRef,cstring	llvm: buildInsertElement(a1: BuilderRef; vecVal: ValueRef; eltVal: ValueRef;\n                   index: ValueRef; name: cstring): ValueRef	
+buildShuffleVector	llvm.html#buildShuffleVector,BuilderRef,ValueRef,ValueRef,ValueRef,cstring	llvm: buildShuffleVector(a1: BuilderRef; v1: ValueRef; v2: ValueRef; mask: ValueRef;\n                   name: cstring): ValueRef	
+buildExtractValue	llvm.html#buildExtractValue,BuilderRef,ValueRef,cuint,cstring	llvm: buildExtractValue(a1: BuilderRef; aggVal: ValueRef; index: cuint; name: cstring): ValueRef	
+buildInsertValue	llvm.html#buildInsertValue,BuilderRef,ValueRef,ValueRef,cuint,cstring	llvm: buildInsertValue(a1: BuilderRef; aggVal: ValueRef; eltVal: ValueRef;\n                 index: cuint; name: cstring): ValueRef	
+buildFreeze	llvm.html#buildFreeze,BuilderRef,ValueRef,cstring	llvm: buildFreeze(a1: BuilderRef; val: ValueRef; name: cstring): ValueRef	
+buildIsNull	llvm.html#buildIsNull,BuilderRef,ValueRef,cstring	llvm: buildIsNull(a1: BuilderRef; val: ValueRef; name: cstring): ValueRef	
+buildIsNotNull	llvm.html#buildIsNotNull,BuilderRef,ValueRef,cstring	llvm: buildIsNotNull(a1: BuilderRef; val: ValueRef; name: cstring): ValueRef	
+buildPtrDiff2	llvm.html#buildPtrDiff2,BuilderRef,TypeRef,ValueRef,ValueRef,cstring	llvm: buildPtrDiff2(a1: BuilderRef; elemTy: TypeRef; lhs: ValueRef; rhs: ValueRef;\n              name: cstring): ValueRef	
+buildFence	llvm.html#buildFence,BuilderRef,AtomicOrdering,Bool,cstring	llvm: buildFence(b: BuilderRef; ordering: AtomicOrdering; singleThread: Bool;\n           name: cstring): ValueRef	
+buildAtomicRMW	llvm.html#buildAtomicRMW,BuilderRef,AtomicRMWBinOp,ValueRef,ValueRef,AtomicOrdering,Bool	llvm: buildAtomicRMW(b: BuilderRef; op: AtomicRMWBinOp; ptr: ValueRef; val: ValueRef;\n               ordering: AtomicOrdering; singleThread: Bool): ValueRef	
+buildAtomicCmpXchg	llvm.html#buildAtomicCmpXchg,BuilderRef,ValueRef,ValueRef,ValueRef,AtomicOrdering,AtomicOrdering,Bool	llvm: buildAtomicCmpXchg(b: BuilderRef; ptr: ValueRef; cmp: ValueRef; new: ValueRef;\n                   successOrdering: AtomicOrdering;\n                   failureOrdering: AtomicOrdering; singleThread: Bool): ValueRef	
+getNumMaskElements	llvm.html#getNumMaskElements,ValueRef	llvm: getNumMaskElements(shuffleVectorInst: ValueRef): cuint	
+getUndefMaskElem	llvm.html#getUndefMaskElem	llvm: getUndefMaskElem(): cint	
+getMaskValue	llvm.html#getMaskValue,ValueRef,cuint	llvm: getMaskValue(shuffleVectorInst: ValueRef; elt: cuint): cint	
+isAtomicSingleThread	llvm.html#isAtomicSingleThread,ValueRef	llvm: isAtomicSingleThread(atomicInst: ValueRef): Bool	
+setAtomicSingleThread	llvm.html#setAtomicSingleThread,ValueRef,Bool	llvm: setAtomicSingleThread(atomicInst: ValueRef; singleThread: Bool)	
+getCmpXchgSuccessOrdering	llvm.html#getCmpXchgSuccessOrdering,ValueRef	llvm: getCmpXchgSuccessOrdering(cmpXchgInst: ValueRef): AtomicOrdering	
+setCmpXchgSuccessOrdering	llvm.html#setCmpXchgSuccessOrdering,ValueRef,AtomicOrdering	llvm: setCmpXchgSuccessOrdering(cmpXchgInst: ValueRef; ordering: AtomicOrdering)	
+getCmpXchgFailureOrdering	llvm.html#getCmpXchgFailureOrdering,ValueRef	llvm: getCmpXchgFailureOrdering(cmpXchgInst: ValueRef): AtomicOrdering	
+setCmpXchgFailureOrdering	llvm.html#setCmpXchgFailureOrdering,ValueRef,AtomicOrdering	llvm: setCmpXchgFailureOrdering(cmpXchgInst: ValueRef; ordering: AtomicOrdering)	
+createModuleProviderForExistingModule	llvm.html#createModuleProviderForExistingModule,ModuleRef	llvm: createModuleProviderForExistingModule(m: ModuleRef): ModuleProviderRef	
+disposeModuleProvider	llvm.html#disposeModuleProvider,ModuleProviderRef	llvm: disposeModuleProvider(m: ModuleProviderRef)	
+createMemoryBufferWithContentsOfFile	llvm.html#createMemoryBufferWithContentsOfFile,cstring,ptr.MemoryBufferRef,cstringArray	llvm: createMemoryBufferWithContentsOfFile(path: cstring;\n                                     outMemBuf: ptr MemoryBufferRef;\n                                     outMessage: cstringArray): Bool	
+createMemoryBufferWithSTDIN	llvm.html#createMemoryBufferWithSTDIN,ptr.MemoryBufferRef,cstringArray	llvm: createMemoryBufferWithSTDIN(outMemBuf: ptr MemoryBufferRef;\n                            outMessage: cstringArray): Bool	
+createMemoryBufferWithMemoryRange	llvm.html#createMemoryBufferWithMemoryRange,cstring,csize_t,cstring,Bool	llvm: createMemoryBufferWithMemoryRange(inputData: cstring; inputDataLength: csize_t;\n                                  bufferName: cstring;\n                                  requiresNullTerminator: Bool): MemoryBufferRef	
+createMemoryBufferWithMemoryRangeCopy	llvm.html#createMemoryBufferWithMemoryRangeCopy,cstring,csize_t,cstring	llvm: createMemoryBufferWithMemoryRangeCopy(inputData: cstring;\n                                      inputDataLength: csize_t;\n                                      bufferName: cstring): MemoryBufferRef	
+getBufferStart	llvm.html#getBufferStart,MemoryBufferRef	llvm: getBufferStart(memBuf: MemoryBufferRef): cstring	
+getBufferSize	llvm.html#getBufferSize,MemoryBufferRef	llvm: getBufferSize(memBuf: MemoryBufferRef): csize_t	
+disposeMemoryBuffer	llvm.html#disposeMemoryBuffer,MemoryBufferRef	llvm: disposeMemoryBuffer(memBuf: MemoryBufferRef)	
+getGlobalPassRegistry	llvm.html#getGlobalPassRegistry	llvm: getGlobalPassRegistry(): PassRegistryRef	
+createPassManager	llvm.html#createPassManager	llvm: createPassManager(): PassManagerRef	
+createFunctionPassManagerForModule	llvm.html#createFunctionPassManagerForModule,ModuleRef	llvm: createFunctionPassManagerForModule(m: ModuleRef): PassManagerRef	
+createFunctionPassManager	llvm.html#createFunctionPassManager,ModuleProviderRef	llvm: createFunctionPassManager(mp: ModuleProviderRef): PassManagerRef	
+runPassManager	llvm.html#runPassManager,PassManagerRef,ModuleRef	llvm: runPassManager(pm: PassManagerRef; m: ModuleRef): Bool	
+initializeFunctionPassManager	llvm.html#initializeFunctionPassManager,PassManagerRef	llvm: initializeFunctionPassManager(fpm: PassManagerRef): Bool	
+runFunctionPassManager	llvm.html#runFunctionPassManager,PassManagerRef,ValueRef	llvm: runFunctionPassManager(fpm: PassManagerRef; f: ValueRef): Bool	
+finalizeFunctionPassManager	llvm.html#finalizeFunctionPassManager,PassManagerRef	llvm: finalizeFunctionPassManager(fpm: PassManagerRef): Bool	
+disposePassManager	llvm.html#disposePassManager,PassManagerRef	llvm: disposePassManager(pm: PassManagerRef)	
+startMultithreaded	llvm.html#startMultithreaded	llvm: startMultithreaded(): Bool	
+stopMultithreaded	llvm.html#stopMultithreaded	llvm: stopMultithreaded()	
+isMultithreaded	llvm.html#isMultithreaded	llvm: isMultithreaded(): Bool	
+writeBitcodeToFD	llvm.html#writeBitcodeToFD,ModuleRef,cint,cint,cint	llvm: writeBitcodeToFD(m: ModuleRef; fd: cint; shouldClose: cint; unbuffered: cint): cint	
+writeBitcodeToFileHandle	llvm.html#writeBitcodeToFileHandle,ModuleRef,cint	llvm: writeBitcodeToFileHandle(m: ModuleRef; handle: cint): cint	
+writeBitcodeToFile	llvm.html#writeBitcodeToFile,ModuleRef,cstring	llvm: writeBitcodeToFile(m: ModuleRef; Path: cstring): cint	
+writeBitcodeToMemoryBuffer	llvm.html#writeBitcodeToMemoryBuffer,ModuleRef	llvm: writeBitcodeToMemoryBuffer(m: ModuleRef): MemoryBufferRef	
+verifyModule	llvm.html#verifyModule,ModuleRef,VerifierFailureAction,cstringArray	llvm: verifyModule(m: ModuleRef; action: VerifierFailureAction;\n             outMessage: cstringArray): Bool	
+verifyFunction	llvm.html#verifyFunction,ValueRef,VerifierFailureAction	llvm: verifyFunction(fn: ValueRef; action: VerifierFailureAction): Bool	
+viewFunctionCFG	llvm.html#viewFunctionCFG,ValueRef	llvm: viewFunctionCFG(fn: ValueRef)	
+viewFunctionCFGOnly	llvm.html#viewFunctionCFGOnly,ValueRef	llvm: viewFunctionCFGOnly(fn: ValueRef)	
+TargetRef	llvm.html#TargetRef	llvm: TargetRef	
+CodeGenOptLevel	llvm.html#CodeGenOptLevel	llvm: CodeGenOptLevel	
+RelocMode	llvm.html#RelocMode	llvm: RelocMode	
+CodeModel	llvm.html#CodeModel	llvm: CodeModel	
+CodeGenFileType	llvm.html#CodeGenFileType	llvm: CodeGenFileType	
+getFirstTarget	llvm.html#getFirstTarget	llvm: getFirstTarget(): TargetRef	
+getNextTarget	llvm.html#getNextTarget,TargetRef	llvm: getNextTarget(t: TargetRef): TargetRef	
+getTargetFromName	llvm.html#getTargetFromName,cstring	llvm: getTargetFromName(name: cstring): TargetRef	
+getTargetFromTriple	llvm.html#getTargetFromTriple,cstring,ptr.TargetRef,cstringArray	llvm: getTargetFromTriple(triple: cstring; t: ptr TargetRef;\n                    errorMessage: cstringArray): Bool	
+getTargetName	llvm.html#getTargetName,TargetRef	llvm: getTargetName(t: TargetRef): cstring	
+getTargetDescription	llvm.html#getTargetDescription,TargetRef	llvm: getTargetDescription(t: TargetRef): cstring	
+targetHasJIT	llvm.html#targetHasJIT,TargetRef	llvm: targetHasJIT(t: TargetRef): Bool	
+targetHasTargetMachine	llvm.html#targetHasTargetMachine,TargetRef	llvm: targetHasTargetMachine(t: TargetRef): Bool	
+targetHasAsmBackend	llvm.html#targetHasAsmBackend,TargetRef	llvm: targetHasAsmBackend(t: TargetRef): Bool	
+createTargetMachine	llvm.html#createTargetMachine,TargetRef,cstring,cstring,cstring,CodeGenOptLevel,RelocMode,CodeModel	llvm: createTargetMachine(t: TargetRef; triple: cstring; cpu: cstring;\n                    features: cstring; level: CodeGenOptLevel; reloc: RelocMode;\n                    codeModel: CodeModel): TargetMachineRef	
+disposeTargetMachine	llvm.html#disposeTargetMachine,TargetMachineRef	llvm: disposeTargetMachine(t: TargetMachineRef)	
+getTargetMachineTarget	llvm.html#getTargetMachineTarget,TargetMachineRef	llvm: getTargetMachineTarget(t: TargetMachineRef): TargetRef	
+getTargetMachineTriple	llvm.html#getTargetMachineTriple,TargetMachineRef	llvm: getTargetMachineTriple(t: TargetMachineRef): cstring	
+getTargetMachineCPU	llvm.html#getTargetMachineCPU,TargetMachineRef	llvm: getTargetMachineCPU(t: TargetMachineRef): cstring	
+getTargetMachineFeatureString	llvm.html#getTargetMachineFeatureString,TargetMachineRef	llvm: getTargetMachineFeatureString(t: TargetMachineRef): cstring	
+createTargetDataLayout	llvm.html#createTargetDataLayout,TargetMachineRef	llvm: createTargetDataLayout(t: TargetMachineRef): TargetDataRef	
+setTargetMachineAsmVerbosity	llvm.html#setTargetMachineAsmVerbosity,TargetMachineRef,Bool	llvm: setTargetMachineAsmVerbosity(t: TargetMachineRef; verboseAsm: Bool)	
+targetMachineEmitToFile	llvm.html#targetMachineEmitToFile,TargetMachineRef,ModuleRef,cstring,CodeGenFileType,cstringArray	llvm: targetMachineEmitToFile(t: TargetMachineRef; m: ModuleRef; filename: cstring;\n                        codegen: CodeGenFileType; errorMessage: cstringArray): Bool	
+targetMachineEmitToMemoryBuffer	llvm.html#targetMachineEmitToMemoryBuffer,TargetMachineRef,ModuleRef,CodeGenFileType,cstringArray,ptr.MemoryBufferRef	llvm: targetMachineEmitToMemoryBuffer(t: TargetMachineRef; m: ModuleRef;\n                                codegen: CodeGenFileType;\n                                errorMessage: cstringArray;\n                                outMemBuf: ptr MemoryBufferRef): Bool	
+getDefaultTargetTriple	llvm.html#getDefaultTargetTriple	llvm: getDefaultTargetTriple(): cstring	
+normalizeTargetTriple	llvm.html#normalizeTargetTriple,cstring	llvm: normalizeTargetTriple(triple: cstring): cstring	
+getHostCPUName	llvm.html#getHostCPUName	llvm: getHostCPUName(): cstring	
+getHostCPUFeatures	llvm.html#getHostCPUFeatures	llvm: getHostCPUFeatures(): cstring	
+addAnalysisPasses	llvm.html#addAnalysisPasses,TargetMachineRef,PassManagerRef	llvm: addAnalysisPasses(t: TargetMachineRef; pm: PassManagerRef)	
+passManagerBuilderCreate	llvm.html#passManagerBuilderCreate	llvm: passManagerBuilderCreate(): PassManagerBuilderRef	
+passManagerBuilderDispose	llvm.html#passManagerBuilderDispose,PassManagerBuilderRef	llvm: passManagerBuilderDispose(pmb: PassManagerBuilderRef)	
+passManagerBuilderSetOptLevel	llvm.html#passManagerBuilderSetOptLevel,PassManagerBuilderRef,cuint	llvm: passManagerBuilderSetOptLevel(pmb: PassManagerBuilderRef; optLevel: cuint)	
+passManagerBuilderSetSizeLevel	llvm.html#passManagerBuilderSetSizeLevel,PassManagerBuilderRef,cuint	llvm: passManagerBuilderSetSizeLevel(pmb: PassManagerBuilderRef; sizeLevel: cuint)	
+passManagerBuilderSetDisableUnitAtATime	llvm.html#passManagerBuilderSetDisableUnitAtATime,PassManagerBuilderRef,Bool	llvm: passManagerBuilderSetDisableUnitAtATime(pmb: PassManagerBuilderRef; value: Bool)	
+passManagerBuilderSetDisableUnrollLoops	llvm.html#passManagerBuilderSetDisableUnrollLoops,PassManagerBuilderRef,Bool	llvm: passManagerBuilderSetDisableUnrollLoops(pmb: PassManagerBuilderRef; value: Bool)	
+passManagerBuilderSetDisableSimplifyLibCalls	llvm.html#passManagerBuilderSetDisableSimplifyLibCalls,PassManagerBuilderRef,Bool	llvm: passManagerBuilderSetDisableSimplifyLibCalls(pmb: PassManagerBuilderRef;\n    value: Bool)	
+passManagerBuilderUseInlinerWithThreshold	llvm.html#passManagerBuilderUseInlinerWithThreshold,PassManagerBuilderRef,cuint	llvm: passManagerBuilderUseInlinerWithThreshold(pmb: PassManagerBuilderRef;\n    threshold: cuint)	
+passManagerBuilderPopulateFunctionPassManager	llvm.html#passManagerBuilderPopulateFunctionPassManager,PassManagerBuilderRef,PassManagerRef	llvm: passManagerBuilderPopulateFunctionPassManager(pmb: PassManagerBuilderRef;\n    pm: PassManagerRef)	
+passManagerBuilderPopulateModulePassManager	llvm.html#passManagerBuilderPopulateModulePassManager,PassManagerBuilderRef,PassManagerRef	llvm: passManagerBuilderPopulateModulePassManager(pmb: PassManagerBuilderRef;\n    pm: PassManagerRef)	
+OrcExecutorAddress	llvm.html#OrcExecutorAddress	llvm: OrcExecutorAddress	
+OrcJITTargetAddress	llvm.html#OrcJITTargetAddress	llvm: OrcJITTargetAddress	
+JITSymbolGenericFlags	llvm.html#JITSymbolGenericFlags	llvm: JITSymbolGenericFlags	
+JITSymbolTargetFlags	llvm.html#JITSymbolTargetFlags	llvm: JITSymbolTargetFlags	
+JITSymbolFlags	llvm.html#JITSymbolFlags	llvm: JITSymbolFlags	
+JITEvaluatedSymbol	llvm.html#JITEvaluatedSymbol	llvm: JITEvaluatedSymbol	
+OrcExecutionSessionRef	llvm.html#OrcExecutionSessionRef	llvm: OrcExecutionSessionRef	
+OrcErrorReporterFunction	llvm.html#OrcErrorReporterFunction	llvm: OrcErrorReporterFunction	
+OrcSymbolStringPoolRef	llvm.html#OrcSymbolStringPoolRef	llvm: OrcSymbolStringPoolRef	
+OrcSymbolStringPoolEntryRef	llvm.html#OrcSymbolStringPoolEntryRef	llvm: OrcSymbolStringPoolEntryRef	
+OrcCSymbolFlagsMapPair	llvm.html#OrcCSymbolFlagsMapPair	llvm: OrcCSymbolFlagsMapPair	
+OrcCSymbolFlagsMapPairs	llvm.html#OrcCSymbolFlagsMapPairs	llvm: OrcCSymbolFlagsMapPairs	
+OrcCSymbolMapPair	llvm.html#OrcCSymbolMapPair	llvm: OrcCSymbolMapPair	
+OrcCSymbolMapPairs	llvm.html#OrcCSymbolMapPairs	llvm: OrcCSymbolMapPairs	
+OrcCSymbolAliasMapEntry	llvm.html#OrcCSymbolAliasMapEntry	llvm: OrcCSymbolAliasMapEntry	
+OrcCSymbolAliasMapPair	llvm.html#OrcCSymbolAliasMapPair	llvm: OrcCSymbolAliasMapPair	
+OrcCSymbolAliasMapPairs	llvm.html#OrcCSymbolAliasMapPairs	llvm: OrcCSymbolAliasMapPairs	
+OrcJITDylibRef	llvm.html#OrcJITDylibRef	llvm: OrcJITDylibRef	
+OrcCSymbolsList	llvm.html#OrcCSymbolsList	llvm: OrcCSymbolsList	
+OrcCDependenceMapPair	llvm.html#OrcCDependenceMapPair	llvm: OrcCDependenceMapPair	
+OrcCDependenceMapPairs	llvm.html#OrcCDependenceMapPairs	llvm: OrcCDependenceMapPairs	
+OrcLookupKind	llvm.html#OrcLookupKind	llvm: OrcLookupKind	
+OrcJITDylibLookupFlags	llvm.html#OrcJITDylibLookupFlags	llvm: OrcJITDylibLookupFlags	
+OrcCJITDylibSearchOrderElement	llvm.html#OrcCJITDylibSearchOrderElement	llvm: OrcCJITDylibSearchOrderElement	
+OrcCJITDylibSearchOrder	llvm.html#OrcCJITDylibSearchOrder	llvm: OrcCJITDylibSearchOrder	
+OrcSymbolLookupFlags	llvm.html#OrcSymbolLookupFlags	llvm: OrcSymbolLookupFlags	
+OrcCLookupSetElement	llvm.html#OrcCLookupSetElement	llvm: OrcCLookupSetElement	
+OrcCLookupSet	llvm.html#OrcCLookupSet	llvm: OrcCLookupSet	
+OrcMaterializationUnitRef	llvm.html#OrcMaterializationUnitRef	llvm: OrcMaterializationUnitRef	
+OrcMaterializationResponsibilityRef	llvm.html#OrcMaterializationResponsibilityRef	llvm: OrcMaterializationResponsibilityRef	
+OrcMaterializationUnitMaterializeFunction	llvm.html#OrcMaterializationUnitMaterializeFunction	llvm: OrcMaterializationUnitMaterializeFunction	
+OrcMaterializationUnitDiscardFunction	llvm.html#OrcMaterializationUnitDiscardFunction	llvm: OrcMaterializationUnitDiscardFunction	
+OrcMaterializationUnitDestroyFunction	llvm.html#OrcMaterializationUnitDestroyFunction	llvm: OrcMaterializationUnitDestroyFunction	
+OrcResourceTrackerRef	llvm.html#OrcResourceTrackerRef	llvm: OrcResourceTrackerRef	
+OrcDefinitionGeneratorRef	llvm.html#OrcDefinitionGeneratorRef	llvm: OrcDefinitionGeneratorRef	
+OrcLookupStateRef	llvm.html#OrcLookupStateRef	llvm: OrcLookupStateRef	
+OrcCAPIDefinitionGeneratorTryToGenerateFunction	llvm.html#OrcCAPIDefinitionGeneratorTryToGenerateFunction	llvm: OrcCAPIDefinitionGeneratorTryToGenerateFunction	
+OrcDisposeCAPIDefinitionGeneratorFunction	llvm.html#OrcDisposeCAPIDefinitionGeneratorFunction	llvm: OrcDisposeCAPIDefinitionGeneratorFunction	
+OrcSymbolPredicate	llvm.html#OrcSymbolPredicate	llvm: OrcSymbolPredicate	
+OrcThreadSafeContextRef	llvm.html#OrcThreadSafeContextRef	llvm: OrcThreadSafeContextRef	
+OrcThreadSafeModuleRef	llvm.html#OrcThreadSafeModuleRef	llvm: OrcThreadSafeModuleRef	
+OrcGenericIRModuleOperationFunction	llvm.html#OrcGenericIRModuleOperationFunction	llvm: OrcGenericIRModuleOperationFunction	
+OrcJITTargetMachineBuilderRef	llvm.html#OrcJITTargetMachineBuilderRef	llvm: OrcJITTargetMachineBuilderRef	
+OrcObjectLayerRef	llvm.html#OrcObjectLayerRef	llvm: OrcObjectLayerRef	
+OrcObjectLinkingLayerRef	llvm.html#OrcObjectLinkingLayerRef	llvm: OrcObjectLinkingLayerRef	
+OrcIRTransformLayerRef	llvm.html#OrcIRTransformLayerRef	llvm: OrcIRTransformLayerRef	
+OrcIRTransformLayerTransformFunction	llvm.html#OrcIRTransformLayerTransformFunction	llvm: OrcIRTransformLayerTransformFunction	
+OrcObjectTransformLayerRef	llvm.html#OrcObjectTransformLayerRef	llvm: OrcObjectTransformLayerRef	
+OrcObjectTransformLayerTransformFunction	llvm.html#OrcObjectTransformLayerTransformFunction	llvm: OrcObjectTransformLayerTransformFunction	
+OrcIndirectStubsManagerRef	llvm.html#OrcIndirectStubsManagerRef	llvm: OrcIndirectStubsManagerRef	
+OrcLazyCallThroughManagerRef	llvm.html#OrcLazyCallThroughManagerRef	llvm: OrcLazyCallThroughManagerRef	
+OrcDumpObjectsRef	llvm.html#OrcDumpObjectsRef	llvm: OrcDumpObjectsRef	
+orcExecutionSessionSetErrorReporter	llvm.html#orcExecutionSessionSetErrorReporter,OrcExecutionSessionRef,OrcErrorReporterFunction,pointer	llvm: orcExecutionSessionSetErrorReporter(es: OrcExecutionSessionRef;\n                                    reportError: OrcErrorReporterFunction;\n                                    ctx: pointer)	
+orcExecutionSessionGetSymbolStringPool	llvm.html#orcExecutionSessionGetSymbolStringPool,OrcExecutionSessionRef	llvm: orcExecutionSessionGetSymbolStringPool(es: OrcExecutionSessionRef): OrcSymbolStringPoolRef	
+orcSymbolStringPoolClearDeadEntries	llvm.html#orcSymbolStringPoolClearDeadEntries,OrcSymbolStringPoolRef	llvm: orcSymbolStringPoolClearDeadEntries(ssp: OrcSymbolStringPoolRef)	
+orcExecutionSessionIntern	llvm.html#orcExecutionSessionIntern,OrcExecutionSessionRef,cstring	llvm: orcExecutionSessionIntern(es: OrcExecutionSessionRef; name: cstring): OrcSymbolStringPoolEntryRef	
+OrcExecutionSessionLookupHandleResultFunction	llvm.html#OrcExecutionSessionLookupHandleResultFunction	llvm: OrcExecutionSessionLookupHandleResultFunction	
+orcExecutionSessionLookup	llvm.html#orcExecutionSessionLookup,OrcExecutionSessionRef,OrcLookupKind,OrcCJITDylibSearchOrder,csize_t,OrcCLookupSet,csize_t,OrcExecutionSessionLookupHandleResultFunction,pointer	llvm: orcExecutionSessionLookup(es: OrcExecutionSessionRef; k: OrcLookupKind;\n                          searchOrder: OrcCJITDylibSearchOrder;\n                          searchOrderSize: csize_t; symbols: OrcCLookupSet;\n                          symbolsSize: csize_t; handleResult: OrcExecutionSessionLookupHandleResultFunction;\n                          ctx: pointer)	
+orcRetainSymbolStringPoolEntry	llvm.html#orcRetainSymbolStringPoolEntry,OrcSymbolStringPoolEntryRef	llvm: orcRetainSymbolStringPoolEntry(s: OrcSymbolStringPoolEntryRef)	
+orcReleaseSymbolStringPoolEntry	llvm.html#orcReleaseSymbolStringPoolEntry,OrcSymbolStringPoolEntryRef	llvm: orcReleaseSymbolStringPoolEntry(s: OrcSymbolStringPoolEntryRef)	
+orcSymbolStringPoolEntryStr	llvm.html#orcSymbolStringPoolEntryStr,OrcSymbolStringPoolEntryRef	llvm: orcSymbolStringPoolEntryStr(s: OrcSymbolStringPoolEntryRef): cstring	
+orcReleaseResourceTracker	llvm.html#orcReleaseResourceTracker,OrcResourceTrackerRef	llvm: orcReleaseResourceTracker(rt: OrcResourceTrackerRef)	
+orcResourceTrackerTransferTo	llvm.html#orcResourceTrackerTransferTo,OrcResourceTrackerRef,OrcResourceTrackerRef	llvm: orcResourceTrackerTransferTo(srcRT: OrcResourceTrackerRef;\n                             dstRT: OrcResourceTrackerRef)	
+orcResourceTrackerRemove	llvm.html#orcResourceTrackerRemove,OrcResourceTrackerRef	llvm: orcResourceTrackerRemove(rt: OrcResourceTrackerRef): ErrorRef	
+orcDisposeDefinitionGenerator	llvm.html#orcDisposeDefinitionGenerator,OrcDefinitionGeneratorRef	llvm: orcDisposeDefinitionGenerator(dg: OrcDefinitionGeneratorRef)	
+orcDisposeMaterializationUnit	llvm.html#orcDisposeMaterializationUnit,OrcMaterializationUnitRef	llvm: orcDisposeMaterializationUnit(mu: OrcMaterializationUnitRef)	
+orcCreateCustomMaterializationUnit	llvm.html#orcCreateCustomMaterializationUnit,cstring,pointer,OrcCSymbolFlagsMapPairs,csize_t,OrcSymbolStringPoolEntryRef,OrcMaterializationUnitMaterializeFunction,OrcMaterializationUnitDiscardFunction,OrcMaterializationUnitDestroyFunction	llvm: orcCreateCustomMaterializationUnit(name: cstring; ctx: pointer;\n                                   syms: OrcCSymbolFlagsMapPairs;\n                                   numSyms: csize_t;\n                                   initSym: OrcSymbolStringPoolEntryRef;\n    materialize: OrcMaterializationUnitMaterializeFunction; discard: OrcMaterializationUnitDiscardFunction;\n    destroy: OrcMaterializationUnitDestroyFunction): OrcMaterializationUnitRef	
+orcAbsoluteSymbols	llvm.html#orcAbsoluteSymbols,OrcCSymbolMapPairs,csize_t	llvm: orcAbsoluteSymbols(syms: OrcCSymbolMapPairs; numPairs: csize_t): OrcMaterializationUnitRef	
+orcLazyReexports	llvm.html#orcLazyReexports,OrcLazyCallThroughManagerRef,OrcIndirectStubsManagerRef,OrcJITDylibRef,OrcCSymbolAliasMapPairs,csize_t	llvm: orcLazyReexports(lctm: OrcLazyCallThroughManagerRef;\n                 ism: OrcIndirectStubsManagerRef; sourceRef: OrcJITDylibRef;\n                 callableAliases: OrcCSymbolAliasMapPairs; numPairs: csize_t): OrcMaterializationUnitRef	
+orcDisposeMaterializationResponsibility	llvm.html#orcDisposeMaterializationResponsibility,OrcMaterializationResponsibilityRef	llvm: orcDisposeMaterializationResponsibility(mr: OrcMaterializationResponsibilityRef)	
+orcMaterializationResponsibilityGetTargetDylib	llvm.html#orcMaterializationResponsibilityGetTargetDylib,OrcMaterializationResponsibilityRef	llvm: orcMaterializationResponsibilityGetTargetDylib(\n    mr: OrcMaterializationResponsibilityRef): OrcJITDylibRef	
+orcMaterializationResponsibilityGetExecutionSession	llvm.html#orcMaterializationResponsibilityGetExecutionSession,OrcMaterializationResponsibilityRef	llvm: orcMaterializationResponsibilityGetExecutionSession(\n    mr: OrcMaterializationResponsibilityRef): OrcExecutionSessionRef	
+orcMaterializationResponsibilityGetSymbols	llvm.html#orcMaterializationResponsibilityGetSymbols,OrcMaterializationResponsibilityRef,ptr.csize_t	llvm: orcMaterializationResponsibilityGetSymbols(\n    mr: OrcMaterializationResponsibilityRef; numPairs: ptr csize_t): OrcCSymbolFlagsMapPairs	
+orcDisposeCSymbolFlagsMap	llvm.html#orcDisposeCSymbolFlagsMap,OrcCSymbolFlagsMapPairs	llvm: orcDisposeCSymbolFlagsMap(pairs: OrcCSymbolFlagsMapPairs)	
+orcMaterializationResponsibilityGetInitializerSymbol	llvm.html#orcMaterializationResponsibilityGetInitializerSymbol,OrcMaterializationResponsibilityRef	llvm: orcMaterializationResponsibilityGetInitializerSymbol(\n    mr: OrcMaterializationResponsibilityRef): OrcSymbolStringPoolEntryRef	
+orcMaterializationResponsibilityGetRequestedSymbols	llvm.html#orcMaterializationResponsibilityGetRequestedSymbols,OrcMaterializationResponsibilityRef,ptr.csize_t	llvm: orcMaterializationResponsibilityGetRequestedSymbols(\n    mr: OrcMaterializationResponsibilityRef; numSymbols: ptr csize_t): ptr OrcSymbolStringPoolEntryRef	
+orcDisposeSymbols	llvm.html#orcDisposeSymbols,ptr.OrcSymbolStringPoolEntryRef	llvm: orcDisposeSymbols(symbols: ptr OrcSymbolStringPoolEntryRef)	
+orcMaterializationResponsibilityNotifyResolved	llvm.html#orcMaterializationResponsibilityNotifyResolved,OrcMaterializationResponsibilityRef,OrcCSymbolMapPairs,csize_t	llvm: orcMaterializationResponsibilityNotifyResolved(\n    mr: OrcMaterializationResponsibilityRef; symbols: OrcCSymbolMapPairs;\n    numPairs: csize_t): ErrorRef	
+orcMaterializationResponsibilityNotifyEmitted	llvm.html#orcMaterializationResponsibilityNotifyEmitted,OrcMaterializationResponsibilityRef	llvm: orcMaterializationResponsibilityNotifyEmitted(\n    mr: OrcMaterializationResponsibilityRef): ErrorRef	
+orcMaterializationResponsibilityDefineMaterializing	llvm.html#orcMaterializationResponsibilityDefineMaterializing,OrcMaterializationResponsibilityRef,OrcCSymbolFlagsMapPairs,csize_t	llvm: orcMaterializationResponsibilityDefineMaterializing(\n    mr: OrcMaterializationResponsibilityRef; pairs: OrcCSymbolFlagsMapPairs;\n    numPairs: csize_t): ErrorRef	
+orcMaterializationResponsibilityFailMaterialization	llvm.html#orcMaterializationResponsibilityFailMaterialization,OrcMaterializationResponsibilityRef	llvm: orcMaterializationResponsibilityFailMaterialization(\n    mr: OrcMaterializationResponsibilityRef)	
+orcMaterializationResponsibilityReplace	llvm.html#orcMaterializationResponsibilityReplace,OrcMaterializationResponsibilityRef,OrcMaterializationUnitRef	llvm: orcMaterializationResponsibilityReplace(mr: OrcMaterializationResponsibilityRef;\n                                        mu: OrcMaterializationUnitRef): ErrorRef	
+orcMaterializationResponsibilityDelegate	llvm.html#orcMaterializationResponsibilityDelegate,OrcMaterializationResponsibilityRef,ptr.OrcSymbolStringPoolEntryRef,csize_t,ptr.OrcMaterializationResponsibilityRef	llvm: orcMaterializationResponsibilityDelegate(\n    mr: OrcMaterializationResponsibilityRef;\n    symbols: ptr OrcSymbolStringPoolEntryRef; numSymbols: csize_t;\n    result: ptr OrcMaterializationResponsibilityRef): ErrorRef	
+orcMaterializationResponsibilityAddDependencies	llvm.html#orcMaterializationResponsibilityAddDependencies,OrcMaterializationResponsibilityRef,OrcSymbolStringPoolEntryRef,OrcCDependenceMapPairs,csize_t	llvm: orcMaterializationResponsibilityAddDependencies(\n    mr: OrcMaterializationResponsibilityRef; name: OrcSymbolStringPoolEntryRef;\n    dependencies: OrcCDependenceMapPairs; numPairs: csize_t)	
+orcMaterializationResponsibilityAddDependenciesForAll	llvm.html#orcMaterializationResponsibilityAddDependenciesForAll,OrcMaterializationResponsibilityRef,OrcCDependenceMapPairs,csize_t	llvm: orcMaterializationResponsibilityAddDependenciesForAll(\n    mr: OrcMaterializationResponsibilityRef;\n    dependencies: OrcCDependenceMapPairs; numPairs: csize_t)	
+orcExecutionSessionCreateBareJITDylib	llvm.html#orcExecutionSessionCreateBareJITDylib,OrcExecutionSessionRef,cstring	llvm: orcExecutionSessionCreateBareJITDylib(es: OrcExecutionSessionRef; name: cstring): OrcJITDylibRef	
+orcExecutionSessionCreateJITDylib	llvm.html#orcExecutionSessionCreateJITDylib,OrcExecutionSessionRef,ptr.OrcJITDylibRef,cstring	llvm: orcExecutionSessionCreateJITDylib(es: OrcExecutionSessionRef;\n                                  result: ptr OrcJITDylibRef; name: cstring): ErrorRef	
+orcExecutionSessionGetJITDylibByName	llvm.html#orcExecutionSessionGetJITDylibByName,OrcExecutionSessionRef,cstring	llvm: orcExecutionSessionGetJITDylibByName(es: OrcExecutionSessionRef; name: cstring): OrcJITDylibRef	
+orcJITDylibCreateResourceTracker	llvm.html#orcJITDylibCreateResourceTracker,OrcJITDylibRef	llvm: orcJITDylibCreateResourceTracker(jd: OrcJITDylibRef): OrcResourceTrackerRef	
+orcJITDylibGetDefaultResourceTracker	llvm.html#orcJITDylibGetDefaultResourceTracker,OrcJITDylibRef	llvm: orcJITDylibGetDefaultResourceTracker(jd: OrcJITDylibRef): OrcResourceTrackerRef	
+orcJITDylibDefine	llvm.html#orcJITDylibDefine,OrcJITDylibRef,OrcMaterializationUnitRef	llvm: orcJITDylibDefine(jd: OrcJITDylibRef; mu: OrcMaterializationUnitRef): ErrorRef	
+orcJITDylibClear	llvm.html#orcJITDylibClear,OrcJITDylibRef	llvm: orcJITDylibClear(jd: OrcJITDylibRef): ErrorRef	
+orcJITDylibAddGenerator	llvm.html#orcJITDylibAddGenerator,OrcJITDylibRef,OrcDefinitionGeneratorRef	llvm: orcJITDylibAddGenerator(jd: OrcJITDylibRef; dg: OrcDefinitionGeneratorRef)	
+orcCreateCustomCAPIDefinitionGenerator	llvm.html#orcCreateCustomCAPIDefinitionGenerator,OrcCAPIDefinitionGeneratorTryToGenerateFunction,pointer,OrcDisposeCAPIDefinitionGeneratorFunction	llvm: orcCreateCustomCAPIDefinitionGenerator(f: OrcCAPIDefinitionGeneratorTryToGenerateFunction;\n                                       ctx: pointer; dispose: OrcDisposeCAPIDefinitionGeneratorFunction): OrcDefinitionGeneratorRef	
+orcLookupStateContinueLookup	llvm.html#orcLookupStateContinueLookup,OrcLookupStateRef,ErrorRef	llvm: orcLookupStateContinueLookup(s: OrcLookupStateRef; err: ErrorRef)	
+orcCreateDynamicLibrarySearchGeneratorForProcess	llvm.html#orcCreateDynamicLibrarySearchGeneratorForProcess,ptr.OrcDefinitionGeneratorRef,char,OrcSymbolPredicate,pointer	llvm: orcCreateDynamicLibrarySearchGeneratorForProcess(\n    result: ptr OrcDefinitionGeneratorRef; globalPrefx: char;\n    filter: OrcSymbolPredicate; filterCtx: pointer): ErrorRef	
+orcCreateDynamicLibrarySearchGeneratorForPath	llvm.html#orcCreateDynamicLibrarySearchGeneratorForPath,ptr.OrcDefinitionGeneratorRef,cstring,char,OrcSymbolPredicate,pointer	llvm: orcCreateDynamicLibrarySearchGeneratorForPath(\n    result: ptr OrcDefinitionGeneratorRef; fileName: cstring;\n    globalPrefix: char; filter: OrcSymbolPredicate; filterCtx: pointer): ErrorRef	
+orcCreateStaticLibrarySearchGeneratorForPath	llvm.html#orcCreateStaticLibrarySearchGeneratorForPath,ptr.OrcDefinitionGeneratorRef,OrcObjectLayerRef,cstring,cstring	llvm: orcCreateStaticLibrarySearchGeneratorForPath(\n    result: ptr OrcDefinitionGeneratorRef; objLayer: OrcObjectLayerRef;\n    fileName: cstring; targetTriple: cstring): ErrorRef	
+orcCreateNewThreadSafeContext	llvm.html#orcCreateNewThreadSafeContext	llvm: orcCreateNewThreadSafeContext(): OrcThreadSafeContextRef	
+orcThreadSafeContextGetContext	llvm.html#orcThreadSafeContextGetContext,OrcThreadSafeContextRef	llvm: orcThreadSafeContextGetContext(tSCtx: OrcThreadSafeContextRef): ContextRef	
+orcDisposeThreadSafeContext	llvm.html#orcDisposeThreadSafeContext,OrcThreadSafeContextRef	llvm: orcDisposeThreadSafeContext(tSCtx: OrcThreadSafeContextRef)	
+orcCreateNewThreadSafeModule	llvm.html#orcCreateNewThreadSafeModule,ModuleRef,OrcThreadSafeContextRef	llvm: orcCreateNewThreadSafeModule(m: ModuleRef; tSCtx: OrcThreadSafeContextRef): OrcThreadSafeModuleRef	
+orcDisposeThreadSafeModule	llvm.html#orcDisposeThreadSafeModule,OrcThreadSafeModuleRef	llvm: orcDisposeThreadSafeModule(tsm: OrcThreadSafeModuleRef)	
+orcThreadSafeModuleWithModuleDo	llvm.html#orcThreadSafeModuleWithModuleDo,OrcThreadSafeModuleRef,OrcGenericIRModuleOperationFunction,pointer	llvm: orcThreadSafeModuleWithModuleDo(tsm: OrcThreadSafeModuleRef;\n                                f: OrcGenericIRModuleOperationFunction;\n                                ctx: pointer): ErrorRef	
+orcJITTargetMachineBuilderDetectHost	llvm.html#orcJITTargetMachineBuilderDetectHost,ptr.OrcJITTargetMachineBuilderRef	llvm: orcJITTargetMachineBuilderDetectHost(result: ptr OrcJITTargetMachineBuilderRef): ErrorRef	
+orcJITTargetMachineBuilderCreateFromTargetMachine	llvm.html#orcJITTargetMachineBuilderCreateFromTargetMachine,TargetMachineRef	llvm: orcJITTargetMachineBuilderCreateFromTargetMachine(tm: TargetMachineRef): OrcJITTargetMachineBuilderRef	
+orcDisposeJITTargetMachineBuilder	llvm.html#orcDisposeJITTargetMachineBuilder,OrcJITTargetMachineBuilderRef	llvm: orcDisposeJITTargetMachineBuilder(jtmb: OrcJITTargetMachineBuilderRef)	
+orcJITTargetMachineBuilderGetTargetTriple	llvm.html#orcJITTargetMachineBuilderGetTargetTriple,OrcJITTargetMachineBuilderRef	llvm: orcJITTargetMachineBuilderGetTargetTriple(jtmb: OrcJITTargetMachineBuilderRef): cstring	
+orcJITTargetMachineBuilderSetTargetTriple	llvm.html#orcJITTargetMachineBuilderSetTargetTriple,OrcJITTargetMachineBuilderRef,cstring	llvm: orcJITTargetMachineBuilderSetTargetTriple(jtmb: OrcJITTargetMachineBuilderRef;\n    targetTriple: cstring)	
+orcObjectLayerAddObjectFile	llvm.html#orcObjectLayerAddObjectFile,OrcObjectLayerRef,OrcJITDylibRef,MemoryBufferRef	llvm: orcObjectLayerAddObjectFile(objLayer: OrcObjectLayerRef; jd: OrcJITDylibRef;\n                            objBuffer: MemoryBufferRef): ErrorRef	
+orcObjectLayerAddObjectFileWithRT	llvm.html#orcObjectLayerAddObjectFileWithRT,OrcObjectLayerRef,OrcResourceTrackerRef,MemoryBufferRef	llvm: orcObjectLayerAddObjectFileWithRT(objLayer: OrcObjectLayerRef;\n                                  rt: OrcResourceTrackerRef;\n                                  objBuffer: MemoryBufferRef): ErrorRef	
+orcObjectLayerEmit	llvm.html#orcObjectLayerEmit,OrcObjectLayerRef,OrcMaterializationResponsibilityRef,MemoryBufferRef	llvm: orcObjectLayerEmit(objLayer: OrcObjectLayerRef;\n                   r: OrcMaterializationResponsibilityRef;\n                   objBuffer: MemoryBufferRef)	
+orcDisposeObjectLayer	llvm.html#orcDisposeObjectLayer,OrcObjectLayerRef	llvm: orcDisposeObjectLayer(objLayer: OrcObjectLayerRef)	
+orcIRTransformLayerEmit	llvm.html#orcIRTransformLayerEmit,OrcIRTransformLayerRef,OrcMaterializationResponsibilityRef,OrcThreadSafeModuleRef	llvm: orcIRTransformLayerEmit(iRTransformLayer: OrcIRTransformLayerRef;\n                        mr: OrcMaterializationResponsibilityRef;\n                        tsm: OrcThreadSafeModuleRef)	
+orcIRTransformLayerSetTransform	llvm.html#orcIRTransformLayerSetTransform,OrcIRTransformLayerRef,OrcIRTransformLayerTransformFunction,pointer	llvm: orcIRTransformLayerSetTransform(iRTransformLayer: OrcIRTransformLayerRef;\n    transformFunction: OrcIRTransformLayerTransformFunction; ctx: pointer)	
+orcObjectTransformLayerSetTransform	llvm.html#orcObjectTransformLayerSetTransform,OrcObjectTransformLayerRef,OrcObjectTransformLayerTransformFunction,pointer	llvm: orcObjectTransformLayerSetTransform(objTransformLayer: OrcObjectTransformLayerRef;\n    transformFunction: OrcObjectTransformLayerTransformFunction; ctx: pointer)	
+orcCreateLocalIndirectStubsManager	llvm.html#orcCreateLocalIndirectStubsManager,cstring	llvm: orcCreateLocalIndirectStubsManager(targetTriple: cstring): OrcIndirectStubsManagerRef	
+orcDisposeIndirectStubsManager	llvm.html#orcDisposeIndirectStubsManager,OrcIndirectStubsManagerRef	llvm: orcDisposeIndirectStubsManager(ism: OrcIndirectStubsManagerRef)	
+orcCreateLocalLazyCallThroughManager	llvm.html#orcCreateLocalLazyCallThroughManager,cstring,OrcExecutionSessionRef,OrcJITTargetAddress,ptr.OrcLazyCallThroughManagerRef	llvm: orcCreateLocalLazyCallThroughManager(targetTriple: cstring;\n                                     es: OrcExecutionSessionRef;\n                                     errorHandlerAddr: OrcJITTargetAddress;\n                                     lctm: ptr OrcLazyCallThroughManagerRef): ErrorRef	
+orcDisposeLazyCallThroughManager	llvm.html#orcDisposeLazyCallThroughManager,OrcLazyCallThroughManagerRef	llvm: orcDisposeLazyCallThroughManager(lctm: OrcLazyCallThroughManagerRef)	
+orcCreateDumpObjects	llvm.html#orcCreateDumpObjects,cstring,cstring	llvm: orcCreateDumpObjects(dumpDir: cstring; identifierOverride: cstring): OrcDumpObjectsRef	
+orcDisposeDumpObjects	llvm.html#orcDisposeDumpObjects,OrcDumpObjectsRef	llvm: orcDisposeDumpObjects(dumpObjects: OrcDumpObjectsRef)	
+orcDumpObjectsCallOperator	llvm.html#orcDumpObjectsCallOperator,OrcDumpObjectsRef,ptr.MemoryBufferRef	llvm: orcDumpObjectsCallOperator(dumpObjects: OrcDumpObjectsRef;\n                           objBuffer: ptr MemoryBufferRef): ErrorRef	
+OrcLLJITBuilderRef	llvm.html#OrcLLJITBuilderRef	llvm: OrcLLJITBuilderRef	
+OrcLLJITRef	llvm.html#OrcLLJITRef	llvm: OrcLLJITRef	
+orcCreateLLJITBuilder	llvm.html#orcCreateLLJITBuilder	llvm: orcCreateLLJITBuilder(): OrcLLJITBuilderRef	
+orcDisposeLLJITBuilder	llvm.html#orcDisposeLLJITBuilder,OrcLLJITBuilderRef	llvm: orcDisposeLLJITBuilder(builder: OrcLLJITBuilderRef)	
+orcLLJITBuilderSetJITTargetMachineBuilder	llvm.html#orcLLJITBuilderSetJITTargetMachineBuilder,OrcLLJITBuilderRef,OrcJITTargetMachineBuilderRef	llvm: orcLLJITBuilderSetJITTargetMachineBuilder(builder: OrcLLJITBuilderRef;\n    jtmb: OrcJITTargetMachineBuilderRef)	
+orcLLJITBuilderSetObjectLinkingLayerCreator	llvm.html#orcLLJITBuilderSetObjectLinkingLayerCreator,OrcLLJITBuilderRef,OrcLLJITBuilderObjectLinkingLayerCreatorFunction,pointer	llvm: orcLLJITBuilderSetObjectLinkingLayerCreator(builder: OrcLLJITBuilderRef;\n    f: OrcLLJITBuilderObjectLinkingLayerCreatorFunction; ctx: pointer)	
+orcCreateLLJIT	llvm.html#orcCreateLLJIT,ptr.OrcLLJITRef,OrcLLJITBuilderRef	llvm: orcCreateLLJIT(result: ptr OrcLLJITRef; builder: OrcLLJITBuilderRef): ErrorRef	
+orcDisposeLLJIT	llvm.html#orcDisposeLLJIT,OrcLLJITRef	llvm: orcDisposeLLJIT(j: OrcLLJITRef): ErrorRef	
+orcLLJITGetExecutionSession	llvm.html#orcLLJITGetExecutionSession,OrcLLJITRef	llvm: orcLLJITGetExecutionSession(j: OrcLLJITRef): OrcExecutionSessionRef	
+orcLLJITGetMainJITDylib	llvm.html#orcLLJITGetMainJITDylib,OrcLLJITRef	llvm: orcLLJITGetMainJITDylib(j: OrcLLJITRef): OrcJITDylibRef	
+orcLLJITGetTripleString	llvm.html#orcLLJITGetTripleString,OrcLLJITRef	llvm: orcLLJITGetTripleString(j: OrcLLJITRef): cstring	
+orcLLJITGetGlobalPrefix	llvm.html#orcLLJITGetGlobalPrefix,OrcLLJITRef	llvm: orcLLJITGetGlobalPrefix(j: OrcLLJITRef): char	
+orcLLJITMangleAndIntern	llvm.html#orcLLJITMangleAndIntern,OrcLLJITRef,cstring	llvm: orcLLJITMangleAndIntern(j: OrcLLJITRef; unmangledName: cstring): OrcSymbolStringPoolEntryRef	
+orcLLJITAddObjectFile	llvm.html#orcLLJITAddObjectFile,OrcLLJITRef,OrcJITDylibRef,MemoryBufferRef	llvm: orcLLJITAddObjectFile(j: OrcLLJITRef; jd: OrcJITDylibRef;\n                      objBuffer: MemoryBufferRef): ErrorRef	
+orcLLJITAddObjectFileWithRT	llvm.html#orcLLJITAddObjectFileWithRT,OrcLLJITRef,OrcResourceTrackerRef,MemoryBufferRef	llvm: orcLLJITAddObjectFileWithRT(j: OrcLLJITRef; rt: OrcResourceTrackerRef;\n                            objBuffer: MemoryBufferRef): ErrorRef	
+orcLLJITAddLLVMIRModule	llvm.html#orcLLJITAddLLVMIRModule,OrcLLJITRef,OrcJITDylibRef,OrcThreadSafeModuleRef	llvm: orcLLJITAddLLVMIRModule(j: OrcLLJITRef; jd: OrcJITDylibRef;\n                        tsm: OrcThreadSafeModuleRef): ErrorRef	
+orcLLJITAddLLVMIRModuleWithRT	llvm.html#orcLLJITAddLLVMIRModuleWithRT,OrcLLJITRef,OrcResourceTrackerRef,OrcThreadSafeModuleRef	llvm: orcLLJITAddLLVMIRModuleWithRT(j: OrcLLJITRef; jd: OrcResourceTrackerRef;\n                              tsm: OrcThreadSafeModuleRef): ErrorRef	
+orcLLJITLookup	llvm.html#orcLLJITLookup,OrcLLJITRef,ptr.OrcExecutorAddress,cstring	llvm: orcLLJITLookup(j: OrcLLJITRef; result: ptr OrcExecutorAddress; name: cstring): ErrorRef	
+orcLLJITGetObjLinkingLayer	llvm.html#orcLLJITGetObjLinkingLayer,OrcLLJITRef	llvm: orcLLJITGetObjLinkingLayer(j: OrcLLJITRef): OrcObjectLayerRef	
+orcLLJITGetObjTransformLayer	llvm.html#orcLLJITGetObjTransformLayer,OrcLLJITRef	llvm: orcLLJITGetObjTransformLayer(j: OrcLLJITRef): OrcObjectTransformLayerRef	
+orcLLJITGetIRTransformLayer	llvm.html#orcLLJITGetIRTransformLayer,OrcLLJITRef	llvm: orcLLJITGetIRTransformLayer(j: OrcLLJITRef): OrcIRTransformLayerRef	
+orcLLJITGetDataLayoutStr	llvm.html#orcLLJITGetDataLayoutStr,OrcLLJITRef	llvm: orcLLJITGetDataLayoutStr(j: OrcLLJITRef): cstring	
+initializeAArch64TargetInfo	llvm.html#initializeAArch64TargetInfo	llvm: initializeAArch64TargetInfo()	
+initializeAMDGPUTargetInfo	llvm.html#initializeAMDGPUTargetInfo	llvm: initializeAMDGPUTargetInfo()	
+initializeARMTargetInfo	llvm.html#initializeARMTargetInfo	llvm: initializeARMTargetInfo()	
+initializeBPFTargetInfo	llvm.html#initializeBPFTargetInfo	llvm: initializeBPFTargetInfo()	
+initializeHexagonTargetInfo	llvm.html#initializeHexagonTargetInfo	llvm: initializeHexagonTargetInfo()	
+initializeLanaiTargetInfo	llvm.html#initializeLanaiTargetInfo	llvm: initializeLanaiTargetInfo()	
+initializeMipsTargetInfo	llvm.html#initializeMipsTargetInfo	llvm: initializeMipsTargetInfo()	
+initializeMSP430TargetInfo	llvm.html#initializeMSP430TargetInfo	llvm: initializeMSP430TargetInfo()	
+initializeNVPTXTargetInfo	llvm.html#initializeNVPTXTargetInfo	llvm: initializeNVPTXTargetInfo()	
+initializePowerPCTargetInfo	llvm.html#initializePowerPCTargetInfo	llvm: initializePowerPCTargetInfo()	
+initializeRISCVTargetInfo	llvm.html#initializeRISCVTargetInfo	llvm: initializeRISCVTargetInfo()	
+initializeSparcTargetInfo	llvm.html#initializeSparcTargetInfo	llvm: initializeSparcTargetInfo()	
+initializeSystemZTargetInfo	llvm.html#initializeSystemZTargetInfo	llvm: initializeSystemZTargetInfo()	
+initializeWebAssemblyTargetInfo	llvm.html#initializeWebAssemblyTargetInfo	llvm: initializeWebAssemblyTargetInfo()	
+initializeX86TargetInfo	llvm.html#initializeX86TargetInfo	llvm: initializeX86TargetInfo()	
+initializeXCoreTargetInfo	llvm.html#initializeXCoreTargetInfo	llvm: initializeXCoreTargetInfo()	
+initializeAVRTargetInfo	llvm.html#initializeAVRTargetInfo	llvm: initializeAVRTargetInfo()	
+initializeAArch64Target	llvm.html#initializeAArch64Target	llvm: initializeAArch64Target()	
+initializeAMDGPUTarget	llvm.html#initializeAMDGPUTarget	llvm: initializeAMDGPUTarget()	
+initializeARMTarget	llvm.html#initializeARMTarget	llvm: initializeARMTarget()	
+initializeBPFTarget	llvm.html#initializeBPFTarget	llvm: initializeBPFTarget()	
+initializeHexagonTarget	llvm.html#initializeHexagonTarget	llvm: initializeHexagonTarget()	
+initializeLanaiTarget	llvm.html#initializeLanaiTarget	llvm: initializeLanaiTarget()	
+initializeMipsTarget	llvm.html#initializeMipsTarget	llvm: initializeMipsTarget()	
+initializeMSP430Target	llvm.html#initializeMSP430Target	llvm: initializeMSP430Target()	
+initializeNVPTXTarget	llvm.html#initializeNVPTXTarget	llvm: initializeNVPTXTarget()	
+initializePowerPCTarget	llvm.html#initializePowerPCTarget	llvm: initializePowerPCTarget()	
+initializeRISCVTarget	llvm.html#initializeRISCVTarget	llvm: initializeRISCVTarget()	
+initializeSparcTarget	llvm.html#initializeSparcTarget	llvm: initializeSparcTarget()	
+initializeSystemZTarget	llvm.html#initializeSystemZTarget	llvm: initializeSystemZTarget()	
+initializeWebAssemblyTarget	llvm.html#initializeWebAssemblyTarget	llvm: initializeWebAssemblyTarget()	
+initializeX86Target	llvm.html#initializeX86Target	llvm: initializeX86Target()	
+initializeXCoreTarget	llvm.html#initializeXCoreTarget	llvm: initializeXCoreTarget()	
+initializeAVRTarget	llvm.html#initializeAVRTarget	llvm: initializeAVRTarget()	
+initializeAArch64TargetMC	llvm.html#initializeAArch64TargetMC	llvm: initializeAArch64TargetMC()	
+initializeAMDGPUTargetMC	llvm.html#initializeAMDGPUTargetMC	llvm: initializeAMDGPUTargetMC()	
+initializeARMTargetMC	llvm.html#initializeARMTargetMC	llvm: initializeARMTargetMC()	
+initializeBPFTargetMC	llvm.html#initializeBPFTargetMC	llvm: initializeBPFTargetMC()	
+initializeHexagonTargetMC	llvm.html#initializeHexagonTargetMC	llvm: initializeHexagonTargetMC()	
+initializeLanaiTargetMC	llvm.html#initializeLanaiTargetMC	llvm: initializeLanaiTargetMC()	
+initializeMipsTargetMC	llvm.html#initializeMipsTargetMC	llvm: initializeMipsTargetMC()	
+initializeMSP430TargetMC	llvm.html#initializeMSP430TargetMC	llvm: initializeMSP430TargetMC()	
+initializeNVPTXTargetMC	llvm.html#initializeNVPTXTargetMC	llvm: initializeNVPTXTargetMC()	
+initializePowerPCTargetMC	llvm.html#initializePowerPCTargetMC	llvm: initializePowerPCTargetMC()	
+initializeRISCVTargetMC	llvm.html#initializeRISCVTargetMC	llvm: initializeRISCVTargetMC()	
+initializeSparcTargetMC	llvm.html#initializeSparcTargetMC	llvm: initializeSparcTargetMC()	
+initializeSystemZTargetMC	llvm.html#initializeSystemZTargetMC	llvm: initializeSystemZTargetMC()	
+initializeWebAssemblyTargetMC	llvm.html#initializeWebAssemblyTargetMC	llvm: initializeWebAssemblyTargetMC()	
+initializeX86TargetMC	llvm.html#initializeX86TargetMC	llvm: initializeX86TargetMC()	
+initializeXCoreTargetMC	llvm.html#initializeXCoreTargetMC	llvm: initializeXCoreTargetMC()	
+initializeAVRTargetMC	llvm.html#initializeAVRTargetMC	llvm: initializeAVRTargetMC()	
+initializeAArch64AsmPrinter	llvm.html#initializeAArch64AsmPrinter	llvm: initializeAArch64AsmPrinter()	
+initializeAMDGPUAsmPrinter	llvm.html#initializeAMDGPUAsmPrinter	llvm: initializeAMDGPUAsmPrinter()	
+initializeARMAsmPrinter	llvm.html#initializeARMAsmPrinter	llvm: initializeARMAsmPrinter()	
+initializeBPFAsmPrinter	llvm.html#initializeBPFAsmPrinter	llvm: initializeBPFAsmPrinter()	
+initializeHexagonAsmPrinter	llvm.html#initializeHexagonAsmPrinter	llvm: initializeHexagonAsmPrinter()	
+initializeLanaiAsmPrinter	llvm.html#initializeLanaiAsmPrinter	llvm: initializeLanaiAsmPrinter()	
+initializeMipsAsmPrinter	llvm.html#initializeMipsAsmPrinter	llvm: initializeMipsAsmPrinter()	
+initializeMSP430AsmPrinter	llvm.html#initializeMSP430AsmPrinter	llvm: initializeMSP430AsmPrinter()	
+initializeNVPTXAsmPrinter	llvm.html#initializeNVPTXAsmPrinter	llvm: initializeNVPTXAsmPrinter()	
+initializePowerPCAsmPrinter	llvm.html#initializePowerPCAsmPrinter	llvm: initializePowerPCAsmPrinter()	
+initializeRISCVAsmPrinter	llvm.html#initializeRISCVAsmPrinter	llvm: initializeRISCVAsmPrinter()	
+initializeSparcAsmPrinter	llvm.html#initializeSparcAsmPrinter	llvm: initializeSparcAsmPrinter()	
+initializeSystemZAsmPrinter	llvm.html#initializeSystemZAsmPrinter	llvm: initializeSystemZAsmPrinter()	
+initializeWebAssemblyAsmPrinter	llvm.html#initializeWebAssemblyAsmPrinter	llvm: initializeWebAssemblyAsmPrinter()	
+initializeX86AsmPrinter	llvm.html#initializeX86AsmPrinter	llvm: initializeX86AsmPrinter()	
+initializeXCoreAsmPrinter	llvm.html#initializeXCoreAsmPrinter	llvm: initializeXCoreAsmPrinter()	
+initializeAVRAsmPrinter	llvm.html#initializeAVRAsmPrinter	llvm: initializeAVRAsmPrinter()	
+initializeAArch64AsmParser	llvm.html#initializeAArch64AsmParser	llvm: initializeAArch64AsmParser()	
+initializeAMDGPUAsmParser	llvm.html#initializeAMDGPUAsmParser	llvm: initializeAMDGPUAsmParser()	
+initializeARMAsmParser	llvm.html#initializeARMAsmParser	llvm: initializeARMAsmParser()	
+initializeBPFAsmParser	llvm.html#initializeBPFAsmParser	llvm: initializeBPFAsmParser()	
+initializeHexagonAsmParser	llvm.html#initializeHexagonAsmParser	llvm: initializeHexagonAsmParser()	
+initializeLanaiAsmParser	llvm.html#initializeLanaiAsmParser	llvm: initializeLanaiAsmParser()	
+initializeMipsAsmParser	llvm.html#initializeMipsAsmParser	llvm: initializeMipsAsmParser()	
+initializeMSP430AsmParser	llvm.html#initializeMSP430AsmParser	llvm: initializeMSP430AsmParser()	
+initializePowerPCAsmParser	llvm.html#initializePowerPCAsmParser	llvm: initializePowerPCAsmParser()	
+initializeRISCVAsmParser	llvm.html#initializeRISCVAsmParser	llvm: initializeRISCVAsmParser()	
+initializeSparcAsmParser	llvm.html#initializeSparcAsmParser	llvm: initializeSparcAsmParser()	
+initializeSystemZAsmParser	llvm.html#initializeSystemZAsmParser	llvm: initializeSystemZAsmParser()	
+initializeWebAssemblyAsmParser	llvm.html#initializeWebAssemblyAsmParser	llvm: initializeWebAssemblyAsmParser()	
+initializeX86AsmParser	llvm.html#initializeX86AsmParser	llvm: initializeX86AsmParser()	
+initializeAVRAsmParser	llvm.html#initializeAVRAsmParser	llvm: initializeAVRAsmParser()	
+initializeAArch64Disassembler	llvm.html#initializeAArch64Disassembler	llvm: initializeAArch64Disassembler()	
+initializeAMDGPUDisassembler	llvm.html#initializeAMDGPUDisassembler	llvm: initializeAMDGPUDisassembler()	
+initializeARMDisassembler	llvm.html#initializeARMDisassembler	llvm: initializeARMDisassembler()	
+initializeBPFDisassembler	llvm.html#initializeBPFDisassembler	llvm: initializeBPFDisassembler()	
+initializeHexagonDisassembler	llvm.html#initializeHexagonDisassembler	llvm: initializeHexagonDisassembler()	
+initializeLanaiDisassembler	llvm.html#initializeLanaiDisassembler	llvm: initializeLanaiDisassembler()	
+initializeMipsDisassembler	llvm.html#initializeMipsDisassembler	llvm: initializeMipsDisassembler()	
+initializeMSP430Disassembler	llvm.html#initializeMSP430Disassembler	llvm: initializeMSP430Disassembler()	
+initializePowerPCDisassembler	llvm.html#initializePowerPCDisassembler	llvm: initializePowerPCDisassembler()	
+initializeRISCVDisassembler	llvm.html#initializeRISCVDisassembler	llvm: initializeRISCVDisassembler()	
+initializeSparcDisassembler	llvm.html#initializeSparcDisassembler	llvm: initializeSparcDisassembler()	
+initializeSystemZDisassembler	llvm.html#initializeSystemZDisassembler	llvm: initializeSystemZDisassembler()	
+initializeWebAssemblyDisassembler	llvm.html#initializeWebAssemblyDisassembler	llvm: initializeWebAssemblyDisassembler()	
+initializeX86Disassembler	llvm.html#initializeX86Disassembler	llvm: initializeX86Disassembler()	
+initializeXCoreDisassembler	llvm.html#initializeXCoreDisassembler	llvm: initializeXCoreDisassembler()	
+initializeAVRDisassembler	llvm.html#initializeAVRDisassembler	llvm: initializeAVRDisassembler()	
+initializeAllTargetInfos	llvm.html#initializeAllTargetInfos	llvm: initializeAllTargetInfos()	
+initializeAllTargets	llvm.html#initializeAllTargets	llvm: initializeAllTargets()	
+initializeAllTargetMCs	llvm.html#initializeAllTargetMCs	llvm: initializeAllTargetMCs()	
+initializeAllAsmPrinters	llvm.html#initializeAllAsmPrinters	llvm: initializeAllAsmPrinters()	
+initializeAllAsmParsers	llvm.html#initializeAllAsmParsers	llvm: initializeAllAsmParsers()	
+LLVMInitializeAllDisassemblers	llvm.html#LLVMInitializeAllDisassemblers	llvm: LLVMInitializeAllDisassemblers()	
+initializeNativeTarget	llvm.html#initializeNativeTarget	llvm: initializeNativeTarget()	
+initializeNativeAsmParser	llvm.html#initializeNativeAsmParser	llvm: initializeNativeAsmParser()	
+initializeNativeAsmPrinter	llvm.html#initializeNativeAsmPrinter	llvm: initializeNativeAsmPrinter()	
+initializeNativeDisassembler	llvm.html#initializeNativeDisassembler	llvm: initializeNativeDisassembler()	
+setModuleDataLayout	llvm.html#setModuleDataLayout,ModuleRef,TargetDataRef	llvm: setModuleDataLayout(m: ModuleRef; dl: TargetDataRef)	
+createTargetData	llvm.html#createTargetData,cstring	llvm: createTargetData(stringRep: cstring): TargetDataRef	
+disposeTargetData	llvm.html#disposeTargetData,TargetDataRef	llvm: disposeTargetData(td: TargetDataRef)	
+addTargetLibraryInfo	llvm.html#addTargetLibraryInfo,TargetLibraryInfoRef,PassManagerRef	llvm: addTargetLibraryInfo(tli: TargetLibraryInfoRef; pm: PassManagerRef)	
+copyStringRepOfTargetData	llvm.html#copyStringRepOfTargetData,TargetDataRef	llvm: copyStringRepOfTargetData(td: TargetDataRef): cstring	
+byteOrder	llvm.html#byteOrder,TargetDataRef	llvm: byteOrder(td: TargetDataRef): ByteOrdering	
+pointerSize	llvm.html#pointerSize,TargetDataRef	llvm: pointerSize(td: TargetDataRef): cuint	
+pointerSizeForAS	llvm.html#pointerSizeForAS,TargetDataRef,cuint	llvm: pointerSizeForAS(td: TargetDataRef; as: cuint): cuint	
+intPtrType	llvm.html#intPtrType,TargetDataRef	llvm: intPtrType(td: TargetDataRef): TypeRef	
+intPtrTypeForAS	llvm.html#intPtrTypeForAS,TargetDataRef,cuint	llvm: intPtrTypeForAS(td: TargetDataRef; as: cuint): TypeRef	
+intPtrTypeInContext	llvm.html#intPtrTypeInContext,ContextRef,TargetDataRef	llvm: intPtrTypeInContext(c: ContextRef; td: TargetDataRef): TypeRef	
+intPtrTypeForASInContext	llvm.html#intPtrTypeForASInContext,ContextRef,TargetDataRef,cuint	llvm: intPtrTypeForASInContext(c: ContextRef; td: TargetDataRef; as: cuint): TypeRef	
+sizeOfTypeInBits	llvm.html#sizeOfTypeInBits,TargetDataRef,TypeRef	llvm: sizeOfTypeInBits(td: TargetDataRef; ty: TypeRef): culonglong	
+storeSizeOfType	llvm.html#storeSizeOfType,TargetDataRef,TypeRef	llvm: storeSizeOfType(td: TargetDataRef; ty: TypeRef): culonglong	
+aBISizeOfType	llvm.html#aBISizeOfType,TargetDataRef,TypeRef	llvm: aBISizeOfType(td: TargetDataRef; ty: TypeRef): culonglong	
+aBIAlignmentOfType	llvm.html#aBIAlignmentOfType,TargetDataRef,TypeRef	llvm: aBIAlignmentOfType(td: TargetDataRef; ty: TypeRef): cuint	
+callFrameAlignmentOfType	llvm.html#callFrameAlignmentOfType,TargetDataRef,TypeRef	llvm: callFrameAlignmentOfType(td: TargetDataRef; ty: TypeRef): cuint	
+preferredAlignmentOfType	llvm.html#preferredAlignmentOfType,TargetDataRef,TypeRef	llvm: preferredAlignmentOfType(td: TargetDataRef; ty: TypeRef): cuint	
+preferredAlignmentOfGlobal	llvm.html#preferredAlignmentOfGlobal,TargetDataRef,ValueRef	llvm: preferredAlignmentOfGlobal(td: TargetDataRef; globalVar: ValueRef): cuint	
+elementAtOffset	llvm.html#elementAtOffset,TargetDataRef,TypeRef,culonglong	llvm: elementAtOffset(td: TargetDataRef; structTy: TypeRef; offset: culonglong): cuint	
+offsetOfElement	llvm.html#offsetOfElement,TargetDataRef,TypeRef,cuint	llvm: offsetOfElement(td: TargetDataRef; structTy: TypeRef; element: cuint): culonglong	
+typeOfX	llvm.html#typeOfX,ValueRef	llvm: typeOfX(val: ValueRef): TypeRef	
+constIntIsZero	llvm.html#constIntIsZero,ValueRef	llvm: constIntIsZero(constantVal: ValueRef): Bool	
+`$`	llvm.html#$,ValueRef	llvm: `$`(v: ValueRef): string	
+`$`	llvm.html#$,TypeRef	llvm: `$`(v: TypeRef): string	
+LLVMRet	llvm.html#LLVMRet	llvm: LLVMRet	
+LLVMBr	llvm.html#LLVMBr	llvm: LLVMBr	
+LLVMSwitch	llvm.html#LLVMSwitch	llvm: LLVMSwitch	
+LLVMIndirectBr	llvm.html#LLVMIndirectBr	llvm: LLVMIndirectBr	
+LLVMInvoke	llvm.html#LLVMInvoke	llvm: LLVMInvoke	
+LLVMUnreachable	llvm.html#LLVMUnreachable	llvm: LLVMUnreachable	
+LLVMCallBr	llvm.html#LLVMCallBr	llvm: LLVMCallBr	
+LLVMFNeg	llvm.html#LLVMFNeg	llvm: LLVMFNeg	
+LLVMAdd	llvm.html#LLVMAdd	llvm: LLVMAdd	
+LLVMFAdd	llvm.html#LLVMFAdd	llvm: LLVMFAdd	
+LLVMSub	llvm.html#LLVMSub	llvm: LLVMSub	
+LLVMFSub	llvm.html#LLVMFSub	llvm: LLVMFSub	
+LLVMMul	llvm.html#LLVMMul	llvm: LLVMMul	
+LLVMFMul	llvm.html#LLVMFMul	llvm: LLVMFMul	
+LLVMUDiv	llvm.html#LLVMUDiv	llvm: LLVMUDiv	
+LLVMSDiv	llvm.html#LLVMSDiv	llvm: LLVMSDiv	
+LLVMFDiv	llvm.html#LLVMFDiv	llvm: LLVMFDiv	
+LLVMURem	llvm.html#LLVMURem	llvm: LLVMURem	
+LLVMSRem	llvm.html#LLVMSRem	llvm: LLVMSRem	
+LLVMFRem	llvm.html#LLVMFRem	llvm: LLVMFRem	
+LLVMShl	llvm.html#LLVMShl	llvm: LLVMShl	
+LLVMLShr	llvm.html#LLVMLShr	llvm: LLVMLShr	
+LLVMAShr	llvm.html#LLVMAShr	llvm: LLVMAShr	
+LLVMAnd	llvm.html#LLVMAnd	llvm: LLVMAnd	
+LLVMOr	llvm.html#LLVMOr	llvm: LLVMOr	
+LLVMXor	llvm.html#LLVMXor	llvm: LLVMXor	
+LLVMAlloca	llvm.html#LLVMAlloca	llvm: LLVMAlloca	
+LLVMLoad	llvm.html#LLVMLoad	llvm: LLVMLoad	
+LLVMStore	llvm.html#LLVMStore	llvm: LLVMStore	
+LLVMGetElementPtr	llvm.html#LLVMGetElementPtr	llvm: LLVMGetElementPtr	
+LLVMTrunc	llvm.html#LLVMTrunc	llvm: LLVMTrunc	
+LLVMZExt	llvm.html#LLVMZExt	llvm: LLVMZExt	
+LLVMSExt	llvm.html#LLVMSExt	llvm: LLVMSExt	
+LLVMFPToUI	llvm.html#LLVMFPToUI	llvm: LLVMFPToUI	
+LLVMFPToSI	llvm.html#LLVMFPToSI	llvm: LLVMFPToSI	
+LLVMUIToFP	llvm.html#LLVMUIToFP	llvm: LLVMUIToFP	
+LLVMSIToFP	llvm.html#LLVMSIToFP	llvm: LLVMSIToFP	
+LLVMFPTrunc	llvm.html#LLVMFPTrunc	llvm: LLVMFPTrunc	
+LLVMFPExt	llvm.html#LLVMFPExt	llvm: LLVMFPExt	
+LLVMPtrToInt	llvm.html#LLVMPtrToInt	llvm: LLVMPtrToInt	
+LLVMIntToPtr	llvm.html#LLVMIntToPtr	llvm: LLVMIntToPtr	
+LLVMBitCast	llvm.html#LLVMBitCast	llvm: LLVMBitCast	
+LLVMAddrSpaceCast	llvm.html#LLVMAddrSpaceCast	llvm: LLVMAddrSpaceCast	
+LLVMICmp	llvm.html#LLVMICmp	llvm: LLVMICmp	
+LLVMFCmp	llvm.html#LLVMFCmp	llvm: LLVMFCmp	
+LLVMPHI	llvm.html#LLVMPHI	llvm: LLVMPHI	
+LLVMCall	llvm.html#LLVMCall	llvm: LLVMCall	
+LLVMSelect	llvm.html#LLVMSelect	llvm: LLVMSelect	
+LLVMUserOp1	llvm.html#LLVMUserOp1	llvm: LLVMUserOp1	
+LLVMUserOp2	llvm.html#LLVMUserOp2	llvm: LLVMUserOp2	
+LLVMVAArg	llvm.html#LLVMVAArg	llvm: LLVMVAArg	
+LLVMExtractElement	llvm.html#LLVMExtractElement	llvm: LLVMExtractElement	
+LLVMInsertElement	llvm.html#LLVMInsertElement	llvm: LLVMInsertElement	
+LLVMShuffleVector	llvm.html#LLVMShuffleVector	llvm: LLVMShuffleVector	
+LLVMExtractValue	llvm.html#LLVMExtractValue	llvm: LLVMExtractValue	
+LLVMInsertValue	llvm.html#LLVMInsertValue	llvm: LLVMInsertValue	
+LLVMFreeze	llvm.html#LLVMFreeze	llvm: LLVMFreeze	
+LLVMFence	llvm.html#LLVMFence	llvm: LLVMFence	
+LLVMAtomicCmpXchg	llvm.html#LLVMAtomicCmpXchg	llvm: LLVMAtomicCmpXchg	
+LLVMAtomicRMW	llvm.html#LLVMAtomicRMW	llvm: LLVMAtomicRMW	
+LLVMResume	llvm.html#LLVMResume	llvm: LLVMResume	
+LLVMLandingPad	llvm.html#LLVMLandingPad	llvm: LLVMLandingPad	
+LLVMCleanupRet	llvm.html#LLVMCleanupRet	llvm: LLVMCleanupRet	
+LLVMCatchRet	llvm.html#LLVMCatchRet	llvm: LLVMCatchRet	
+LLVMCatchPad	llvm.html#LLVMCatchPad	llvm: LLVMCatchPad	
+LLVMCleanupPad	llvm.html#LLVMCleanupPad	llvm: LLVMCleanupPad	
+LLVMCatchSwitch	llvm.html#LLVMCatchSwitch	llvm: LLVMCatchSwitch	
+Value	llvm.html#Value	llvm: Value	
+Type	llvm.html#Type	llvm: Type	
+Label	llvm.html#Label	llvm: Label	
+Backend	llvm.html#Backend	llvm: Backend	
+b	llvm.html#b	llvm: b	
+llvm_error	llvm.html#llvm_error,string	llvm: llvm_error(msg: string)	
+llvm_error	llvm.html#llvm_error,cstring	llvm: llvm_error(msg: cstring)	
+llvmGetAlignOf	llvm.html#llvmGetAlignOf,CType	llvm: llvmGetAlignOf(ty: CType): culonglong	
+llvmGetsizeof	llvm.html#llvmGetsizeof,CType	llvm: llvmGetsizeof(ty: CType): culonglong	
+llvmGetOffsetof	llvm.html#llvmGetOffsetof,CType,int	llvm: llvmGetOffsetof(ty: CType; idx: int): culonglong	
+newBackend	llvm.html#newBackend,cstring,cstring	llvm: newBackend(module_name: cstring = &quot;main&quot;; source_file: cstring = nil)	
+dumpVersionInfo	llvm.html#dumpVersionInfo	llvm: dumpVersionInfo()	
+setBackend	llvm.html#setBackend	llvm: setBackend()	
+enterScope	llvm.html#enterScope	llvm: enterScope()	
+leaveScope	llvm.html#leaveScope	llvm: leaveScope()	
+getVar	llvm.html#getVar,string	llvm: getVar(name: string): Value	
+putVar	llvm.html#putVar,string,Value	llvm: putVar(name: string; val: Value)	
+getLabel	llvm.html#getLabel,string	llvm: getLabel(name: string): Label	
+putLabel	llvm.html#putLabel,string,Label	llvm: putLabel(name: string; label: Label)	
+getTags	llvm.html#getTags,string	llvm: getTags(name: string): Type	
+putTags	llvm.html#putTags,string,Type	llvm: putTags(name: string; t: Type)	
+shutdownBackend	llvm.html#shutdownBackend	llvm: shutdownBackend()	
+optimize	llvm.html#optimize	llvm: optimize()	
+verify	llvm.html#verify	llvm: verify()	
+writeModuleToFile	llvm.html#writeModuleToFile,string	llvm: writeModuleToFile(path: string)	
+writeBitcodeToFile	llvm.html#writeBitcodeToFile,string	llvm: writeBitcodeToFile(path: string)	
+writeObjectFile	llvm.html#writeObjectFile,string	llvm: writeObjectFile(path: string)	
+writeAssemblyFile	llvm.html#writeAssemblyFile,string	llvm: writeAssemblyFile(path: string)	
+close_backend	llvm.html#close_backend	llvm: close_backend()	
+gen_cond	llvm.html#gen_cond,Expr	llvm: gen_cond(a: Expr): Value	
+gen_bool	llvm.html#gen_bool,bool	llvm: gen_bool(val: bool): Value	
+gen_true	llvm.html#gen_true	llvm: gen_true(): Value	
+gen_false	llvm.html#gen_false	llvm: gen_false(): Value	
+gen_int	llvm.html#gen_int,culonglong,uint32	llvm: gen_int(i: culonglong; tags: uint32): Value	
+gen_float	llvm.html#gen_float,float,uint32	llvm: gen_float(f: float; tag: uint32): Value	
+gen_str	llvm.html#gen_str,string,Type	llvm: gen_str(val: string; ty: var Type): Value	
+gen_str_ptr	llvm.html#gen_str_ptr,string	llvm: gen_str_ptr(val: string): Value	
+backendint	llvm.html#backendint	llvm: backendint(): Type	
+load	llvm.html#load,Value,Type	llvm: load(p: Value; t: Type): Value	
+store	llvm.html#store,Value,Value	llvm: store(p: Value; v: Value)	
+wrap2	llvm.html#wrap2,CType	llvm: wrap2(ty: CType): Type	
+wrap	llvm.html#wrap,CType	llvm: wrap(ty: CType): Type	
+getZero	llvm.html#getZero,CType	llvm: getZero(ty: CType): Value	
+getOne	llvm.html#getOne,CType	llvm: getOne(ty: CType): Value	
+gen_condition	llvm.html#gen_condition,Expr,Expr,Expr	llvm: gen_condition(test: Expr; lhs: Expr; rhs: Expr): Value	
+gen_condition	llvm.html#gen_condition,Expr,Value,Expr	llvm: gen_condition(test: Expr; lhs: Value; rhs: Expr): Value	
+gen_condition	llvm.html#gen_condition,Expr,Expr,Value	llvm: gen_condition(test: Expr; lhs: Expr; rhs: Value): Value	
+gen_if	llvm.html#gen_if,Expr,Stmt	llvm: gen_if(test: Expr; body: Stmt)	
+gen_if	llvm.html#gen_if,Expr,Stmt,Stmt	llvm: gen_if(test: Expr; body: Stmt; elsebody: Stmt)	
+gen_while	llvm.html#gen_while,Expr,Stmt	llvm: gen_while(test: Expr; body: Stmt)	
+gen_for	llvm.html#gen_for,Expr,Stmt,Stmt,Expr	llvm: gen_for(test: Expr; body: Stmt; sforinit: Stmt; eforincl: Expr)	
+gen_dowhile	llvm.html#gen_dowhile,Expr,Stmt	llvm: gen_dowhile(test: Expr; body: Stmt)	
+getOp	llvm.html#getOp,BinOP	llvm: getOp(a: BinOP): Opcode	
+getICmpOp	llvm.html#getICmpOp,BinOP	llvm: getICmpOp(a: BinOP): IntPredicate	
+getFCmpOp	llvm.html#getFCmpOp,BinOP	llvm: getFCmpOp(a: BinOP): RealPredicate	
+getCastOp	llvm.html#getCastOp,CastOp	llvm: getCastOp(a: CastOp): Opcode	
+newFunction	llvm.html#newFunction,CType,string	llvm: newFunction(varty: CType; name: string): Value	
+gen	llvm.html#gen,Stmt	llvm: gen(s: Stmt)	
+neZero	llvm.html#neZero,Expr	llvm: neZero(a: Expr): Expr	
+eqZero	llvm.html#eqZero,Expr	llvm: eqZero(a: Expr): Expr	
+incl	llvm.html#incl,Value,Type	llvm: incl(p: Value; t: Type)	
+decl	llvm.html#decl,Value,Type	llvm: decl(p: Value; t: Type)	
+getAddress	llvm.html#getAddress,Expr	llvm: getAddress(e: Expr): Value	
+getPointerElementType	llvm.html#getPointerElementType,Type	llvm: getPointerElementType(t: Type): Type	
+gen	llvm.html#gen,Expr	llvm: gen(e: Expr): Value	
+gen_cast	llvm.html#gen_cast,Expr,CType,CastOp	llvm: gen_cast(e: Expr; to: CType; op: CastOp): Value	
+jit_error	llvm.html#jit_error,string	llvm: jit_error(msg: string)	
+jit_error	llvm.html#jit_error,cstring	llvm: jit_error(msg: cstring)	
+jit_error	llvm.html#jit_error,ErrorRef	llvm: jit_error(err: ErrorRef)	
+orc_error_report	llvm.html#orc_error_report,pointer,ErrorRef	llvm: orc_error_report(ctx: pointer; err: ErrorRef)	
+getThreadSafeModule	llvm.html#getThreadSafeModule	llvm: getThreadSafeModule(): OrcThreadSafeModuleRef	
+runjit	llvm.html#runjit	llvm: runjit()	

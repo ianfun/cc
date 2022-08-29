@@ -1,74 +1,15 @@
-## ===------- llvm-c/Error.h - llvm::Error class C Interface -------*- C -*-===*\
-## |*                                                                            *|
-## |* Part of the LLVM Project, under the Apache License v2.0 with LLVM          *|
-## |* Exceptions.                                                                *|
-## |* See https://llvm.org/LICENSE.txt for license information.                  *|
-## |* SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception                    *|
-## |*                                                                            *|
-## |*===----------------------------------------------------------------------===*|
-## |*                                                                            *|
-## |* This file defines the C interface to LLVM's Error class.                   *|
-## |*                                                                            *|
-## \*===----------------------------------------------------------------------===
-
-## !!!Ignored construct:  # LLVM_C_ERROR_H [NewLine] # LLVM_C_ERROR_H [NewLine] # llvm-c/ExternC.h [NewLine] LLVM_C_EXTERN_C_BEGIN *
-##  @defgroup LLVMCError Error Handling
-##  @ingroup LLVMC
-##
-##  @{
-##  # LLVMErrorSuccess 0 [NewLine] *
-##  Opaque reference to an error instance. Null serves as the 'success' value.
-##  typedef struct LLVMOpaqueError * LLVMErrorRef ;
-## Error: expected ';'!!!
-
-## *
-##  Error type identifier.
-##
-
 type
   ErrorTypeId* = pointer
 
-## *
-##  Returns the type id for the given error instance, which must be a failure
-##  value (i.e. non-null).
-##
-
 proc getErrorTypeId*(err: ErrorRef): ErrorTypeId {.importc: "LLVMGetErrorTypeId".}
-## *
-##  Dispose of the given error without handling it. This operation consumes the
-##  error, and the given LLVMErrorRef value is not usable once this call returns.
-##  Note: This method *only* needs to be called if the error is not being passed
-##  to some other consuming operation, e.g. LLVMGetErrorMessage.
-##
 
 proc consumeError*(err: ErrorRef) {.importc: "LLVMConsumeError".}
-## *
-##  Returns the given string's error message. This operation consumes the error,
-##  and the given LLVMErrorRef value is not usable once this call returns.
-##  The caller is responsible for disposing of the string by calling
-##  LLVMDisposeErrorMessage.
-##
 
 proc getErrorMessage*(err: ErrorRef): cstring {.importc: "LLVMGetErrorMessage".}
-## *
-##  Dispose of the given error message.
-##
 
 proc disposeErrorMessage*(errMsg: cstring) {.importc: "LLVMDisposeErrorMessage".}
-## *
-##  Returns the type id for llvm StringError.
-##
 
 proc getStringErrorTypeId*(): ErrorTypeId {.importc: "LLVMGetStringErrorTypeId".}
-## *
-##  Create a StringError.
-##
 
 proc createStringError*(errMsg: cstring): ErrorRef {.
     importc: "LLVMCreateStringError".}
-## *
-##  @}
-##
-
-## !!!Ignored construct:  LLVM_C_EXTERN_C_END # [NewLine]
-## Error: expected ';'!!!

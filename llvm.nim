@@ -110,7 +110,7 @@ include llvm/TargetMachine
 
 # optmize modules
 include llvm/Transforms/PassManagerBuilder
-include llvm/Transforms/Scalar
+# include llvm/Transforms/Scalar
 
 # jit headers
 include llvm/Orc

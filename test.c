@@ -1,9 +1,11 @@
-int puts(char*); 
-int system(char*);
+struct test
+{
+int lion;
+char msg;   
+} globalvar;
 
-int main(int argc, char** argv){
-    puts("Hello world!");
-    system("pause");
-    puts("good bye JIT");
+int main(int argc, char const *argv[])
+{
+    globalvar.msg = "world";
     return 0;
 }
