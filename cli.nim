@@ -16,22 +16,45 @@ type P = proc () {.nimcall.}
 
 proc perror(str: cstring) {.importc: "perror", header: "stdio.h".}
 
-proc runLD*(input, path: cstring) =
-  var pid = fork()
-  if pid < 0:
-    core.error()
-    perror("fork")
-  else:
-    if pid == 0:
-      discard execlp("gcc", "gcc", input, "-o", path, nil)
+proc system(command: cstring): cint {.importc: "system", header: "stdio.h".}
+# we use gcc to invoke linker instead of ld commandm which require a lot of commands
+# /usr/bin/ld -z relro --hash-style=gnu --build-id --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o a.out /usr/bin/../lib/gcc/x86_64-linux-gnu/10/../../../x86_64-linux-gnu/crt1.o /usr/bin/../lib/gcc/x86_64-linux-gnu/10/../../../x86_64-linux-gnu/crti.o /usr/bin/../lib/gcc/x86_64-linux-gnu/10/crtbegin.o -L/usr/bin/../lib/gcc/x86_64-linux-gnu/10 -L/usr/bin/../lib/gcc/x86_64-linux-gnu/10/../../../x86_64-linux-gnu -L/usr/bin/../lib/gcc/x86_64-linux-gnu/10/../../../../lib64 -L/lib/x86_64-linux-gnu -L/lib/../lib64 -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib64 -L/usr/lib/x86_64-linux-gnu/../../lib64 -L/usr/bin/../lib/gcc/x86_64-linux-gnu/10/../../.. -L/usr/lib/llvm-10/bin/../lib -L/lib -L/usr/lib /tmp/t-ef1090.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/bin/../lib/gcc/x86_64-linux-gnu/10/crtend.o /usr/bin/../lib/gcc/x86_64-linux-gnu/10/../../../x86_64-linux-gnu/crtn.o
+when defined(windows):
+  # windows has `_execlp()`, but windows has no `fork()`
+  # CreateProcess is ok, but `system()` is easy
+  proc runLD*(input, path: string) =
+    var cmd = "gcc \"" & $input & "\" -o \"" & $path & '"'
+    let status = system(cmd.cstring)
+    if status != 0:
       core.error()
-      perror("execlp")
+      stderr.writeLine("error: gcc returned " & $status & " exit status")
+else:
+  proc runLD*(input, path: string) =
+    var pid = fork()
+    if pid < 0:
+      core.error()
+      perror("fork")
     else:
-      var status: cint
-      discard waitpid(pid, status, 0)
-      if status != 0:
-          core.error()
-          stderr.writeLine("error: gcc returned " & $status & " exit status")
+      if pid == 0:
+        discard execlp("gcc", "gcc", input.cstring, "-o", path.cstring, nil)
+        core.error()
+        perror("execlp")
+      else:
+        var status: cint
+        discard waitpid(pid, status, 0)
+        if status != 0:
+            core.error()
+            stderr.writeLine("error: gcc returned " & $status & " exit status")
+
+proc runLLD*(input, output: string) =
+  var cmd = "ld.lld --hash-style=gnu --no-add-needed  --build-id --eh-frame-hdr -dynamic-linker /lib/x86_64-linux-gnu/libc.so.6 /usr/lib64/ld-linux-x86-64.so.2 "
+  cmd &= input
+  cmd &= " -o "
+  cmd &= output
+  let status = system(cmd.cstring)
+  if status != 0:
+    core.error()
+    stderr.writeLine("error: ld.lld returned " & $status & " exit status")
 
 proc showVersion() =
   echo "CC: C Compiler"
@@ -61,7 +84,7 @@ var cliOptions = [
   ("emit-llvm", 0, cast[P](proc () = app.mode = OutputLLVMAssembly), "output LLVM Assembly"),
   ("emit-bitcode", 0, cast[P](proc () = app.mode = OutputBitcode), "output LLVM bitcode"),
   ("c", 0, cast[P](proc () = app.mode = OutputObjectFile), "output object file"),
-  ("gccld", 0, cast[P](proc () = app.linker = GCCLD), "use ld, The GNU linker"),
+  ("ld", 0, cast[P](proc () = app.linker = GCCLD), "use ld, The GNU linker"),
   ("lld", 0, cast[P](proc () = app.linker = LLD), "use LLD, The LLVM linker"),
   ("s", 0, cast[P](proc () = app.mode = OutputAssembly),  "output assembly"),
   ("fsyntax-only", 0, cast[P](proc () = app.mode = OutputCheck), "parse input file, type checking, emit warning and messages.Do not output a file"),

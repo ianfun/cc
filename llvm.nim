@@ -1251,7 +1251,11 @@ proc runjit*() =
     var gen2: OrcDefinitionGeneratorRef
     err = orcCreateDynamicLibrarySearchGeneratorForProcess(addr gen1, prefix, nil, nil)
 
-    err = orcCreateDynamicLibrarySearchGeneratorForPath(addr gen2, "/lib/x86_64-linux-gnu/libc.so.6", prefix, nil, nil)
+    when defined(windows):
+      const crtpath = r"C:\Windows\System32\kernel32.dll"
+    else:
+      const crtpath = "/lib/x86_64-linux-gnu/libc.so.6"
+    err = orcCreateDynamicLibrarySearchGeneratorForPath(addr gen2, crtpath, prefix, nil, nil)
     if err != nil:
       jit_error(err)
       return
@@ -1280,7 +1284,8 @@ proc runjit*() =
 
     let fmain = cast[MainTY](main)
 
-    var realargs = @["main", "--version"]
+    var realargs = @["main"]
+    # TODO: use command line args from CLI options
     var argslen = len(realargs)
     var mainargs = create(cstring, argslen or 1)
     var arr = cast[ptr UncheckedArray[cstring]](mainargs)
