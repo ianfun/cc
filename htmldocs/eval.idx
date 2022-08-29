@@ -1,0 +1,3 @@
+eval_error	eval.html#eval_error,string	eval: eval_error(msg: string)	
+setEval	eval.html#setEval	eval: setEval()	
+evali	eval.html#evali,Expr	eval: evali(e: Expr): intmax_t	

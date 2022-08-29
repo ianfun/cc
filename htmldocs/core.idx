@@ -5,6 +5,9 @@ WWarning	core.html#WWarning	VerboseLevel.WWarning
 WNote	core.html#WNote	VerboseLevel.WNote	
 WVerbose	core.html#WVerbose	VerboseLevel.WVerbose	
 VerboseLevel	core.html#VerboseLevel	core: VerboseLevel	
+LLD	core.html#LLD	Linker.LLD	
+GCCLD	core.html#GCCLD	Linker.GCCLD	
+Linker	core.html#Linker	core: Linker	
 TYPRIM	core.html#TYPRIM	CTypeSpec.TYPRIM	
 TYPOINTER	core.html#TYPOINTER	CTypeSpec.TYPOINTER	
 TYSTRUCT	core.html#TYSTRUCT	CTypeSpec.TYSTRUCT	
@@ -93,6 +96,7 @@ K_Alignof	core.html#K_Alignof	Token.K_Alignof
 K_Atomic	core.html#K_Atomic	Token.K_Atomic	
 K_Bool	core.html#K_Bool	Token.K_Bool	
 K_Complex	core.html#K_Complex	Token.K_Complex	
+K_asm	core.html#K_asm	Token.K_asm	
 K_Decimal128	core.html#K_Decimal128	Token.K_Decimal128	
 K_Decimal32	core.html#K_Decimal32	Token.K_Decimal32	
 K_Decimal64	core.html#K_Decimal64	Token.K_Decimal64	
@@ -149,7 +153,7 @@ TYEXTERN	core.html#TYEXTERN	core: TYEXTERN
 TYREGISTER	core.html#TYREGISTER	core: TYREGISTER	
 TYTHREAD_LOCAL	core.html#TYTHREAD_LOCAL	core: TYTHREAD_LOCAL	
 TYTYPEDEF	core.html#TYTYPEDEF	core: TYTYPEDEF	
-TYEXPR	core.html#TYEXPR	core: TYEXPR	
+TYLVALUE	core.html#TYLVALUE	core: TYLVALUE	
 TYVOID	core.html#TYVOID	core: TYVOID	
 TYBOOL	core.html#TYBOOL	core: TYBOOL	
 TYCOMPLEX	core.html#TYCOMPLEX	core: TYCOMPLEX	
@@ -293,6 +297,7 @@ SWhile	core.html#SWhile	StmtKind.SWhile
 SFor	core.html#SFor	StmtKind.SFor	
 SSwitch	core.html#SSwitch	StmtKind.SSwitch	
 SDeclOnly	core.html#SDeclOnly	StmtKind.SDeclOnly	
+SAsm	core.html#SAsm	StmtKind.SAsm	
 SVarDecl	core.html#SVarDecl	StmtKind.SVarDecl	
 SDefault	core.html#SDefault	StmtKind.SDefault	
 SCase	core.html#SCase	StmtKind.SCase	
@@ -319,6 +324,7 @@ EBackend	core.html#EBackend	ExprKind.EBackend
 EString	core.html#EString	ExprKind.EString	
 EPointerMemberAccess	core.html#EPointerMemberAccess	ExprKind.EPointerMemberAccess	
 EMemberAccess	core.html#EMemberAccess	ExprKind.EMemberAccess	
+ArrToAddress	core.html#ArrToAddress	ExprKind.ArrToAddress	
 ExprKind	core.html#ExprKind	core: ExprKind	
 Expr	core.html#Expr	core: Expr	
 CSkip	core.html#CSkip	core: CSkip	
@@ -337,14 +343,21 @@ gkeywordtable	core.html#gkeywordtable	core: gkeywordtable
 show	core.html#show,char	core: show(c: char): string	
 `$`	core.html#$,Expr	core: `$`(e: Expr): string	
 `$`	core.html#$,Location	core: `$`(loc: Location): string	
-init	core.html#init.t,,,,	core: init(lexer, cpp, parser, backend): untyped	
+init	core.html#init.t,,,,,	core: init(lexer, cpp, parser, eval, backend): untyped	
 shutdown	core.html#shutdown.t	core: shutdown()	
 isKeyword	core.html#isKeyword,string	core: isKeyword(a: string): Token	
 unsafe_utf8_codepoint	core.html#unsafe_utf8_codepoint,cstring	core: unsafe_utf8_codepoint(s: cstring): (Codepoint, int)	
 writeUTF8toUTF32	core.html#writeUTF8toUTF32,string	core: writeUTF8toUTF32(s: string): seq[Codepoint]	
 writeUTF8toUTF16	core.html#writeUTF8toUTF16,string	core: writeUTF8toUTF16(s: string): seq[uint16]	
 getDefines	core.html#getDefines.i	core: getDefines(): (string, seq[TokenV])	
+OutputLink	core.html#OutputLink	Output.OutputLink	
+OutputLLVMAssembly	core.html#OutputLLVMAssembly	Output.OutputLLVMAssembly	
+OutputBitcode	core.html#OutputBitcode	Output.OutputBitcode	
+OutputObjectFile	core.html#OutputObjectFile	Output.OutputObjectFile	
+OutputAssembly	core.html#OutputAssembly	Output.OutputAssembly	
+OutputCheck	core.html#OutputCheck	Output.OutputCheck	
+Output	core.html#Output	core: Output	
 CC	core.html#CC	core: CC	
 app	core.html#app	core: app	
+error	core.html#error	core: error()	
 verbose	core.html#verbose,string	core: verbose(msg: string)	
-note	core.html#note,string	core: note(msg: string)	

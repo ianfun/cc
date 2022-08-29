@@ -70,7 +70,7 @@ window.addEventListener('DOMContentLoaded', main);
 <div class="document" id="documentId">
   <div class="container">
     <h1 class="title">Index</h1>
-    Modules: <a href="core.html">core</a>, <a href="cpp.html">cpp</a>, <a href="lexer.html">lexer</a>, <a href="parser.html">parser</a>, <a href="stream.html">stream</a>.<br/><p /><h2>API symbols</h2>
+    Modules: <a href="cli.html">cli</a>, <a href="core.html">core</a>, <a href="cpp.html">cpp</a>, <a href="eval.html">eval</a>, <a href="lexer.html">lexer</a>, <a href="parser.html">parser</a>, <a href="stream.html">stream</a>.<br/><p /><h2>API symbols</h2>
 <dl><dt><a name="%60%24%60" href="#%60%24%60"><span>`$`:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="core: `$`(a: CType; level = 0): string" href="core.html#%24%2CCType%2Cint">core: `$`(a: CType; level = 0): string</a></li>
@@ -135,6 +135,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="core: app" href="core.html#app">core: app</a></li>
           </ul></dd>
+<dt><a name="ArrToAddress" href="#ArrToAddress"><span>ArrToAddress:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="ExprKind.ArrToAddress" href="core.html#ArrToAddress">ExprKind.ArrToAddress</a></li>
+          </ul></dd>
 <dt><a name="AShr" href="#AShr"><span>AShr:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="BinOP.AShr" href="core.html#AShr">BinOP.AShr</a></li>
@@ -162,6 +166,10 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="BitCast" href="#BitCast"><span>BitCast:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="CastOp.BitCast" href="core.html#BitCast">CastOp.BitCast</a></li>
+          </ul></dd>
+<dt><a name="boolToInt" href="#boolToInt"><span>boolToInt:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="parser: boolToInt(e: Expr): Expr" href="parser.html#boolToInt%2CExpr">parser: boolToInt(e: Expr): Expr</a></li>
           </ul></dd>
 <dt><a name="cast_expression" href="#cast_expression"><span>cast_expression:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -399,6 +407,8 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="error" href="#error"><span>error:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
+          data-doc-search-tag="core: error()" href="core.html#error">core: error()</a></li>
+          <li><a class="reference external"
           data-doc-search-tag="parser: error(msg: string)" href="parser.html#error%2Cstring">parser: error(msg: string)</a></li>
           </ul></dd>
 <dt><a name="error_incomplete" href="#error_incomplete"><span>error_incomplete:</span></a></dt><dd><ul class="simple">
@@ -421,6 +431,14 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="ExprKind.EUnary" href="core.html#EUnary">ExprKind.EUnary</a></li>
           </ul></dd>
+<dt><a name="eval_error" href="#eval_error"><span>eval_error:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="eval: eval_error(msg: string)" href="eval.html#eval_error%2Cstring">eval: eval_error(msg: string)</a></li>
+          </ul></dd>
+<dt><a name="evali" href="#evali"><span>evali:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="eval: evali(e: Expr): intmax_t" href="eval.html#evali%2CExpr">eval: evali(e: Expr): intmax_t</a></li>
+          </ul></dd>
 <dt><a name="EVar" href="#EVar"><span>EVar:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="ExprKind.EVar" href="core.html#EVar">ExprKind.EVar</a></li>
@@ -436,6 +454,22 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="expect" href="#expect"><span>expect:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="parser: expect(msg: string)" href="parser.html#expect%2Cstring">parser: expect(msg: string)</a></li>
+          </ul></dd>
+<dt><a name="expectExpression" href="#expectExpression"><span>expectExpression:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="parser: expectExpression()" href="parser.html#expectExpression">parser: expectExpression()</a></li>
+          </ul></dd>
+<dt><a name="expectLB" href="#expectLB"><span>expectLB:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="parser: expectLB()" href="parser.html#expectLB">parser: expectLB()</a></li>
+          </ul></dd>
+<dt><a name="expectRB" href="#expectRB"><span>expectRB:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="parser: expectRB()" href="parser.html#expectRB">parser: expectRB()</a></li>
+          </ul></dd>
+<dt><a name="expectStatement" href="#expectStatement"><span>expectStatement:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="parser: expectStatement()" href="parser.html#expectStatement">parser: expectStatement()</a></li>
           </ul></dd>
 <dt><a name="Expr" href="#Expr"><span>Expr:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -537,6 +571,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="parser: function_specifier_set" href="parser.html#function_specifier_set">parser: function_specifier_set</a></li>
           </ul></dd>
+<dt><a name="GCCLD" href="#GCCLD"><span>GCCLD:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="Linker.GCCLD" href="core.html#GCCLD">Linker.GCCLD</a></li>
+          </ul></dd>
 <dt><a name="getAlignof" href="#getAlignof"><span>getAlignof:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="parser: getAlignof(ty: CType): culonglong" href="parser.html#getAlignof%2CCType">parser: getAlignof(ty: CType): culonglong</a></li>
@@ -619,7 +657,7 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="init" href="#init"><span>init:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: init(lexer, cpp, parser, backend): untyped" href="core.html#init.t%2C%2C%2C%2C">core: init(lexer, cpp, parser, backend): untyped</a></li>
+          data-doc-search-tag="core: init(lexer, cpp, parser, eval, backend): untyped" href="core.html#init.t%2C%2C%2C%2C%2C">core: init(lexer, cpp, parser, eval, backend): untyped</a></li>
           </ul></dd>
 <dt><a name="initializer_list" href="#initializer_list"><span>initializer_list:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -642,6 +680,10 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="intmax_t" href="#intmax_t"><span>intmax_t:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="core: intmax_t" href="core.html#intmax_t">core: intmax_t</a></li>
+          </ul></dd>
+<dt><a name="intRank" href="#intRank"><span>intRank:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="parser: intRank(a: uint32): int" href="parser.html#intRank%2Cuint32">parser: intRank(a: uint32): int</a></li>
           </ul></dd>
 <dt><a name="IntToPtr" href="#IntToPtr"><span>IntToPtr:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -718,6 +760,10 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="K_Alignof" href="#K_Alignof"><span>K_Alignof:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="Token.K_Alignof" href="core.html#K_Alignof">Token.K_Alignof</a></li>
+          </ul></dd>
+<dt><a name="K_asm" href="#K_asm"><span>K_asm:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="Token.K_asm" href="core.html#K_asm">Token.K_asm</a></li>
           </ul></dd>
 <dt><a name="K_Atomic" href="#K_Atomic"><span>K_Atomic:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -911,6 +957,14 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="parser: leaveBlock()" href="parser.html#leaveBlock">parser: leaveBlock()</a></li>
           </ul></dd>
+<dt><a name="Linker" href="#Linker"><span>Linker:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="core: Linker" href="core.html#Linker">core: Linker</a></li>
+          </ul></dd>
+<dt><a name="LLD" href="#LLD"><span>LLD:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="Linker.LLD" href="core.html#LLD">Linker.LLD</a></li>
+          </ul></dd>
 <dt><a name="Location" href="#Location"><span>Location:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="core: Location" href="core.html#Location">core: Location</a></li>
@@ -1035,11 +1089,39 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="note" href="#note"><span>note:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: note(msg: string)" href="core.html#note%2Cstring">core: note(msg: string)</a></li>
+          data-doc-search-tag="parser: note(msg: string)" href="parser.html#note%2Cstring">parser: note(msg: string)</a></li>
           </ul></dd>
 <dt><a name="Or" href="#Or"><span>Or:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="BinOP.Or" href="core.html#Or">BinOP.Or</a></li>
+          </ul></dd>
+<dt><a name="Output" href="#Output"><span>Output:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="core: Output" href="core.html#Output">core: Output</a></li>
+          </ul></dd>
+<dt><a name="OutputAssembly" href="#OutputAssembly"><span>OutputAssembly:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="Output.OutputAssembly" href="core.html#OutputAssembly">Output.OutputAssembly</a></li>
+          </ul></dd>
+<dt><a name="OutputBitcode" href="#OutputBitcode"><span>OutputBitcode:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="Output.OutputBitcode" href="core.html#OutputBitcode">Output.OutputBitcode</a></li>
+          </ul></dd>
+<dt><a name="OutputCheck" href="#OutputCheck"><span>OutputCheck:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="Output.OutputCheck" href="core.html#OutputCheck">Output.OutputCheck</a></li>
+          </ul></dd>
+<dt><a name="OutputLink" href="#OutputLink"><span>OutputLink:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="Output.OutputLink" href="core.html#OutputLink">Output.OutputLink</a></li>
+          </ul></dd>
+<dt><a name="OutputLLVMAssembly" href="#OutputLLVMAssembly"><span>OutputLLVMAssembly:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="Output.OutputLLVMAssembly" href="core.html#OutputLLVMAssembly">Output.OutputLLVMAssembly</a></li>
+          </ul></dd>
+<dt><a name="OutputObjectFile" href="#OutputObjectFile"><span>OutputObjectFile:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="Output.OutputObjectFile" href="core.html#OutputObjectFile">Output.OutputObjectFile</a></li>
           </ul></dd>
 <dt><a name="p" href="#p"><span>p:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -1048,6 +1130,14 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="parameter_type_list" href="#parameter_type_list"><span>parameter_type_list:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="parser: parameter_type_list(): (bool, seq[(string, CType)])" href="parser.html#parameter_type_list">parser: parameter_type_list(): (bool, seq[(string, CType)])</a></li>
+          </ul></dd>
+<dt><a name="parse_asm" href="#parse_asm"><span>parse_asm:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="parser: parse_asm(): Stmt" href="parser.html#parse_asm">parser: parse_asm(): Stmt</a></li>
+          </ul></dd>
+<dt><a name="parseCLI" href="#parseCLI"><span>parseCLI:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="cli: parseCLI()" href="cli.html#parseCLI">cli: parseCLI()</a></li>
           </ul></dd>
 <dt><a name="parse_error" href="#parse_error"><span>parse_error:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -1197,6 +1287,14 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="parser: reset()" href="parser.html#reset">parser: reset()</a></li>
           </ul></dd>
+<dt><a name="runLD" href="#runLD"><span>runLD:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="cli: runLD(input, path: string)" href="cli.html#runLD%2Cstring%2Cstring">cli: runLD(input, path: string)</a></li>
+          </ul></dd>
+<dt><a name="runLLD" href="#runLLD"><span>runLLD:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="cli: runLLD(input, output: string)" href="cli.html#runLLD%2Cstring%2Cstring">cli: runLLD(input, output: string)</a></li>
+          </ul></dd>
 <dt><a name="runParser" href="#runParser"><span>runParser:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="parser: runParser(): Stmt" href="parser.html#runParser">parser: runParser(): Stmt</a></li>
@@ -1208,6 +1306,10 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="SAddP" href="#SAddP"><span>SAddP:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="BinOP.SAddP" href="core.html#SAddP">BinOP.SAddP</a></li>
+          </ul></dd>
+<dt><a name="SAsm" href="#SAsm"><span>SAsm:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="StmtKind.SAsm" href="core.html#SAsm">StmtKind.SAsm</a></li>
           </ul></dd>
 <dt><a name="SBreak" href="#SBreak"><span>SBreak:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -1244,6 +1346,10 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="setCpp" href="#setCpp"><span>setCpp:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="cpp: setCpp()" href="cpp.html#setCpp">cpp: setCpp()</a></li>
+          </ul></dd>
+<dt><a name="setEval" href="#setEval"><span>setEval:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="eval: setEval()" href="eval.html#setEval">eval: setEval()</a></li>
           </ul></dd>
 <dt><a name="setLexer" href="#setLexer"><span>setLexer:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -1765,10 +1871,6 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="CTypeSpec.TYENUM" href="core.html#TYENUM">CTypeSpec.TYENUM</a></li>
           </ul></dd>
-<dt><a name="TYEXPR" href="#TYEXPR"><span>TYEXPR:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="core: TYEXPR" href="core.html#TYEXPR">core: TYEXPR</a></li>
-          </ul></dd>
 <dt><a name="TYEXTERN" href="#TYEXTERN"><span>TYEXTERN:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="core: TYEXTERN" href="core.html#TYEXTERN">core: TYEXTERN</a></li>
@@ -1824,6 +1926,10 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="TYLONGLONG" href="#TYLONGLONG"><span>TYLONGLONG:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="core: TYLONGLONG" href="core.html#TYLONGLONG">core: TYLONGLONG</a></li>
+          </ul></dd>
+<dt><a name="TYLVALUE" href="#TYLVALUE"><span>TYLVALUE:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="core: TYLVALUE" href="core.html#TYLVALUE">core: TYLVALUE</a></li>
           </ul></dd>
 <dt><a name="TYNORETURN" href="#TYNORETURN"><span>TYNORETURN:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -2070,7 +2176,7 @@ window.addEventListener('DOMContentLoaded', main);
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-08-28 00:30:36 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-08-29 07:15:34 UTC</small>
       </div>
     </div>
   </div>

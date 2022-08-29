@@ -11,7 +11,12 @@ macro_define	parser.html#macro_define,string,PPMacro	parser: macro_define(name: 
 macro_defined	parser.html#macro_defined,string	parser: macro_defined(name: string): bool	
 macro_undef	parser.html#macro_undef,string	parser: macro_undef(name: string)	
 expect	parser.html#expect,string	parser: expect(msg: string)	
+expectExpression	parser.html#expectExpression	parser: expectExpression()	
+expectStatement	parser.html#expectStatement	parser: expectStatement()	
+expectLB	parser.html#expectLB	parser: expectLB()	
+expectRB	parser.html#expectRB	parser: expectRB()	
 err	parser.html#err	parser: err(): bool	
+note	parser.html#note,string	parser: note(msg: string)	
 error	parser.html#error,string	parser: error(msg: string)	
 type_error	parser.html#type_error,string	parser: type_error(msg: string)	
 error_incomplete	parser.html#error_incomplete,CType	parser: error_incomplete(ty: CType)	
@@ -48,6 +53,7 @@ getsizeof	parser.html#getsizeof,Expr	parser: getsizeof(e: Expr): culonglong
 getAlignof	parser.html#getAlignof,CType	parser: getAlignof(ty: CType): culonglong	
 getAlignof	parser.html#getAlignof,Expr	parser: getAlignof(e: Expr): culonglong	
 checkInteger	parser.html#checkInteger,CType	parser: checkInteger(a: CType): bool	
+intRank	parser.html#intRank,uint32	parser: intRank(a: uint32): int	
 intcast	parser.html#intcast,Expr,CType	parser: intcast(e: Expr; to: CType): Expr	
 type_equal	parser.html#type_equal,CType,CType	parser: type_equal(a, b: CType): bool	
 castto	parser.html#castto,Expr,CType	parser: castto(e: Expr; to: CType): Expr	
@@ -101,6 +107,7 @@ struct_union	parser.html#struct_union,Token	parser: struct_union(t: Token): CTyp
 penum	parser.html#penum	parser: penum(): CType	
 parameter_type_list	parser.html#parameter_type_list	parser: parameter_type_list(): (bool, seq[(string, CType)])	
 declaration_specifiers	parser.html#declaration_specifiers	parser: declaration_specifiers(): CType	
+parse_asm	parser.html#parse_asm	parser: parse_asm(): Stmt	
 static_assert	parser.html#static_assert	parser: static_assert(): Stmt	
 declaration	parser.html#declaration	parser: declaration(): Stmt	
 cast_expression	parser.html#cast_expression	parser: cast_expression(): Expr	
@@ -116,6 +123,7 @@ postfix_expression	parser.html#postfix_expression	parser: postfix_expression(): 
 multiplicative_expression	parser.html#multiplicative_expression	parser: multiplicative_expression(): Expr	
 additive_expression	parser.html#additive_expression	parser: additive_expression(): Expr	
 shift_expression	parser.html#shift_expression	parser: shift_expression(): Expr	
+boolToInt	parser.html#boolToInt,Expr	parser: boolToInt(e: Expr): Expr	
 relational_expression	parser.html#relational_expression	parser: relational_expression(): Expr	
 equality_expression	parser.html#equality_expression	parser: equality_expression(): Expr	
 AND_expression	parser.html#AND_expression	parser: AND_expression(): Expr	
