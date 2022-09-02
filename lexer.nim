@@ -944,6 +944,9 @@ proc nextTok*() =
             elif p.c == '=':
                 make_tok(TAsignSub)
                 eat()
+            elif p.c == '>':
+                make_tok(TArrow)
+                eat()
             else:
                 make_tok(TDash)
             return

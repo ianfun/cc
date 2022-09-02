@@ -329,7 +329,7 @@ type
     ExprKind* = enum
       EBin, EUnary, EPostFix, EIntLit, EFloatLit, EVoid,
       EVar, ECondition, ECast, ECall, ESubscript, EDefault,
-      EArray, EStruct, EBackend, EString, 
+      EArray, EStruct, EBackend, EString, EUndef
       EPointerMemberAccess, EMemberAccess, ArrToAddress
     Expr* = ref object
       ty*: CType
@@ -371,7 +371,7 @@ type
         idx*: int
       of EBackend:
         p*: pointer
-      of EDefault:
+      of EDefault, EUndef:
         discard
 
 const
@@ -584,6 +584,8 @@ proc `$`*(e: Expr): string =
   if e == nil:
     return "<nil>"
   case e.k:
+  of EUndef:
+    "<undefined-value>"
   of EVoid:
     "(void)" & $e.voidexpr
   of ArrToAddress:
@@ -768,7 +770,7 @@ type
       verboseLevel*: VerboseLevel
       opaquePointerEnabled*: bool
       linker*: Linker
-
+      triple*: string
       ## input files
       inputs*: seq[string]
 
@@ -799,6 +801,7 @@ var app* = CC(
     opaquePointerEnabled: true,
     mode: OutputLink,
     output: "",
+    triple: "",
     runJit: false,
     linker: GCCLD
 )

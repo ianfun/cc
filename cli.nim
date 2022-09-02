@@ -1,5 +1,4 @@
 import os, core, parser
-import posix
 from llvm import dumpVersionInfo
 
 var i = 0
@@ -29,6 +28,7 @@ when defined(windows):
       core.error()
       stderr.writeLine("error: gcc returned " & $status & " exit status")
 else:
+  import posix
   proc runLD*(input, path: string) =
     var pid = fork()
     if pid < 0:
@@ -75,6 +75,7 @@ var cliOptions = [
   ("-help", 0, help, "help"),
   ("stdin", 0, setStdin, "add stdin to files"),
   ("jit", 0, proc () = app.runJit = true, "run `main` function in LLVM JIT"),
+  ("target", 1, cast[P](proc (s: string) = app.triple = s), "set target triple: e.g: x86_64-pc-linux-gnu, x86_64-pc-windows-msvc"),
   ("verbose", 0, proc () = app.verboseLevel = WVerbose, "enable verbose message"),
   ("note", 0, proc () = app.verboseLevel = WNote, "enable note message"),
   ("warning", 0, proc () = app.verboseLevel = WWarning, "enable warning message"),

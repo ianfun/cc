@@ -14,6 +14,7 @@ import core, cli
 
 core.init(lexer, cpp, parser, eval, llvm)
 parseCLI()
+initTarget()
 
 let translation_unit = runParser()
 

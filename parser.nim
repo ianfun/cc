@@ -398,13 +398,16 @@ proc isFloating*(ty: CType): bool =
 
 proc isSigned*(ty: CType): bool =
     ## `_Bool` is not signed
-    bool(ty.tags and (
-        TYINT8 or
-        TYINT16 or
-        TYINT16 or
-        TYINT32 or
-        TYINT64
-    ))
+    if ty.spec == TYBITFIELD:
+        isSigned(ty.bittype)
+    else:
+        bool(ty.tags and (
+            TYINT8 or
+            TYINT16 or
+            TYINT16 or
+            TYINT32 or
+            TYINT64
+        ))
 
 proc getsizeof*(ty: CType): culonglong =
     if ty.spec == TYINCOMPLETE:
@@ -423,7 +426,8 @@ proc getsizeof*(ty: CType): culonglong =
         if (ty.tags and (TYINT64 or TYUINT64)) != 0:
             return 8
     if ty.spec == TYBITFIELD:
-        return getSizeof(ty.bittype)
+        type_error("invalid application of 'sizeof' to bit-field")
+        return 0
     if ty.spec == TYENUM:
         return sizeofint
     if ty.spec == TYPOINTER:

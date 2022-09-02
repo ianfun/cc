@@ -228,7 +228,6 @@ type
       topBreak*: Label
       topContinue*: Label
       target*: TargetRef
-      triple*: cstring
 
 var b*: Backend
 
@@ -251,7 +250,7 @@ proc llvmGetsizeof*(ty: CType): culonglong =
 proc llvmGetOffsetof*(ty: CType, idx: int): culonglong =
   offsetOfElement(b.layout, wrap(ty), cuint(idx))
 
-proc newBackend*(module_name: cstring = "main", source_file: cstring = nil) =
+proc newBackend*(module_name: string = "main", source_file: string = "main") =
   initializeCore(getGlobalPassRegistry())
   initializeNativeTarget()
   initializeNativeAsmParser()
@@ -261,19 +260,26 @@ proc newBackend*(module_name: cstring = "main", source_file: cstring = nil) =
     tsCtx: orcCreateNewThreadSafeContext(),
     builder: createBuilder()
   )
-  b.ctx =  orcThreadSafeContextGetContext(b.tsCtx)
+  b.ctx = orcThreadSafeContextGetContext(b.tsCtx)
   contextSetDiscardValueNames(b.ctx, True)
   contextSetOpaquePointers(b.ctx, if app.opaquePointerEnabled: True else: False)
   b.module = moduleCreateWithNameInContext(module_name, b.ctx)
-  if source_file != nil:
-    setSourceFileName(b.module, source_file, source_file.len.csize_t)
-  b.triple = getDefaultTargetTriple()
-  if getTargetFromTriple(b.triple, addr b.target, nil) == True:
-    llvm_error("LLVMGetTargetFromTriple failed")
-  b.machine = createTargetMachine(b.target, b.triple, "", "", CodeGenLevelAggressive, RelocPIC, CodeModelDefault)
+  setSourceFileName(b.module, source_file, source_file.len.csize_t)
+  
+
+proc initTarget*() =
+  var err: cstring
+  if app.triple.len == 0:
+    app.triple.add(getDefaultTargetTriple())
+  if getTargetFromTriple(app.triple.cstring, addr b.target, cast[cstringArray](err)) == True:
+    llvm_error(err)
+    app.triple = $getDefaultTargetTriple()
+    discard getTargetFromTriple(app.triple.cstring, addr b.target, cast[cstringArray](err))
+  b.machine = createTargetMachine(b.target, app.triple.cstring, "", "", CodeGenLevelAggressive, RelocPIC, CodeModelDefault)
   b.layout = createTargetDataLayout(b.machine)
   setModuleDataLayout(b.module, b.layout)
-  setTarget(b.module, b.triple)
+  setTarget(b.module, app.triple.cstring)
+  app.pointersize = pointerSize(b.layout)
 
 proc dumpVersionInfo*() =
   var arr = [cstring("llvm"), cstring("--version")]
@@ -294,7 +300,6 @@ proc setBackend*() =
   app.getoffsetof = llvmGetOffsetof
   app.getAlignOf = llvmGetAlignOf
   newBackend()
-  app.pointersize = pointerSize(b.layout)
 
 proc enterScope*() =
   ## not token.enterBlock
@@ -336,8 +341,6 @@ proc putTags*(name: string, t: Type) =
   b.tags[^1][name] = t
 
 proc shutdownBackend*() =
-  if b.triple != nil:
-    disposeMessage(b.triple)
   shutdown()
 
 proc optimize*() =
@@ -384,7 +387,6 @@ proc writeAssemblyFile*(path: string) =
     llvm_error("LLVMTargetMachineEmitToFile")
     llvm_error(err)
 
-
 proc close_backend*() =
   disposeBuilder(b.builder)
 
@@ -394,7 +396,12 @@ proc gen*(s: Stmt)
 
 proc gen_cond*(a: Expr): Value =
   ## generate bool(conditional) expression
-  gen(a)
+  if bool(a.ty.tags and TYBOOL):
+    gen(a)
+  else:
+    let lhs = gen(a)
+    let rhs = constNull(wrap(a.ty))
+    buildICmp(b.builder, IntNE, lhs, rhs, "")
 
 proc gen_bool*(val: bool): Value =
   constInt(int1TypeInContext(b.ctx), if val: 1 else: 0, False)
@@ -480,7 +487,10 @@ proc wrap2*(ty: CType): Type =
     var buf = create(Type, l or 1)
     var arr = cast[ptr UncheckedArray[Type]](buf)
     for i in 0 ..< l:
-      arr[i] = wrap(ty.selems[i][1])
+      if ty.selems[i][1].spec == TYBITFIELD:
+        arr[i] = intTypeInContext(b.ctx, cuint(ty.selems[i][1].bitsize))
+      else:
+        arr[i] = wrap2(ty.selems[i][1])
     return structTypeInContext(b.ctx, buf, cuint(l), False)
   of TYARRAY:
     return arrayType(wrap(ty.arrtype), cuint(ty.arrsize))
@@ -535,7 +545,10 @@ proc wrap*(ty: CType): Type =
       var buf = create(Type, l or 1)
       var arr = cast[ptr UncheckedArray[Type]](buf)
       for i in 0 ..< l:
-        arr[i] = wrap(ty.selems[i][1])
+        if ty.selems[i][1].spec == TYBITFIELD:
+          arr[i] = intTypeInContext(b.ctx, cuint(ty.selems[i][1].bitsize))
+        else:
+          arr[i] = wrap(ty.selems[i][1])
       # set struct body
       structSetBody(result, buf, cuint(l), False)
       dealloc(buf)
@@ -603,9 +616,9 @@ proc getOne*(ty: CType): Value =
 proc gen_condition*(test: Expr, lhs: Expr, rhs: Expr): Value =
   ## build a `cond ? lhs : rhs` expression
   var ty = wrap(lhs.ty)
-  var iftrue = appendBasicBlockInContext(b.ctx, b.currentfunction, "cond.true")
-  var iffalse = appendBasicBlockInContext(b.ctx, b.currentfunction, "cond.false")
-  var ifend = appendBasicBlockInContext(b.ctx, b.currentfunction, "cond.end")
+  var iftrue = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var iffalse = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var ifend = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
   discard buildCondBr(b.builder, gen_cond(test), iftrue, iffalse)
   
   positionBuilderAtEnd(b.builder, iftrue)
@@ -617,7 +630,7 @@ proc gen_condition*(test: Expr, lhs: Expr, rhs: Expr): Value =
   discard buildBr(b.builder, ifend)
 
   positionBuilderAtEnd(b.builder, ifend)
-  var phi = buildPhi(b.builder, ty, "cond.phi")
+  var phi = buildPhi(b.builder, ty, "")
 
   var blocks = [iftrue, iffalse]
   var values = [left, right]
@@ -627,9 +640,9 @@ proc gen_condition*(test: Expr, lhs: Expr, rhs: Expr): Value =
 proc gen_condition*(test: Expr, lhs: Value, rhs: Expr): Value =
   ## build a `cond ? lhs : rhs` expression
   var ty = wrap(rhs.ty)
-  var iftrue = appendBasicBlockInContext(b.ctx, b.currentfunction, "cond.true")
-  var iffalse = appendBasicBlockInContext(b.ctx, b.currentfunction, "cond.false")
-  var ifend = appendBasicBlockInContext(b.ctx, b.currentfunction, "cond.end")
+  var iftrue = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var iffalse = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var ifend = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
   discard buildCondBr(b.builder, gen_cond(test), iftrue, iffalse)
   
   positionBuilderAtEnd(b.builder, iftrue)
@@ -641,7 +654,7 @@ proc gen_condition*(test: Expr, lhs: Value, rhs: Expr): Value =
   discard buildBr(b.builder, ifend)
 
   positionBuilderAtEnd(b.builder, ifend)
-  var phi = buildPhi(b.builder, ty, "cond.phi")
+  var phi = buildPhi(b.builder, ty, "")
 
   var blocks = [iftrue, iffalse]
   var values = [left, right]
@@ -651,9 +664,9 @@ proc gen_condition*(test: Expr, lhs: Value, rhs: Expr): Value =
 proc gen_condition*(test: Expr, lhs: Expr, rhs: Value): Value =
   ## build a `cond ? lhs : rhs` expression
   var ty = wrap(lhs.ty)
-  var iftrue = appendBasicBlockInContext(b.ctx, b.currentfunction, "cond.true")
-  var iffalse = appendBasicBlockInContext(b.ctx, b.currentfunction, "cond.false")
-  var ifend = appendBasicBlockInContext(b.ctx, b.currentfunction, "cond.end")
+  var iftrue = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var iffalse = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var ifend = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
   discard buildCondBr(b.builder, gen_cond(test), iftrue, iffalse)
   
   positionBuilderAtEnd(b.builder, iftrue)
@@ -665,7 +678,7 @@ proc gen_condition*(test: Expr, lhs: Expr, rhs: Value): Value =
   discard buildBr(b.builder, ifend)
 
   positionBuilderAtEnd(b.builder, ifend)
-  var phi = buildPhi(b.builder, ty, "cond.phi")
+  var phi = buildPhi(b.builder, ty, "")
 
   var blocks = [iftrue, iffalse]
   var values = [left, right]
@@ -674,8 +687,8 @@ proc gen_condition*(test: Expr, lhs: Expr, rhs: Value): Value =
 
 
 proc gen_if*(test: Expr, body: Stmt) =
-  var iftrue = appendBasicBlockInContext(b.ctx, b.currentfunction, "if.true")
-  var ifend = appendBasicBlockInContext(b.ctx, b.currentfunction, "if.end")
+  var iftrue = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var ifend = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
   discard buildCondBr(b.builder, gen_cond(test), iftrue, ifend)
 
   positionBuilderAtEnd(b.builder, iftrue)
@@ -685,9 +698,9 @@ proc gen_if*(test: Expr, body: Stmt) =
   positionBuilderAtEnd(b.builder, ifend)
 
 proc gen_if*(test: Expr, body: Stmt, elsebody: Stmt) =
-  var iftrue = appendBasicBlockInContext(b.ctx, b.currentfunction, "if.true")
-  var iffalse = appendBasicBlockInContext(b.ctx, b.currentfunction, "if.false")
-  var ifend = appendBasicBlockInContext(b.ctx, b.currentfunction, "if.end")
+  var iftrue = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var iffalse = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var ifend = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
   discard buildCondBr(b.builder, gen_cond(test), iftrue, iffalse)
 
   positionBuilderAtEnd(b.builder, iftrue)
@@ -704,9 +717,9 @@ proc gen_while*(test: Expr, body: Stmt) =
   var old_break = b.topBreak
   var old_continue = b.topContinue
 
-  var whilecmp = appendBasicBlockInContext(b.ctx, b.currentfunction, "while.cmp")
-  var whilebody = appendBasicBlockInContext(b.ctx, b.currentfunction, "while.body")
-  var whileleave = appendBasicBlockInContext(b.ctx, b.currentfunction, "while.leave")
+  var whilecmp = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var whilebody = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var whileleave = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
 
   b.topBreak = whileleave
   b.topContinue = whilecmp
@@ -734,10 +747,10 @@ proc gen_for*(test: Expr, body: Stmt, sforinit: Stmt, eforincl: Expr) =
   if sforinit != nil:
     gen(sforinit)
   enterScope()
-  var forcmp = appendBasicBlockInContext(b.ctx, b.currentfunction, "for.cmp")
-  var forbody = appendBasicBlockInContext(b.ctx, b.currentfunction, "for.body")
-  var forleave = appendBasicBlockInContext(b.ctx, b.currentfunction, "for.leave")
-  var forincl = appendBasicBlockInContext(b.ctx, b.currentfunction, "for.incl")
+  var forcmp = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var forbody = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var forleave = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var forincl = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
 
   b.topBreak = forleave
   b.topContinue = forincl
@@ -769,9 +782,9 @@ proc gen_dowhile*(test: Expr, body: Stmt) =
   var old_break = b.topBreak
   var old_continue = b.topContinue
 
-  var dowhilecmp = appendBasicBlockInContext(b.ctx, b.currentfunction, "dowhile.cmp")
-  var dowhilebody = appendBasicBlockInContext(b.ctx, b.currentfunction, "dowhile.body")
-  var dowhileleave = appendBasicBlockInContext(b.ctx, b.currentfunction, "dowhile.leave")
+  var dowhilecmp = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var dowhilebody = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var dowhileleave = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
 
   b.topBreak = dowhileleave
   b.topContinue = dowhilecmp
@@ -973,7 +986,10 @@ proc gen*(s: Stmt) =
           if init == nil:
             setInitializer(g, constNull(ty))
           else:
-            setInitializer(g, gen(init))
+            var i = gen(init)
+            if isConstant(i) == False:
+              llvm_error("global initializer is not constant")
+            setInitializer(g, i)
           if (varty.tags and TYTHREAD_LOCAL) != 0:
             # LLVMSetThreadLocalMode ?
             setThreadLocal(g, 1)
@@ -1006,12 +1022,12 @@ proc eqZero*(a: Expr): Expr =
 
 proc incl*(p: Value, t: Type) =
   var l = load(p, t)
-  var l2 = buildAdd(b.builder, l, constInt(t, 1.culonglong, False), "incl")
+  var l2 = buildAdd(b.builder, l, constInt(t, 1.culonglong, False), "")
   store(p, l2)
 
 proc decl*(p: Value, t: Type) =
   var l = load(p, t)
-  var l2 = buildSub(b.builder, l, constInt(t, 1.culonglong, False), "incl")
+  var l2 = buildSub(b.builder, l, constInt(t, 1.culonglong, False), "")
   store(p, l2)
 
 proc getAddress*(e: Expr): Value =
@@ -1022,11 +1038,11 @@ proc getAddress*(e: Expr): Value =
   of EPointerMemberAccess:
     var basep = gen(e.obj)
     var r = constInt(int32Type(), e.idx.culonglong, False)
-    buildInBoundsGEP2(b.builder, pointerType(wrap(e.ty), 0), basep, addr r, 1, "l.pmem")
+    buildInBoundsGEP2(b.builder, pointerType(wrap(e.ty), 0), basep, addr r, 1, "")
   of EMemberAccess:
     var basep = getAddress(e.obj)
     var r = constInt(int32Type(), e.idx.culonglong, False)
-    buildInBoundsGEP2(b.builder, pointerType(wrap(e.ty), 0), basep, addr r, 1, "l.mem")
+    buildInBoundsGEP2(b.builder, pointerType(wrap(e.ty), 0), basep, addr r, 1, "")
   of EPostFix:
     case e.pop:
     of PostfixIncrement:
@@ -1043,7 +1059,7 @@ proc getAddress*(e: Expr): Value =
     var v = getAddress(e.left) # lookup lvalue
     var basep = load(v, ty) # load address in lvalue
     var r = gen(e.right) # get index
-    buildInBoundsGEP2(b.builder, pointerType(ty, 0), basep, addr r, 1, "subs")
+    buildInBoundsGEP2(b.builder, pointerType(ty, 0), basep, addr r, 1, "")
   else:
     unreachable()
     nil
@@ -1053,6 +1069,8 @@ proc getPointerElementType*(t: Type): Type =
 
 proc gen*(e: Expr): Value =
   case e.k:
+  of EUndef:
+    getUndef(wrap(e.ty))
   of ArrToAddress:
     var arr = getAddress(e.voidexpr)
     var ty = wrap(e.ty.p)
@@ -1064,9 +1082,11 @@ proc gen*(e: Expr): Value =
     var v = getAddress(e.left) # lookup lvalue
     var basep = load(v, ty) # load address in lvalue
     var r = gen(e.right) # get index
-    var gaddr = buildInBoundsGEP2(b.builder, pointerType(ty, 0), basep, addr r, 1, "subs")
+    var gaddr = buildInBoundsGEP2(b.builder, pointerType(ty, 0), basep, addr r, 1, "")
     load(gaddr, ty) # return lvalue
-  of EMemberAccess, EPointerMemberAccess:
+  of EMemberAccess:
+    buildExtractValue(b.builder, gen(e.obj), e.idx.cuint, "")
+  of EPointerMemberAccess:
     load(getAddress(e), wrap(e.ty))
   of EString:
     gen_str_ptr(e.str)
@@ -1082,37 +1102,37 @@ proc gen*(e: Expr): Value =
     of SAdd:
       var l = gen(e.lhs)
       var r = gen(e.rhs)
-      buildNSWAdd(b.builder, l, r, "sadd")
+      buildNSWAdd(b.builder, l, r, "")
     of SSub:
       var l = gen(e.lhs)
       var r = gen(e.rhs)
-      buildNSWSub(b.builder, l, r, "sdiv")
+      buildNSWSub(b.builder, l, r, "")
     of SMul:
       var l = gen(e.lhs)
       var r = gen(e.rhs)
-      buildNSWSub(b.builder, l, r, "smul")
+      buildNSWSub(b.builder, l, r, "")
     of SAddP:
       var l = gen(e.lhs)
       var r = gen(e.rhs)
-      buildInBoundsGEP2(b.builder, wrap(e.ty), l, addr r, 1, "saddp")
+      buildInBoundsGEP2(b.builder, wrap(e.ty), l, addr r, 1, "")
     of EQ..SLE:
-      buildICmp(b.builder, getICmpOp(e.bop), gen(e.lhs), gen(e.rhs), "icmp")
+      buildICmp(b.builder, getICmpOp(e.bop), gen(e.lhs), gen(e.rhs), "")
     of FEQ..FLE:
-      buildFCmp(b.builder, getFCmpOp(e.bop), gen(e.lhs), gen(e.rhs), "fcmp")
+      buildFCmp(b.builder, getFCmpOp(e.bop), gen(e.lhs), gen(e.rhs), "")
     of LogicalAnd:
-      let x = buildICmp(b.builder, IntNE, getZero(e.lhs.ty), gen(e.lhs), "land.cmp")
-      let y = buildICmp(b.builder, IntNE, getZero(e.lhs.ty), gen(e.rhs), "land.cmp")
-      let c = buildAnd(b.builder, x, y, "land.and")
-      buildZExt(b.builder, c, backendint(), "lor.zext")
+      let x = buildICmp(b.builder, IntNE, getZero(e.lhs.ty), gen(e.lhs), "")
+      let y = buildICmp(b.builder, IntNE, getZero(e.lhs.ty), gen(e.rhs), "")
+      let c = buildAnd(b.builder, x, y, "")
+      buildZExt(b.builder, c, backendint(), "")
     of LogicalOr:
-      let t = buildOr(b.builder, gen(e.lhs), gen(e.rhs), "lor.or")
-      let nz = buildICmp(b.builder, IntNE, getZero(e.lhs.ty), t, "lor.cmp")
-      buildZExt(b.builder, nz, backendint(), "lor.zext")
+      let t = buildOr(b.builder, gen(e.lhs), gen(e.rhs), "")
+      let nz = buildICmp(b.builder, IntNE, getZero(e.lhs.ty), t, "")
+      buildZExt(b.builder, nz, backendint(), "")
     of Comma:
       discard gen(e.lhs)
       gen(e.rhs)
     else:
-      buildBinOp(b.builder, getOp(e.bop), gen(e.lhs), gen(e.rhs), "bop")
+      buildBinOp(b.builder, getOp(e.bop), gen(e.lhs), gen(e.rhs), "")
   of EIntLit:
     gen_int(e.ival.culonglong, e.ty.tags)
   of EFloatLit:
@@ -1122,27 +1142,27 @@ proc gen*(e: Expr): Value =
   of EUnary:
     case e.uop:
     of Pos: gen(e.uoperand)
-    of SNeg: buildNSWNeg(b.builder, gen(e.uoperand), "sneg")
-    of UNeg: buildNeg(b.builder, gen(e.uoperand), "uneg")
-    of FNeg: buildFNeg(b.builder, gen(e.uoperand), "fneg")
-    of Not: buildNot(b.builder, gen(e.uoperand), "not")
+    of SNeg: buildNSWNeg(b.builder, gen(e.uoperand), "")
+    of UNeg: buildNeg(b.builder, gen(e.uoperand), "")
+    of FNeg: buildFNeg(b.builder, gen(e.uoperand), "")
+    of Not: buildNot(b.builder, gen(e.uoperand), "")
     of AddressOf: getAddress(e.uoperand)
     of PrefixIncrement: 
       var ty = wrap(e.ty)
       let basep = getAddress(e.uoperand)
       var l = load(basep, ty)
-      var l2 = buildAdd(b.builder, l, constInt(ty, 1.culonglong, False), "incl")
+      var l2 = buildAdd(b.builder, l, constInt(ty, 1.culonglong, False), "")
       store(basep, l2)
       load(basep, ty)
     of PrefixDecrement:
       var ty = wrap(e.ty)
       let basep = getAddress(e.uoperand)
       var l = load(basep, ty)
-      var l2 = buildSub(b.builder, l, constInt(ty, 1.culonglong, False), "incl")
+      var l2 = buildSub(b.builder, l, constInt(ty, 1.culonglong, False), "")
       store(basep, l2)
       load(basep, ty)
-    of Dereference: buildLoad2(b.builder, wrap(e.ty), gen(e.uoperand), "deref")
-    of LogicalNot: buildICmp(b.builder, IntEQ, gen(e.uoperand), getZero(e.ty), "logicnot")
+    of Dereference: buildLoad2(b.builder, wrap(e.ty), gen(e.uoperand), "")
+    of LogicalNot: buildICmp(b.builder, IntEQ, gen(e.uoperand), getZero(e.ty), "")
   of EPostFix:
     case e.pop:
     of PostfixIncrement:
@@ -1210,7 +1230,7 @@ proc gen*(e: Expr): Value =
 
 proc gen_cast*(e: Expr, to: CType, op: CastOp): Value =
   var c = gen(e)
-  buildCast(b.builder, getCastOp(op), c, wrap(to), "cast")
+  buildCast(b.builder, getCastOp(op), c, wrap(to), "")
 
 proc jit_error*(msg: string) =
   stderr.writeLine("llvm jit error: " & msg)
