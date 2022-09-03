@@ -991,7 +991,7 @@ proc nextTok*() =
                 make_tok(TLcurlyBracket)
                 eat()
             else:
-                make_tok(TLe)
+                make_tok(TLt)
             return
         of '%':
             eat()

@@ -835,7 +835,7 @@ proc getICmpOp*(a: BinOP): IntPredicate =
   of SGT: IntSGT
   of SLT: IntSLT
   of SLE: IntSLE 
-  else: assert(false);cast[IntPredicate](0)
+  else: unreachable();cast[IntPredicate](0)
 
 proc getFCmpOp*(a: BinOP): RealPredicate =
   case a:
@@ -845,7 +845,7 @@ proc getFCmpOp*(a: BinOP): RealPredicate =
   of FGE: RealOGE
   of FLT: RealOLT
   of FLE: RealOLE
-  else: assert(false);cast[RealPredicate](0)
+  else: unreachable();cast[RealPredicate](0)
 
 proc getCastOp*(a: CastOp): Opcode =
   case a:
@@ -881,11 +881,11 @@ proc newFunction*(varty: CType, name: string): Value =
     var fty = wrap(varty)
     result = addFunction(b.module, name.cstring, fty)
     b.vars[0][name] = result
-    for i in 0 ..< len(varty.params):
-      if varty.params[i][1] == nil:
-        break
-      var pa = getParam(result, i.cuint)
-      setValueName2(pa, cstring(varty.params[i][0]), varty.params[i][0].len.csize_t)
+    #for i in 0 ..< len(varty.params):
+    #  if varty.params[i][1] == nil:
+    #    break
+      #var pa = getParam(result, i.cuint)
+      #setValueName2(pa, cstring(varty.params[i][0]), varty.params[i][0].len.csize_t)
 
 proc gen*(s: Stmt) =
   case s.k:

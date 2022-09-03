@@ -2369,9 +2369,11 @@ proc postfix_expression*(): Expr =
         for i in 0..<len(e.ty.selems):
             if p.tok.s == e.ty.selems[i][0]:
                 consume()
+                var ty = e.ty.selems[i][1]
+                ty.tags = ty.tags or TYLVALUE
                 if isarrow:
-                    return Expr(k: EPointerMemberAccess, obj: e, idx: i, ty: e.ty.selems[i][1])
-                return Expr(k: EMemberAccess, obj: e, idx: i, ty: e.ty.selems[i][1])
+                    return Expr(k: EPointerMemberAccess, obj: e, idx: i, ty: ty)
+                return Expr(k: EMemberAccess, obj: e, idx: i, ty: ty)
         type_error("struct/union " & $e.ty.sname & " has no member " & p.tok.s)
         return nil
     of TLbracket: # function call
@@ -2895,6 +2897,8 @@ proc statament*(): Stmt =
         if e == nil:
             expectExpression()
             return nil
+        if not checkScalar(e.ty):
+            type_error("expect scalar")
         if p.tok.tok != TRbracket:
             expectRB()
             return nil
@@ -2922,6 +2926,8 @@ proc statament*(): Stmt =
         if e == nil:
             expectExpression()
             return nil
+        if not checkScalar(e.ty):
+            type_error("expect scalar")
         if p.tok.tok != TRbracket:
             expectRB()
             return nil
@@ -2971,6 +2977,8 @@ proc statament*(): Stmt =
             if cond == nil:
                 expectExpression()
                 return nil
+            if not checkScalar(cond.ty):
+                type_error("expect scalar")
             if p.tok.tok != TSemicolon:
                 expect("';'")
                 return nil
@@ -3010,6 +3018,8 @@ proc statament*(): Stmt =
         if e == nil:
             expectExpression()
             return nil
+        if not checkScalar(e.ty):
+            type_error("expect scalar")
         if p.tok.tok != TRbracket:
             expectRB()
             return nil
