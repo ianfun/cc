@@ -18,7 +18,7 @@
 ## `runjit()` will run module.
 
 import std/[tables, exitprocs]
-import core, parser
+import core, parser, builtins
 
 
 type
@@ -93,14 +93,24 @@ const
   False*: Bool = 0
   True*: Bool = 1
 
-# llvm core
+# LLVM Core
 include llvm/Types
 include llvm/Support
 include llvm/Error
 include llvm/Core
 
+#LLVMParseBitcodeInContext
+include llvm/BitReader
+
+# LLVMParseIRInContext
+include llvm/IRReader
+
 # writing LLVM IR
+# writeBitcodeToFile
 include llvm/BitWriter
+
+# LLVMLinkModules2
+include llvm/Linker
 
 # verifyModule
 include llvm/Analysis
@@ -118,7 +128,54 @@ include llvm/LLJIT
 
 #  initializeNativeTarget
 #  initializeNativeAsmPrinter
-include LLVMTarget
+# include LLVMTarget
+
+proc setModuleDataLayout*(m: ModuleRef; dl: TargetDataRef) {.
+    importc: "LLVMSetModuleDataLayout".}
+proc createTargetData*(stringRep: cstring): TargetDataRef {.
+    importc: "LLVMCreateTargetData".}
+proc disposeTargetData*(td: TargetDataRef) {.importc: "LLVMDisposeTargetData",
+.}
+proc addTargetLibraryInfo*(tli: TargetLibraryInfoRef; pm: PassManagerRef) {.
+    importc: "LLVMAddTargetLibraryInfo".}
+proc copyStringRepOfTargetData*(td: TargetDataRef): cstring {.
+    importc: "LLVMCopyStringRepOfTargetData".}
+proc byteOrder*(td: TargetDataRef): ByteOrdering {.importc: "LLVMByteOrder",
+.}
+proc pointerSize*(td: TargetDataRef): cuint {.importc: "LLVMPointerSize",
+.}
+proc pointerSizeForAS*(td: TargetDataRef; `as`: cuint): cuint {.
+    importc: "LLVMPointerSizeForAS".}
+proc intPtrType*(td: TargetDataRef): TypeRef {.importc: "LLVMIntPtrType",
+.}
+proc intPtrTypeForAS*(td: TargetDataRef; `as`: cuint): TypeRef {.
+    importc: "LLVMIntPtrTypeForAS".}
+proc intPtrTypeInContext*(c: ContextRef; td: TargetDataRef): TypeRef {.
+    importc: "LLVMIntPtrTypeInContext".}
+proc intPtrTypeForASInContext*(c: ContextRef; td: TargetDataRef; `as`: cuint): TypeRef {.
+    importc: "LLVMIntPtrTypeForASInContext".}
+proc sizeOfTypeInBits*(td: TargetDataRef; ty: TypeRef): culonglong {.
+    importc: "LLVMSizeOfTypeInBits".}
+proc storeSizeOfType*(td: TargetDataRef; ty: TypeRef): culonglong {.
+    importc: "LLVMStoreSizeOfType".}
+proc aBISizeOfType*(td: TargetDataRef; ty: TypeRef): culonglong {.
+    importc: "LLVMABISizeOfType".}
+proc aBIAlignmentOfType*(td: TargetDataRef; ty: TypeRef): cuint {.
+    importc: "LLVMABIAlignmentOfType".}
+proc callFrameAlignmentOfType*(td: TargetDataRef; ty: TypeRef): cuint {.
+    importc: "LLVMCallFrameAlignmentOfType".}
+proc preferredAlignmentOfType*(td: TargetDataRef; ty: TypeRef): cuint {.
+    importc: "LLVMPreferredAlignmentOfType".}
+proc preferredAlignmentOfGlobal*(td: TargetDataRef; globalVar: ValueRef): cuint {.
+    importc: "LLVMPreferredAlignmentOfGlobal".}
+proc elementAtOffset*(td: TargetDataRef; structTy: TypeRef; offset: culonglong): cuint {.
+    importc: "LLVMElementAtOffset".}
+proc offsetOfElement*(td: TargetDataRef; structTy: TypeRef; element: cuint): culonglong {.
+  importc: "LLVMOffsetOfElement".}
+
+proc nimLLVMinit*() {.importc: "LLVMNimInit".}
+
+proc nimLLVMOptModule*(m: ModuleRef) {.importc: "LLVMNimOptModule".}
 
 proc typeOfX*(val: ValueRef): TypeRef {.importc: "LLVMTypeOf".}
 
@@ -226,16 +283,24 @@ type
       ctx*: ContextRef
       layout*: TargetDataRef
       topBreak*: Label
+      topTest*: Value
+      topdefaultCase*: Label
+      topSwitch*: Label
       topContinue*: Label
       target*: TargetRef
+      topCase*: Label
+
 
 var b*: Backend
 
 proc llvm_error*(msg: string) =
-  stderr.writeLine("llvm error: " & msg)
+  stderr.writeLine("LLVM ERROR: " & msg)
 
 proc llvm_error*(msg: cstring) =
-  stderr.write(msg)
+  if msg != nil:
+    stderr.write("LLVM ERROR: ")
+    stderr.write(msg)
+    stderr.write('\n')
 
 proc wrap*(ty: CType): Type
 
@@ -250,36 +315,37 @@ proc llvmGetsizeof*(ty: CType): culonglong =
 proc llvmGetOffsetof*(ty: CType, idx: int): culonglong =
   offsetOfElement(b.layout, wrap(ty), cuint(idx))
 
-proc newBackend*(module_name: string = "main", source_file: string = "main") =
-  initializeCore(getGlobalPassRegistry())
-  initializeNativeTarget()
-  initializeNativeAsmParser()
-  initializeNativeAsmPrinter()
-  initializeAllAsmParsers()
+proc newBackend*(module_name, source_file: string) =
+  #initializeCore(getGlobalPassRegistry())
+  #initializeNativeTarget()
+  #initializeNativeAsmParser()
+  #initializeNativeAsmPrinter()
+  #initializeAllAsmParsers()
+  nimLLVMinit()
   b = Backend(
     tsCtx: orcCreateNewThreadSafeContext(),
     builder: createBuilder()
   )
   b.ctx = orcThreadSafeContextGetContext(b.tsCtx)
-  contextSetDiscardValueNames(b.ctx, True)
-  contextSetOpaquePointers(b.ctx, if app.opaquePointerEnabled: True else: False)
+  if app.input == InputC:
+    contextSetDiscardValueNames(b.ctx, True)
   b.module = moduleCreateWithNameInContext(module_name, b.ctx)
   setSourceFileName(b.module, source_file, source_file.len.csize_t)
-  
 
 proc initTarget*() =
   var err: cstring
   if app.triple.len == 0:
     app.triple.add(getDefaultTargetTriple())
-  if getTargetFromTriple(app.triple.cstring, addr b.target, cast[cstringArray](err)) == True:
+  if getTargetFromTriple(app.triple.cstring, addr b.target, cast[cstringArray](addr err)) == True:
     llvm_error(err)
     app.triple = $getDefaultTargetTriple()
-    discard getTargetFromTriple(app.triple.cstring, addr b.target, cast[cstringArray](err))
+    discard getTargetFromTriple(app.triple.cstring, addr b.target, cast[cstringArray](addr err))
   b.machine = createTargetMachine(b.target, app.triple.cstring, "", "", CodeGenLevelAggressive, RelocPIC, CodeModelDefault)
   b.layout = createTargetDataLayout(b.machine)
   setModuleDataLayout(b.module, b.layout)
   setTarget(b.module, app.triple.cstring)
   app.pointersize = pointerSize(b.layout)
+  contextSetOpaquePointers(b.ctx, if app.opaquePointerEnabled: True else: False)
 
 proc dumpVersionInfo*() =
   var arr = [cstring("llvm"), cstring("--version")]
@@ -299,7 +365,7 @@ proc setBackend*() =
   app.getSizeof = llvmGetsizeof
   app.getoffsetof = llvmGetOffsetof
   app.getAlignOf = llvmGetAlignOf
-  newBackend()
+  initTarget()
 
 proc enterScope*() =
   ## not token.enterBlock
@@ -365,27 +431,56 @@ proc verify*() =
   var err: cstring
   discard verifyModule(b.module, PrintMessageAction, cast[cstringArray](addr err))
 
-proc writeModuleToFile*(path: string) =
-  var err: cstring = ""
-  if printModuleToFile(b.module, path, cast[cstringArray](addr err)) == True:
-    llvm_error("LLVMPrintModuleToFile")
+proc link*(dest, src: ModuleRef): bool =
+  ## return true when error
+  bool(linkModules2(dest, src))
+
+proc readBitcodeToModule*(path: cstring): ModuleRef =
+  var mem: MemoryBufferRef
+  var err: cstring
+  if createMemoryBufferWithContentsOfFile(path, addr mem, cast[cstringArray](addr err)) == True:
+    llvm_error(err)
+  if parseBitcodeInContext(b.ctx, mem, addr result, cast[cstringArray](addr err)) == True:
     llvm_error(err)
 
-proc writeBitcodeToFile*(path: string) =
-  if writeBitcodeToFile(b.module, path) != 0:
+proc readIRToModule*(path: cstring): ModuleRef =
+  var mem: MemoryBufferRef
+  var err: cstring
+  if createMemoryBufferWithContentsOfFile(path, addr mem, cast[cstringArray](addr err)) == True:
+    llvm_error(err)
+  if parseIRInContext(b.ctx, mem, addr result, cast[cstringArray](addr err)) == True:
+    llvm_error(err)
+
+proc writeModuleToFile*(path: string, m: ModuleRef) =
+  var err: cstring = ""
+  if printModuleToFile(m, path, cast[cstringArray](addr err)) == True:
+    llvm_error(err)
+
+proc writeModuleToFile*(path: string) =
+  writeModuleToFile(path, b.module)
+
+proc writeBitcodeToFile*(path: string, m: ModuleRef) =
+  if writeBitcodeToFile(m, path) != 0:
     llvm_error("LLVMWriteBitcodeToFile")
 
+proc writeBitcodeToFile*(path: string) =
+  writeBitcodeToFile(path, b.module)
+
+proc writeObjectFile*(path: string, m: ModuleRef) =
+  var err: cstring
+  if targetMachineEmitToFile(b.machine, m, path, ObjectFile, cast[cstringArray](addr err)) == True:
+    llvm_error(err)
+
 proc writeObjectFile*(path: string) =
-  var err: cstring = ""
-  if targetMachineEmitToFile(b.machine, b.module, path, ObjectFile, cast[cstringArray](addr err)) == True:
-    llvm_error("LLVMTargetMachineEmitToFile")
+  writeObjectFile(path, b.module)
+
+proc writeAssemblyFile*(path: string, m: ModuleRef) =
+  var err: cstring
+  if targetMachineEmitToFile(b.machine, m, path, AssemblyFile, cast[cstringArray](addr err)) == True:
     llvm_error(err)
 
 proc writeAssemblyFile*(path: string) =
-  var err: cstring = ""
-  if targetMachineEmitToFile(b.machine, b.module, path, AssemblyFile, cast[cstringArray](addr err)) == True:
-    llvm_error("LLVMTargetMachineEmitToFile")
-    llvm_error(err)
+  writeAssemblyFile(path, b.module)
 
 proc close_backend*() =
   disposeBuilder(b.builder)
@@ -437,6 +532,8 @@ proc gen_str*(val: string, ty: var Type): Value =
   setGlobalConstant(result, True)
   setLinkage(result, PrivateLinkage)
   setInitializer(result, gstr)
+  setAlignment(result, 1)
+  setUnnamedAddr(result, 1)
 
 proc gen_str_ptr*(val: string): Value =
   var ty: Type
@@ -452,11 +549,15 @@ proc backendint*(): Type =
     else:
       int64TypeInContext(b.ctx)
 
-proc load*(p: Value, t: Type): Value =
-  buildLoad2(b.builder, t, p, "load")
+proc load*(p: Value, t: Type, align: uint32 = 0): Value =
+  result = buildLoad2(b.builder, t, p, "")
+  if align != 0:
+    setAlignment(result, align.cuint)
 
-proc store*(p: Value, v: Value) =
-  discard buildStore(b.builder, v, p)
+proc store*(p: Value, v: Value, align: uint32 = 0) =
+  var s = buildStore(b.builder, v, p)
+  if align != 0:
+    setAlignment(s, align.cuint)
 
 proc wrap2*(ty: CType): Type =
   case ty.spec:
@@ -713,6 +814,52 @@ proc gen_if*(test: Expr, body: Stmt, elsebody: Stmt) =
 
   positionBuilderAtEnd(b.builder, ifend)
 
+proc gen_switch*(test: Expr, body: Stmt) =
+  var old_switch = b.topSwitch
+  var old_break = b.topBreak
+  var old_test = b.topTest
+  var old_case = b.topCase
+  var old_default = b.topdefaultCase
+
+  b.topTest = gen(test)
+  b.topBreak = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  b.topSwitch = getInsertBlock(b.builder)
+  b.topCase = nil
+  b.topdefaultCase = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  gen(body)
+  if b.topCase != nil:
+    discard buildBr(b.builder, b.topBreak)
+  positionBuilderAtEnd(b.builder, b.topSwitch)
+  discard buildBr(b.builder, b.topdefaultCase)
+  positionBuilderAtEnd(b.builder, b.topBreak)
+
+  b.topdefaultCase = old_default
+  b.topCase = old_case
+  b.topTest = old_test
+  b.topBreak = old_break
+  b.topSwitch = old_switch
+
+proc gen_case*(test: Expr, body: Stmt) =
+  var thiscase = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  if b.topCase != nil:
+    discard buildBr(b.builder, thiscase)
+  b.topCase = thiscase
+  positionBuilderAtEnd(b.builder, b.topSwitch)
+  let lhs = gen(test)
+  let rhs = b.topTest
+  let cond = buildICmp(b.builder, IntEQ, lhs, rhs, "")
+  b.topSwitch = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  discard buildCondBr(b.builder, cond, thiscase, b.topSwitch)
+  positionBuilderAtEnd(b.builder, thiscase)
+  gen(body)
+
+proc gen_default*(body: Stmt) =
+  if b.topCase != nil:
+    discard buildBr(b.builder, b.topdefaultCase)
+  b.topCase = b.topdefaultCase
+  positionBuilderAtEnd(b.builder, b.topdefaultCase)
+  gen(body)
+
 proc gen_while*(test: Expr, body: Stmt) =
   var old_break = b.topBreak
   var old_continue = b.topContinue
@@ -966,23 +1113,29 @@ proc gen*(s: Stmt) =
   of SAsm:
     handle_asm(s.asms)
   of SSwitch:
-    unreachable()
+    gen_switch(s.test, s.body)
   of SDefault:
-    unreachable()
+    gen_default(s.default_stmt)
   of SCase:
-    unreachable()
+    gen_case(s.case_expr, s.case_stmt)
   of SVarDecl:
     # TODO: top-level fuction decl and def
     # TODO: global, extern handling
     for (name, varty, init) in s.vars:
+      var align = varty.align
       # https://llvm.org/docs/tutorial/MyFirstLanguageFrontend/LangImpl03.html#function-code-generation
       # code generation for function prototypes
-      if varty.spec == TYFUNCTION:
-        discard newFunction(varty, name)
+      if bool(varty.tags and TYTYPEDEF):
+        discard
+      elif varty.spec == TYFUNCTION:
+        if not is_builtin_name(name):
+          discard newFunction(varty, name)
       else:
         var ty = wrap(varty)
         if b.currentfunction == nil:
           var g = addGlobal(b.module, ty, cstring(name))
+          if align != 0:
+            setAlignment(g, align)
           if init == nil:
             setInitializer(g, constNull(ty))
           else:
@@ -1004,11 +1157,19 @@ proc gen*(s: Stmt) =
           # setLinkage(g, CommonLinkage)
           putVar(name, g)
         else:
-          var val = buildAlloca(b.builder, ty, cstring(name))
-          if init != nil:
-            let initv = gen(init)
-            store(val, initv)
-          putVar(name, val)
+          if align != 0:
+            var val = buildAlloca(b.builder, ty, cstring(name))
+            setAlignment(val, align)
+            if init != nil:
+              let initv = gen(init)
+              store(val, initv, align)
+            putVar(name, val)
+          else:
+            var val = buildAlloca(b.builder, ty, cstring(name))
+            if init != nil:
+              let initv = gen(init)
+              store(val, initv)
+            putVar(name, val)
   of SVarDecl1:
     unreachable()
 
@@ -1025,6 +1186,16 @@ proc incl*(p: Value, t: Type) =
   var l2 = buildAdd(b.builder, l, constInt(t, 1.culonglong, False), "")
   store(p, l2)
 
+proc incl*(p: Value, t: Type, align: uint32) =
+  var l = load(p, t, align)
+  var l2 = buildAdd(b.builder, l, constInt(t, 1.culonglong, False), "")
+  store(p, l2, align)
+
+proc decl*(p: Value, t: Type, align: uint32) =
+  var l = load(p, t, align)
+  var l2 = buildSub(b.builder, l, constInt(t, 1.culonglong, False), "")
+  store(p, l2, align)
+
 proc decl*(p: Value, t: Type) =
   var l = load(p, t)
   var l2 = buildSub(b.builder, l, constInt(t, 1.culonglong, False), "")
@@ -1035,23 +1206,20 @@ proc getAddress*(e: Expr): Value =
   case e.k:
   of EVar:
     getVar(e.sval)
-  of EPointerMemberAccess:
-    var basep = gen(e.obj)
-    var r = constInt(int32Type(), e.idx.culonglong, False)
-    buildInBoundsGEP2(b.builder, pointerType(wrap(e.ty), 0), basep, addr r, 1, "")
-  of EMemberAccess:
-    var basep = getAddress(e.obj)
-    var r = constInt(int32Type(), e.idx.culonglong, False)
-    buildInBoundsGEP2(b.builder, pointerType(wrap(e.ty), 0), basep, addr r, 1, "")
+  of EPointerMemberAccess, EMemberAccess:
+    var basep = if e.k == EMemberAccess: getAddress(e.obj) else: gen(e.obj)
+    var r = [constInt(int64TypeInContext(b.ctx), 0, False), constInt(int32TypeInContext(b.ctx), e.idx.culonglong, False)]
+    var ty = wrap(e.obj.ty)
+    buildInBoundsGEP2(b.builder, ty, basep, addr r[0], 2, "")
   of EPostFix:
     case e.pop:
     of PostfixIncrement:
       var basep = getAddress(e.poperand)
-      incl(basep, wrap(e.ty))
+      incl(basep, wrap(e.ty), e.poperand.ty.align)
       basep
     of PostfixDecrement:
       var basep = getAddress(e.poperand)
-      decl(basep, wrap(e.ty))
+      decl(basep, wrap(e.ty), e.poperand.ty.align)
       basep
   of ESubscript:
     assert e.left.ty.spec == TYPOINTER # the left must be a pointer
@@ -1059,13 +1227,10 @@ proc getAddress*(e: Expr): Value =
     var v = getAddress(e.left) # lookup lvalue
     var basep = load(v, ty) # load address in lvalue
     var r = gen(e.right) # get index
-    buildInBoundsGEP2(b.builder, pointerType(ty, 0), basep, addr r, 1, "")
+    buildInBoundsGEP2(b.builder, ty, basep, addr r, 1, "")
   else:
     unreachable()
     nil
-
-proc getPointerElementType*(t: Type): Type =
-  getElementType(t)
 
 proc gen*(e: Expr): Value =
   case e.k:
@@ -1084,10 +1249,11 @@ proc gen*(e: Expr): Value =
     var r = gen(e.right) # get index
     var gaddr = buildInBoundsGEP2(b.builder, pointerType(ty, 0), basep, addr r, 1, "")
     load(gaddr, ty) # return lvalue
-  of EMemberAccess:
-    buildExtractValue(b.builder, gen(e.obj), e.idx.cuint, "")
-  of EPointerMemberAccess:
-    load(getAddress(e), wrap(e.ty))
+  of EMemberAccess, EPointerMemberAccess:
+    var base = gen(e.obj)
+    if e.k == EPointerMemberAccess:
+      base = load(base, wrap(e.obj.ty), e.obj.ty.align)
+    buildExtractValue(b.builder, base, e.idx.cuint, "")
   of EString:
     gen_str_ptr(e.str)
   of EBackend:
@@ -1097,8 +1263,8 @@ proc gen*(e: Expr): Value =
     of Assign:
       var v = gen(e.rhs)
       let basep = getAddress(e.lhs)
-      store(basep, v)
-      load(basep, wrap(e.ty))
+      store(basep, v, e.lhs.ty.align)
+      load(basep, wrap(e.ty), e.lhs.ty.align)
     of SAdd:
       var l = gen(e.lhs)
       var r = gen(e.rhs)
@@ -1147,7 +1313,7 @@ proc gen*(e: Expr): Value =
     of FNeg: buildFNeg(b.builder, gen(e.uoperand), "")
     of Not: buildNot(b.builder, gen(e.uoperand), "")
     of AddressOf: getAddress(e.uoperand)
-    of PrefixIncrement: 
+    of PrefixIncrement:
       var ty = wrap(e.ty)
       let basep = getAddress(e.uoperand)
       var l = load(basep, ty)
@@ -1167,16 +1333,17 @@ proc gen*(e: Expr): Value =
     case e.pop:
     of PostfixIncrement:
       var basep = getAddress(e.poperand)
-      incl(basep, wrap(e.ty))
-      load(basep, wrap(e.ty))
+      var a = e.poperand.ty.align
+      incl(basep, wrap(e.ty), a)
+      load(basep, wrap(e.ty), a)
     of PostfixDecrement:
       var basep = getAddress(e.poperand)
-      decl(basep, wrap(e.ty))
-      load(basep, wrap(e.ty))
+      var a = e.poperand.ty.align
+      decl(basep, wrap(e.ty), a)
+      load(basep, wrap(e.ty), a)
   of EVar:
     var pvar = getVar(e.sval)
-    assert pvar != nil
-    load(pvar, wrap(e.ty))
+    load(pvar, wrap(e.ty), e.ty.align)
   of ECondition:
     gen_condition(e.cond, e.cleft, e.cright)
   of ECast:
@@ -1189,15 +1356,19 @@ proc gen*(e: Expr): Value =
   of ECall:
     var ty = wrap(e.callfunc.ty)
     var f = getAddress(e.callfunc)
-    var l = len(e.callargs)
-    var args = create(Value, l or 1)
-    var arr = cast[ptr UncheckedArray[Value]](args)
-    for i in 0 ..< l:
-      arr[i] = gen(e.callargs[i]) # eval argument from left to right
-    var res = buildCall2(b.builder, ty, f, args, l.cuint, "")
-    dealloc(args)
-    setTailCall(res, True)
-    res
+    if f == nil:
+      llvm_error("connot find function")
+      nil
+    else:
+      var l = len(e.callargs)
+      var args = create(Value, l or 1)
+      var arr = cast[ptr UncheckedArray[Value]](args)
+      for i in 0 ..< l:
+        arr[i] = gen(e.callargs[i]) # eval argument from left to right
+      var res = buildCall2(b.builder, ty, f, args, l.cuint, "")
+      dealloc(args)
+      setTailCall(res, True)
+      res
   of EStruct:
     var ty = wrap(e.ty)
     if len(e.arr) == 0:
@@ -1233,10 +1404,10 @@ proc gen_cast*(e: Expr, to: CType, op: CastOp): Value =
   buildCast(b.builder, getCastOp(op), c, wrap(to), "")
 
 proc jit_error*(msg: string) =
-  stderr.writeLine("llvm jit error: " & msg)
+  stderr.writeLine("LLVM JIT ERROR: " & msg)
 
 proc jit_error*(msg: cstring) =
-  stderr.write("llvm jit error: ")
+  stderr.write("LLVM JIT ERROR: ")
   stderr.writeLine(msg)
 
 proc jit_error*(err: ErrorRef) =

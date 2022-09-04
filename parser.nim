@@ -28,9 +28,44 @@ import stream, core
 import std/[math, tables, sets]
 from std/sequtils import count
 
+const type_specifier_set* = {
+    Kchar, Kint, Kshort, Ksigned, 
+    Kunsigned, 
+    Klong, Kdouble, Kfloat,
+    K_Atomic,
+    K_Complex, Kvoid, K_Bool
+} ## primitive types
+
+
+const function_specifier_set* = {
+    Kinline, K_Noreturn
+} ## function specfiers
+
+
+const storage_class_specifier_set* = {
+    Ktypedef, Kextern, Kstatic, 
+    K_Thread_local, Kauto, Kregister
+} ## storage specfiers
+
+
+const type_qualifier_set* = {
+     Kvolatile, Krestrict, Kconst
+} ## type qualifiers
+
+
+const declaration_specifier_set* = 
+    type_specifier_set +
+    storage_class_specifier_set +
+    type_qualifier_set +
+    function_specifier_set ## declaration specfiers
+
+proc compatible*(p, expected: CType): bool
+
 type
     Parser* = ref object
-      currentfunctionRet*, currentInitTy*: CType
+      currentfunctionRet*, currentInitTy*, currentCase*: CType
+      pfunc*: string
+      currentAlign*: uint32
       fstack*: seq[Stream]
       filenamestack*, pathstack*: seq[string]
       locstack*: seq[Location]
@@ -47,9 +82,9 @@ type
       ok*: bool
       onces*, expansion_list*: HashSet[string]
       # 6.2.3 Name spaces of identifiers
-      lables*: seq[TableRef[string, (int, Location)]]
-      tags*: seq[TableRef[string, (CType, Location)]]
-      typedefs*: seq[TableRef[string, (CType, Location)]]
+      lables*: seq[HashSet[string]]
+      tags*: seq[TableRef[string, Info]]
+      typedefs*: seq[TableRef[string, Info]]
       tokenq*: seq[TokenV]
       counter*: int
       retTy*: CType # current return type
@@ -61,9 +96,11 @@ type
 var p*: Parser = nil
 
 proc parse_error*(msg: string) =
-    p.tok = TokenV(tok: TNul, tags: TVNormal)
+    # p.tok = TokenV(tok: TNul, tags: TVNormal)
     if p.parse_error == false:
-      stderr.writeLine("\e[34m" & p.filename & ": " & $p.line & '.' & $p.col & ": parse error: " & msg & "\e[0m")
+      stderr.writeLine("\e[34m" & p.filename & ":" & $p.line & '.' & $p.col & ": parse error: " & msg & "\e[0m")
+      if p.fstack.len > 0:
+          printSourceLine(p.fstack[^1], p.line)
       p.parse_error = true
 
 proc setParser*(a: var Parser) =
@@ -71,6 +108,7 @@ proc setParser*(a: var Parser) =
 
 proc getParser*(): var Parser = 
   p
+
 
 proc binop*(a: Expr, op: BinOP, b: Expr, ty: CType): Expr = 
     ## construct a binary operator
@@ -165,13 +203,16 @@ proc note*(msg: string) =
 
 proc error*(msg: string) =
     if p.bad_error == false:
-      stderr.writeLine("\e[31m" & p.filename & ": " & $p.line & '.' & $p.col & ": error: " & msg & "\e[0m")
+      stderr.writeLine("\e[31m" & p.filename & ":" & $p.line & '.' & $p.col & ": error: " & msg & "\e[0m")
+      if p.fstack.len > 0:
+          printSourceLine(p.fstack[^1], p.line)
       p.bad_error = true
 
 proc type_error*(msg: string) =
-    if p.type_error == false:
-      stderr.writeLine("\e[35m" & p.filename & ": " & $p.line & '.' & $p.col & ": type error: " & msg & "\e[0m")
-      p.type_error = true
+    stderr.writeLine("\e[35m" & p.filename & ":" & $p.line & '.' & $p.col & ": type error: " & msg & "\e[0m")
+    if p.fstack.len > 0:
+        printSourceLine(p.fstack[^1], p.line)
+    p.type_error = true
 
 proc error_incomplete*(ty: CType) =
   let s = if ty.tag == TYSTRUCT:  "struct" else: (if ty.tag == TYUNION: "union" else: "enum")
@@ -179,7 +220,25 @@ proc error_incomplete*(ty: CType) =
 
 proc inTheExpression*(e: Expr) =
     ## emit in the expression message
-    parse_error("in the expression " & $e)
+    parse_error("in the expression '" & $e & '\'')
+
+proc enterBlock*() =
+  p.typedefs.add(newTable[string, typeof(p.typedefs[0][""])]())
+  p.tags.add(newTable[string, typeof(p.tags[0][""])]())
+  p.lables.add(initHashSet[string]())
+
+proc isTopLevel(): bool =
+    p.typedefs.len == 1
+
+proc leaveBlock*() =
+  if isTopLevel() == false:
+    for (name, i) in p.typedefs[^1].pairs():
+      if not bool(i.tag and INFO_USED):
+          warningPlain("declared but not used: " & name)
+          note("declared at " & $i.loc)
+  discard p.typedefs.pop()
+  discard p.tags.pop()
+  discard p.lables.pop()
 
 proc reset*() =
   p.bad_error = false
@@ -195,25 +254,27 @@ proc reset*() =
   p.lastc = 256
   p.flags = PFNormal
   p.ok = true
-  p.pathstack.setLen 0
-  p.ppstack.setLen 0
-  p.fstack.setLen 0
-  p.filenamestack.setLen 0
-  p.locstack.setLen 0
-  p.macros.clear()
-  p.filename.setLen 0
-  p.path.setLen 0
-  p.onces.clear()
-  p.expansion_list.clear()
-  p.tags.setLen 0
-  p.typedefs.setLen 0
-  p.lables.setLen 0
-  p.tags.add(newTable[string, typeof(p.tags[0][""])]())
-  p.typedefs.add(newTable[string, typeof(p.typedefs[0][""])]())
-  p.lables.add(newTable[string, typeof(p.lables[0][""])]())
-  p.tokenq.setLen 0
+  #p.pathstack.setLen 0
+  #p.ppstack.setLen 0
+  #p.fstack.setLen 0
+  #p.filenamestack.setLen 0
+  #p.locstack.setLen 0
+  #p.macros.clear()
+  #p.filename.setLen 0
+  #p.path.setLen 0
+  #p.onces.clear()
+  #p.lables.clear()
+  #p.expansion_list.clear()
+  #p.tags.setLen 0
+  #p.typedefs.setLen 0
+  #p.lables.setLen 0
+  #p.tokenq.setLen 0
+  enterBlock()
   for (name, v) in getDefines():
     p.macros[name] = PPMacro(tokens: v, flags: MOBJ)
+
+proc finishParsing() =
+    leaveBlock()
 
 proc addString*(s: string, filename: string) =
   p.fstack.add(newStringStream(s))
@@ -263,114 +324,138 @@ proc closeParser*() =
   for fd in p.fstack:
     fd.close()
 
-proc getTag(name: string): (CType, Location) =
+proc getTag(name: string): Info =
   for i in countdown(len(p.tags)-1, 0):
-    result = p.tags[i].getOrDefault(name, (nil, Location()))
-    if result[0] != nil:
+    result = p.tags[i].getOrDefault(name, nil)
+    if result != nil:
+      result.tag = result.tag or INFO_USED
       return result
 
-proc gettypedef*(name: string): (CType, Location) =
+proc gettypedef*(name: string): Info =
   for i in countdown(len(p.typedefs)-1, 0):
-    result = p.typedefs[i].getOrDefault(name, (nil, Location()))
-    if result[0] != nil:
+    result = p.typedefs[i].getOrDefault(name, nil)
+    if result != nil:
+      result.tag = result.tag or INFO_USED
       return result
 
-proc getLabel*(name: string): (int, Location) =
+proc hasLabel*(name: string): bool =
   for i in countdown(len(p.lables)-1, 0):
-    result = p.lables[i].getOrDefault(name, (-1, Location()))
-    if result[0] != -1:
-      return result
-  return (-1, Location())
+    if name in p.lables[i]:
+        return true
+  return false
 
 proc putLable*(name: string, t: int) =
-    let (l, loc) = getLabel(name)
-    if  l != -1:
+    if hasLabel(name):
       error("duplicate label: " & name)
-      note(name & "was defined at " & $loc)
       return
-    p.lables[^1][name] = (t, Location(line: p.line, col: p.col))
+    p.lables[^1].incl name
 
 proc getstructdef*(name: string): CType =
-    let res = getTag(name)
-    result = res[0]
-    if result == nil:
+    var r = getTag(name)
+    if r == nil:
         result = CType(tags: TYINVALID, spec: TYINCOMPLETE, tag: TYSTRUCT, name: name)
-    elif result.spec != TYSTRUCT:
+    elif r.ty.spec != TYSTRUCT:
         type_error(name & " is not a struct")
+    else:
+        result = r.ty
 
 proc putstructdef*(t: CType) =
-    let (o, loc) = getTag(t.sname)
+    let o = getTag(t.sname)
     if o != nil:
         error("struct " & t.sname & " aleady defined")
-        note(o.sname & "was defined at " & $loc)
+        note(t.sname & "was defined at " & $o.loc)
     else:
-        p.tags[^1][t.sname] = (t, Location(line: p.line, col: p.col))
+        p.tags[^1][t.sname] = Info(ty: t, loc: Location(line: p.line, col: p.col))
 
 proc getenumdef*(name: string): CType =
-    let res = getTag(name)
-    result = res[0]
-    if result == nil:
+    let r = getTag(name)
+    if r == nil:
         result = CType(tags: TYINVALID, spec: TYINCOMPLETE, tag: TYENUM, name: name)
-    elif result.spec != TYENUM:
+    elif r.ty.spec != TYENUM:
         type_error(name & " is not a enum")
+    else:
+        result = r.ty
 
 proc putenumdef*(t: CType) =
-    let (o, loc) = getTag(t.ename)
+    let o = getTag(t.ename)
     if o != nil:
         error("enum " & t.ename & " aleady defined")
-        note(o.ename & "was defined at " & $loc)
+        note(t.ename & "was defined at " & $o.loc)
     else:
-        p.tags[^1][t.ename] = (t, Location(line: p.line, col: p.col))
+        p.tags[^1][t.ename] = Info(ty: t, loc: Location(line: p.line, col: p.col))
 
 proc getuniondef*(name: string): CType =
-    let res = getTag(name)
-    result = res[0]
-    if result == nil:
+    let r = getTag(name)
+    if r == nil:
         result = CType(tags: TYINVALID, spec: TYINCOMPLETE, tag: TYUNION, name: name)
-    elif result.spec != TYUNION:
+    elif r.ty.spec != TYUNION:
         type_error(name & " is not a union")
+    else:
+        result = r.ty
 
 proc putuniondef*(t: CType) =
     let o = getTag(t.sname)
-    if o[0] != nil:
+    if o != nil:
         error("`union` " & t.sname & " aleady defined")
-        note(o[0].sname & "was defined at " & $o[1])
+        note(t.sname & "was defined at " & $o.loc)
     else:
-        p.tags[^1][t.sname] = (t, Location(line: p.line, col: p.col))
+        p.tags[^1][t.sname] = Info(ty: t, loc: Location(line: p.line, col: p.col))
 
 proc getsymtype*(name: string): CType =
-  result = gettypedef(name)[0]
+  let o = gettypedef(name)
+  if o == nil:
+    nil
+  else:
+    o.ty
+
+proc putsymtype3*(name: string, t: CType) =
+  let ty = getsymtype(name)
+  if ty != nil:
+    type_error("function " & name & " redefined")
+  p.typedefs[^1][name] = Info(ty: t, loc: Location(line: p.line, col: p.col))
+
+proc putsymtype2*(name: string, t: CType) =
+  let ty = getsymtype(name)
+  if ty != nil:
+    if not compatible(t, ty):
+        type_error("conflicting types for '" & name &  "'")
+  p.typedefs[^1][name] = Info(ty: t, loc: Location(line: p.line, col: p.col))
 
 # typedef, symbol
 proc putsymtype*(name: string, t: CType) =
+  if t.spec == TYFUNCTION:
+    putsymtype2(name, t)
+    return
   let ty = getsymtype(name)
   if ty != nil:
-    error(name & " redeclared")
+    type_error(name & " redeclared")
     return
-  p.typedefs[^1][name] = (t, Location(line: p.line, col: p.col))
-
-proc enterBlock*() =
-  p.typedefs.add(newTable[string, typeof(p.typedefs[0][""])]())
-  p.tags.add(newTable[string, typeof(p.tags[0][""])]())
-  p.lables.add(newTable[string, typeof(p.lables[0][""])]())
-
-proc leaveBlock*() =
-  discard p.typedefs.pop()
-  discard p.tags.pop()
-  discard p.lables.pop()
+  p.typedefs[^1][name] = Info(ty: t, loc: Location(line: p.line, col: p.col))
 
 proc checkOnce*(filename: string): bool =
     return p.onces.contains(filename)
 
+proc istype(a: Token): bool =
+    if a in (declaration_specifier_set + {Kstruct, Kenum, Kunion, K_Alignas}):
+        return true
+    if a == TIdentifier:
+      let o = gettypedef(p.tok.s)
+      return o != nil and (o.ty.tags and TYTYPEDEF) != 0
+    return false
+
 proc addOnce*() =
     p.onces.incl p.path
 
-proc addInclude*(filename: string): bool =
+proc addInclude*(filename: string, isInclude: bool) =
     if checkOnce(filename) == true:
-        return true
+        return
     let s = newFileStream(filename)
     if s == nil:
-        return false
+        core.error()
+        perror(filename)
+        if isInclude:
+            note("in the #include directive")
+        return
     p.fstack.add(s)
     p.filenamestack.add(p.filename)
     p.pathstack.add(p.path)
@@ -379,7 +464,7 @@ proc addInclude*(filename: string): bool =
     p.path = filename
     p.line = 1
     p.col = 1
-    return true
+
 
 proc putToken*() = 
     p.tokenq.add(p.tok)
@@ -635,7 +720,34 @@ proc conv*(a, b: var Expr) =
 
 
 proc compatible*(p, expected: CType): bool =
-    true
+    ## https://en.cppreference.com/w/c/language/type
+    if p.spec != expected.spec:
+        return false
+    else:
+        case p.spec:
+        of TYPRIM:
+            return (p.tags and prim) == (expected.tags and prim)
+        of TYFUNCTION:
+            if not compatible(p.ret, expected.ret):
+                return false
+            for i in 0..<len(p.params):
+                if p.params[i][1] == nil:                    
+                    break
+                if expected.params[i][1] == nil:
+                    break
+                if not compatible(p.params[i][1], expected.params[i][1]):
+                    return false
+            return true
+        of TYSTRUCT, TYENUM, TYUNION:
+            return cast[pointer](p) == cast[pointer](expected)
+        of TYPOINTER:
+            return compatible(p.p, expected.p)
+        of TYINCOMPLETE:
+            return p.tag == expected.tag and p.name == expected.name
+        of TYBITFIELD:
+            unreachable()
+        of TYARRAY:
+            return compatible(p.arrtype, expected.arrtype)
 
 proc default_argument_promotions*(e: Expr): Expr =
     if bool(e.ty.tags and TYFLOAT):
@@ -906,44 +1018,12 @@ proc consume*() =
     app.cpp()
 
 
-const type_specifier_set* = {
-    Kchar, Kint, Kshort, Ksigned, 
-    Kunsigned, 
-    Klong, Kdouble, Kfloat,
-    K_Atomic,
-    K_Complex, Kvoid, K_Bool
-} ## primitive types
-
-
-const function_specifier_set* = {
-    Kinline, K_Noreturn
-} ## function specfiers
-
-
-const storage_class_specifier_set* = {
-    Ktypedef, Kextern, Kstatic, 
-    K_Thread_local, Kauto, Kregister
-} ## storage specfiers
-
-
-const type_qualifier_set* = {
-     Kvolatile, Krestrict, Kconst
-} ## type qualifiers
-
-
-const declaration_specifier_set* = 
-    type_specifier_set +
-    storage_class_specifier_set +
-    type_qualifier_set +
-    function_specifier_set ## declaration specfiers
-
 proc addTag(ty: var CType, t: Token): bool =
     ## add a tag to type
     let t = (
         case t:
         of Kinline: TYINLINE
         of K_Noreturn: TYNORETURN
-        of K_Alignas: TYALIGNAS
         of Kextern: TYEXTERN
         of Kstatic: TYSTATIC
         of K_Thread_local: TYTHREAD_LOCAL
@@ -1123,10 +1203,15 @@ proc handle_typedef(s: var seq[Token], ty: CType): CType =
     while p.tok.tok in declaration_specifier_set:
         s.add(p.tok.tok)
         consume()
+    result = deepCopy(ty)
     if len(s) > 0:
-        if Ktypedef in s:
-            return ty
-        warning("typedef types cannot combine with type-specifier and type-qualifiers")
+        for i in s:
+            case i:
+            of Ktypedef:
+                return result
+            else:
+                if not addTag(result, i):
+                    warning("typedef types cannot combine with type-specifier and type-qualifiers")
     result = deepCopy(ty)
     result.tags = ty.tags and (not TYTYPEDEF)
     return result
@@ -1174,10 +1259,10 @@ proc specifier_qualifier_list*(): CType =
             s.add(p.tok.tok)
             consume()
     if p.tok.tok == TIdentifier:
-        let ty = gettypedef(p.tok.s)[0]
-        more(s)
-        if ty != nil and (ty.tags and TYTYPEDEF) != 0:
-            return handle_typedef(s, ty)
+        let o = gettypedef(p.tok.s)
+        if o != nil and (o.ty.tags and TYTYPEDEF) != 0:
+            more(s)
+            return handle_typedef(s, o.ty)
     if s.len > 0:
         return merge_types(s)
     return nil
@@ -1251,7 +1336,7 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
     case p.tok.tok:
     of TLSquareBrackets: # int arr[5], int arr[*], int arr[static 5], int arr[static const 5], int arr[const static 5], int arr2[static const restrict 5]
         consume() # eat ]
-        var ty = CType(tags: TYINVALID, spec: TYARRAY, arrsize: -1, arrtype: base)
+        var ty = CType(tags: TYINVALID, spec: TYARRAY, arrsize: 0, arrtype: base)
         if p.tok.tok == TMul: # int arr[*]
           consume()
           if p.tok.tok != TRSquareBrackets:
@@ -1288,13 +1373,22 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
                 ty.params = res[1]
             else:
                 return nil
-        if p.tok.tok != TRbracket:
-            expectRB()
-            return nil
+            if p.tok.tok != TRbracket:
+                expectRB()
+                return nil
+        else:
+            ty.params.add(("", nil))
         consume()
         if p.tok.tok == TLcurlyBracket: # function definition
+            putsymtype3(name, ty)
+            p.pfunc = name
             for (name, vty) in ty.params:
+                if vty == nil:
+                    break
                 putsymtype(name, vty)
+            if not isTopLevel():
+                parse_error("function definition is not allowed here")
+                note("function can only declared in global scope")
             var body: Stmt
             block:
                 var oldRet = p.currentfunctionRet
@@ -1304,10 +1398,22 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
             if body == nil:
                 expect("function body")
                 return nil
+            if name == "main":
+                if not bool(ty.ret.tags and TYINT):
+                    type_error("main should return 'int'")
+                if ty.params.len >= 1:
+                    if ty.params[0][1] != nil and (not bool(ty.params[0][1].tags and TYINT)):
+                        type_error("first parameter of 'main' should be of type 'int'")
+                    if ty.params.len >= 2:
+                        if ty.params[1][1] != nil and (not (ty.params[1][1].spec == TYPOINTER and ty.params[1][1].p.spec == TYPOINTER)):
+                            type_error("second parameter of 'main' should be has type 'char**'(pointer to char array)")
             if len(body.stmts) == 0 or (body.stmts[^1].k != SReturn and body.stmts[^1].k != SGoto):
-                if bool(ty.ret.tags and TYVOID):
+                if not bool(ty.ret.tags and TYVOID):
                     warning("no 'return' statement in a function should return a value")
-                body.stmts &= Stmt(k: SReturn, exprbody: if bool(ty.ret.tags and TYVOID): nil else: Expr(k: EDefault, ty: ty.ret))
+                    note("in the function definition: '" & name & '\'')
+                body.stmts &= Stmt(k: SReturn, exprbody: if bool(ty.ret.tags and TYVOID): nil else: 
+                    (if name == "main": Expr(k: EDefault, ty: ty.ret) else: Expr(k: EUndef, ty: ty.ret))
+                )
             return Stmt(funcname: name, k: SFunction, functy: ty, funcbody: body)
         return direct_declarator_end(ty, name)
     else:
@@ -1362,6 +1468,7 @@ proc struct_union*(t: Token): CType =
     else:
         result = CType(tags: TYINVALID, spec: TYUNION, sname: name)
     consume()
+    var names: HashSet[string] = initHashSet[string]()
     if p.tok.tok != TRcurlyBracket:
         while true:
             if p.tok.tok == K_Static_assert:
@@ -1386,6 +1493,10 @@ proc struct_union*(t: Token): CType =
                     if e[1] == nil:
                         parse_error("expect struct-declarator")
                         return nil
+                    if e[0] in names:
+                        type_error("duplicate member " & e[0])
+                        note("in the declaration of struct/union '" & result.sname & '\'')
+                    names.incl(e[0])
                     result.selems.add(e)
                     if p.tok.tok == TComma:
                         consume()
@@ -1457,6 +1568,9 @@ proc penum*(): CType =
 proc parameter_type_list*(): (bool, seq[(string, CType)]) =
     result = (true, default(typeof(result[1])))
     while true:
+        if not istype(p.tok.tok):
+            type_error("expect a type")
+            return (false, default(typeof(result[1])))
         var base = declaration_specifiers()
         if base == nil:
             return (false, default(typeof(result[1])))
@@ -1478,36 +1592,53 @@ proc parameter_type_list*(): (bool, seq[(string, CType)]) =
         elif p.tok.tok == TRbracket:
             break
 
-proc istype(a: Token): bool =
-    if a in (declaration_specifier_set + {Kstruct, Kenum, Kunion}):
-        return true
-    if a == TIdentifier:
-      let ty = gettypedef(p.tok.s)[0]
-      return ty != nil and (ty.tags and TYTYPEDEF) != 0
-    return false
+proc checkAlign(a: uint32) =
+    if (a and (a - 1)) != 0:
+        type_error("requested alignment is not a power of 2")
+
+proc parse_alignas*(): bool =
+    consume()
+    if p.tok.tok != TLbracket:
+        expectLB()
+        return false
+    consume()
+    if istype(p.tok.tok):
+        let (ty, isf) = type_name()
+        discard isf
+        var a = uint32(getAlignof(ty))
+        if a == 0:
+            type_error("zero alignment is not valid")
+        else:
+            checkAlign(a)
+            p.currentAlign = a
+    else:
+        let e = expression()
+        if e == nil:
+            expectExpression()
+            return false
+        var a = app.eval_const_expression(e)
+        if a <= 0:
+            type_error("alignment " & $a &  " too small")
+        else:
+            checkAlign(uint32(a))
+            p.currentAlign = uint32(a)
+    if p.tok.tok != TRbracket:
+        expectRB()
+        return false
+    consume()
+    return true
 
 proc declaration_specifiers*(): CType =
     ## declaration_specfier is used in function and variable declaration/definition
     var s: seq[Token]
-    while p.tok.tok in (declaration_specifier_set + {Kstruct, Kenum, Kunion}):
+    var should_return = false
+    while p.tok.tok in (declaration_specifier_set + {Kstruct, Kenum, Kunion, K_Alignas}):
         if p.tok.tok == Kenum:
             result = penum()
-            more(s)
-            for i in s:
-                if i == Ktypedef:
-                    result.tags = result.tags or TYTYPEDEF
-                    continue
-                read_enum_sepcs(result, i)
-            return result
+            should_return = true
         elif p.tok.tok == Kunion or p.tok.tok == Kstruct:
             result = struct_union(p.tok.tok)
-            more(s)
-            for i in s:
-                if i == Ktypedef:
-                    result.tags = result.tags or TYTYPEDEF
-                    continue
-                read_struct_union_sepcs(result, i)
-            return result
+            should_return = true
         elif p.tok.tok == K_Atomic:
             consume()
             if p.tok.tok == TLbracket:
@@ -1525,18 +1656,27 @@ proc declaration_specifiers*(): CType =
                     warning("atomic-type-specifier cannot combine with other types")
                 return ty[0]
             s.add(K_Atomic)
+        elif p.tok.tok == K_Alignas:
+            if not parse_alignas():
+                return nil
         else:
             s.add(p.tok.tok)
             consume()
+    if should_return:
+        for i in s:
+            if i == Ktypedef:
+                result.tags = result.tags or TYTYPEDEF
+                continue
+        return result
     if p.tok.tok == TIdentifier:
-        let ty = gettypedef(p.tok.s)[0]
-        more(s)
-        if ty != nil and (ty.tags and TYTYPEDEF) != 0:
-            return handle_typedef(s, ty)
+        let o = gettypedef(p.tok.s)
+        if o != nil and (o.ty.tags and TYTYPEDEF) != 0:
+            more(s)
+            return handle_typedef(s, o.ty)
     if s.len > 0:
         return merge_types(s)
     warning("type defaults to 'int' in declaration")
-    return CType(tags: TYINVALID or TYINT, spec: TYPRIM)
+    return CType(tags: TYINT, spec: TYPRIM)
 
 proc parse_asm*(): Stmt =
    consume() # eat asm
@@ -1633,15 +1773,24 @@ proc declaration*(): Stmt =
     if p.tok.tok == K_Static_assert:
         return static_assert()
     block:
+        p.currentAlign = 0
         var base = declaration_specifiers()
         if base == nil:
             expect("declaration-specifiers")
             return nil
+        if p.currentAlign > 0:
+            var m = getAlignof(base)
+            if p.currentAlign < m:
+                type_error("requested alignment is less than minimum alignment of " & $m & " for type '" & $base & "'")
+            else:
+                base.align = p.currentAlign
         if p.tok.tok == TSemicolon:
             if base.spec notin {TYSTRUCT, TYUNION, TYENUM}:
                 warning("declaration does not declare anything")
                 note("add a variable name in the declaration")
             consume()
+            if base.align != 0:
+                type_error("'_Alignas' can only used in variables")
             return Stmt(k: SDeclOnly, decl: base)
         result = Stmt(k: SVarDecl)
         while true:
@@ -1652,7 +1801,6 @@ proc declaration*(): Stmt =
             if st.k == SFunction:
                 # function has not lvalue
                 checkRetType(st.functy)
-                putsymtype(st.funcname, st.functy)
                 return st
             assert st.k == SVarDecl1
             if st.var1type.spec == TYINCOMPLETE:
@@ -2240,8 +2388,10 @@ proc primary_expression*(): Expr =
         consume()
     of TIdentifier:
         if p.want_expr:
-            result = Expr(k: EIntLit, ival: 0, ty: CType(tags: TYINT, spec: TYPRIM))  
-        else: 
+            result = Expr(k: EIntLit, ival: 0, ty: CType(tags: TYINT, spec: TYPRIM))
+        elif p.tok.s == "__func__":
+            result = Expr(k: EString, str: p.pfunc, ty: CType(tags: TYCONST, spec: TYPOINTER, p: CType(tags: TYCHAR, spec: TYPRIM)))
+        else:
             let ty = getsymtype(p.tok.s)
             if ty == nil:
                 type_error("symbol not found: " & p.tok.s)
@@ -2312,7 +2462,7 @@ proc primary_expression*(): Expr =
                 return nil
             if tname == nil:
                 defaults = e
-            elif tname.tags == testty.tags and tname.spec == testty.spec:
+            elif compatible(tname, testty):
                 if result != nil:
                     type_error("more then one compatible types in Generic expression")
                     return nil
@@ -2426,11 +2576,12 @@ proc postfix_expression*(): Expr =
                 for j in i ..< len(args):
                     args[j] = default_argument_promotions(args[j])
                 break
-            if not compatible(args[i].ty, expected=params[i][1]):
-                type_error("function call type incompatible: in argument " & $i & " of calling function " & $f)
+            var a = castto(args[i], params[i][1])
+            if a == nil:
                 note("expected " & $params[i] & " but argument is of type " & $args[i].ty)
+                note("in argument " & $i & " of calling function " & $f)
                 return nil
-            args[i] = castto(args[i], params[i][1])
+            args[i] = a
             inc i
         return Expr(k: ECall, callfunc: f, callargs: args, ty: ty.ret)
     of TLSquareBrackets: # array subscript
@@ -2760,7 +2911,6 @@ proc translation_unit*(): Stmt =
            s = declaration()
         if s == nil:
           break
-        echo s
         result.stmts.add(s)
 
 proc runParser*(): Stmt =
@@ -2768,7 +2918,8 @@ proc runParser*(): Stmt =
     ##
     ## never return nil, return a compound statement
     consume()
-    return translation_unit()
+    result = translation_unit()
+    finishParsing()
 
 proc compound_statement*(): Stmt =
     ## parse mant statements
@@ -2805,7 +2956,7 @@ proc statament*(): Stmt =
         return compound_statement()
     elif p.tok.tok == Kcase:
         consume()
-        let e = constant_expression()
+        var e = constant_expression()
         if e == nil:
             expect("constant-expression")
             return nil
@@ -2817,7 +2968,7 @@ proc statament*(): Stmt =
         if s == nil:
             expectStatement()
             return nil
-        return Stmt(k: Scase, case_expr: e, case_stmt: s)
+        return Stmt(k: Scase, case_expr: castto(e, p.currentCase), case_stmt: s)
     elif p.tok.tok == Kdefault:
         consume()
         if p.tok.tok != TColon:
@@ -2835,15 +2986,13 @@ proc statament*(): Stmt =
             note("the syntax is:\n\tgoto label;")
             return nil
         var location = p.tok.s
-        let l = getLabel(location)[0]
+        if not hasLabel(location):
+            type_error("undeclared label " & location)
         consume()
         if p.tok.tok != TSemicolon:
             parse_error("expect ';'")
             return nil
         consume()
-        if l == -1:
-            type_error("undeclared label " & location)
-            return nil
         return Stmt(k: SGoto, location: location)
     elif p.tok.tok == Kcontinue:
         consume()
@@ -2922,7 +3071,7 @@ proc statament*(): Stmt =
             expectLB()
             return nil
         consume()
-        let e = expression()
+        var e = expression()
         if e == nil:
             expectExpression()
             return nil
@@ -2932,14 +3081,21 @@ proc statament*(): Stmt =
             expectRB()
             return nil
         consume()
+        if tok == Kswitch:
+            integer_promotions(e)
+            var oldcase = p.currentCase
+            p.currentCase = e.ty
+            let s = statament()
+            if s == nil:
+                expectStatement()
+                return nil
+            p.currentCase = oldcase
+            return Stmt(k: SSwitch, test: e, body: s)
         let s = statament()
         if s == nil:
             expectStatement()
             return nil
-        if tok == Kwhile:
-            return Stmt(k: SWhile, test: e, body: s)
-        else:
-            return Stmt(k: SSwitch, test: e, body: s)  
+        return Stmt(k: SWhile, test: e, body: s)
     elif p.tok.tok == Kfor:
         # this are valid in C
         # for(int a;;)                                                                                                                                          

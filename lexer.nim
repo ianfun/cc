@@ -718,9 +718,7 @@ proc nextTok*() =
                             parse_error("unexpected EOF, expect path or '\"'")
                             return
                         path.add(p.c)
-                    let r = addInclude(path)
-                    if not r:
-                        parse_error("include file not found: " & path)
+                    addInclude(path, true)
                 of '<':
                     while true:
                         eat()
@@ -732,9 +730,7 @@ proc nextTok*() =
                             parse_error("unexpected EOF, expect path or '>'")
                             return
                         path.add(p.c)
-                    let r = addInclude(path)
-                    if not r:
-                        parse_error("include file not found: " & path)
+                    addInclude(path, true)
                 else:
                     parse_error("expect \"FILENAME\" or <FILENAME>")
                     note("the syntax is:\n\t#include <path>\n\t#include \"path\"")

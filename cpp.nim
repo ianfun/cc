@@ -12,7 +12,7 @@ proc checkMacro()
 proc builtin_Pragma() =
   getToken()
   if p.tok.tok != TLbracket:
-      expect("')'")
+      expectLB()
       note("the syntax is:\n\t_Pragma(<string>)")
   else:
       getToken()
@@ -23,7 +23,7 @@ proc builtin_Pragma() =
           var pra = p.tok.s
           getToken()
           if p.tok.tok != TRbracket:
-              expect("')'")
+              expectRB()
           else:
               echo "pragma: ", pra
               getToken()

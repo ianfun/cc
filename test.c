@@ -1,7 +1,10 @@
-int printf(const char*, ...);
-
-int main(){
-    for(int i=0;i<10;++i){
-        printf("%d\n", i); 
-    }
+int x(){
+	return 22;
 }
+
+
+int x(){
+	return 3;
+
+}
+

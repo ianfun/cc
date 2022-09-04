@@ -1,9 +1,9 @@
-* CLI interface
 * VLA, sizeof VLA in runtime
 * union
-* align of types
 * bitfield
 * support GCC __attribute__ 
+* variable align
+* struct align __attribute__((aligned(n)))
 * support GCC/MSCV pragmas
 * function with no prototype / vararg function
 * LLVMSetVolatile

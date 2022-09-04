@@ -1,0 +1,20 @@
+# __builtin_bit_cast 
+# __builtin_constant_p
+# uint128_t __builtin_bswap128 (__uint128_t x);
+
+const builtin_predef = """
+#define __builtin_LINE() __LINE__
+#define __builtin_FILE() __FILE__
+#define __builtin_FUNCTION() __func__
+void *__builtin_alloca (unsigned long long);
+void *__builtin_alloca_with_align (unsigned long long size, unsigned long long alignment);
+_Bool __builtin_is_constant_evaluated (void);
+long __builtin_expect (long exp, long c);
+long __builtin_expect_with_probability(long exp, long c, double probability);
+_Noreturn void __builtin_trap (void);
+_Noreturn void __builtin_unreachable (void);
+unsigned short __builtin_bswap16 (unsigned short x);
+unsigned __builtin_bswap32 (unsigned x);
+unsigned long long __builtin_bswap64 (unsigned long long x);
+double __builtin_inf (void);
+"""

@@ -10,6 +10,7 @@ type
       of StringStream, StdinStream:
         s: string
         i: int
+    fpos_t {.importc: "fpos_t", nodecl, header: "stdio.h".} = object
 
 proc fgetc(stream: Fd): cint {.importc, header: "stdio.h", nodecl.}
 
@@ -17,7 +18,59 @@ proc fclose(stream: Fd): cint {.importc, header: "stdio.h", nodecl.}
 
 proc fopen(filename, mode: cstring): Fd {.importc, header: "stdio.h", nodecl.}
 
-let EOF {.importc: "EOF", nodecl.} : cint
+proc fgetpos(stream: Fd, pos: ptr fpos_t): cint {.importc, header: "stdio.h", nodecl.}
+
+proc fsetpos(stream: Fd, pos: ptr fpos_t): cint {.importc, header: "stdio.h", nodecl.}
+
+proc fseek(stream: Fd, offset: clong, origin: cint): cint {.importc, header: "stdio.h", nodecl.}
+
+# proc ftell(stream: Fd): clong {.importc, header: "stdio.h", nodecl.}
+
+let 
+  EOF {.importc: "EOF", nodecl.} : cint
+  SEEK_CUR {.importc: "SEEK_CUR", nodecl.}: cint
+  #SEEK_END {.importc: "SEEK_END", nodecl.}: cint
+  #SEEK_SET {.importc: "SEEK_SET", nodecl.}: cint
+
+proc printSourceLine*(s: Stream, line: int) =
+    case s.k:
+    of StdinStream, StringStream:
+        discard
+    of FileStream:
+        var old: fpos_t
+        if fgetpos(s.fd, addr old) == 0 and fseek(s.fd, -2, SEEK_CUR) == 0:
+            var t = fgetc(s.fd)
+            if (t == '\n'.cint or t == '\r'.cint) and fseek(s.fd, -2, SEEK_CUR) == 0:
+                while true:
+                    let c = fgetc(s.fd)
+                    if c == EOF or c == '\n'.cint or c == '\r'.cint:
+                        break
+                    if fseek(s.fd, -2, SEEK_CUR) != 0:
+                        break
+            var off = 0
+            while true:
+                let c = fgetc(s.fd)
+                if c == EOF or c == '\n'.cint or c == '\r'.cint:
+                    break
+                if fseek(s.fd, -2, SEEK_CUR) != 0:
+                    discard fseek(s.fd, -1, SEEK_CUR)
+                    break
+                inc off
+            var f = $line
+            for i in 0..<(6-len(f)):
+                stderr.write(' ')
+            stderr.write(f)
+            stderr.write(" | ")
+            while true:
+                let c = fgetc(s.fd)
+                if c > 0xFF or c == '\n'.cint or c == '\r'.cint:
+                    break
+                stderr.write(char(c))
+            stderr.write("\n       | ")
+            for i in 0..<off:
+                stderr.write('~')
+            stderr.write("\e[32m^\e[0m\n")
+            discard fsetpos(s.fd, addr old)
 
 proc newStringStream*(s: string): Stream =
     result = Stream(k: StringStream, s: s, i: 0, lastc: 256)

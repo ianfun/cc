@@ -2,3 +2,4 @@
 #define myopor(a, b) ((a) || (b))
 #define myopnot(a) (!(a))
 #define myopneg(a) (-(a))
+#define myopsadd(a, b) ((a) + (b))

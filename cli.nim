@@ -1,5 +1,5 @@
 import os, core, parser
-from llvm import dumpVersionInfo
+import llvm
 
 var i = 0
 var options = commandLineParams()
@@ -12,8 +12,6 @@ proc get(): string =
   inc i
 
 type P = proc () {.nimcall.}
-
-proc perror(str: cstring) {.importc: "perror", header: "stdio.h".}
 
 proc system(command: cstring): cint {.importc: "system", header: "stdio.h".}
 # we use gcc to invoke linker instead of ld commandm which require a lot of commands
@@ -40,7 +38,7 @@ else:
         core.error()
         perror("execlp")
       else:
-        var status: cint
+        var status: cint = 0
         discard waitpid(pid, status, 0)
         if status != 0:
             core.error()
@@ -65,6 +63,21 @@ proc showVersion() =
 proc setStdin() =
   addStdin()
   app.output = "stdin"
+
+proc setInput(s: string) =
+  case s:
+  of "c", "C":
+    app.input = InputC
+  of "S", "s", "assembler", "asm", "Asm", "ASM":
+    app.input = InputAsm
+  of "ir", "IR":
+    app.input = InputIR
+  of "bc", "BC":
+    app.input = InputBC
+  else:
+    core.error()
+    stderr.write("unrecognized input language: " & s)
+    quit 0
 
 proc help()
 
@@ -97,10 +110,7 @@ var cliOptions = [
   ("O4", 0, proc () = app.optLevel = 3, " = O3"),
   ("Os", 0, proc () = app.sizeLevel = 1, "reduce code size"),
   ("Oz", 0, proc () = app.sizeLevel = 2, "reduce code size further"),
-  ("x", 1, cast[P](
-    proc (s: string) = 
-    if s != "c":
-      quit("only C is supported!")), "set input language(only C is supported!)")
+  ("x", 1, cast[P](setInput), "set input langauge")
 ]
 
 proc help() =
@@ -111,9 +121,9 @@ proc help() =
   showVersion()
 
 proc addFile(s: string) =
-  if addInclude(s) == false:
-    core.error()
-    perror(s)
+  addInclude(s, false)
+
+include "builtins.def"
 
 proc parseCLI*() =
   var inputs = false
@@ -148,6 +158,7 @@ proc parseCLI*() =
   if app.output.len == 0:
     i = name - 1
     app.output = get()
+  newBackend(app.output, app.output)
   case app.mode:
   of OutputLink:
     app.output &= (when defined(windows): ".exe" else: ".out")
@@ -161,3 +172,5 @@ proc parseCLI*() =
     app.output &= ".s"
   of OutputCheck:
     discard
+  setBackend()
+  addString(builtin_predef, "built-in")

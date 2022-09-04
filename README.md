@@ -35,7 +35,7 @@ CC is tested in Windows 64 bit/WSL Ubuntu, with LLVM-15 installed and use GNU ld
 build C++ API helper file
 
 ```bash
-g++ `llvm-config --cxxflags` `llvm-config --ldflags --libs all --system-libs` llvmAPI.cpp -c -o llvmAPI
+g++ -x c `llvm-config --cflags` `llvm-config --ldflags --libs all --system-libs` llvmAPI.c -c -o llvmAPI
 ```
 
 cc is main program of compiler
@@ -121,19 +121,35 @@ $ ./cc -jit test.c
 run program in JIT...
 ```
 
+## Cross Compiling in cc
+
+you can use `-target` command line option to cross compiling C program to a specific machine
+
+pass `-c` flag will not run linker
+
+for example, in WSL or Linux bash:
+
+```bash
+$ ./cc test.c -target x86_64-pc-windows-msvc -c # cross compiling from x86_64-pc-linux-gnu to x86_64-pc-windows-msvc
+$ /mnt/c/xxx/gcc.exe test.c.o # compile in windows gcc
+$ ./a.exe # run!
+$ ./cc test.c -target x86_64-pc-linux-gnu -c # cross compiling from xxx target to to x86_64-pc-linux-gnu
+$ ./a.out
+```
+
 ## LLVM API
 
 Build in **LLVM 15**, C-API
 
-other version will to compile because CC use [Opaque Pointers](https://llvm.org/docs/OpaquePointers.html) API.
+other version will to compile because cc use [Opaque Pointers](https://llvm.org/docs/OpaquePointers.html) API.
 
-for example, `LLVMpointerTypeInContext()`, `LLVMBuildLoad2()`, `LLVMConstInBoundsGEP2()`, `LLVMBuildCall2()` are used in CC.
+for example, `LLVMpointerTypeInContext()`, `LLVMBuildLoad2()`, `LLVMConstInBoundsGEP2()`, `LLVMBuildCall2()` are used in cc.
 
 However, you can disable opaque Pointer in command line options.(use `LLVMContextSetOpaquePointers()` to disable)
 
 ## JIT
 
-CC use LLVM JIT, by default, `main(argc, argv)` CC will call this function as program startup .
+cc use LLVM JIT, by default, `main(argc, argv)` cc will call this function as program startup .
 
 ## Contribute
 

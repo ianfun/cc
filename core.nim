@@ -9,6 +9,8 @@ type
     WError, WWarning, WNote, WVerbose
   Linker* = enum LLD, GCCLD
 
+proc perror*(str: cstring) {.importc: "perror", header: "stdio.h".}
+
 type
     CTypeSpec* = enum
       TYPRIM,
@@ -22,6 +24,7 @@ type
       TYINCOMPLETE
     CType* = ref object
       tags*: uint32
+      align*: uint32 # zero if use default (not specified)
       case spec*: CTypeSpec
       of TYPRIM:
         discard
@@ -51,10 +54,17 @@ type
 proc unreachable*() =
   assert false
 
+const 
+  INFO_USED* = 2
+
 type
   Location* = object
     line*: int
     col*: int
+  Info* = ref object
+    tag*: uint32
+    loc*: Location
+    ty*: CType
 
 type Token* = enum
   TNul=0, TNewLine=int('\n'),
@@ -185,14 +195,6 @@ const
   unsigned* = TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64
 
 type
-    CValueKind* = enum
-      VI, VF
-    CValue* = object
-      case k*: CValueKind
-      of VI:
-        i*: int64
-      of VF:
-        f*: float64
     PostfixOP* = enum
       PostfixIncrement="++", PostfixDecrement="--"
     UnaryOP* = enum
@@ -324,6 +326,7 @@ type
         var1type*: CType
       of SVarDecl:
         vars*: seq[(string, CType, Expr)]
+        # (name, type, init<opt>, align<opt>)
       of SDeclOnly:
         decl*: CType
     ExprKind* = enum
@@ -639,7 +642,6 @@ template init*(lexer, cpp, parser, eval, backend): untyped =
   setCpp()
   setParser()
   setEval()
-  setBackend()
 
 template shutdown*() =
   closeParser()
@@ -754,6 +756,8 @@ iterator getDefines*(): (string, seq[TokenV]) =
     yield ("__FreeBSD__", empty())
 
 type
+    Input* = enum
+      InputC, InputIR, InputBC, InputObject, InputBF, InputAsm
     Output* = enum
       OutputLink,
       OutputLLVMAssembly, OutputBitcode,
@@ -761,6 +765,7 @@ type
       OutputCheck
     CC*{.final.} = object
       ## command line options
+      input*: Input
       mode*: Output
       runJit*: bool
       optLevel*: cuint ## 0 = -O0, 1 = -O1, 2 = -O2, 3 = -O3
@@ -800,11 +805,16 @@ var app* = CC(
     verboseLevel: WNote,
     opaquePointerEnabled: true,
     mode: OutputLink,
+    input: InputC,
     output: "",
     triple: "",
     runJit: false,
     linker: GCCLD
 )
+
+proc warningPlain*(msg: string) =
+  if ord(app.verboseLevel) >= ord(WWarning):
+    stderr.writeLine("cc: \e[33m" & "warning: " & msg & "\e[0m")
 
 proc error*() =
   stderr.write("cc: \e[31merror\e[0m: ")

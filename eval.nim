@@ -29,18 +29,12 @@ proc evali*(e: Expr): intmax_t =
   case e.k:
   of EBin:
       case e.bop:
-      of SAdd:
+      of SAdd, UAdd:
         evali(e.lhs) + evali(e.rhs)
-      of SSub:
+      of SSub, USub:
         evali(e.lhs) - evali(e.rhs)
-      of SMul:
+      of SMul, UMul:
         evali(e.lhs) * evali(e.rhs)
-      of UAdd:
-        cast[intmax_t](cast[uintmax_t](evali(e.lhs)) + cast[uintmax_t](evali(e.rhs)))
-      of USub:
-        cast[intmax_t](cast[uintmax_t](evali(e.lhs)) - cast[uintmax_t](evali(e.rhs)))
-      of UMul:
-        cast[intmax_t](cast[uintmax_t](evali(e.lhs)) * cast[uintmax_t](evali(e.rhs)))
       of UDiv:
         cast[intmax_t](cast[uintmax_t](evali(e.lhs)) div cast[uintmax_t](evali(e.rhs)))
       of SDiv:
