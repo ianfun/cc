@@ -710,10 +710,18 @@ disposePassManager	llvm.html#disposePassManager,PassManagerRef	llvm: disposePass
 startMultithreaded	llvm.html#startMultithreaded	llvm: startMultithreaded(): Bool	
 stopMultithreaded	llvm.html#stopMultithreaded	llvm: stopMultithreaded()	
 isMultithreaded	llvm.html#isMultithreaded	llvm: isMultithreaded(): Bool	
+parseBitcode2	llvm.html#parseBitcode2,MemoryBufferRef,ptr.ModuleRef	llvm: parseBitcode2(memBuf: MemoryBufferRef; outModule: ptr ModuleRef): Bool	
+parseBitcodeInContext	llvm.html#parseBitcodeInContext,ContextRef,MemoryBufferRef,ptr.ModuleRef,cstringArray	llvm: parseBitcodeInContext(contextRef: ContextRef; memBuf: MemoryBufferRef;\n                      outModule: ptr ModuleRef; outMessage: cstringArray): Bool	
+parseBitcodeInContext2	llvm.html#parseBitcodeInContext2,ContextRef,MemoryBufferRef,ptr.ModuleRef	llvm: parseBitcodeInContext2(contextRef: ContextRef; memBuf: MemoryBufferRef;\n                       outModule: ptr ModuleRef): Bool	
+getBitcodeModuleInContext	llvm.html#getBitcodeModuleInContext,ContextRef,MemoryBufferRef,ptr.ModuleRef,cstringArray	llvm: getBitcodeModuleInContext(contextRef: ContextRef; memBuf: MemoryBufferRef;\n                          outM: ptr ModuleRef; outMessage: cstringArray): Bool	
+getBitcodeModuleInContext2	llvm.html#getBitcodeModuleInContext2,ContextRef,MemoryBufferRef,ptr.ModuleRef	llvm: getBitcodeModuleInContext2(contextRef: ContextRef; memBuf: MemoryBufferRef;\n                           outM: ptr ModuleRef): Bool	
+getBitcodeModule	llvm.html#getBitcodeModule,MemoryBufferRef,ptr.ModuleRef,cstringArray	llvm: getBitcodeModule(memBuf: MemoryBufferRef; outM: ptr ModuleRef;\n                 outMessage: cstringArray): Bool	
+getBitcodeModule2	llvm.html#getBitcodeModule2,MemoryBufferRef,ptr.ModuleRef	llvm: getBitcodeModule2(memBuf: MemoryBufferRef; outM: ptr ModuleRef): Bool	
 writeBitcodeToFD	llvm.html#writeBitcodeToFD,ModuleRef,cint,cint,cint	llvm: writeBitcodeToFD(m: ModuleRef; fd: cint; shouldClose: cint; unbuffered: cint): cint	
 writeBitcodeToFileHandle	llvm.html#writeBitcodeToFileHandle,ModuleRef,cint	llvm: writeBitcodeToFileHandle(m: ModuleRef; handle: cint): cint	
 writeBitcodeToFile	llvm.html#writeBitcodeToFile,ModuleRef,cstring	llvm: writeBitcodeToFile(m: ModuleRef; Path: cstring): cint	
 writeBitcodeToMemoryBuffer	llvm.html#writeBitcodeToMemoryBuffer,ModuleRef	llvm: writeBitcodeToMemoryBuffer(m: ModuleRef): MemoryBufferRef	
+linkModules2	llvm.html#linkModules2,ModuleRef,ModuleRef	llvm: linkModules2(dest: ModuleRef; src: ModuleRef): Bool	
 verifyModule	llvm.html#verifyModule,ModuleRef,VerifierFailureAction,cstringArray	llvm: verifyModule(m: ModuleRef; action: VerifierFailureAction;\n             outMessage: cstringArray): Bool	
 verifyFunction	llvm.html#verifyFunction,ValueRef,VerifierFailureAction	llvm: verifyFunction(fn: ValueRef; action: VerifierFailureAction): Bool	
 viewFunctionCFG	llvm.html#viewFunctionCFG,ValueRef	llvm: viewFunctionCFG(fn: ValueRef)	
@@ -902,115 +910,6 @@ orcLLJITGetObjLinkingLayer	llvm.html#orcLLJITGetObjLinkingLayer,OrcLLJITRef	llvm
 orcLLJITGetObjTransformLayer	llvm.html#orcLLJITGetObjTransformLayer,OrcLLJITRef	llvm: orcLLJITGetObjTransformLayer(j: OrcLLJITRef): OrcObjectTransformLayerRef	
 orcLLJITGetIRTransformLayer	llvm.html#orcLLJITGetIRTransformLayer,OrcLLJITRef	llvm: orcLLJITGetIRTransformLayer(j: OrcLLJITRef): OrcIRTransformLayerRef	
 orcLLJITGetDataLayoutStr	llvm.html#orcLLJITGetDataLayoutStr,OrcLLJITRef	llvm: orcLLJITGetDataLayoutStr(j: OrcLLJITRef): cstring	
-initializeAArch64TargetInfo	llvm.html#initializeAArch64TargetInfo	llvm: initializeAArch64TargetInfo()	
-initializeAMDGPUTargetInfo	llvm.html#initializeAMDGPUTargetInfo	llvm: initializeAMDGPUTargetInfo()	
-initializeARMTargetInfo	llvm.html#initializeARMTargetInfo	llvm: initializeARMTargetInfo()	
-initializeBPFTargetInfo	llvm.html#initializeBPFTargetInfo	llvm: initializeBPFTargetInfo()	
-initializeHexagonTargetInfo	llvm.html#initializeHexagonTargetInfo	llvm: initializeHexagonTargetInfo()	
-initializeLanaiTargetInfo	llvm.html#initializeLanaiTargetInfo	llvm: initializeLanaiTargetInfo()	
-initializeMipsTargetInfo	llvm.html#initializeMipsTargetInfo	llvm: initializeMipsTargetInfo()	
-initializeMSP430TargetInfo	llvm.html#initializeMSP430TargetInfo	llvm: initializeMSP430TargetInfo()	
-initializeNVPTXTargetInfo	llvm.html#initializeNVPTXTargetInfo	llvm: initializeNVPTXTargetInfo()	
-initializePowerPCTargetInfo	llvm.html#initializePowerPCTargetInfo	llvm: initializePowerPCTargetInfo()	
-initializeRISCVTargetInfo	llvm.html#initializeRISCVTargetInfo	llvm: initializeRISCVTargetInfo()	
-initializeSparcTargetInfo	llvm.html#initializeSparcTargetInfo	llvm: initializeSparcTargetInfo()	
-initializeSystemZTargetInfo	llvm.html#initializeSystemZTargetInfo	llvm: initializeSystemZTargetInfo()	
-initializeWebAssemblyTargetInfo	llvm.html#initializeWebAssemblyTargetInfo	llvm: initializeWebAssemblyTargetInfo()	
-initializeX86TargetInfo	llvm.html#initializeX86TargetInfo	llvm: initializeX86TargetInfo()	
-initializeXCoreTargetInfo	llvm.html#initializeXCoreTargetInfo	llvm: initializeXCoreTargetInfo()	
-initializeAVRTargetInfo	llvm.html#initializeAVRTargetInfo	llvm: initializeAVRTargetInfo()	
-initializeAArch64Target	llvm.html#initializeAArch64Target	llvm: initializeAArch64Target()	
-initializeAMDGPUTarget	llvm.html#initializeAMDGPUTarget	llvm: initializeAMDGPUTarget()	
-initializeARMTarget	llvm.html#initializeARMTarget	llvm: initializeARMTarget()	
-initializeBPFTarget	llvm.html#initializeBPFTarget	llvm: initializeBPFTarget()	
-initializeHexagonTarget	llvm.html#initializeHexagonTarget	llvm: initializeHexagonTarget()	
-initializeLanaiTarget	llvm.html#initializeLanaiTarget	llvm: initializeLanaiTarget()	
-initializeMipsTarget	llvm.html#initializeMipsTarget	llvm: initializeMipsTarget()	
-initializeMSP430Target	llvm.html#initializeMSP430Target	llvm: initializeMSP430Target()	
-initializeNVPTXTarget	llvm.html#initializeNVPTXTarget	llvm: initializeNVPTXTarget()	
-initializePowerPCTarget	llvm.html#initializePowerPCTarget	llvm: initializePowerPCTarget()	
-initializeRISCVTarget	llvm.html#initializeRISCVTarget	llvm: initializeRISCVTarget()	
-initializeSparcTarget	llvm.html#initializeSparcTarget	llvm: initializeSparcTarget()	
-initializeSystemZTarget	llvm.html#initializeSystemZTarget	llvm: initializeSystemZTarget()	
-initializeWebAssemblyTarget	llvm.html#initializeWebAssemblyTarget	llvm: initializeWebAssemblyTarget()	
-initializeX86Target	llvm.html#initializeX86Target	llvm: initializeX86Target()	
-initializeXCoreTarget	llvm.html#initializeXCoreTarget	llvm: initializeXCoreTarget()	
-initializeAVRTarget	llvm.html#initializeAVRTarget	llvm: initializeAVRTarget()	
-initializeAArch64TargetMC	llvm.html#initializeAArch64TargetMC	llvm: initializeAArch64TargetMC()	
-initializeAMDGPUTargetMC	llvm.html#initializeAMDGPUTargetMC	llvm: initializeAMDGPUTargetMC()	
-initializeARMTargetMC	llvm.html#initializeARMTargetMC	llvm: initializeARMTargetMC()	
-initializeBPFTargetMC	llvm.html#initializeBPFTargetMC	llvm: initializeBPFTargetMC()	
-initializeHexagonTargetMC	llvm.html#initializeHexagonTargetMC	llvm: initializeHexagonTargetMC()	
-initializeLanaiTargetMC	llvm.html#initializeLanaiTargetMC	llvm: initializeLanaiTargetMC()	
-initializeMipsTargetMC	llvm.html#initializeMipsTargetMC	llvm: initializeMipsTargetMC()	
-initializeMSP430TargetMC	llvm.html#initializeMSP430TargetMC	llvm: initializeMSP430TargetMC()	
-initializeNVPTXTargetMC	llvm.html#initializeNVPTXTargetMC	llvm: initializeNVPTXTargetMC()	
-initializePowerPCTargetMC	llvm.html#initializePowerPCTargetMC	llvm: initializePowerPCTargetMC()	
-initializeRISCVTargetMC	llvm.html#initializeRISCVTargetMC	llvm: initializeRISCVTargetMC()	
-initializeSparcTargetMC	llvm.html#initializeSparcTargetMC	llvm: initializeSparcTargetMC()	
-initializeSystemZTargetMC	llvm.html#initializeSystemZTargetMC	llvm: initializeSystemZTargetMC()	
-initializeWebAssemblyTargetMC	llvm.html#initializeWebAssemblyTargetMC	llvm: initializeWebAssemblyTargetMC()	
-initializeX86TargetMC	llvm.html#initializeX86TargetMC	llvm: initializeX86TargetMC()	
-initializeXCoreTargetMC	llvm.html#initializeXCoreTargetMC	llvm: initializeXCoreTargetMC()	
-initializeAVRTargetMC	llvm.html#initializeAVRTargetMC	llvm: initializeAVRTargetMC()	
-initializeAArch64AsmPrinter	llvm.html#initializeAArch64AsmPrinter	llvm: initializeAArch64AsmPrinter()	
-initializeAMDGPUAsmPrinter	llvm.html#initializeAMDGPUAsmPrinter	llvm: initializeAMDGPUAsmPrinter()	
-initializeARMAsmPrinter	llvm.html#initializeARMAsmPrinter	llvm: initializeARMAsmPrinter()	
-initializeBPFAsmPrinter	llvm.html#initializeBPFAsmPrinter	llvm: initializeBPFAsmPrinter()	
-initializeHexagonAsmPrinter	llvm.html#initializeHexagonAsmPrinter	llvm: initializeHexagonAsmPrinter()	
-initializeLanaiAsmPrinter	llvm.html#initializeLanaiAsmPrinter	llvm: initializeLanaiAsmPrinter()	
-initializeMipsAsmPrinter	llvm.html#initializeMipsAsmPrinter	llvm: initializeMipsAsmPrinter()	
-initializeMSP430AsmPrinter	llvm.html#initializeMSP430AsmPrinter	llvm: initializeMSP430AsmPrinter()	
-initializeNVPTXAsmPrinter	llvm.html#initializeNVPTXAsmPrinter	llvm: initializeNVPTXAsmPrinter()	
-initializePowerPCAsmPrinter	llvm.html#initializePowerPCAsmPrinter	llvm: initializePowerPCAsmPrinter()	
-initializeRISCVAsmPrinter	llvm.html#initializeRISCVAsmPrinter	llvm: initializeRISCVAsmPrinter()	
-initializeSparcAsmPrinter	llvm.html#initializeSparcAsmPrinter	llvm: initializeSparcAsmPrinter()	
-initializeSystemZAsmPrinter	llvm.html#initializeSystemZAsmPrinter	llvm: initializeSystemZAsmPrinter()	
-initializeWebAssemblyAsmPrinter	llvm.html#initializeWebAssemblyAsmPrinter	llvm: initializeWebAssemblyAsmPrinter()	
-initializeX86AsmPrinter	llvm.html#initializeX86AsmPrinter	llvm: initializeX86AsmPrinter()	
-initializeXCoreAsmPrinter	llvm.html#initializeXCoreAsmPrinter	llvm: initializeXCoreAsmPrinter()	
-initializeAVRAsmPrinter	llvm.html#initializeAVRAsmPrinter	llvm: initializeAVRAsmPrinter()	
-initializeAArch64AsmParser	llvm.html#initializeAArch64AsmParser	llvm: initializeAArch64AsmParser()	
-initializeAMDGPUAsmParser	llvm.html#initializeAMDGPUAsmParser	llvm: initializeAMDGPUAsmParser()	
-initializeARMAsmParser	llvm.html#initializeARMAsmParser	llvm: initializeARMAsmParser()	
-initializeBPFAsmParser	llvm.html#initializeBPFAsmParser	llvm: initializeBPFAsmParser()	
-initializeHexagonAsmParser	llvm.html#initializeHexagonAsmParser	llvm: initializeHexagonAsmParser()	
-initializeLanaiAsmParser	llvm.html#initializeLanaiAsmParser	llvm: initializeLanaiAsmParser()	
-initializeMipsAsmParser	llvm.html#initializeMipsAsmParser	llvm: initializeMipsAsmParser()	
-initializeMSP430AsmParser	llvm.html#initializeMSP430AsmParser	llvm: initializeMSP430AsmParser()	
-initializePowerPCAsmParser	llvm.html#initializePowerPCAsmParser	llvm: initializePowerPCAsmParser()	
-initializeRISCVAsmParser	llvm.html#initializeRISCVAsmParser	llvm: initializeRISCVAsmParser()	
-initializeSparcAsmParser	llvm.html#initializeSparcAsmParser	llvm: initializeSparcAsmParser()	
-initializeSystemZAsmParser	llvm.html#initializeSystemZAsmParser	llvm: initializeSystemZAsmParser()	
-initializeWebAssemblyAsmParser	llvm.html#initializeWebAssemblyAsmParser	llvm: initializeWebAssemblyAsmParser()	
-initializeX86AsmParser	llvm.html#initializeX86AsmParser	llvm: initializeX86AsmParser()	
-initializeAVRAsmParser	llvm.html#initializeAVRAsmParser	llvm: initializeAVRAsmParser()	
-initializeAArch64Disassembler	llvm.html#initializeAArch64Disassembler	llvm: initializeAArch64Disassembler()	
-initializeAMDGPUDisassembler	llvm.html#initializeAMDGPUDisassembler	llvm: initializeAMDGPUDisassembler()	
-initializeARMDisassembler	llvm.html#initializeARMDisassembler	llvm: initializeARMDisassembler()	
-initializeBPFDisassembler	llvm.html#initializeBPFDisassembler	llvm: initializeBPFDisassembler()	
-initializeHexagonDisassembler	llvm.html#initializeHexagonDisassembler	llvm: initializeHexagonDisassembler()	
-initializeLanaiDisassembler	llvm.html#initializeLanaiDisassembler	llvm: initializeLanaiDisassembler()	
-initializeMipsDisassembler	llvm.html#initializeMipsDisassembler	llvm: initializeMipsDisassembler()	
-initializeMSP430Disassembler	llvm.html#initializeMSP430Disassembler	llvm: initializeMSP430Disassembler()	
-initializePowerPCDisassembler	llvm.html#initializePowerPCDisassembler	llvm: initializePowerPCDisassembler()	
-initializeRISCVDisassembler	llvm.html#initializeRISCVDisassembler	llvm: initializeRISCVDisassembler()	
-initializeSparcDisassembler	llvm.html#initializeSparcDisassembler	llvm: initializeSparcDisassembler()	
-initializeSystemZDisassembler	llvm.html#initializeSystemZDisassembler	llvm: initializeSystemZDisassembler()	
-initializeWebAssemblyDisassembler	llvm.html#initializeWebAssemblyDisassembler	llvm: initializeWebAssemblyDisassembler()	
-initializeX86Disassembler	llvm.html#initializeX86Disassembler	llvm: initializeX86Disassembler()	
-initializeXCoreDisassembler	llvm.html#initializeXCoreDisassembler	llvm: initializeXCoreDisassembler()	
-initializeAVRDisassembler	llvm.html#initializeAVRDisassembler	llvm: initializeAVRDisassembler()	
-initializeAllTargetInfos	llvm.html#initializeAllTargetInfos	llvm: initializeAllTargetInfos()	
-initializeAllTargets	llvm.html#initializeAllTargets	llvm: initializeAllTargets()	
-initializeAllTargetMCs	llvm.html#initializeAllTargetMCs	llvm: initializeAllTargetMCs()	
-initializeAllAsmPrinters	llvm.html#initializeAllAsmPrinters	llvm: initializeAllAsmPrinters()	
-initializeAllAsmParsers	llvm.html#initializeAllAsmParsers	llvm: initializeAllAsmParsers()	
-LLVMInitializeAllDisassemblers	llvm.html#LLVMInitializeAllDisassemblers	llvm: LLVMInitializeAllDisassemblers()	
-initializeNativeTarget	llvm.html#initializeNativeTarget	llvm: initializeNativeTarget()	
-initializeNativeAsmParser	llvm.html#initializeNativeAsmParser	llvm: initializeNativeAsmParser()	
-initializeNativeAsmPrinter	llvm.html#initializeNativeAsmPrinter	llvm: initializeNativeAsmPrinter()	
-initializeNativeDisassembler	llvm.html#initializeNativeDisassembler	llvm: initializeNativeDisassembler()	
 setModuleDataLayout	llvm.html#setModuleDataLayout,ModuleRef,TargetDataRef	llvm: setModuleDataLayout(m: ModuleRef; dl: TargetDataRef)	
 createTargetData	llvm.html#createTargetData,cstring	llvm: createTargetData(stringRep: cstring): TargetDataRef	
 disposeTargetData	llvm.html#disposeTargetData,TargetDataRef	llvm: disposeTargetData(td: TargetDataRef)	
@@ -1032,6 +931,8 @@ preferredAlignmentOfType	llvm.html#preferredAlignmentOfType,TargetDataRef,TypeRe
 preferredAlignmentOfGlobal	llvm.html#preferredAlignmentOfGlobal,TargetDataRef,ValueRef	llvm: preferredAlignmentOfGlobal(td: TargetDataRef; globalVar: ValueRef): cuint	
 elementAtOffset	llvm.html#elementAtOffset,TargetDataRef,TypeRef,culonglong	llvm: elementAtOffset(td: TargetDataRef; structTy: TypeRef; offset: culonglong): cuint	
 offsetOfElement	llvm.html#offsetOfElement,TargetDataRef,TypeRef,cuint	llvm: offsetOfElement(td: TargetDataRef; structTy: TypeRef; element: cuint): culonglong	
+nimLLVMinit	llvm.html#nimLLVMinit	llvm: nimLLVMinit()	
+nimLLVMOptModule	llvm.html#nimLLVMOptModule,ModuleRef	llvm: nimLLVMOptModule(m: ModuleRef)	
 typeOfX	llvm.html#typeOfX,ValueRef	llvm: typeOfX(val: ValueRef): TypeRef	
 constIntIsZero	llvm.html#constIntIsZero,ValueRef	llvm: constIntIsZero(constantVal: ValueRef): Bool	
 `$`	llvm.html#$,ValueRef	llvm: `$`(v: ValueRef): string	
@@ -1113,7 +1014,8 @@ llvm_error	llvm.html#llvm_error,cstring	llvm: llvm_error(msg: cstring)
 llvmGetAlignOf	llvm.html#llvmGetAlignOf,CType	llvm: llvmGetAlignOf(ty: CType): culonglong	
 llvmGetsizeof	llvm.html#llvmGetsizeof,CType	llvm: llvmGetsizeof(ty: CType): culonglong	
 llvmGetOffsetof	llvm.html#llvmGetOffsetof,CType,int	llvm: llvmGetOffsetof(ty: CType; idx: int): culonglong	
-newBackend	llvm.html#newBackend,cstring,cstring	llvm: newBackend(module_name: cstring = &quot;main&quot;; source_file: cstring = nil)	
+newBackend	llvm.html#newBackend,string,string	llvm: newBackend(module_name, source_file: string)	
+initTarget	llvm.html#initTarget	llvm: initTarget()	
 dumpVersionInfo	llvm.html#dumpVersionInfo	llvm: dumpVersionInfo()	
 setBackend	llvm.html#setBackend	llvm: setBackend()	
 enterScope	llvm.html#enterScope	llvm: enterScope()	
@@ -1127,9 +1029,16 @@ putTags	llvm.html#putTags,string,Type	llvm: putTags(name: string; t: Type)
 shutdownBackend	llvm.html#shutdownBackend	llvm: shutdownBackend()	
 optimize	llvm.html#optimize	llvm: optimize()	
 verify	llvm.html#verify	llvm: verify()	
+link	llvm.html#link,ModuleRef,ModuleRef	llvm: link(dest, src: ModuleRef): bool	
+readBitcodeToModule	llvm.html#readBitcodeToModule,cstring	llvm: readBitcodeToModule(path: cstring): ModuleRef	
+readIRToModule	llvm.html#readIRToModule,cstring	llvm: readIRToModule(path: cstring): ModuleRef	
+writeModuleToFile	llvm.html#writeModuleToFile,string,ModuleRef	llvm: writeModuleToFile(path: string; m: ModuleRef)	
 writeModuleToFile	llvm.html#writeModuleToFile,string	llvm: writeModuleToFile(path: string)	
+writeBitcodeToFile	llvm.html#writeBitcodeToFile,string,ModuleRef	llvm: writeBitcodeToFile(path: string; m: ModuleRef)	
 writeBitcodeToFile	llvm.html#writeBitcodeToFile,string	llvm: writeBitcodeToFile(path: string)	
+writeObjectFile	llvm.html#writeObjectFile,string,ModuleRef	llvm: writeObjectFile(path: string; m: ModuleRef)	
 writeObjectFile	llvm.html#writeObjectFile,string	llvm: writeObjectFile(path: string)	
+writeAssemblyFile	llvm.html#writeAssemblyFile,string,ModuleRef	llvm: writeAssemblyFile(path: string; m: ModuleRef)	
 writeAssemblyFile	llvm.html#writeAssemblyFile,string	llvm: writeAssemblyFile(path: string)	
 close_backend	llvm.html#close_backend	llvm: close_backend()	
 gen_cond	llvm.html#gen_cond,Expr	llvm: gen_cond(a: Expr): Value	
@@ -1141,8 +1050,8 @@ gen_float	llvm.html#gen_float,float,uint32	llvm: gen_float(f: float; tag: uint32
 gen_str	llvm.html#gen_str,string,Type	llvm: gen_str(val: string; ty: var Type): Value	
 gen_str_ptr	llvm.html#gen_str_ptr,string	llvm: gen_str_ptr(val: string): Value	
 backendint	llvm.html#backendint	llvm: backendint(): Type	
-load	llvm.html#load,Value,Type	llvm: load(p: Value; t: Type): Value	
-store	llvm.html#store,Value,Value	llvm: store(p: Value; v: Value)	
+load	llvm.html#load,Value,Type,uint32	llvm: load(p: Value; t: Type; align: uint32 = 0): Value	
+store	llvm.html#store,Value,Value,uint32	llvm: store(p: Value; v: Value; align: uint32 = 0)	
 wrap2	llvm.html#wrap2,CType	llvm: wrap2(ty: CType): Type	
 wrap	llvm.html#wrap,CType	llvm: wrap(ty: CType): Type	
 getZero	llvm.html#getZero,CType	llvm: getZero(ty: CType): Value	
@@ -1152,6 +1061,9 @@ gen_condition	llvm.html#gen_condition,Expr,Value,Expr	llvm: gen_condition(test: 
 gen_condition	llvm.html#gen_condition,Expr,Expr,Value	llvm: gen_condition(test: Expr; lhs: Expr; rhs: Value): Value	
 gen_if	llvm.html#gen_if,Expr,Stmt	llvm: gen_if(test: Expr; body: Stmt)	
 gen_if	llvm.html#gen_if,Expr,Stmt,Stmt	llvm: gen_if(test: Expr; body: Stmt; elsebody: Stmt)	
+gen_switch	llvm.html#gen_switch,Expr,Stmt	llvm: gen_switch(test: Expr; body: Stmt)	
+gen_case	llvm.html#gen_case,Expr,Stmt	llvm: gen_case(test: Expr; body: Stmt)	
+gen_default	llvm.html#gen_default,Stmt	llvm: gen_default(body: Stmt)	
 gen_while	llvm.html#gen_while,Expr,Stmt	llvm: gen_while(test: Expr; body: Stmt)	
 gen_for	llvm.html#gen_for,Expr,Stmt,Stmt,Expr	llvm: gen_for(test: Expr; body: Stmt; sforinit: Stmt; eforincl: Expr)	
 gen_dowhile	llvm.html#gen_dowhile,Expr,Stmt	llvm: gen_dowhile(test: Expr; body: Stmt)	
@@ -1164,9 +1076,10 @@ gen	llvm.html#gen,Stmt	llvm: gen(s: Stmt)
 neZero	llvm.html#neZero,Expr	llvm: neZero(a: Expr): Expr	
 eqZero	llvm.html#eqZero,Expr	llvm: eqZero(a: Expr): Expr	
 incl	llvm.html#incl,Value,Type	llvm: incl(p: Value; t: Type)	
+incl	llvm.html#incl,Value,Type,uint32	llvm: incl(p: Value; t: Type; align: uint32)	
+decl	llvm.html#decl,Value,Type,uint32	llvm: decl(p: Value; t: Type; align: uint32)	
 decl	llvm.html#decl,Value,Type	llvm: decl(p: Value; t: Type)	
 getAddress	llvm.html#getAddress,Expr	llvm: getAddress(e: Expr): Value	
-getPointerElementType	llvm.html#getPointerElementType,Type	llvm: getPointerElementType(t: Type): Type	
 gen	llvm.html#gen,Expr	llvm: gen(e: Expr): Value	
 gen_cast	llvm.html#gen_cast,Expr,CType,CastOp	llvm: gen_cast(e: Expr; to: CType; op: CastOp): Value	
 jit_error	llvm.html#jit_error,string	llvm: jit_error(msg: string)	

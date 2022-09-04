@@ -1,3 +1,8 @@
+type_specifier_set	parser.html#type_specifier_set	parser: type_specifier_set	
+function_specifier_set	parser.html#function_specifier_set	parser: function_specifier_set	
+storage_class_specifier_set	parser.html#storage_class_specifier_set	parser: storage_class_specifier_set	
+type_qualifier_set	parser.html#type_qualifier_set	parser: type_qualifier_set	
+declaration_specifier_set	parser.html#declaration_specifier_set	parser: declaration_specifier_set	
 Parser	parser.html#Parser	parser: Parser	
 p	parser.html#p	parser: p	
 parse_error	parser.html#parse_error,string	parser: parse_error(msg: string)	
@@ -21,14 +26,16 @@ error	parser.html#error,string	parser: error(msg: string)
 type_error	parser.html#type_error,string	parser: type_error(msg: string)	
 error_incomplete	parser.html#error_incomplete,CType	parser: error_incomplete(ty: CType)	
 inTheExpression	parser.html#inTheExpression,Expr	parser: inTheExpression(e: Expr)	
+enterBlock	parser.html#enterBlock	parser: enterBlock()	
+leaveBlock	parser.html#leaveBlock	parser: leaveBlock()	
 reset	parser.html#reset	parser: reset()	
 addString	parser.html#addString,string,string	parser: addString(s: string; filename: string)	
 addStdin	parser.html#addStdin	parser: addStdin()	
 addFile	parser.html#addFile,File,string	parser: addFile(fd: File; filename: string)	
 addFile	parser.html#addFile,string	parser: addFile(filename: string)	
 closeParser	parser.html#closeParser	parser: closeParser()	
-gettypedef	parser.html#gettypedef,string	parser: gettypedef(name: string): (CType, Location)	
-getLabel	parser.html#getLabel,string	parser: getLabel(name: string): (int, Location)	
+gettypedef	parser.html#gettypedef,string	parser: gettypedef(name: string): Info	
+hasLabel	parser.html#hasLabel,string	parser: hasLabel(name: string): bool	
 putLable	parser.html#putLable,string,int	parser: putLable(name: string; t: int)	
 getstructdef	parser.html#getstructdef,string	parser: getstructdef(name: string): CType	
 putstructdef	parser.html#putstructdef,CType	parser: putstructdef(t: CType)	
@@ -37,12 +44,12 @@ putenumdef	parser.html#putenumdef,CType	parser: putenumdef(t: CType)
 getuniondef	parser.html#getuniondef,string	parser: getuniondef(name: string): CType	
 putuniondef	parser.html#putuniondef,CType	parser: putuniondef(t: CType)	
 getsymtype	parser.html#getsymtype,string	parser: getsymtype(name: string): CType	
+putsymtype3	parser.html#putsymtype3,string,CType	parser: putsymtype3(name: string; t: CType)	
+putsymtype2	parser.html#putsymtype2,string,CType	parser: putsymtype2(name: string; t: CType)	
 putsymtype	parser.html#putsymtype,string,CType	parser: putsymtype(name: string; t: CType)	
-enterBlock	parser.html#enterBlock	parser: enterBlock()	
-leaveBlock	parser.html#leaveBlock	parser: leaveBlock()	
 checkOnce	parser.html#checkOnce,string	parser: checkOnce(filename: string): bool	
 addOnce	parser.html#addOnce	parser: addOnce()	
-addInclude	parser.html#addInclude,string	parser: addInclude(filename: string): bool	
+addInclude	parser.html#addInclude,string,bool	parser: addInclude(filename: string; isInclude: bool)	
 putToken	parser.html#putToken	parser: putToken()	
 isprint	parser.html#isprint,cint	parser: isprint(a: cint): cint	
 hexs	parser.html#hexs	parser: hexs	
@@ -89,11 +96,6 @@ DeclaratorFlags	parser.html#DeclaratorFlags	parser: DeclaratorFlags
 abstract_decorator	parser.html#abstract_decorator.t,,	parser: abstract_decorator(base, f): untyped	
 postfix	parser.html#postfix,Expr,PostfixOP,CType	parser: postfix(e: Expr; op: PostfixOP; ty: CType): Expr	
 consume	parser.html#consume	parser: consume()	
-type_specifier_set	parser.html#type_specifier_set	parser: type_specifier_set	
-function_specifier_set	parser.html#function_specifier_set	parser: function_specifier_set	
-storage_class_specifier_set	parser.html#storage_class_specifier_set	parser: storage_class_specifier_set	
-type_qualifier_set	parser.html#type_qualifier_set	parser: type_qualifier_set	
-declaration_specifier_set	parser.html#declaration_specifier_set	parser: declaration_specifier_set	
 merge_types	parser.html#merge_types,seq[Token]	parser: merge_types(ts: seq[Token]): CType	
 type_qualifier_list	parser.html#type_qualifier_list,CType	parser: type_qualifier_list(ty: var CType)	
 read_enum_sepcs	parser.html#read_enum_sepcs,CType,Token	parser: read_enum_sepcs(c: var CType; sepc: Token)	
@@ -106,6 +108,7 @@ direct_declarator_end	parser.html#direct_declarator_end,CType,string	parser: dir
 struct_union	parser.html#struct_union,Token	parser: struct_union(t: Token): CType	
 penum	parser.html#penum	parser: penum(): CType	
 parameter_type_list	parser.html#parameter_type_list	parser: parameter_type_list(): (bool, seq[(string, CType)])	
+parse_alignas	parser.html#parse_alignas	parser: parse_alignas(): bool	
 declaration_specifiers	parser.html#declaration_specifiers	parser: declaration_specifiers(): CType	
 parse_asm	parser.html#parse_asm	parser: parse_asm(): Stmt	
 static_assert	parser.html#static_assert	parser: static_assert(): Stmt	

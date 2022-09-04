@@ -8,6 +8,7 @@ VerboseLevel	core.html#VerboseLevel	core: VerboseLevel
 LLD	core.html#LLD	Linker.LLD	
 GCCLD	core.html#GCCLD	Linker.GCCLD	
 Linker	core.html#Linker	core: Linker	
+perror	core.html#perror,cstring	core: perror(str: cstring)	
 TYPRIM	core.html#TYPRIM	CTypeSpec.TYPRIM	
 TYPOINTER	core.html#TYPOINTER	CTypeSpec.TYPOINTER	
 TYSTRUCT	core.html#TYSTRUCT	CTypeSpec.TYSTRUCT	
@@ -20,7 +21,9 @@ TYINCOMPLETE	core.html#TYINCOMPLETE	CTypeSpec.TYINCOMPLETE
 CTypeSpec	core.html#CTypeSpec	core: CTypeSpec	
 CType	core.html#CType	core: CType	
 unreachable	core.html#unreachable	core: unreachable()	
+INFO_USED	core.html#INFO_USED	core: INFO_USED	
 Location	core.html#Location	core: Location	
+Info	core.html#Info	core: Info	
 TNul	core.html#TNul	Token.TNul	
 TNewLine	core.html#TNewLine	Token.TNewLine	
 TSpace	core.html#TSpace	Token.TSpace	
@@ -183,10 +186,6 @@ TYSIZE_T	core.html#TYSIZE_T	core: TYSIZE_T
 prim	core.html#prim	core: prim	
 signed	core.html#signed	core: signed	
 unsigned	core.html#unsigned	core: unsigned	
-VI	core.html#VI	CValueKind.VI	
-VF	core.html#VF	CValueKind.VF	
-CValueKind	core.html#CValueKind	core: CValueKind	
-CValue	core.html#CValue	core: CValue	
 PostfixIncrement	core.html#PostfixIncrement	PostfixOP.PostfixIncrement	
 PostfixDecrement	core.html#PostfixDecrement	PostfixOP.PostfixDecrement	
 PostfixOP	core.html#PostfixOP	core: PostfixOP	
@@ -323,6 +322,7 @@ EArray	core.html#EArray	ExprKind.EArray
 EStruct	core.html#EStruct	ExprKind.EStruct	
 EBackend	core.html#EBackend	ExprKind.EBackend	
 EString	core.html#EString	ExprKind.EString	
+EUndef	core.html#EUndef	ExprKind.EUndef	
 EPointerMemberAccess	core.html#EPointerMemberAccess	ExprKind.EPointerMemberAccess	
 EMemberAccess	core.html#EMemberAccess	ExprKind.EMemberAccess	
 ArrToAddress	core.html#ArrToAddress	ExprKind.ArrToAddress	
@@ -351,6 +351,13 @@ unsafe_utf8_codepoint	core.html#unsafe_utf8_codepoint,cstring	core: unsafe_utf8_
 writeUTF8toUTF32	core.html#writeUTF8toUTF32,string	core: writeUTF8toUTF32(s: string): seq[Codepoint]	
 writeUTF8toUTF16	core.html#writeUTF8toUTF16,string	core: writeUTF8toUTF16(s: string): seq[uint16]	
 getDefines	core.html#getDefines.i	core: getDefines(): (string, seq[TokenV])	
+InputC	core.html#InputC	Input.InputC	
+InputIR	core.html#InputIR	Input.InputIR	
+InputBC	core.html#InputBC	Input.InputBC	
+InputObject	core.html#InputObject	Input.InputObject	
+InputBF	core.html#InputBF	Input.InputBF	
+InputAsm	core.html#InputAsm	Input.InputAsm	
+Input	core.html#Input	core: Input	
 OutputLink	core.html#OutputLink	Output.OutputLink	
 OutputLLVMAssembly	core.html#OutputLLVMAssembly	Output.OutputLLVMAssembly	
 OutputBitcode	core.html#OutputBitcode	Output.OutputBitcode	
@@ -360,5 +367,6 @@ OutputCheck	core.html#OutputCheck	Output.OutputCheck
 Output	core.html#Output	core: Output	
 CC	core.html#CC	core: CC	
 app	core.html#app	core: app	
+warningPlain	core.html#warningPlain,string	core: warningPlain(msg: string)	
 error	core.html#error	core: error()	
 verbose	core.html#verbose,string	core: verbose(msg: string)	

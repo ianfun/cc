@@ -70,7 +70,7 @@ window.addEventListener('DOMContentLoaded', main);
 <div class="document" id="documentId">
   <div class="container">
     <h1 class="title">Index</h1>
-    Modules: <a href="cli.html">cli</a>, <a href="core.html">core</a>, <a href="cpp.html">cpp</a>, <a href="eval.html">eval</a>, <a href="lexer.html">lexer</a>, <a href="llvm.html">llvm</a>, <a href="parser.html">parser</a>, <a href="stream.html">stream</a>.<br/><p /><h2>API symbols</h2>
+    Modules: <a href="builtins.html">builtins</a>, <a href="cli.html">cli</a>, <a href="core.html">core</a>, <a href="cpp.html">cpp</a>, <a href="eval.html">eval</a>, <a href="lexer.html">lexer</a>, <a href="llvm.html">llvm</a>, <a href="parser.html">parser</a>, <a href="stream.html">stream</a>.<br/><p /><h2>API symbols</h2>
 <dl><dt><a name="%60%24%60" href="#%60%24%60"><span>`$`:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="core: `$`(a: CType; level = 0): string" href="core.html#%24%2CCType%2Cint">core: `$`(a: CType; level = 0): string</a></li>
@@ -167,7 +167,7 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="addInclude" href="#addInclude"><span>addInclude:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="parser: addInclude(filename: string): bool" href="parser.html#addInclude%2Cstring">parser: addInclude(filename: string): bool</a></li>
+          data-doc-search-tag="parser: addInclude(filename: string; isInclude: bool)" href="parser.html#addInclude%2Cstring%2Cbool">parser: addInclude(filename: string; isInclude: bool)</a></li>
           </ul></dd>
 <dt><a name="addIncoming" href="#addIncoming"><span>addIncoming:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -1471,14 +1471,6 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="core: CTypeSpec" href="core.html#CTypeSpec">core: CTypeSpec</a></li>
           </ul></dd>
-<dt><a name="CValue" href="#CValue"><span>CValue:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="core: CValue" href="core.html#CValue">core: CValue</a></li>
-          </ul></dd>
-<dt><a name="CValueKind" href="#CValueKind"><span>CValueKind:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="core: CValueKind" href="core.html#CValueKind">core: CValueKind</a></li>
-          </ul></dd>
 <dt><a name="decimal16toInt" href="#decimal16toInt"><span>decimal16toInt:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="parser: decimal16toInt(s: string): int" href="parser.html#decimal16toInt%2Cstring">parser: decimal16toInt(s: string): int</a></li>
@@ -1494,6 +1486,8 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="decl" href="#decl"><span>decl:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: decl(p: Value; t: Type)" href="llvm.html#decl%2CValue%2CType">llvm: decl(p: Value; t: Type)</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="llvm: decl(p: Value; t: Type; align: uint32)" href="llvm.html#decl%2CValue%2CType%2Cuint32">llvm: decl(p: Value; t: Type; align: uint32)</a></li>
           </ul></dd>
 <dt><a name="declaration" href="#declaration"><span>declaration:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -1777,6 +1771,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="ExprKind.EUnary" href="core.html#EUnary">ExprKind.EUnary</a></li>
           </ul></dd>
+<dt><a name="EUndef" href="#EUndef"><span>EUndef:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="ExprKind.EUndef" href="core.html#EUndef">ExprKind.EUndef</a></li>
+          </ul></dd>
 <dt><a name="eval_error" href="#eval_error"><span>eval_error:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="eval: eval_error(msg: string)" href="eval.html#eval_error%2Cstring">eval: eval_error(msg: string)</a></li>
@@ -1965,6 +1963,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="llvm: gen_bool(val: bool): Value" href="llvm.html#gen_bool%2Cbool">llvm: gen_bool(val: bool): Value</a></li>
           </ul></dd>
+<dt><a name="gen_case" href="#gen_case"><span>gen_case:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: gen_case(test: Expr; body: Stmt)" href="llvm.html#gen_case%2CExpr%2CStmt">llvm: gen_case(test: Expr; body: Stmt)</a></li>
+          </ul></dd>
 <dt><a name="gen_cast" href="#gen_cast"><span>gen_cast:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: gen_cast(e: Expr; to: CType; op: CastOp): Value" href="llvm.html#gen_cast%2CExpr%2CCType%2CCastOp">llvm: gen_cast(e: Expr; to: CType; op: CastOp): Value</a></li>
@@ -1980,6 +1982,10 @@ window.addEventListener('DOMContentLoaded', main);
           data-doc-search-tag="llvm: gen_condition(test: Expr; lhs: Expr; rhs: Value): Value" href="llvm.html#gen_condition%2CExpr%2CExpr%2CValue">llvm: gen_condition(test: Expr; lhs: Expr; rhs: Value): Value</a></li>
           <li><a class="reference external"
           data-doc-search-tag="llvm: gen_condition(test: Expr; lhs: Value; rhs: Expr): Value" href="llvm.html#gen_condition%2CExpr%2CValue%2CExpr">llvm: gen_condition(test: Expr; lhs: Value; rhs: Expr): Value</a></li>
+          </ul></dd>
+<dt><a name="gen_default" href="#gen_default"><span>gen_default:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: gen_default(body: Stmt)" href="llvm.html#gen_default%2CStmt">llvm: gen_default(body: Stmt)</a></li>
           </ul></dd>
 <dt><a name="gen_dowhile" href="#gen_dowhile"><span>gen_dowhile:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -2014,6 +2020,10 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="gen_str_ptr" href="#gen_str_ptr"><span>gen_str_ptr:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: gen_str_ptr(val: string): Value" href="llvm.html#gen_str_ptr%2Cstring">llvm: gen_str_ptr(val: string): Value</a></li>
+          </ul></dd>
+<dt><a name="gen_switch" href="#gen_switch"><span>gen_switch:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: gen_switch(test: Expr; body: Stmt)" href="llvm.html#gen_switch%2CExpr%2CStmt">llvm: gen_switch(test: Expr; body: Stmt)</a></li>
           </ul></dd>
 <dt><a name="gen_true" href="#gen_true"><span>gen_true:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -2084,6 +2094,28 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="getBasicBlockTerminator" href="#getBasicBlockTerminator"><span>getBasicBlockTerminator:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: getBasicBlockTerminator(bb: BasicBlockRef): ValueRef" href="llvm.html#getBasicBlockTerminator%2CBasicBlockRef">llvm: getBasicBlockTerminator(bb: BasicBlockRef): ValueRef</a></li>
+          </ul></dd>
+<dt><a name="getBitcodeModule" href="#getBitcodeModule"><span>getBitcodeModule:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: getBitcodeModule(memBuf: MemoryBufferRef; outM: ptr ModuleRef;
+                 outMessage: cstringArray): Bool" href="llvm.html#getBitcodeModule%2CMemoryBufferRef%2Cptr.ModuleRef%2CcstringArray">llvm: getBitcodeModule(memBuf: MemoryBufferRef; outM: ptr ModuleRef;
+                 outMessage: cstringArray): Bool</a></li>
+          </ul></dd>
+<dt><a name="getBitcodeModule2" href="#getBitcodeModule2"><span>getBitcodeModule2:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: getBitcodeModule2(memBuf: MemoryBufferRef; outM: ptr ModuleRef): Bool" href="llvm.html#getBitcodeModule2%2CMemoryBufferRef%2Cptr.ModuleRef">llvm: getBitcodeModule2(memBuf: MemoryBufferRef; outM: ptr ModuleRef): Bool</a></li>
+          </ul></dd>
+<dt><a name="getBitcodeModuleInContext" href="#getBitcodeModuleInContext"><span>getBitcodeModuleInContext:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: getBitcodeModuleInContext(contextRef: ContextRef; memBuf: MemoryBufferRef;
+                          outM: ptr ModuleRef; outMessage: cstringArray): Bool" href="llvm.html#getBitcodeModuleInContext%2CContextRef%2CMemoryBufferRef%2Cptr.ModuleRef%2CcstringArray">llvm: getBitcodeModuleInContext(contextRef: ContextRef; memBuf: MemoryBufferRef;
+                          outM: ptr ModuleRef; outMessage: cstringArray): Bool</a></li>
+          </ul></dd>
+<dt><a name="getBitcodeModuleInContext2" href="#getBitcodeModuleInContext2"><span>getBitcodeModuleInContext2:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: getBitcodeModuleInContext2(contextRef: ContextRef; memBuf: MemoryBufferRef;
+                           outM: ptr ModuleRef): Bool" href="llvm.html#getBitcodeModuleInContext2%2CContextRef%2CMemoryBufferRef%2Cptr.ModuleRef">llvm: getBitcodeModuleInContext2(contextRef: ContextRef; memBuf: MemoryBufferRef;
+                           outM: ptr ModuleRef): Bool</a></li>
           </ul></dd>
 <dt><a name="getBufferSize" href="#getBufferSize"><span>getBufferSize:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -2396,8 +2428,6 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="getLabel" href="#getLabel"><span>getLabel:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: getLabel(name: string): Label" href="llvm.html#getLabel%2Cstring">llvm: getLabel(name: string): Label</a></li>
-          <li><a class="reference external"
-          data-doc-search-tag="parser: getLabel(name: string): (int, Location)" href="parser.html#getLabel%2Cstring">parser: getLabel(name: string): (int, Location)</a></li>
           </ul></dd>
 <dt><a name="getLastBasicBlock" href="#getLastBasicBlock"><span>getLastBasicBlock:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -2651,10 +2681,6 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="llvm: getPointerAddressSpace(pointerTy: TypeRef): cuint" href="llvm.html#getPointerAddressSpace%2CTypeRef">llvm: getPointerAddressSpace(pointerTy: TypeRef): cuint</a></li>
           </ul></dd>
-<dt><a name="getPointerElementType" href="#getPointerElementType"><span>getPointerElementType:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: getPointerElementType(t: Type): Type" href="llvm.html#getPointerElementType%2CType">llvm: getPointerElementType(t: Type): Type</a></li>
-          </ul></dd>
 <dt><a name="getPoison" href="#getPoison"><span>getPoison:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: getPoison(ty: TypeRef): ValueRef" href="llvm.html#getPoison%2CTypeRef">llvm: getPoison(ty: TypeRef): ValueRef</a></li>
@@ -2827,7 +2853,7 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="gettypedef" href="#gettypedef"><span>gettypedef:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="parser: gettypedef(name: string): (CType, Location)" href="parser.html#gettypedef%2Cstring">parser: gettypedef(name: string): (CType, Location)</a></li>
+          data-doc-search-tag="parser: gettypedef(name: string): Info" href="parser.html#gettypedef%2Cstring">parser: gettypedef(name: string): Info</a></li>
           </ul></dd>
 <dt><a name="getTypeKind" href="#getTypeKind"><span>getTypeKind:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -2929,6 +2955,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="llvm: halfTypeInContext(c: ContextRef): TypeRef" href="llvm.html#halfTypeInContext%2CContextRef">llvm: halfTypeInContext(c: ContextRef): TypeRef</a></li>
           </ul></dd>
+<dt><a name="hasLabel" href="#hasLabel"><span>hasLabel:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="parser: hasLabel(name: string): bool" href="parser.html#hasLabel%2Cstring">parser: hasLabel(name: string): bool</a></li>
+          </ul></dd>
 <dt><a name="hasMetadata" href="#hasMetadata"><span>hasMetadata:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: hasMetadata(val: ValueRef): cint" href="llvm.html#hasMetadata%2CValueRef">llvm: hasMetadata(val: ValueRef): cint</a></li>
@@ -2964,154 +2994,24 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="incl" href="#incl"><span>incl:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: incl(p: Value; t: Type)" href="llvm.html#incl%2CValue%2CType">llvm: incl(p: Value; t: Type)</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="llvm: incl(p: Value; t: Type; align: uint32)" href="llvm.html#incl%2CValue%2CType%2Cuint32">llvm: incl(p: Value; t: Type; align: uint32)</a></li>
           </ul></dd>
 <dt><a name="inclusive_OR_expression" href="#inclusive_OR_expression"><span>inclusive_OR_expression:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="parser: inclusive_OR_expression(): Expr" href="parser.html#inclusive_OR_expression">parser: inclusive_OR_expression(): Expr</a></li>
           </ul></dd>
+<dt><a name="Info" href="#Info"><span>Info:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="core: Info" href="core.html#Info">core: Info</a></li>
+          </ul></dd>
+<dt><a name="INFO_USED" href="#INFO_USED"><span>INFO_USED:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="core: INFO_USED" href="core.html#INFO_USED">core: INFO_USED</a></li>
+          </ul></dd>
 <dt><a name="init" href="#init"><span>init:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="core: init(lexer, cpp, parser, eval, backend): untyped" href="core.html#init.t%2C%2C%2C%2C%2C">core: init(lexer, cpp, parser, eval, backend): untyped</a></li>
-          </ul></dd>
-<dt><a name="initializeAArch64AsmParser" href="#initializeAArch64AsmParser"><span>initializeAArch64AsmParser:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAArch64AsmParser()" href="llvm.html#initializeAArch64AsmParser">llvm: initializeAArch64AsmParser()</a></li>
-          </ul></dd>
-<dt><a name="initializeAArch64AsmPrinter" href="#initializeAArch64AsmPrinter"><span>initializeAArch64AsmPrinter:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAArch64AsmPrinter()" href="llvm.html#initializeAArch64AsmPrinter">llvm: initializeAArch64AsmPrinter()</a></li>
-          </ul></dd>
-<dt><a name="initializeAArch64Disassembler" href="#initializeAArch64Disassembler"><span>initializeAArch64Disassembler:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAArch64Disassembler()" href="llvm.html#initializeAArch64Disassembler">llvm: initializeAArch64Disassembler()</a></li>
-          </ul></dd>
-<dt><a name="initializeAArch64Target" href="#initializeAArch64Target"><span>initializeAArch64Target:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAArch64Target()" href="llvm.html#initializeAArch64Target">llvm: initializeAArch64Target()</a></li>
-          </ul></dd>
-<dt><a name="initializeAArch64TargetInfo" href="#initializeAArch64TargetInfo"><span>initializeAArch64TargetInfo:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAArch64TargetInfo()" href="llvm.html#initializeAArch64TargetInfo">llvm: initializeAArch64TargetInfo()</a></li>
-          </ul></dd>
-<dt><a name="initializeAArch64TargetMC" href="#initializeAArch64TargetMC"><span>initializeAArch64TargetMC:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAArch64TargetMC()" href="llvm.html#initializeAArch64TargetMC">llvm: initializeAArch64TargetMC()</a></li>
-          </ul></dd>
-<dt><a name="initializeAllAsmParsers" href="#initializeAllAsmParsers"><span>initializeAllAsmParsers:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAllAsmParsers()" href="llvm.html#initializeAllAsmParsers">llvm: initializeAllAsmParsers()</a></li>
-          </ul></dd>
-<dt><a name="initializeAllAsmPrinters" href="#initializeAllAsmPrinters"><span>initializeAllAsmPrinters:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAllAsmPrinters()" href="llvm.html#initializeAllAsmPrinters">llvm: initializeAllAsmPrinters()</a></li>
-          </ul></dd>
-<dt><a name="initializeAllTargetInfos" href="#initializeAllTargetInfos"><span>initializeAllTargetInfos:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAllTargetInfos()" href="llvm.html#initializeAllTargetInfos">llvm: initializeAllTargetInfos()</a></li>
-          </ul></dd>
-<dt><a name="initializeAllTargetMCs" href="#initializeAllTargetMCs"><span>initializeAllTargetMCs:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAllTargetMCs()" href="llvm.html#initializeAllTargetMCs">llvm: initializeAllTargetMCs()</a></li>
-          </ul></dd>
-<dt><a name="initializeAllTargets" href="#initializeAllTargets"><span>initializeAllTargets:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAllTargets()" href="llvm.html#initializeAllTargets">llvm: initializeAllTargets()</a></li>
-          </ul></dd>
-<dt><a name="initializeAMDGPUAsmParser" href="#initializeAMDGPUAsmParser"><span>initializeAMDGPUAsmParser:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAMDGPUAsmParser()" href="llvm.html#initializeAMDGPUAsmParser">llvm: initializeAMDGPUAsmParser()</a></li>
-          </ul></dd>
-<dt><a name="initializeAMDGPUAsmPrinter" href="#initializeAMDGPUAsmPrinter"><span>initializeAMDGPUAsmPrinter:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAMDGPUAsmPrinter()" href="llvm.html#initializeAMDGPUAsmPrinter">llvm: initializeAMDGPUAsmPrinter()</a></li>
-          </ul></dd>
-<dt><a name="initializeAMDGPUDisassembler" href="#initializeAMDGPUDisassembler"><span>initializeAMDGPUDisassembler:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAMDGPUDisassembler()" href="llvm.html#initializeAMDGPUDisassembler">llvm: initializeAMDGPUDisassembler()</a></li>
-          </ul></dd>
-<dt><a name="initializeAMDGPUTarget" href="#initializeAMDGPUTarget"><span>initializeAMDGPUTarget:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAMDGPUTarget()" href="llvm.html#initializeAMDGPUTarget">llvm: initializeAMDGPUTarget()</a></li>
-          </ul></dd>
-<dt><a name="initializeAMDGPUTargetInfo" href="#initializeAMDGPUTargetInfo"><span>initializeAMDGPUTargetInfo:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAMDGPUTargetInfo()" href="llvm.html#initializeAMDGPUTargetInfo">llvm: initializeAMDGPUTargetInfo()</a></li>
-          </ul></dd>
-<dt><a name="initializeAMDGPUTargetMC" href="#initializeAMDGPUTargetMC"><span>initializeAMDGPUTargetMC:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAMDGPUTargetMC()" href="llvm.html#initializeAMDGPUTargetMC">llvm: initializeAMDGPUTargetMC()</a></li>
-          </ul></dd>
-<dt><a name="initializeARMAsmParser" href="#initializeARMAsmParser"><span>initializeARMAsmParser:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeARMAsmParser()" href="llvm.html#initializeARMAsmParser">llvm: initializeARMAsmParser()</a></li>
-          </ul></dd>
-<dt><a name="initializeARMAsmPrinter" href="#initializeARMAsmPrinter"><span>initializeARMAsmPrinter:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeARMAsmPrinter()" href="llvm.html#initializeARMAsmPrinter">llvm: initializeARMAsmPrinter()</a></li>
-          </ul></dd>
-<dt><a name="initializeARMDisassembler" href="#initializeARMDisassembler"><span>initializeARMDisassembler:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeARMDisassembler()" href="llvm.html#initializeARMDisassembler">llvm: initializeARMDisassembler()</a></li>
-          </ul></dd>
-<dt><a name="initializeARMTarget" href="#initializeARMTarget"><span>initializeARMTarget:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeARMTarget()" href="llvm.html#initializeARMTarget">llvm: initializeARMTarget()</a></li>
-          </ul></dd>
-<dt><a name="initializeARMTargetInfo" href="#initializeARMTargetInfo"><span>initializeARMTargetInfo:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeARMTargetInfo()" href="llvm.html#initializeARMTargetInfo">llvm: initializeARMTargetInfo()</a></li>
-          </ul></dd>
-<dt><a name="initializeARMTargetMC" href="#initializeARMTargetMC"><span>initializeARMTargetMC:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeARMTargetMC()" href="llvm.html#initializeARMTargetMC">llvm: initializeARMTargetMC()</a></li>
-          </ul></dd>
-<dt><a name="initializeAVRAsmParser" href="#initializeAVRAsmParser"><span>initializeAVRAsmParser:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAVRAsmParser()" href="llvm.html#initializeAVRAsmParser">llvm: initializeAVRAsmParser()</a></li>
-          </ul></dd>
-<dt><a name="initializeAVRAsmPrinter" href="#initializeAVRAsmPrinter"><span>initializeAVRAsmPrinter:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAVRAsmPrinter()" href="llvm.html#initializeAVRAsmPrinter">llvm: initializeAVRAsmPrinter()</a></li>
-          </ul></dd>
-<dt><a name="initializeAVRDisassembler" href="#initializeAVRDisassembler"><span>initializeAVRDisassembler:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAVRDisassembler()" href="llvm.html#initializeAVRDisassembler">llvm: initializeAVRDisassembler()</a></li>
-          </ul></dd>
-<dt><a name="initializeAVRTarget" href="#initializeAVRTarget"><span>initializeAVRTarget:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAVRTarget()" href="llvm.html#initializeAVRTarget">llvm: initializeAVRTarget()</a></li>
-          </ul></dd>
-<dt><a name="initializeAVRTargetInfo" href="#initializeAVRTargetInfo"><span>initializeAVRTargetInfo:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAVRTargetInfo()" href="llvm.html#initializeAVRTargetInfo">llvm: initializeAVRTargetInfo()</a></li>
-          </ul></dd>
-<dt><a name="initializeAVRTargetMC" href="#initializeAVRTargetMC"><span>initializeAVRTargetMC:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeAVRTargetMC()" href="llvm.html#initializeAVRTargetMC">llvm: initializeAVRTargetMC()</a></li>
-          </ul></dd>
-<dt><a name="initializeBPFAsmParser" href="#initializeBPFAsmParser"><span>initializeBPFAsmParser:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeBPFAsmParser()" href="llvm.html#initializeBPFAsmParser">llvm: initializeBPFAsmParser()</a></li>
-          </ul></dd>
-<dt><a name="initializeBPFAsmPrinter" href="#initializeBPFAsmPrinter"><span>initializeBPFAsmPrinter:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeBPFAsmPrinter()" href="llvm.html#initializeBPFAsmPrinter">llvm: initializeBPFAsmPrinter()</a></li>
-          </ul></dd>
-<dt><a name="initializeBPFDisassembler" href="#initializeBPFDisassembler"><span>initializeBPFDisassembler:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeBPFDisassembler()" href="llvm.html#initializeBPFDisassembler">llvm: initializeBPFDisassembler()</a></li>
-          </ul></dd>
-<dt><a name="initializeBPFTarget" href="#initializeBPFTarget"><span>initializeBPFTarget:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeBPFTarget()" href="llvm.html#initializeBPFTarget">llvm: initializeBPFTarget()</a></li>
-          </ul></dd>
-<dt><a name="initializeBPFTargetInfo" href="#initializeBPFTargetInfo"><span>initializeBPFTargetInfo:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeBPFTargetInfo()" href="llvm.html#initializeBPFTargetInfo">llvm: initializeBPFTargetInfo()</a></li>
-          </ul></dd>
-<dt><a name="initializeBPFTargetMC" href="#initializeBPFTargetMC"><span>initializeBPFTargetMC:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeBPFTargetMC()" href="llvm.html#initializeBPFTargetMC">llvm: initializeBPFTargetMC()</a></li>
           </ul></dd>
 <dt><a name="initializeCore" href="#initializeCore"><span>initializeCore:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -3121,305 +3021,45 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="llvm: initializeFunctionPassManager(fpm: PassManagerRef): Bool" href="llvm.html#initializeFunctionPassManager%2CPassManagerRef">llvm: initializeFunctionPassManager(fpm: PassManagerRef): Bool</a></li>
           </ul></dd>
-<dt><a name="initializeHexagonAsmParser" href="#initializeHexagonAsmParser"><span>initializeHexagonAsmParser:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeHexagonAsmParser()" href="llvm.html#initializeHexagonAsmParser">llvm: initializeHexagonAsmParser()</a></li>
-          </ul></dd>
-<dt><a name="initializeHexagonAsmPrinter" href="#initializeHexagonAsmPrinter"><span>initializeHexagonAsmPrinter:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeHexagonAsmPrinter()" href="llvm.html#initializeHexagonAsmPrinter">llvm: initializeHexagonAsmPrinter()</a></li>
-          </ul></dd>
-<dt><a name="initializeHexagonDisassembler" href="#initializeHexagonDisassembler"><span>initializeHexagonDisassembler:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeHexagonDisassembler()" href="llvm.html#initializeHexagonDisassembler">llvm: initializeHexagonDisassembler()</a></li>
-          </ul></dd>
-<dt><a name="initializeHexagonTarget" href="#initializeHexagonTarget"><span>initializeHexagonTarget:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeHexagonTarget()" href="llvm.html#initializeHexagonTarget">llvm: initializeHexagonTarget()</a></li>
-          </ul></dd>
-<dt><a name="initializeHexagonTargetInfo" href="#initializeHexagonTargetInfo"><span>initializeHexagonTargetInfo:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeHexagonTargetInfo()" href="llvm.html#initializeHexagonTargetInfo">llvm: initializeHexagonTargetInfo()</a></li>
-          </ul></dd>
-<dt><a name="initializeHexagonTargetMC" href="#initializeHexagonTargetMC"><span>initializeHexagonTargetMC:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeHexagonTargetMC()" href="llvm.html#initializeHexagonTargetMC">llvm: initializeHexagonTargetMC()</a></li>
-          </ul></dd>
-<dt><a name="initializeLanaiAsmParser" href="#initializeLanaiAsmParser"><span>initializeLanaiAsmParser:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeLanaiAsmParser()" href="llvm.html#initializeLanaiAsmParser">llvm: initializeLanaiAsmParser()</a></li>
-          </ul></dd>
-<dt><a name="initializeLanaiAsmPrinter" href="#initializeLanaiAsmPrinter"><span>initializeLanaiAsmPrinter:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeLanaiAsmPrinter()" href="llvm.html#initializeLanaiAsmPrinter">llvm: initializeLanaiAsmPrinter()</a></li>
-          </ul></dd>
-<dt><a name="initializeLanaiDisassembler" href="#initializeLanaiDisassembler"><span>initializeLanaiDisassembler:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeLanaiDisassembler()" href="llvm.html#initializeLanaiDisassembler">llvm: initializeLanaiDisassembler()</a></li>
-          </ul></dd>
-<dt><a name="initializeLanaiTarget" href="#initializeLanaiTarget"><span>initializeLanaiTarget:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeLanaiTarget()" href="llvm.html#initializeLanaiTarget">llvm: initializeLanaiTarget()</a></li>
-          </ul></dd>
-<dt><a name="initializeLanaiTargetInfo" href="#initializeLanaiTargetInfo"><span>initializeLanaiTargetInfo:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeLanaiTargetInfo()" href="llvm.html#initializeLanaiTargetInfo">llvm: initializeLanaiTargetInfo()</a></li>
-          </ul></dd>
-<dt><a name="initializeLanaiTargetMC" href="#initializeLanaiTargetMC"><span>initializeLanaiTargetMC:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeLanaiTargetMC()" href="llvm.html#initializeLanaiTargetMC">llvm: initializeLanaiTargetMC()</a></li>
-          </ul></dd>
-<dt><a name="initializeMipsAsmParser" href="#initializeMipsAsmParser"><span>initializeMipsAsmParser:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeMipsAsmParser()" href="llvm.html#initializeMipsAsmParser">llvm: initializeMipsAsmParser()</a></li>
-          </ul></dd>
-<dt><a name="initializeMipsAsmPrinter" href="#initializeMipsAsmPrinter"><span>initializeMipsAsmPrinter:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeMipsAsmPrinter()" href="llvm.html#initializeMipsAsmPrinter">llvm: initializeMipsAsmPrinter()</a></li>
-          </ul></dd>
-<dt><a name="initializeMipsDisassembler" href="#initializeMipsDisassembler"><span>initializeMipsDisassembler:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeMipsDisassembler()" href="llvm.html#initializeMipsDisassembler">llvm: initializeMipsDisassembler()</a></li>
-          </ul></dd>
-<dt><a name="initializeMipsTarget" href="#initializeMipsTarget"><span>initializeMipsTarget:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeMipsTarget()" href="llvm.html#initializeMipsTarget">llvm: initializeMipsTarget()</a></li>
-          </ul></dd>
-<dt><a name="initializeMipsTargetInfo" href="#initializeMipsTargetInfo"><span>initializeMipsTargetInfo:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeMipsTargetInfo()" href="llvm.html#initializeMipsTargetInfo">llvm: initializeMipsTargetInfo()</a></li>
-          </ul></dd>
-<dt><a name="initializeMipsTargetMC" href="#initializeMipsTargetMC"><span>initializeMipsTargetMC:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeMipsTargetMC()" href="llvm.html#initializeMipsTargetMC">llvm: initializeMipsTargetMC()</a></li>
-          </ul></dd>
-<dt><a name="initializeMSP430AsmParser" href="#initializeMSP430AsmParser"><span>initializeMSP430AsmParser:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeMSP430AsmParser()" href="llvm.html#initializeMSP430AsmParser">llvm: initializeMSP430AsmParser()</a></li>
-          </ul></dd>
-<dt><a name="initializeMSP430AsmPrinter" href="#initializeMSP430AsmPrinter"><span>initializeMSP430AsmPrinter:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeMSP430AsmPrinter()" href="llvm.html#initializeMSP430AsmPrinter">llvm: initializeMSP430AsmPrinter()</a></li>
-          </ul></dd>
-<dt><a name="initializeMSP430Disassembler" href="#initializeMSP430Disassembler"><span>initializeMSP430Disassembler:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeMSP430Disassembler()" href="llvm.html#initializeMSP430Disassembler">llvm: initializeMSP430Disassembler()</a></li>
-          </ul></dd>
-<dt><a name="initializeMSP430Target" href="#initializeMSP430Target"><span>initializeMSP430Target:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeMSP430Target()" href="llvm.html#initializeMSP430Target">llvm: initializeMSP430Target()</a></li>
-          </ul></dd>
-<dt><a name="initializeMSP430TargetInfo" href="#initializeMSP430TargetInfo"><span>initializeMSP430TargetInfo:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeMSP430TargetInfo()" href="llvm.html#initializeMSP430TargetInfo">llvm: initializeMSP430TargetInfo()</a></li>
-          </ul></dd>
-<dt><a name="initializeMSP430TargetMC" href="#initializeMSP430TargetMC"><span>initializeMSP430TargetMC:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeMSP430TargetMC()" href="llvm.html#initializeMSP430TargetMC">llvm: initializeMSP430TargetMC()</a></li>
-          </ul></dd>
-<dt><a name="initializeNativeAsmParser" href="#initializeNativeAsmParser"><span>initializeNativeAsmParser:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeNativeAsmParser()" href="llvm.html#initializeNativeAsmParser">llvm: initializeNativeAsmParser()</a></li>
-          </ul></dd>
-<dt><a name="initializeNativeAsmPrinter" href="#initializeNativeAsmPrinter"><span>initializeNativeAsmPrinter:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeNativeAsmPrinter()" href="llvm.html#initializeNativeAsmPrinter">llvm: initializeNativeAsmPrinter()</a></li>
-          </ul></dd>
-<dt><a name="initializeNativeDisassembler" href="#initializeNativeDisassembler"><span>initializeNativeDisassembler:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeNativeDisassembler()" href="llvm.html#initializeNativeDisassembler">llvm: initializeNativeDisassembler()</a></li>
-          </ul></dd>
-<dt><a name="initializeNativeTarget" href="#initializeNativeTarget"><span>initializeNativeTarget:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeNativeTarget()" href="llvm.html#initializeNativeTarget">llvm: initializeNativeTarget()</a></li>
-          </ul></dd>
-<dt><a name="initializeNVPTXAsmPrinter" href="#initializeNVPTXAsmPrinter"><span>initializeNVPTXAsmPrinter:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeNVPTXAsmPrinter()" href="llvm.html#initializeNVPTXAsmPrinter">llvm: initializeNVPTXAsmPrinter()</a></li>
-          </ul></dd>
-<dt><a name="initializeNVPTXTarget" href="#initializeNVPTXTarget"><span>initializeNVPTXTarget:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeNVPTXTarget()" href="llvm.html#initializeNVPTXTarget">llvm: initializeNVPTXTarget()</a></li>
-          </ul></dd>
-<dt><a name="initializeNVPTXTargetInfo" href="#initializeNVPTXTargetInfo"><span>initializeNVPTXTargetInfo:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeNVPTXTargetInfo()" href="llvm.html#initializeNVPTXTargetInfo">llvm: initializeNVPTXTargetInfo()</a></li>
-          </ul></dd>
-<dt><a name="initializeNVPTXTargetMC" href="#initializeNVPTXTargetMC"><span>initializeNVPTXTargetMC:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeNVPTXTargetMC()" href="llvm.html#initializeNVPTXTargetMC">llvm: initializeNVPTXTargetMC()</a></li>
-          </ul></dd>
-<dt><a name="initializePowerPCAsmParser" href="#initializePowerPCAsmParser"><span>initializePowerPCAsmParser:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializePowerPCAsmParser()" href="llvm.html#initializePowerPCAsmParser">llvm: initializePowerPCAsmParser()</a></li>
-          </ul></dd>
-<dt><a name="initializePowerPCAsmPrinter" href="#initializePowerPCAsmPrinter"><span>initializePowerPCAsmPrinter:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializePowerPCAsmPrinter()" href="llvm.html#initializePowerPCAsmPrinter">llvm: initializePowerPCAsmPrinter()</a></li>
-          </ul></dd>
-<dt><a name="initializePowerPCDisassembler" href="#initializePowerPCDisassembler"><span>initializePowerPCDisassembler:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializePowerPCDisassembler()" href="llvm.html#initializePowerPCDisassembler">llvm: initializePowerPCDisassembler()</a></li>
-          </ul></dd>
-<dt><a name="initializePowerPCTarget" href="#initializePowerPCTarget"><span>initializePowerPCTarget:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializePowerPCTarget()" href="llvm.html#initializePowerPCTarget">llvm: initializePowerPCTarget()</a></li>
-          </ul></dd>
-<dt><a name="initializePowerPCTargetInfo" href="#initializePowerPCTargetInfo"><span>initializePowerPCTargetInfo:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializePowerPCTargetInfo()" href="llvm.html#initializePowerPCTargetInfo">llvm: initializePowerPCTargetInfo()</a></li>
-          </ul></dd>
-<dt><a name="initializePowerPCTargetMC" href="#initializePowerPCTargetMC"><span>initializePowerPCTargetMC:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializePowerPCTargetMC()" href="llvm.html#initializePowerPCTargetMC">llvm: initializePowerPCTargetMC()</a></li>
-          </ul></dd>
-<dt><a name="initializeRISCVAsmParser" href="#initializeRISCVAsmParser"><span>initializeRISCVAsmParser:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeRISCVAsmParser()" href="llvm.html#initializeRISCVAsmParser">llvm: initializeRISCVAsmParser()</a></li>
-          </ul></dd>
-<dt><a name="initializeRISCVAsmPrinter" href="#initializeRISCVAsmPrinter"><span>initializeRISCVAsmPrinter:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeRISCVAsmPrinter()" href="llvm.html#initializeRISCVAsmPrinter">llvm: initializeRISCVAsmPrinter()</a></li>
-          </ul></dd>
-<dt><a name="initializeRISCVDisassembler" href="#initializeRISCVDisassembler"><span>initializeRISCVDisassembler:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeRISCVDisassembler()" href="llvm.html#initializeRISCVDisassembler">llvm: initializeRISCVDisassembler()</a></li>
-          </ul></dd>
-<dt><a name="initializeRISCVTarget" href="#initializeRISCVTarget"><span>initializeRISCVTarget:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeRISCVTarget()" href="llvm.html#initializeRISCVTarget">llvm: initializeRISCVTarget()</a></li>
-          </ul></dd>
-<dt><a name="initializeRISCVTargetInfo" href="#initializeRISCVTargetInfo"><span>initializeRISCVTargetInfo:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeRISCVTargetInfo()" href="llvm.html#initializeRISCVTargetInfo">llvm: initializeRISCVTargetInfo()</a></li>
-          </ul></dd>
-<dt><a name="initializeRISCVTargetMC" href="#initializeRISCVTargetMC"><span>initializeRISCVTargetMC:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeRISCVTargetMC()" href="llvm.html#initializeRISCVTargetMC">llvm: initializeRISCVTargetMC()</a></li>
-          </ul></dd>
 <dt><a name="initializer_list" href="#initializer_list"><span>initializer_list:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="parser: initializer_list(): Expr" href="parser.html#initializer_list">parser: initializer_list(): Expr</a></li>
           </ul></dd>
-<dt><a name="initializeSparcAsmParser" href="#initializeSparcAsmParser"><span>initializeSparcAsmParser:</span></a></dt><dd><ul class="simple">
+<dt><a name="initTarget" href="#initTarget"><span>initTarget:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="llvm: initializeSparcAsmParser()" href="llvm.html#initializeSparcAsmParser">llvm: initializeSparcAsmParser()</a></li>
-          </ul></dd>
-<dt><a name="initializeSparcAsmPrinter" href="#initializeSparcAsmPrinter"><span>initializeSparcAsmPrinter:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeSparcAsmPrinter()" href="llvm.html#initializeSparcAsmPrinter">llvm: initializeSparcAsmPrinter()</a></li>
-          </ul></dd>
-<dt><a name="initializeSparcDisassembler" href="#initializeSparcDisassembler"><span>initializeSparcDisassembler:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeSparcDisassembler()" href="llvm.html#initializeSparcDisassembler">llvm: initializeSparcDisassembler()</a></li>
-          </ul></dd>
-<dt><a name="initializeSparcTarget" href="#initializeSparcTarget"><span>initializeSparcTarget:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeSparcTarget()" href="llvm.html#initializeSparcTarget">llvm: initializeSparcTarget()</a></li>
-          </ul></dd>
-<dt><a name="initializeSparcTargetInfo" href="#initializeSparcTargetInfo"><span>initializeSparcTargetInfo:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeSparcTargetInfo()" href="llvm.html#initializeSparcTargetInfo">llvm: initializeSparcTargetInfo()</a></li>
-          </ul></dd>
-<dt><a name="initializeSparcTargetMC" href="#initializeSparcTargetMC"><span>initializeSparcTargetMC:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeSparcTargetMC()" href="llvm.html#initializeSparcTargetMC">llvm: initializeSparcTargetMC()</a></li>
-          </ul></dd>
-<dt><a name="initializeSystemZAsmParser" href="#initializeSystemZAsmParser"><span>initializeSystemZAsmParser:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeSystemZAsmParser()" href="llvm.html#initializeSystemZAsmParser">llvm: initializeSystemZAsmParser()</a></li>
-          </ul></dd>
-<dt><a name="initializeSystemZAsmPrinter" href="#initializeSystemZAsmPrinter"><span>initializeSystemZAsmPrinter:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeSystemZAsmPrinter()" href="llvm.html#initializeSystemZAsmPrinter">llvm: initializeSystemZAsmPrinter()</a></li>
-          </ul></dd>
-<dt><a name="initializeSystemZDisassembler" href="#initializeSystemZDisassembler"><span>initializeSystemZDisassembler:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeSystemZDisassembler()" href="llvm.html#initializeSystemZDisassembler">llvm: initializeSystemZDisassembler()</a></li>
-          </ul></dd>
-<dt><a name="initializeSystemZTarget" href="#initializeSystemZTarget"><span>initializeSystemZTarget:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeSystemZTarget()" href="llvm.html#initializeSystemZTarget">llvm: initializeSystemZTarget()</a></li>
-          </ul></dd>
-<dt><a name="initializeSystemZTargetInfo" href="#initializeSystemZTargetInfo"><span>initializeSystemZTargetInfo:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeSystemZTargetInfo()" href="llvm.html#initializeSystemZTargetInfo">llvm: initializeSystemZTargetInfo()</a></li>
-          </ul></dd>
-<dt><a name="initializeSystemZTargetMC" href="#initializeSystemZTargetMC"><span>initializeSystemZTargetMC:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeSystemZTargetMC()" href="llvm.html#initializeSystemZTargetMC">llvm: initializeSystemZTargetMC()</a></li>
-          </ul></dd>
-<dt><a name="initializeWebAssemblyAsmParser" href="#initializeWebAssemblyAsmParser"><span>initializeWebAssemblyAsmParser:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeWebAssemblyAsmParser()" href="llvm.html#initializeWebAssemblyAsmParser">llvm: initializeWebAssemblyAsmParser()</a></li>
-          </ul></dd>
-<dt><a name="initializeWebAssemblyAsmPrinter" href="#initializeWebAssemblyAsmPrinter"><span>initializeWebAssemblyAsmPrinter:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeWebAssemblyAsmPrinter()" href="llvm.html#initializeWebAssemblyAsmPrinter">llvm: initializeWebAssemblyAsmPrinter()</a></li>
-          </ul></dd>
-<dt><a name="initializeWebAssemblyDisassembler" href="#initializeWebAssemblyDisassembler"><span>initializeWebAssemblyDisassembler:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeWebAssemblyDisassembler()" href="llvm.html#initializeWebAssemblyDisassembler">llvm: initializeWebAssemblyDisassembler()</a></li>
-          </ul></dd>
-<dt><a name="initializeWebAssemblyTarget" href="#initializeWebAssemblyTarget"><span>initializeWebAssemblyTarget:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeWebAssemblyTarget()" href="llvm.html#initializeWebAssemblyTarget">llvm: initializeWebAssemblyTarget()</a></li>
-          </ul></dd>
-<dt><a name="initializeWebAssemblyTargetInfo" href="#initializeWebAssemblyTargetInfo"><span>initializeWebAssemblyTargetInfo:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeWebAssemblyTargetInfo()" href="llvm.html#initializeWebAssemblyTargetInfo">llvm: initializeWebAssemblyTargetInfo()</a></li>
-          </ul></dd>
-<dt><a name="initializeWebAssemblyTargetMC" href="#initializeWebAssemblyTargetMC"><span>initializeWebAssemblyTargetMC:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeWebAssemblyTargetMC()" href="llvm.html#initializeWebAssemblyTargetMC">llvm: initializeWebAssemblyTargetMC()</a></li>
-          </ul></dd>
-<dt><a name="initializeX86AsmParser" href="#initializeX86AsmParser"><span>initializeX86AsmParser:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeX86AsmParser()" href="llvm.html#initializeX86AsmParser">llvm: initializeX86AsmParser()</a></li>
-          </ul></dd>
-<dt><a name="initializeX86AsmPrinter" href="#initializeX86AsmPrinter"><span>initializeX86AsmPrinter:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeX86AsmPrinter()" href="llvm.html#initializeX86AsmPrinter">llvm: initializeX86AsmPrinter()</a></li>
-          </ul></dd>
-<dt><a name="initializeX86Disassembler" href="#initializeX86Disassembler"><span>initializeX86Disassembler:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeX86Disassembler()" href="llvm.html#initializeX86Disassembler">llvm: initializeX86Disassembler()</a></li>
-          </ul></dd>
-<dt><a name="initializeX86Target" href="#initializeX86Target"><span>initializeX86Target:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeX86Target()" href="llvm.html#initializeX86Target">llvm: initializeX86Target()</a></li>
-          </ul></dd>
-<dt><a name="initializeX86TargetInfo" href="#initializeX86TargetInfo"><span>initializeX86TargetInfo:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeX86TargetInfo()" href="llvm.html#initializeX86TargetInfo">llvm: initializeX86TargetInfo()</a></li>
-          </ul></dd>
-<dt><a name="initializeX86TargetMC" href="#initializeX86TargetMC"><span>initializeX86TargetMC:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeX86TargetMC()" href="llvm.html#initializeX86TargetMC">llvm: initializeX86TargetMC()</a></li>
-          </ul></dd>
-<dt><a name="initializeXCoreAsmPrinter" href="#initializeXCoreAsmPrinter"><span>initializeXCoreAsmPrinter:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeXCoreAsmPrinter()" href="llvm.html#initializeXCoreAsmPrinter">llvm: initializeXCoreAsmPrinter()</a></li>
-          </ul></dd>
-<dt><a name="initializeXCoreDisassembler" href="#initializeXCoreDisassembler"><span>initializeXCoreDisassembler:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeXCoreDisassembler()" href="llvm.html#initializeXCoreDisassembler">llvm: initializeXCoreDisassembler()</a></li>
-          </ul></dd>
-<dt><a name="initializeXCoreTarget" href="#initializeXCoreTarget"><span>initializeXCoreTarget:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeXCoreTarget()" href="llvm.html#initializeXCoreTarget">llvm: initializeXCoreTarget()</a></li>
-          </ul></dd>
-<dt><a name="initializeXCoreTargetInfo" href="#initializeXCoreTargetInfo"><span>initializeXCoreTargetInfo:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeXCoreTargetInfo()" href="llvm.html#initializeXCoreTargetInfo">llvm: initializeXCoreTargetInfo()</a></li>
-          </ul></dd>
-<dt><a name="initializeXCoreTargetMC" href="#initializeXCoreTargetMC"><span>initializeXCoreTargetMC:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: initializeXCoreTargetMC()" href="llvm.html#initializeXCoreTargetMC">llvm: initializeXCoreTargetMC()</a></li>
+          data-doc-search-tag="llvm: initTarget()" href="llvm.html#initTarget">llvm: initTarget()</a></li>
           </ul></dd>
 <dt><a name="InlineAsmDialect" href="#InlineAsmDialect"><span>InlineAsmDialect:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: InlineAsmDialect" href="llvm.html#InlineAsmDialect">llvm: InlineAsmDialect</a></li>
+          </ul></dd>
+<dt><a name="Input" href="#Input"><span>Input:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="core: Input" href="core.html#Input">core: Input</a></li>
+          </ul></dd>
+<dt><a name="InputAsm" href="#InputAsm"><span>InputAsm:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="Input.InputAsm" href="core.html#InputAsm">Input.InputAsm</a></li>
+          </ul></dd>
+<dt><a name="InputBC" href="#InputBC"><span>InputBC:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="Input.InputBC" href="core.html#InputBC">Input.InputBC</a></li>
+          </ul></dd>
+<dt><a name="InputBF" href="#InputBF"><span>InputBF:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="Input.InputBF" href="core.html#InputBF">Input.InputBF</a></li>
+          </ul></dd>
+<dt><a name="InputC" href="#InputC"><span>InputC:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="Input.InputC" href="core.html#InputC">Input.InputC</a></li>
+          </ul></dd>
+<dt><a name="InputIR" href="#InputIR"><span>InputIR:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="Input.InputIR" href="core.html#InputIR">Input.InputIR</a></li>
+          </ul></dd>
+<dt><a name="InputObject" href="#InputObject"><span>InputObject:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="Input.InputObject" href="core.html#InputObject">Input.InputObject</a></li>
           </ul></dd>
 <dt><a name="insertBasicBlock" href="#insertBasicBlock"><span>insertBasicBlock:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -3602,6 +3242,10 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="isAtomicSingleThread" href="#isAtomicSingleThread"><span>isAtomicSingleThread:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: isAtomicSingleThread(atomicInst: ValueRef): Bool" href="llvm.html#isAtomicSingleThread%2CValueRef">llvm: isAtomicSingleThread(atomicInst: ValueRef): Bool</a></li>
+          </ul></dd>
+<dt><a name="is_builtin_name" href="#is_builtin_name"><span>is_builtin_name:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="builtins: is_builtin_name(name: string): bool" href="builtins.html#is_builtin_name%2Cstring">builtins: is_builtin_name(name: string): bool</a></li>
           </ul></dd>
 <dt><a name="isCleanup" href="#isCleanup"><span>isCleanup:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -3999,6 +3643,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="llvm: leaveScope()" href="llvm.html#leaveScope">llvm: leaveScope()</a></li>
           </ul></dd>
+<dt><a name="link" href="#link"><span>link:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: link(dest, src: ModuleRef): bool" href="llvm.html#link%2CModuleRef%2CModuleRef">llvm: link(dest, src: ModuleRef): bool</a></li>
+          </ul></dd>
 <dt><a name="Linkage" href="#Linkage"><span>Linkage:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: Linkage" href="llvm.html#Linkage">llvm: Linkage</a></li>
@@ -4006,6 +3654,10 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="Linker" href="#Linker"><span>Linker:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="core: Linker" href="core.html#Linker">core: Linker</a></li>
+          </ul></dd>
+<dt><a name="linkModules2" href="#linkModules2"><span>linkModules2:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: linkModules2(dest: ModuleRef; src: ModuleRef): Bool" href="llvm.html#linkModules2%2CModuleRef%2CModuleRef">llvm: linkModules2(dest: ModuleRef; src: ModuleRef): Bool</a></li>
           </ul></dd>
 <dt><a name="LLD" href="#LLD"><span>LLD:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -4165,10 +3817,6 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="llvm: LLVMIndirectBr" href="llvm.html#LLVMIndirectBr">llvm: LLVMIndirectBr</a></li>
           </ul></dd>
-<dt><a name="LLVMInitializeAllDisassemblers" href="#LLVMInitializeAllDisassemblers"><span>LLVMInitializeAllDisassemblers:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="llvm: LLVMInitializeAllDisassemblers()" href="llvm.html#LLVMInitializeAllDisassemblers">llvm: LLVMInitializeAllDisassemblers()</a></li>
-          </ul></dd>
 <dt><a name="LLVMInsertElement" href="#LLVMInsertElement"><span>LLVMInsertElement:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: LLVMInsertElement" href="llvm.html#LLVMInsertElement">llvm: LLVMInsertElement</a></li>
@@ -4303,7 +3951,7 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="load" href="#load"><span>load:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="llvm: load(p: Value; t: Type): Value" href="llvm.html#load%2CValue%2CType">llvm: load(p: Value; t: Type): Value</a></li>
+          data-doc-search-tag="llvm: load(p: Value; t: Type; align: uint32 = 0): Value" href="llvm.html#load%2CValue%2CType%2Cuint32">llvm: load(p: Value; t: Type; align: uint32 = 0): Value</a></li>
           </ul></dd>
 <dt><a name="Location" href="#Location"><span>Location:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -4491,6 +4139,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="parser: multiplicative_expression(): Expr" href="parser.html#multiplicative_expression">parser: multiplicative_expression(): Expr</a></li>
           </ul></dd>
+<dt><a name="my_p_add" href="#my_p_add"><span>my_p_add:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="builtins: my_p_add(a: cstring; b: auto): cstring" href="builtins.html#my_p_add%2Ccstring%2Cauto">builtins: my_p_add(a: cstring; b: auto): cstring</a></li>
+          </ul></dd>
 <dt><a name="NamedMDNodeRef" href="#NamedMDNodeRef"><span>NamedMDNodeRef:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: NamedMDNodeRef" href="llvm.html#NamedMDNodeRef">llvm: NamedMDNodeRef</a></li>
@@ -4501,7 +4153,7 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="newBackend" href="#newBackend"><span>newBackend:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="llvm: newBackend(module_name: cstring = &quot;main&quot;; source_file: cstring = nil)" href="llvm.html#newBackend%2Ccstring%2Ccstring">llvm: newBackend(module_name: cstring = &quot;main&quot;; source_file: cstring = nil)</a></li>
+          data-doc-search-tag="llvm: newBackend(module_name, source_file: string)" href="llvm.html#newBackend%2Cstring%2Cstring">llvm: newBackend(module_name, source_file: string)</a></li>
           </ul></dd>
 <dt><a name="newFileStream" href="#newFileStream"><span>newFileStream:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -4528,6 +4180,14 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="neZero" href="#neZero"><span>neZero:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: neZero(a: Expr): Expr" href="llvm.html#neZero%2CExpr">llvm: neZero(a: Expr): Expr</a></li>
+          </ul></dd>
+<dt><a name="nimLLVMinit" href="#nimLLVMinit"><span>nimLLVMinit:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: nimLLVMinit()" href="llvm.html#nimLLVMinit">llvm: nimLLVMinit()</a></li>
+          </ul></dd>
+<dt><a name="nimLLVMOptModule" href="#nimLLVMOptModule"><span>nimLLVMOptModule:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: nimLLVMOptModule(m: ModuleRef)" href="llvm.html#nimLLVMOptModule%2CModuleRef">llvm: nimLLVMOptModule(m: ModuleRef)</a></li>
           </ul></dd>
 <dt><a name="Nop" href="#Nop"><span>Nop:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -5427,9 +5087,29 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="parser: parameter_type_list(): (bool, seq[(string, CType)])" href="parser.html#parameter_type_list">parser: parameter_type_list(): (bool, seq[(string, CType)])</a></li>
           </ul></dd>
+<dt><a name="parse_alignas" href="#parse_alignas"><span>parse_alignas:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="parser: parse_alignas(): bool" href="parser.html#parse_alignas">parser: parse_alignas(): bool</a></li>
+          </ul></dd>
 <dt><a name="parse_asm" href="#parse_asm"><span>parse_asm:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="parser: parse_asm(): Stmt" href="parser.html#parse_asm">parser: parse_asm(): Stmt</a></li>
+          </ul></dd>
+<dt><a name="parseBitcode2" href="#parseBitcode2"><span>parseBitcode2:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: parseBitcode2(memBuf: MemoryBufferRef; outModule: ptr ModuleRef): Bool" href="llvm.html#parseBitcode2%2CMemoryBufferRef%2Cptr.ModuleRef">llvm: parseBitcode2(memBuf: MemoryBufferRef; outModule: ptr ModuleRef): Bool</a></li>
+          </ul></dd>
+<dt><a name="parseBitcodeInContext" href="#parseBitcodeInContext"><span>parseBitcodeInContext:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: parseBitcodeInContext(contextRef: ContextRef; memBuf: MemoryBufferRef;
+                      outModule: ptr ModuleRef; outMessage: cstringArray): Bool" href="llvm.html#parseBitcodeInContext%2CContextRef%2CMemoryBufferRef%2Cptr.ModuleRef%2CcstringArray">llvm: parseBitcodeInContext(contextRef: ContextRef; memBuf: MemoryBufferRef;
+                      outModule: ptr ModuleRef; outMessage: cstringArray): Bool</a></li>
+          </ul></dd>
+<dt><a name="parseBitcodeInContext2" href="#parseBitcodeInContext2"><span>parseBitcodeInContext2:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: parseBitcodeInContext2(contextRef: ContextRef; memBuf: MemoryBufferRef;
+                       outModule: ptr ModuleRef): Bool" href="llvm.html#parseBitcodeInContext2%2CContextRef%2CMemoryBufferRef%2Cptr.ModuleRef">llvm: parseBitcodeInContext2(contextRef: ContextRef; memBuf: MemoryBufferRef;
+                       outModule: ptr ModuleRef): Bool</a></li>
           </ul></dd>
 <dt><a name="parseCLI" href="#parseCLI"><span>parseCLI:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -5514,6 +5194,10 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="penum" href="#penum"><span>penum:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="parser: penum(): CType" href="parser.html#penum">parser: penum(): CType</a></li>
+          </ul></dd>
+<dt><a name="perror" href="#perror"><span>perror:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="core: perror(str: cstring)" href="core.html#perror%2Ccstring">core: perror(str: cstring)</a></li>
           </ul></dd>
 <dt><a name="PFNormal" href="#PFNormal"><span>PFNormal:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -5647,6 +5331,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="llvm: printModuleToString(m: ModuleRef): cstring" href="llvm.html#printModuleToString%2CModuleRef">llvm: printModuleToString(m: ModuleRef): cstring</a></li>
           </ul></dd>
+<dt><a name="printSourceLine" href="#printSourceLine"><span>printSourceLine:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: printSourceLine(s: Stream; line: int)" href="stream.html#printSourceLine%2CStream%2Cint">stream: printSourceLine(s: Stream; line: int)</a></li>
+          </ul></dd>
 <dt><a name="printTypeToString" href="#printTypeToString"><span>printTypeToString:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: printTypeToString(val: TypeRef): cstring" href="llvm.html#printTypeToString%2CTypeRef">llvm: printTypeToString(val: TypeRef): cstring</a></li>
@@ -5683,6 +5371,14 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="parser: putsymtype(name: string; t: CType)" href="parser.html#putsymtype%2Cstring%2CCType">parser: putsymtype(name: string; t: CType)</a></li>
           </ul></dd>
+<dt><a name="putsymtype2" href="#putsymtype2"><span>putsymtype2:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="parser: putsymtype2(name: string; t: CType)" href="parser.html#putsymtype2%2Cstring%2CCType">parser: putsymtype2(name: string; t: CType)</a></li>
+          </ul></dd>
+<dt><a name="putsymtype3" href="#putsymtype3"><span>putsymtype3:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="parser: putsymtype3(name: string; t: CType)" href="parser.html#putsymtype3%2Cstring%2CCType">parser: putsymtype3(name: string; t: CType)</a></li>
+          </ul></dd>
 <dt><a name="putTags" href="#putTags"><span>putTags:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: putTags(name: string; t: Type)" href="llvm.html#putTags%2Cstring%2CType">llvm: putTags(name: string; t: Type)</a></li>
@@ -5699,6 +5395,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="llvm: putVar(name: string; val: Value)" href="llvm.html#putVar%2Cstring%2CValue">llvm: putVar(name: string; val: Value)</a></li>
           </ul></dd>
+<dt><a name="readBitcodeToModule" href="#readBitcodeToModule"><span>readBitcodeToModule:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: readBitcodeToModule(path: cstring): ModuleRef" href="llvm.html#readBitcodeToModule%2Ccstring">llvm: readBitcodeToModule(path: cstring): ModuleRef</a></li>
+          </ul></dd>
 <dt><a name="readChar" href="#readChar"><span>readChar:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="stream: readChar(s: Stream): char" href="stream.html#readChar%2CStream">stream: readChar(s: Stream): char</a></li>
@@ -5706,6 +5406,10 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="read_enum_sepcs" href="#read_enum_sepcs"><span>read_enum_sepcs:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="parser: read_enum_sepcs(c: var CType; sepc: Token)" href="parser.html#read_enum_sepcs%2CCType%2CToken">parser: read_enum_sepcs(c: var CType; sepc: Token)</a></li>
+          </ul></dd>
+<dt><a name="readIRToModule" href="#readIRToModule"><span>readIRToModule:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: readIRToModule(path: cstring): ModuleRef" href="llvm.html#readIRToModule%2Ccstring">llvm: readIRToModule(path: cstring): ModuleRef</a></li>
           </ul></dd>
 <dt><a name="read_pp_number" href="#read_pp_number"><span>read_pp_number:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -6221,7 +5925,7 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="store" href="#store"><span>store:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="llvm: store(p: Value; v: Value)" href="llvm.html#store%2CValue%2CValue">llvm: store(p: Value; v: Value)</a></li>
+          data-doc-search-tag="llvm: store(p: Value; v: Value; align: uint32 = 0)" href="llvm.html#store%2CValue%2CValue%2Cuint32">llvm: store(p: Value; v: Value; align: uint32 = 0)</a></li>
           </ul></dd>
 <dt><a name="storeSizeOfType" href="#storeSizeOfType"><span>storeSizeOfType:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -7023,14 +6727,6 @@ window.addEventListener('DOMContentLoaded', main);
              outMessage: cstringArray): Bool" href="llvm.html#verifyModule%2CModuleRef%2CVerifierFailureAction%2CcstringArray">llvm: verifyModule(m: ModuleRef; action: VerifierFailureAction;
              outMessage: cstringArray): Bool</a></li>
           </ul></dd>
-<dt><a name="VF" href="#VF"><span>VF:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="CValueKind.VF" href="core.html#VF">CValueKind.VF</a></li>
-          </ul></dd>
-<dt><a name="VI" href="#VI"><span>VI:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="CValueKind.VI" href="core.html#VI">CValueKind.VI</a></li>
-          </ul></dd>
 <dt><a name="viewFunctionCFG" href="#viewFunctionCFG"><span>viewFunctionCFG:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: viewFunctionCFG(fn: ValueRef)" href="llvm.html#viewFunctionCFG%2CValueRef">llvm: viewFunctionCFG(fn: ValueRef)</a></li>
@@ -7055,6 +6751,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="parser: warning(msg: string)" href="parser.html#warning%2Cstring">parser: warning(msg: string)</a></li>
           </ul></dd>
+<dt><a name="warningPlain" href="#warningPlain"><span>warningPlain:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="core: warningPlain(msg: string)" href="core.html#warningPlain%2Cstring">core: warningPlain(msg: string)</a></li>
+          </ul></dd>
 <dt><a name="WError" href="#WError"><span>WError:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="VerboseLevel.WError" href="core.html#WError">VerboseLevel.WError</a></li>
@@ -7074,6 +6774,8 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="writeAssemblyFile" href="#writeAssemblyFile"><span>writeAssemblyFile:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: writeAssemblyFile(path: string)" href="llvm.html#writeAssemblyFile%2Cstring">llvm: writeAssemblyFile(path: string)</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="llvm: writeAssemblyFile(path: string; m: ModuleRef)" href="llvm.html#writeAssemblyFile%2Cstring%2CModuleRef">llvm: writeAssemblyFile(path: string; m: ModuleRef)</a></li>
           </ul></dd>
 <dt><a name="writeBitcodeToFD" href="#writeBitcodeToFD"><span>writeBitcodeToFD:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -7084,6 +6786,8 @@ window.addEventListener('DOMContentLoaded', main);
           data-doc-search-tag="llvm: writeBitcodeToFile(m: ModuleRef; Path: cstring): cint" href="llvm.html#writeBitcodeToFile%2CModuleRef%2Ccstring">llvm: writeBitcodeToFile(m: ModuleRef; Path: cstring): cint</a></li>
           <li><a class="reference external"
           data-doc-search-tag="llvm: writeBitcodeToFile(path: string)" href="llvm.html#writeBitcodeToFile%2Cstring">llvm: writeBitcodeToFile(path: string)</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="llvm: writeBitcodeToFile(path: string; m: ModuleRef)" href="llvm.html#writeBitcodeToFile%2Cstring%2CModuleRef">llvm: writeBitcodeToFile(path: string; m: ModuleRef)</a></li>
           </ul></dd>
 <dt><a name="writeBitcodeToFileHandle" href="#writeBitcodeToFileHandle"><span>writeBitcodeToFileHandle:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -7096,10 +6800,14 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="writeModuleToFile" href="#writeModuleToFile"><span>writeModuleToFile:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: writeModuleToFile(path: string)" href="llvm.html#writeModuleToFile%2Cstring">llvm: writeModuleToFile(path: string)</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="llvm: writeModuleToFile(path: string; m: ModuleRef)" href="llvm.html#writeModuleToFile%2Cstring%2CModuleRef">llvm: writeModuleToFile(path: string; m: ModuleRef)</a></li>
           </ul></dd>
 <dt><a name="writeObjectFile" href="#writeObjectFile"><span>writeObjectFile:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: writeObjectFile(path: string)" href="llvm.html#writeObjectFile%2Cstring">llvm: writeObjectFile(path: string)</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="llvm: writeObjectFile(path: string; m: ModuleRef)" href="llvm.html#writeObjectFile%2Cstring%2CModuleRef">llvm: writeObjectFile(path: string; m: ModuleRef)</a></li>
           </ul></dd>
 <dt><a name="writeUTF8toUTF16" href="#writeUTF8toUTF16"><span>writeUTF8toUTF16:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -7158,7 +6866,7 @@ window.addEventListener('DOMContentLoaded', main);
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-08-29 08:37:59 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-04 05:31:47 UTC</small>
       </div>
     </div>
   </div>

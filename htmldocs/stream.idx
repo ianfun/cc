@@ -1,4 +1,5 @@
 Stream	stream.html#Stream	stream: Stream	
+printSourceLine	stream.html#printSourceLine,Stream,int	stream: printSourceLine(s: Stream; line: int)	
 newStringStream	stream.html#newStringStream,string	stream: newStringStream(s: string): Stream	
 newFileStream	stream.html#newFileStream,string	stream: newFileStream(path: string): Stream	
 newFileStream	stream.html#newFileStream,File	stream: newFileStream(fd: File): Stream	
