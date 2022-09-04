@@ -1,12 +1,8 @@
 # cc
 
-![](screenshots4.png)
+![](screenshots5.png)
 
 ![](screenshots3.png)
-
-![](screenshots2.png)
-
-![](screenshots.png)
 
 C Compiler written in [Nim](https://nim-lang.org/)
 

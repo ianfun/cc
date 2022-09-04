@@ -1409,8 +1409,9 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
                             type_error("second parameter of 'main' should be has type 'char**'(pointer to char array)")
             if len(body.stmts) == 0 or (body.stmts[^1].k != SReturn and body.stmts[^1].k != SGoto):
                 if not bool(ty.ret.tags and TYVOID):
-                    warning("no 'return' statement in a function should return a value")
-                    note("in the function definition: '" & name & '\'')
+                    if name != "main":
+                        warning("no 'return' statement in a function should return a value")
+                        note("in the function definition: '" & name & '\'')
                 body.stmts &= Stmt(k: SReturn, exprbody: if bool(ty.ret.tags and TYVOID): nil else: 
                     (if name == "main": Expr(k: EDefault, ty: ty.ret) else: Expr(k: EUndef, ty: ty.ret))
                 )
@@ -1937,16 +1938,16 @@ proc unary_expression*(): Expr =
         let e = unary_expression()
         if e == nil:
             return nil
-        integer_promotions(result)
         result = unary(e, if isSigned(e.ty): SNeg else: UNeg, e.ty)
+        integer_promotions(result)
         return result
     of TAdd:
         consume()
         let e = unary_expression()
         if e == nil:
             return nil
-        integer_promotions(result)
         result = unary(e, Pos, e.ty)
+        integer_promotions(result)
         return result
     of TAddAdd, TSubSub:
         consume()
@@ -2405,7 +2406,7 @@ proc primary_expression*(): Expr =
             of TYARRAY:
                 result = Expr(
                     k: ArrToAddress, voidexpr: Expr(k: EVar, sval: p.tok.s, ty: ty), 
-                    ty: CType(tags: TYLVALUE, spec: TYPOINTER, p: ty)
+                    ty: CType(tags: TYLVALUE, spec: TYPOINTER, p: ty.arrtype)
                 )
             else:
                 result = Expr(k: EVar, sval: p.tok.s, ty: ty)
@@ -2585,22 +2586,23 @@ proc postfix_expression*(): Expr =
             inc i
         return Expr(k: ECall, callfunc: f, callargs: args, ty: ty.ret)
     of TLSquareBrackets: # array subscript
+        if e.ty.spec != TYPOINTER:
+            type_error("array subscript is not a pointer")
+            inTheExpression(e)
+            return nil
         consume()
-        var e = expression()
-        if e == nil:
+        var rhs = expression()
+        if rhs == nil:
             expectExpression()
             note("the syntax is:\n\tarray[expression]")
             return nil
         if p.tok.tok != TRSquareBrackets:
             expect("']'")
             return
-        if e.ty.spec != TYPOINTER:
-            type_error("array subscript is not a pointer")
-            return nil
         consume()
         var ty = e.ty.p
         ty.tags = ty.tags or TYLVALUE
-        return Expr(k: ESubscript, left: e, right: e, ty: ty)
+        return Expr(k: ESubscript, left: e, right: rhs, ty: ty)
     else:
         return e
 

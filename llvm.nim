@@ -1223,11 +1223,15 @@ proc getAddress*(e: Expr): Value =
       basep
   of ESubscript:
     assert e.left.ty.spec == TYPOINTER # the left must be a pointer
-    var ty = wrap(e.left.ty.p) # get pointer element type
-    var v = getAddress(e.left) # lookup lvalue
-    var basep = load(v, ty) # load address in lvalue
+    var ty = wrap(e.left.ty.p)
+    var v = getAddress(e.left) # a pointer
     var r = gen(e.right) # get index
-    buildInBoundsGEP2(b.builder, ty, basep, addr r, 1, "")
+    buildInBoundsGEP2(b.builder, ty, v, addr r, 1, "")
+  of ArrToAddress:
+    var arr = getAddress(e.voidexpr)
+    var ty = wrap(e.voidexpr.ty)
+    var idx = [constInt(int32Type(), 0, False), constInt(int32Type(), 0, False)]
+    buildInBoundsGEP2(b.builder, ty, arr, addr idx[0], 2, "")
   else:
     unreachable()
     nil
@@ -1243,11 +1247,10 @@ proc gen*(e: Expr): Value =
     buildInBoundsGEP2(b.builder, ty, arr, addr idx[0], 2, "")
   of ESubscript:
     assert e.left.ty.spec == TYPOINTER # the left must be a pointer
-    var ty = wrap(e.left.ty.p) # get pointer element type
-    var v = getAddress(e.left) # lookup lvalue
-    var basep = load(v, ty) # load address in lvalue
+    var ty = wrap(e.left.ty.p)
+    var v = getAddress(e.left) # a pointer
     var r = gen(e.right) # get index
-    var gaddr = buildInBoundsGEP2(b.builder, pointerType(ty, 0), basep, addr r, 1, "")
+    var gaddr = buildInBoundsGEP2(b.builder, ty, v, addr r, 1, "")
     load(gaddr, ty) # return lvalue
   of EMemberAccess, EPointerMemberAccess:
     var base = gen(e.obj)

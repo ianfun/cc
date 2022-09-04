@@ -592,7 +592,7 @@ proc `$`*(e: Expr): string =
   of EVoid:
     "(void)" & $e.voidexpr
   of ArrToAddress:
-    $e.voidexpr
+    "<ArrToAddress>(" & $e.voidexpr & ")"
   of EDefault:
     "<zero>"
   of EStruct:
