@@ -1,4 +1,4 @@
-import core, parser, stream
+import core, token, parser, stream
 from lexer import eat
 import std/[times, tables, sets]
 

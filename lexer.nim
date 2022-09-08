@@ -1,4 +1,4 @@
-import core, parser, stream
+import config, core, parser, stream, token
 import std/[unicode, math]
 
 proc nextTok*()

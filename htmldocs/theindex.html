@@ -70,11 +70,9 @@ window.addEventListener('DOMContentLoaded', main);
 <div class="document" id="documentId">
   <div class="container">
     <h1 class="title">Index</h1>
-    Modules: <a href="builtins.html">builtins</a>, <a href="cli.html">cli</a>, <a href="core.html">core</a>, <a href="cpp.html">cpp</a>, <a href="eval.html">eval</a>, <a href="lexer.html">lexer</a>, <a href="llvm.html">llvm</a>, <a href="parser.html">parser</a>, <a href="stream.html">stream</a>.<br/><p /><h2>API symbols</h2>
+    Modules: <a href="builtins.html">builtins</a>, <a href="cli.html">cli</a>, <a href="config.html">config</a>, <a href="core.html">core</a>, <a href="cpp.html">cpp</a>, <a href="eval.html">eval</a>, <a href="lexer.html">lexer</a>, <a href="llvm.html">llvm</a>, <a href="parser.html">parser</a>, <a href="stream.html">stream</a>, <a href="types.html">types</a>.<br/><p /><h2>API symbols</h2>
 <dl><dt><a name="%60%24%60" href="#%60%24%60"><span>`$`:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: `$`(a: CType; level = 0): string" href="core.html#%24%2CCType%2Cint">core: `$`(a: CType; level = 0): string</a></li>
-          <li><a class="reference external"
           data-doc-search-tag="core: `$`(e: Expr): string" href="core.html#%24%2CExpr">core: `$`(e: Expr): string</a></li>
           <li><a class="reference external"
           data-doc-search-tag="core: `$`(loc: Location): string" href="core.html#%24%2CLocation">core: `$`(loc: Location): string</a></li>
@@ -84,6 +82,16 @@ window.addEventListener('DOMContentLoaded', main);
           data-doc-search-tag="llvm: `$`(v: TypeRef): string" href="llvm.html#%24%2CTypeRef">llvm: `$`(v: TypeRef): string</a></li>
           <li><a class="reference external"
           data-doc-search-tag="llvm: `$`(v: ValueRef): string" href="llvm.html#%24%2CValueRef">llvm: `$`(v: ValueRef): string</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="types: `$`(a: CType; level = 0): string" href="types.html#%24%2CCType%2Cint">types: `$`(a: CType; level = 0): string</a></li>
+          </ul></dd>
+<dt><a name="%60%26lt%3B%26lt%3B%60" href="#%60%26lt%3B%26lt%3B%60"><span>`&lt;&lt;`:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: `&lt;&lt;`(stream: Fd; c: char)" href="stream.html#%3C%3C%2CFd%2Cchar">stream: `&lt;&lt;`(stream: Fd; c: char)</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="stream: `&lt;&lt;`(stream: Fd; c: SomeInteger)" href="stream.html#%3C%3C%2CFd%2CSomeInteger">stream: `&lt;&lt;`(stream: Fd; c: SomeInteger)</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="stream: `&lt;&lt;`(stream: Fd; msg: string)" href="stream.html#%3C%3C%2CFd%2Cstring">stream: `&lt;&lt;`(stream: Fd; msg: string)</a></li>
           </ul></dd>
 <dt><a name="aBIAlignmentOfType" href="#aBIAlignmentOfType"><span>aBIAlignmentOfType:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -215,7 +223,7 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="addTag" href="#addTag"><span>addTag:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: addTag(a: uint32; dst: var string)" href="core.html#addTag%2Cuint32%2Cstring">core: addTag(a: uint32; dst: var string)</a></li>
+          data-doc-search-tag="types: addTag(a: uint32; dst: var string)" href="types.html#addTag%2Cuint32%2Cstring">types: addTag(a: uint32; dst: var string)</a></li>
           </ul></dd>
 <dt><a name="addTargetDependentFunctionAttr" href="#addTargetDependentFunctionAttr"><span>addTargetDependentFunctionAttr:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -1463,13 +1471,17 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="core: CSkip" href="core.html#CSkip">core: CSkip</a></li>
           </ul></dd>
+<dt><a name="cstderr" href="#cstderr"><span>cstderr:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: cstderr" href="stream.html#cstderr">stream: cstderr</a></li>
+          </ul></dd>
 <dt><a name="CType" href="#CType"><span>CType:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: CType" href="core.html#CType">core: CType</a></li>
+          data-doc-search-tag="types: CType" href="types.html#CType">types: CType</a></li>
           </ul></dd>
 <dt><a name="CTypeSpec" href="#CTypeSpec"><span>CTypeSpec:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: CTypeSpec" href="core.html#CTypeSpec">core: CTypeSpec</a></li>
+          data-doc-search-tag="types: CTypeSpec" href="types.html#CTypeSpec">types: CTypeSpec</a></li>
           </ul></dd>
 <dt><a name="decimal16toInt" href="#decimal16toInt"><span>decimal16toInt:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -1709,6 +1721,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="llvm: enterScope()" href="llvm.html#enterScope">llvm: enterScope()</a></li>
           </ul></dd>
+<dt><a name="EOF" href="#EOF"><span>EOF:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: EOF" href="stream.html#EOF">stream: EOF</a></li>
+          </ul></dd>
 <dt><a name="EPointerMemberAccess" href="#EPointerMemberAccess"><span>EPointerMemberAccess:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="ExprKind.EPointerMemberAccess" href="core.html#EPointerMemberAccess">ExprKind.EPointerMemberAccess</a></li>
@@ -1835,6 +1851,14 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="llvm: False" href="llvm.html#False">llvm: False</a></li>
           </ul></dd>
+<dt><a name="fclose" href="#fclose"><span>fclose:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: fclose(stream: Fd): cint" href="stream.html#fclose%2CFd">stream: fclose(stream: Fd): cint</a></li>
+          </ul></dd>
+<dt><a name="Fd" href="#Fd"><span>Fd:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: Fd" href="stream.html#Fd">stream: Fd</a></li>
+          </ul></dd>
 <dt><a name="FDiv" href="#FDiv"><span>FDiv:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="BinOP.FDiv" href="core.html#FDiv">BinOP.FDiv</a></li>
@@ -1855,9 +1879,21 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="BinOP.FGE" href="core.html#FGE">BinOP.FGE</a></li>
           </ul></dd>
+<dt><a name="fgetc" href="#fgetc"><span>fgetc:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: fgetc(stream: Fd): cint" href="stream.html#fgetc%2CFd">stream: fgetc(stream: Fd): cint</a></li>
+          </ul></dd>
+<dt><a name="fgetpos" href="#fgetpos"><span>fgetpos:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: fgetpos(stream: Fd; pos: ptr fpos_t): cint" href="stream.html#fgetpos%2CFd%2Cptr.fpos_t">stream: fgetpos(stream: Fd; pos: ptr fpos_t): cint</a></li>
+          </ul></dd>
 <dt><a name="FGT" href="#FGT"><span>FGT:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="BinOP.FGT" href="core.html#FGT">BinOP.FGT</a></li>
+          </ul></dd>
+<dt><a name="FileStream" href="#FileStream"><span>FileStream:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="StreamType.FileStream" href="stream.html#FileStream">StreamType.FileStream</a></li>
           </ul></dd>
 <dt><a name="finalizeFunctionPassManager" href="#finalizeFunctionPassManager"><span>finalizeFunctionPassManager:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -1891,6 +1927,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="UnaryOP.FNeg" href="core.html#FNeg">UnaryOP.FNeg</a></li>
           </ul></dd>
+<dt><a name="fopen" href="#fopen"><span>fopen:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: fopen(filename, mode: cstring): Fd" href="stream.html#fopen%2Ccstring%2Ccstring">stream: fopen(filename, mode: cstring): Fd</a></li>
+          </ul></dd>
 <dt><a name="for_Each_Value_Subclass" href="#for_Each_Value_Subclass"><span>for_Each_Value_Subclass:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: for_Each_Value_Subclass(macro: untyped): untyped" href="llvm.html#for_Each_Value_Subclass.t%2Cuntyped">llvm: for_Each_Value_Subclass(macro: untyped): untyped</a></li>
@@ -1907,6 +1947,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="CastOp.FPExt" href="core.html#FPExt">CastOp.FPExt</a></li>
           </ul></dd>
+<dt><a name="fpos_t" href="#fpos_t"><span>fpos_t:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: fpos_t" href="stream.html#fpos_t">stream: fpos_t</a></li>
+          </ul></dd>
 <dt><a name="FPToSI" href="#FPToSI"><span>FPToSI:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="CastOp.FPToSI" href="core.html#FPToSI">CastOp.FPToSI</a></li>
@@ -1919,9 +1963,25 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="CastOp.FPTrunc" href="core.html#FPTrunc">CastOp.FPTrunc</a></li>
           </ul></dd>
+<dt><a name="fputc" href="#fputc"><span>fputc:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: fputc(c: cint; stream: Fd): cint" href="stream.html#fputc%2Ccint%2CFd">stream: fputc(c: cint; stream: Fd): cint</a></li>
+          </ul></dd>
+<dt><a name="fputs" href="#fputs"><span>fputs:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: fputs(str: cstring; stream: Fd): cint" href="stream.html#fputs%2Ccstring%2CFd">stream: fputs(str: cstring; stream: Fd): cint</a></li>
+          </ul></dd>
 <dt><a name="FRem" href="#FRem"><span>FRem:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="BinOP.FRem" href="core.html#FRem">BinOP.FRem</a></li>
+          </ul></dd>
+<dt><a name="fseek" href="#fseek"><span>fseek:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: fseek(stream: Fd; offset: clong; origin: cint): cint" href="stream.html#fseek%2CFd%2Cclong%2Ccint">stream: fseek(stream: Fd; offset: clong; origin: cint): cint</a></li>
+          </ul></dd>
+<dt><a name="fsetpos" href="#fsetpos"><span>fsetpos:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: fsetpos(stream: Fd; pos: ptr fpos_t): cint" href="stream.html#fsetpos%2CFd%2Cptr.fpos_t">stream: fsetpos(stream: Fd; pos: ptr fpos_t): cint</a></li>
           </ul></dd>
 <dt><a name="fs_read" href="#fs_read"><span>fs_read:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -1934,6 +1994,10 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="FTag" href="#FTag"><span>FTag:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="core: FTag" href="core.html#FTag">core: FTag</a></li>
+          </ul></dd>
+<dt><a name="ftell" href="#ftell"><span>ftell:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: ftell(stream: Fd): clong" href="stream.html#ftell%2CFd">stream: ftell(stream: Fd): clong</a></li>
           </ul></dd>
 <dt><a name="Function" href="#Function"><span>Function:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -2116,6 +2180,10 @@ window.addEventListener('DOMContentLoaded', main);
           data-doc-search-tag="llvm: getBitcodeModuleInContext2(contextRef: ContextRef; memBuf: MemoryBufferRef;
                            outM: ptr ModuleRef): Bool" href="llvm.html#getBitcodeModuleInContext2%2CContextRef%2CMemoryBufferRef%2Cptr.ModuleRef">llvm: getBitcodeModuleInContext2(contextRef: ContextRef; memBuf: MemoryBufferRef;
                            outM: ptr ModuleRef): Bool</a></li>
+          </ul></dd>
+<dt><a name="getBoolType" href="#getBoolType"><span>getBoolType:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="types: getBoolType(): CType" href="types.html#getBoolType">types: getBoolType(): CType</a></li>
           </ul></dd>
 <dt><a name="getBufferSize" href="#getBufferSize"><span>getBufferSize:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -2411,6 +2479,18 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="llvm: getInstructionParent(inst: ValueRef): BasicBlockRef" href="llvm.html#getInstructionParent%2CValueRef">llvm: getInstructionParent(inst: ValueRef): BasicBlockRef</a></li>
           </ul></dd>
+<dt><a name="getInt16Type" href="#getInt16Type"><span>getInt16Type:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="types: getInt16Type(): CType" href="types.html#getInt16Type">types: getInt16Type(): CType</a></li>
+          </ul></dd>
+<dt><a name="getInt32Type" href="#getInt32Type"><span>getInt32Type:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="types: getInt32Type(): CType" href="types.html#getInt32Type">types: getInt32Type(): CType</a></li>
+          </ul></dd>
+<dt><a name="getInt64Type" href="#getInt64Type"><span>getInt64Type:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="types: getInt64Type(): CType" href="types.html#getInt64Type">types: getInt64Type(): CType</a></li>
+          </ul></dd>
 <dt><a name="getIntrinsicDeclaration" href="#getIntrinsicDeclaration"><span>getIntrinsicDeclaration:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: getIntrinsicDeclaration(mod: ModuleRef; id: cuint; paramTypes: ptr TypeRef;
@@ -2420,6 +2500,10 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="getIntrinsicID" href="#getIntrinsicID"><span>getIntrinsicID:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: getIntrinsicID(fn: ValueRef): cuint" href="llvm.html#getIntrinsicID%2CValueRef">llvm: getIntrinsicID(fn: ValueRef): cuint</a></li>
+          </ul></dd>
+<dt><a name="getIntType" href="#getIntType"><span>getIntType:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="types: getIntType(): CType" href="types.html#getIntType">types: getIntType(): CType</a></li>
           </ul></dd>
 <dt><a name="getIntTypeWidth" href="#getIntTypeWidth"><span>getIntTypeWidth:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -2468,6 +2552,14 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="getLinkage" href="#getLinkage"><span>getLinkage:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: getLinkage(global: ValueRef): Linkage" href="llvm.html#getLinkage%2CValueRef">llvm: getLinkage(global: ValueRef): Linkage</a></li>
+          </ul></dd>
+<dt><a name="getLongLongType" href="#getLongLongType"><span>getLongLongType:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="types: getLongLongType(): CType" href="types.html#getLongLongType">types: getLongLongType(): CType</a></li>
+          </ul></dd>
+<dt><a name="getLongType" href="#getLongType"><span>getLongType:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="types: getLongType(): CType" href="types.html#getLongType">types: getLongType(): CType</a></li>
           </ul></dd>
 <dt><a name="getMacro" href="#getMacro"><span>getMacro:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -2725,6 +2817,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="llvm: getSection(global: ValueRef): cstring" href="llvm.html#getSection%2CValueRef">llvm: getSection(global: ValueRef): cstring</a></li>
           </ul></dd>
+<dt><a name="getShortType" href="#getShortType"><span>getShortType:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="types: getShortType(): CType" href="types.html#getShortType">types: getShortType(): CType</a></li>
+          </ul></dd>
 <dt><a name="getsizeof" href="#getsizeof"><span>getsizeof:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="parser: getsizeof(ty: CType): culonglong" href="parser.html#getsizeof%2CCType">parser: getsizeof(ty: CType): culonglong</a></li>
@@ -2859,6 +2955,34 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="llvm: getTypeKind(ty: TypeRef): TypeKind" href="llvm.html#getTypeKind%2CTypeRef">llvm: getTypeKind(ty: TypeRef): TypeKind</a></li>
           </ul></dd>
+<dt><a name="getUInt16Type" href="#getUInt16Type"><span>getUInt16Type:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="types: getUInt16Type(): CType" href="types.html#getUInt16Type">types: getUInt16Type(): CType</a></li>
+          </ul></dd>
+<dt><a name="getUInt32Type" href="#getUInt32Type"><span>getUInt32Type:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="types: getUInt32Type(): CType" href="types.html#getUInt32Type">types: getUInt32Type(): CType</a></li>
+          </ul></dd>
+<dt><a name="getUInt64Type" href="#getUInt64Type"><span>getUInt64Type:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="types: getUInt64Type(): CType" href="types.html#getUInt64Type">types: getUInt64Type(): CType</a></li>
+          </ul></dd>
+<dt><a name="getUInt8Type" href="#getUInt8Type"><span>getUInt8Type:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="types: getUInt8Type(): CType" href="types.html#getUInt8Type">types: getUInt8Type(): CType</a></li>
+          </ul></dd>
+<dt><a name="getUIntType" href="#getUIntType"><span>getUIntType:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="types: getUIntType(): CType" href="types.html#getUIntType">types: getUIntType(): CType</a></li>
+          </ul></dd>
+<dt><a name="getULongLongType" href="#getULongLongType"><span>getULongLongType:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="types: getULongLongType(): CType" href="types.html#getULongLongType">types: getULongLongType(): CType</a></li>
+          </ul></dd>
+<dt><a name="getULongType" href="#getULongType"><span>getULongType:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="types: getULongType(): CType" href="types.html#getULongType">types: getULongType(): CType</a></li>
+          </ul></dd>
 <dt><a name="getUndef" href="#getUndef"><span>getUndef:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: getUndef(ty: TypeRef): ValueRef" href="llvm.html#getUndef%2CTypeRef">llvm: getUndef(ty: TypeRef): ValueRef</a></li>
@@ -2886,6 +3010,10 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="getUser" href="#getUser"><span>getUser:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: getUser(u: UseRef): ValueRef" href="llvm.html#getUser%2CUseRef">llvm: getUser(u: UseRef): ValueRef</a></li>
+          </ul></dd>
+<dt><a name="getUShortType" href="#getUShortType"><span>getUShortType:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="types: getUShortType(): CType" href="types.html#getUShortType">types: getUShortType(): CType</a></li>
           </ul></dd>
 <dt><a name="getValueKind" href="#getValueKind"><span>getValueKind:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -3163,7 +3291,7 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="intmax_t" href="#intmax_t"><span>intmax_t:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: intmax_t" href="core.html#intmax_t">core: intmax_t</a></li>
+          data-doc-search-tag="config: intmax_t" href="config.html#intmax_t">config: intmax_t</a></li>
           </ul></dd>
 <dt><a name="IntPredicate" href="#IntPredicate"><span>IntPredicate:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -3258,6 +3386,8 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="isConstant" href="#isConstant"><span>isConstant:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: isConstant(val: ValueRef): Bool" href="llvm.html#isConstant%2CValueRef">llvm: isConstant(val: ValueRef): Bool</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="parser: isConstant(e: Expr): bool" href="parser.html#isConstant%2CExpr">parser: isConstant(e: Expr): bool</a></li>
           </ul></dd>
 <dt><a name="isConstantString" href="#isConstantString"><span>isConstantString:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -3401,15 +3531,15 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="joinShow2" href="#joinShow2"><span>joinShow2:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: joinShow2[A, B](a: seq[(A, B)]): string" href="core.html#joinShow2%2Cseq%5B%5D">core: joinShow2[A, B](a: seq[(A, B)]): string</a></li>
+          data-doc-search-tag="types: joinShow2[A, B](a: seq[(A, B)]): string" href="types.html#joinShow2%2Cseq%5B%5D">types: joinShow2[A, B](a: seq[(A, B)]): string</a></li>
           </ul></dd>
 <dt><a name="joinShow3" href="#joinShow3"><span>joinShow3:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: joinShow3(a: seq[(string, CType)]; level = 1): string" href="core.html#joinShow3%2Cseq%5B%5D%2Cint">core: joinShow3(a: seq[(string, CType)]; level = 1): string</a></li>
+          data-doc-search-tag="types: joinShow3(a: seq[(string, CType)]; level = 1): string" href="types.html#joinShow3%2Cseq%5B%5D%2Cint">types: joinShow3(a: seq[(string, CType)]; level = 1): string</a></li>
           </ul></dd>
 <dt><a name="joinShow4" href="#joinShow4"><span>joinShow4:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: joinShow4(a: seq[(string, intmax_t)]; level = 1): string" href="core.html#joinShow4%2Cseq%5B%5D%2Cint">core: joinShow4(a: seq[(string, intmax_t)]; level = 1): string</a></li>
+          data-doc-search-tag="types: joinShow4(a: seq[(string, intmax_t)]; level = 1): string" href="types.html#joinShow4%2Cseq%5B%5D%2Cint">types: joinShow4(a: seq[(string, intmax_t)]; level = 1): string</a></li>
           </ul></dd>
 <dt><a name="joinShow5" href="#joinShow5"><span>joinShow5:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -4012,6 +4142,10 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="make_mul" href="#make_mul"><span>make_mul:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="parser: make_mul(result, r: var Expr)" href="parser.html#make_mul%2CExpr%2CExpr">parser: make_mul(result, r: var Expr)</a></li>
+          </ul></dd>
+<dt><a name="make_primitive" href="#make_primitive"><span>make_primitive:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="types: make_primitive(tag: uint32): CType" href="types.html#make_primitive%2Cuint32">types: make_primitive(tag: uint32): CType</a></li>
           </ul></dd>
 <dt><a name="make_rem" href="#make_rem"><span>make_rem:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -5207,6 +5341,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="ParseFlags.PFPP" href="core.html#PFPP">ParseFlags.PFPP</a></li>
           </ul></dd>
+<dt><a name="pointerBitCast" href="#pointerBitCast"><span>pointerBitCast:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: pointerBitCast(v: Value; fromTy: Type; to: TypeRef): Value" href="llvm.html#pointerBitCast%2CValue%2CType%2CTypeRef">llvm: pointerBitCast(v: Value; fromTy: Type; to: TypeRef): Value</a></li>
+          </ul></dd>
 <dt><a name="pointerSize" href="#pointerSize"><span>pointerSize:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: pointerSize(td: TargetDataRef): cuint" href="llvm.html#pointerSize%2CTargetDataRef">llvm: pointerSize(td: TargetDataRef): cuint</a></li>
@@ -5317,7 +5455,7 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="prim" href="#prim"><span>prim:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: prim" href="core.html#prim">core: prim</a></li>
+          data-doc-search-tag="types: prim" href="types.html#prim">types: prim</a></li>
           </ul></dd>
 <dt><a name="primary_expression" href="#primary_expression"><span>primary_expression:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -5542,6 +5680,18 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="searchForAddressOfSymbol" href="#searchForAddressOfSymbol"><span>searchForAddressOfSymbol:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: searchForAddressOfSymbol(symbolName: cstring): pointer" href="llvm.html#searchForAddressOfSymbol%2Ccstring">llvm: searchForAddressOfSymbol(symbolName: cstring): pointer</a></li>
+          </ul></dd>
+<dt><a name="SEEK_CUR" href="#SEEK_CUR"><span>SEEK_CUR:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: SEEK_CUR" href="stream.html#SEEK_CUR">stream: SEEK_CUR</a></li>
+          </ul></dd>
+<dt><a name="SEEK_END" href="#SEEK_END"><span>SEEK_END:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: SEEK_END" href="stream.html#SEEK_END">stream: SEEK_END</a></li>
+          </ul></dd>
+<dt><a name="SEEK_SET" href="#SEEK_SET"><span>SEEK_SET:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: SEEK_SET" href="stream.html#SEEK_SET">stream: SEEK_SET</a></li>
           </ul></dd>
 <dt><a name="setAlignment" href="#setAlignment"><span>setAlignment:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -5829,7 +5979,7 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="signed" href="#signed"><span>signed:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: signed" href="core.html#signed">core: signed</a></li>
+          data-doc-search-tag="types: signed" href="types.html#signed">types: signed</a></li>
           </ul></dd>
 <dt><a name="SIToFP" href="#SIToFP"><span>SIToFP:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -5903,6 +6053,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="lexer: stdin_hook()" href="lexer.html#stdin_hook">lexer: stdin_hook()</a></li>
           </ul></dd>
+<dt><a name="StdinStream" href="#StdinStream"><span>StdinStream:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="StreamType.StdinStream" href="stream.html#StdinStream">StreamType.StdinStream</a></li>
+          </ul></dd>
 <dt><a name="Stmt" href="#Stmt"><span>Stmt:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="core: Stmt" href="core.html#Stmt">core: Stmt</a></li>
@@ -5935,6 +6089,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="stream: Stream" href="stream.html#Stream">stream: Stream</a></li>
           </ul></dd>
+<dt><a name="StreamType" href="#StreamType"><span>StreamType:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: StreamType" href="stream.html#StreamType">stream: StreamType</a></li>
+          </ul></dd>
 <dt><a name="stringizing" href="#stringizing"><span>stringizing:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="parser: stringizing(a: char): string" href="parser.html#stringizing%2Cchar">parser: stringizing(a: char): string</a></li>
@@ -5944,6 +6102,10 @@ window.addEventListener('DOMContentLoaded', main);
           data-doc-search-tag="parser: stringizing(a: string): string" href="parser.html#stringizing%2Cstring">parser: stringizing(a: string): string</a></li>
           <li><a class="reference external"
           data-doc-search-tag="parser: stringizing(a: TokenV): string" href="parser.html#stringizing%2CTokenV">parser: stringizing(a: TokenV): string</a></li>
+          </ul></dd>
+<dt><a name="StringStream" href="#StringStream"><span>StringStream:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="StreamType.StringStream" href="stream.html#StringStream">StreamType.StringStream</a></li>
           </ul></dd>
 <dt><a name="structCreateNamed" href="#structCreateNamed"><span>structCreateNamed:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -6351,107 +6513,107 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="TYALIGNAS" href="#TYALIGNAS"><span>TYALIGNAS:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYALIGNAS" href="core.html#TYALIGNAS">core: TYALIGNAS</a></li>
+          data-doc-search-tag="types: TYALIGNAS" href="types.html#TYALIGNAS">types: TYALIGNAS</a></li>
           </ul></dd>
 <dt><a name="TYARRAY" href="#TYARRAY"><span>TYARRAY:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="CTypeSpec.TYARRAY" href="core.html#TYARRAY">CTypeSpec.TYARRAY</a></li>
+          data-doc-search-tag="CTypeSpec.TYARRAY" href="types.html#TYARRAY">CTypeSpec.TYARRAY</a></li>
           </ul></dd>
 <dt><a name="TYATOMIC" href="#TYATOMIC"><span>TYATOMIC:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYATOMIC" href="core.html#TYATOMIC">core: TYATOMIC</a></li>
+          data-doc-search-tag="types: TYATOMIC" href="types.html#TYATOMIC">types: TYATOMIC</a></li>
           </ul></dd>
 <dt><a name="TYBITFIELD" href="#TYBITFIELD"><span>TYBITFIELD:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="CTypeSpec.TYBITFIELD" href="core.html#TYBITFIELD">CTypeSpec.TYBITFIELD</a></li>
+          data-doc-search-tag="CTypeSpec.TYBITFIELD" href="types.html#TYBITFIELD">CTypeSpec.TYBITFIELD</a></li>
           </ul></dd>
 <dt><a name="TYBOOL" href="#TYBOOL"><span>TYBOOL:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYBOOL" href="core.html#TYBOOL">core: TYBOOL</a></li>
+          data-doc-search-tag="types: TYBOOL" href="types.html#TYBOOL">types: TYBOOL</a></li>
           </ul></dd>
 <dt><a name="TYCHAR" href="#TYCHAR"><span>TYCHAR:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYCHAR" href="core.html#TYCHAR">core: TYCHAR</a></li>
+          data-doc-search-tag="types: TYCHAR" href="types.html#TYCHAR">types: TYCHAR</a></li>
           </ul></dd>
 <dt><a name="TYCOMPLEX" href="#TYCOMPLEX"><span>TYCOMPLEX:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYCOMPLEX" href="core.html#TYCOMPLEX">core: TYCOMPLEX</a></li>
+          data-doc-search-tag="types: TYCOMPLEX" href="types.html#TYCOMPLEX">types: TYCOMPLEX</a></li>
           </ul></dd>
 <dt><a name="TYCONST" href="#TYCONST"><span>TYCONST:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYCONST" href="core.html#TYCONST">core: TYCONST</a></li>
+          data-doc-search-tag="types: TYCONST" href="types.html#TYCONST">types: TYCONST</a></li>
           </ul></dd>
 <dt><a name="TYDOUBLE" href="#TYDOUBLE"><span>TYDOUBLE:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYDOUBLE" href="core.html#TYDOUBLE">core: TYDOUBLE</a></li>
+          data-doc-search-tag="types: TYDOUBLE" href="types.html#TYDOUBLE">types: TYDOUBLE</a></li>
           </ul></dd>
 <dt><a name="TYENUM" href="#TYENUM"><span>TYENUM:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="CTypeSpec.TYENUM" href="core.html#TYENUM">CTypeSpec.TYENUM</a></li>
+          data-doc-search-tag="CTypeSpec.TYENUM" href="types.html#TYENUM">CTypeSpec.TYENUM</a></li>
           </ul></dd>
 <dt><a name="TYEXTERN" href="#TYEXTERN"><span>TYEXTERN:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYEXTERN" href="core.html#TYEXTERN">core: TYEXTERN</a></li>
+          data-doc-search-tag="types: TYEXTERN" href="types.html#TYEXTERN">types: TYEXTERN</a></li>
           </ul></dd>
 <dt><a name="TYFLOAT" href="#TYFLOAT"><span>TYFLOAT:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYFLOAT" href="core.html#TYFLOAT">core: TYFLOAT</a></li>
+          data-doc-search-tag="types: TYFLOAT" href="types.html#TYFLOAT">types: TYFLOAT</a></li>
           </ul></dd>
 <dt><a name="TYFUNCTION" href="#TYFUNCTION"><span>TYFUNCTION:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="CTypeSpec.TYFUNCTION" href="core.html#TYFUNCTION">CTypeSpec.TYFUNCTION</a></li>
+          data-doc-search-tag="CTypeSpec.TYFUNCTION" href="types.html#TYFUNCTION">CTypeSpec.TYFUNCTION</a></li>
           </ul></dd>
 <dt><a name="TYINCOMPLETE" href="#TYINCOMPLETE"><span>TYINCOMPLETE:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="CTypeSpec.TYINCOMPLETE" href="core.html#TYINCOMPLETE">CTypeSpec.TYINCOMPLETE</a></li>
+          data-doc-search-tag="CTypeSpec.TYINCOMPLETE" href="types.html#TYINCOMPLETE">CTypeSpec.TYINCOMPLETE</a></li>
           </ul></dd>
 <dt><a name="TYINLINE" href="#TYINLINE"><span>TYINLINE:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYINLINE" href="core.html#TYINLINE">core: TYINLINE</a></li>
+          data-doc-search-tag="types: TYINLINE" href="types.html#TYINLINE">types: TYINLINE</a></li>
           </ul></dd>
 <dt><a name="TYINT" href="#TYINT"><span>TYINT:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYINT" href="core.html#TYINT">core: TYINT</a></li>
+          data-doc-search-tag="types: TYINT" href="types.html#TYINT">types: TYINT</a></li>
           </ul></dd>
 <dt><a name="TYINT16" href="#TYINT16"><span>TYINT16:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYINT16" href="core.html#TYINT16">core: TYINT16</a></li>
+          data-doc-search-tag="types: TYINT16" href="types.html#TYINT16">types: TYINT16</a></li>
           </ul></dd>
 <dt><a name="TYINT32" href="#TYINT32"><span>TYINT32:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYINT32" href="core.html#TYINT32">core: TYINT32</a></li>
+          data-doc-search-tag="types: TYINT32" href="types.html#TYINT32">types: TYINT32</a></li>
           </ul></dd>
 <dt><a name="TYINT64" href="#TYINT64"><span>TYINT64:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYINT64" href="core.html#TYINT64">core: TYINT64</a></li>
+          data-doc-search-tag="types: TYINT64" href="types.html#TYINT64">types: TYINT64</a></li>
           </ul></dd>
 <dt><a name="TYINT8" href="#TYINT8"><span>TYINT8:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYINT8" href="core.html#TYINT8">core: TYINT8</a></li>
+          data-doc-search-tag="types: TYINT8" href="types.html#TYINT8">types: TYINT8</a></li>
           </ul></dd>
 <dt><a name="TYINVALID" href="#TYINVALID"><span>TYINVALID:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYINVALID" href="core.html#TYINVALID">core: TYINVALID</a></li>
+          data-doc-search-tag="types: TYINVALID" href="types.html#TYINVALID">types: TYINVALID</a></li>
           </ul></dd>
 <dt><a name="TYLONG" href="#TYLONG"><span>TYLONG:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYLONG" href="core.html#TYLONG">core: TYLONG</a></li>
+          data-doc-search-tag="types: TYLONG" href="types.html#TYLONG">types: TYLONG</a></li>
           </ul></dd>
 <dt><a name="TYLONGDOUBLE" href="#TYLONGDOUBLE"><span>TYLONGDOUBLE:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYLONGDOUBLE" href="core.html#TYLONGDOUBLE">core: TYLONGDOUBLE</a></li>
+          data-doc-search-tag="types: TYLONGDOUBLE" href="types.html#TYLONGDOUBLE">types: TYLONGDOUBLE</a></li>
           </ul></dd>
 <dt><a name="TYLONGLONG" href="#TYLONGLONG"><span>TYLONGLONG:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYLONGLONG" href="core.html#TYLONGLONG">core: TYLONGLONG</a></li>
+          data-doc-search-tag="types: TYLONGLONG" href="types.html#TYLONGLONG">types: TYLONGLONG</a></li>
           </ul></dd>
 <dt><a name="TYLVALUE" href="#TYLVALUE"><span>TYLVALUE:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYLVALUE" href="core.html#TYLVALUE">core: TYLVALUE</a></li>
+          data-doc-search-tag="types: TYLVALUE" href="types.html#TYLVALUE">types: TYLVALUE</a></li>
           </ul></dd>
 <dt><a name="TYNORETURN" href="#TYNORETURN"><span>TYNORETURN:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYNORETURN" href="core.html#TYNORETURN">core: TYNORETURN</a></li>
+          data-doc-search-tag="types: TYNORETURN" href="types.html#TYNORETURN">types: TYNORETURN</a></li>
           </ul></dd>
 <dt><a name="Type" href="#Type"><span>Type:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -6499,91 +6661,91 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="TYPOINTER" href="#TYPOINTER"><span>TYPOINTER:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="CTypeSpec.TYPOINTER" href="core.html#TYPOINTER">CTypeSpec.TYPOINTER</a></li>
+          data-doc-search-tag="CTypeSpec.TYPOINTER" href="types.html#TYPOINTER">CTypeSpec.TYPOINTER</a></li>
           </ul></dd>
 <dt><a name="TYPRIM" href="#TYPRIM"><span>TYPRIM:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="CTypeSpec.TYPRIM" href="core.html#TYPRIM">CTypeSpec.TYPRIM</a></li>
+          data-doc-search-tag="CTypeSpec.TYPRIM" href="types.html#TYPRIM">CTypeSpec.TYPRIM</a></li>
           </ul></dd>
 <dt><a name="TYREGISTER" href="#TYREGISTER"><span>TYREGISTER:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYREGISTER" href="core.html#TYREGISTER">core: TYREGISTER</a></li>
+          data-doc-search-tag="types: TYREGISTER" href="types.html#TYREGISTER">types: TYREGISTER</a></li>
           </ul></dd>
 <dt><a name="TYRESTRICT" href="#TYRESTRICT"><span>TYRESTRICT:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYRESTRICT" href="core.html#TYRESTRICT">core: TYRESTRICT</a></li>
+          data-doc-search-tag="types: TYRESTRICT" href="types.html#TYRESTRICT">types: TYRESTRICT</a></li>
           </ul></dd>
 <dt><a name="TYSHORT" href="#TYSHORT"><span>TYSHORT:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYSHORT" href="core.html#TYSHORT">core: TYSHORT</a></li>
+          data-doc-search-tag="types: TYSHORT" href="types.html#TYSHORT">types: TYSHORT</a></li>
           </ul></dd>
 <dt><a name="TYSIZE_T" href="#TYSIZE_T"><span>TYSIZE_T:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYSIZE_T" href="core.html#TYSIZE_T">core: TYSIZE_T</a></li>
+          data-doc-search-tag="types: TYSIZE_T" href="types.html#TYSIZE_T">types: TYSIZE_T</a></li>
           </ul></dd>
 <dt><a name="TYSTATIC" href="#TYSTATIC"><span>TYSTATIC:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYSTATIC" href="core.html#TYSTATIC">core: TYSTATIC</a></li>
+          data-doc-search-tag="types: TYSTATIC" href="types.html#TYSTATIC">types: TYSTATIC</a></li>
           </ul></dd>
 <dt><a name="TYSTRUCT" href="#TYSTRUCT"><span>TYSTRUCT:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="CTypeSpec.TYSTRUCT" href="core.html#TYSTRUCT">CTypeSpec.TYSTRUCT</a></li>
+          data-doc-search-tag="CTypeSpec.TYSTRUCT" href="types.html#TYSTRUCT">CTypeSpec.TYSTRUCT</a></li>
           </ul></dd>
 <dt><a name="TYTHREAD_LOCAL" href="#TYTHREAD_LOCAL"><span>TYTHREAD_LOCAL:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYTHREAD_LOCAL" href="core.html#TYTHREAD_LOCAL">core: TYTHREAD_LOCAL</a></li>
+          data-doc-search-tag="types: TYTHREAD_LOCAL" href="types.html#TYTHREAD_LOCAL">types: TYTHREAD_LOCAL</a></li>
           </ul></dd>
 <dt><a name="TYTYPEDEF" href="#TYTYPEDEF"><span>TYTYPEDEF:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYTYPEDEF" href="core.html#TYTYPEDEF">core: TYTYPEDEF</a></li>
+          data-doc-search-tag="types: TYTYPEDEF" href="types.html#TYTYPEDEF">types: TYTYPEDEF</a></li>
           </ul></dd>
 <dt><a name="TYUCHAR" href="#TYUCHAR"><span>TYUCHAR:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYUCHAR" href="core.html#TYUCHAR">core: TYUCHAR</a></li>
+          data-doc-search-tag="types: TYUCHAR" href="types.html#TYUCHAR">types: TYUCHAR</a></li>
           </ul></dd>
 <dt><a name="TYUINT" href="#TYUINT"><span>TYUINT:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYUINT" href="core.html#TYUINT">core: TYUINT</a></li>
+          data-doc-search-tag="types: TYUINT" href="types.html#TYUINT">types: TYUINT</a></li>
           </ul></dd>
 <dt><a name="TYUINT16" href="#TYUINT16"><span>TYUINT16:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYUINT16" href="core.html#TYUINT16">core: TYUINT16</a></li>
+          data-doc-search-tag="types: TYUINT16" href="types.html#TYUINT16">types: TYUINT16</a></li>
           </ul></dd>
 <dt><a name="TYUINT32" href="#TYUINT32"><span>TYUINT32:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYUINT32" href="core.html#TYUINT32">core: TYUINT32</a></li>
+          data-doc-search-tag="types: TYUINT32" href="types.html#TYUINT32">types: TYUINT32</a></li>
           </ul></dd>
 <dt><a name="TYUINT64" href="#TYUINT64"><span>TYUINT64:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYUINT64" href="core.html#TYUINT64">core: TYUINT64</a></li>
+          data-doc-search-tag="types: TYUINT64" href="types.html#TYUINT64">types: TYUINT64</a></li>
           </ul></dd>
 <dt><a name="TYUINT8" href="#TYUINT8"><span>TYUINT8:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYUINT8" href="core.html#TYUINT8">core: TYUINT8</a></li>
+          data-doc-search-tag="types: TYUINT8" href="types.html#TYUINT8">types: TYUINT8</a></li>
           </ul></dd>
 <dt><a name="TYULONG" href="#TYULONG"><span>TYULONG:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYULONG" href="core.html#TYULONG">core: TYULONG</a></li>
+          data-doc-search-tag="types: TYULONG" href="types.html#TYULONG">types: TYULONG</a></li>
           </ul></dd>
 <dt><a name="TYULONGLONG" href="#TYULONGLONG"><span>TYULONGLONG:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYULONGLONG" href="core.html#TYULONGLONG">core: TYULONGLONG</a></li>
+          data-doc-search-tag="types: TYULONGLONG" href="types.html#TYULONGLONG">types: TYULONGLONG</a></li>
           </ul></dd>
 <dt><a name="TYUNION" href="#TYUNION"><span>TYUNION:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="CTypeSpec.TYUNION" href="core.html#TYUNION">CTypeSpec.TYUNION</a></li>
+          data-doc-search-tag="CTypeSpec.TYUNION" href="types.html#TYUNION">CTypeSpec.TYUNION</a></li>
           </ul></dd>
 <dt><a name="TYUSHORT" href="#TYUSHORT"><span>TYUSHORT:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYUSHORT" href="core.html#TYUSHORT">core: TYUSHORT</a></li>
+          data-doc-search-tag="types: TYUSHORT" href="types.html#TYUSHORT">types: TYUSHORT</a></li>
           </ul></dd>
 <dt><a name="TYVOID" href="#TYVOID"><span>TYVOID:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYVOID" href="core.html#TYVOID">core: TYVOID</a></li>
+          data-doc-search-tag="types: TYVOID" href="types.html#TYVOID">types: TYVOID</a></li>
           </ul></dd>
 <dt><a name="TYVOLATILE" href="#TYVOLATILE"><span>TYVOLATILE:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: TYVOLATILE" href="core.html#TYVOLATILE">core: TYVOLATILE</a></li>
+          data-doc-search-tag="types: TYVOLATILE" href="types.html#TYVOLATILE">types: TYVOLATILE</a></li>
           </ul></dd>
 <dt><a name="UAdd" href="#UAdd"><span>UAdd:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -6603,7 +6765,7 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="uintmax_t" href="#uintmax_t"><span>uintmax_t:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: uintmax_t" href="core.html#uintmax_t">core: uintmax_t</a></li>
+          data-doc-search-tag="config: uintmax_t" href="config.html#uintmax_t">config: uintmax_t</a></li>
           </ul></dd>
 <dt><a name="UIToFP" href="#UIToFP"><span>UIToFP:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -6651,7 +6813,7 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="unsigned" href="#unsigned"><span>unsigned:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="core: unsigned" href="core.html#unsigned">core: unsigned</a></li>
+          data-doc-search-tag="types: unsigned" href="types.html#unsigned">types: unsigned</a></li>
           </ul></dd>
 <dt><a name="URem" href="#URem"><span>URem:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -6866,7 +7028,7 @@ window.addEventListener('DOMContentLoaded', main);
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-04 05:31:47 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-08 14:07:14 UTC</small>
       </div>
     </div>
   </div>

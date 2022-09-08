@@ -24,42 +24,9 @@
 ## #define myopneg(a) (-(a))
 ## ```
 
-import stream, core
+import config, types, stream, core, ast, token, operators, location
 import std/[math, tables, sets]
 from std/sequtils import count
-
-const type_specifier_set* = {
-    Kchar, Kint, Kshort, Ksigned, 
-    Kunsigned, 
-    Klong, Kdouble, Kfloat,
-    K_Atomic,
-    K_Complex, Kvoid, K_Bool
-} ## primitive types
-
-
-const function_specifier_set* = {
-    Kinline, K_Noreturn
-} ## function specfiers
-
-
-const storage_class_specifier_set* = {
-    Ktypedef, Kextern, Kstatic, 
-    K_Thread_local, Kauto, Kregister
-} ## storage specfiers
-
-
-const type_qualifier_set* = {
-     Kvolatile, Krestrict, Kconst
-} ## type qualifiers
-
-
-const declaration_specifier_set* = 
-    type_specifier_set +
-    storage_class_specifier_set +
-    type_qualifier_set +
-    function_specifier_set ## declaration specfiers
-
-proc compatible*(p, expected: CType): bool
 
 type
     Parser* = ref object
@@ -95,10 +62,27 @@ type
 
 var p*: Parser = nil
 
+when TYINT == TYINT32:
+    const sizeofint = 4.culonglong
+else:
+    const sizeofint = 8.culonglong
+
+proc type_error*(msg: string) =
+    cstderr << "\e[35m" & p.filename & ":" & $p.line & '.' & $p.col & ": type error: " & msg & "\e[0m\n"
+    if p.fstack.len > 0:
+        printSourceLine(p.fstack[^1], p.line)
+    p.type_error = true
+
+proc error_incomplete*(ty: CType) =
+  let s = if ty.tag == TYSTRUCT:  "struct" else: (if ty.tag == TYUNION: "union" else: "enum")
+  type_error("use of incomplete type '" & s & " " & ty.name & '\'')
+
+proc compatible*(p, expected: CType): bool
+
 proc parse_error*(msg: string) =
     # p.tok = TokenV(tok: TNul, tags: TVNormal)
     if p.parse_error == false:
-      stderr.writeLine("\e[34m" & p.filename & ":" & $p.line & '.' & $p.col & ": parse error: " & msg & "\e[0m")
+      cstderr << "\e[34m" & p.filename & ":" & $p.line & '.' & $p.col & ": parse error: " & msg & "\e[0m\n"
       if p.fstack.len > 0:
           printSourceLine(p.fstack[^1], p.line)
       p.parse_error = true
@@ -108,7 +92,6 @@ proc setParser*(a: var Parser) =
 
 proc getParser*(): var Parser = 
   p
-
 
 proc binop*(a: Expr, op: BinOP, b: Expr, ty: CType): Expr = 
     ## construct a binary operator
@@ -163,7 +146,7 @@ proc ppMacroEq(a, b: PPMacro): bool =
 
 proc warning*(msg: string) =
   if ord(app.verboseLevel) >= ord(WWarning):
-    stderr.writeLine("\e[33m" & p.filename & ": " & $p.line & '.' & $p.col & ": warning: " & msg & "\e[0m")
+    cstderr << "\e[33m" & p.filename & ": " & $p.line & '.' & $p.col & ": warning: " & msg & "\e[0m\n"
 
 proc macro_define*(name: string, m: PPMacro) =
   let pr = p.macros.getOrDefault(name, nil)
@@ -194,33 +177,110 @@ proc expectLB*() =
 proc expectRB*() =
     expect("')'")
 
+proc isFloating*(ty: CType): bool =
+    bool(ty.tags and (TYFLOAT or TYDOUBLE))
+
+proc isSigned*(ty: CType): bool =
+    ## `_Bool` is not signed
+    if ty.spec == TYBITFIELD:
+        isSigned(ty.bittype)
+    else:
+        bool(ty.tags and (
+            TYINT8 or
+            TYINT16 or
+            TYINT16 or
+            TYINT32 or
+            TYINT64
+        ))
+
+proc getsizeof*(ty: CType): culonglong =
+    if ty.spec == TYINCOMPLETE:
+        error_incomplete(ty)
+        return 0
+    if ty.spec == TYPRIM:
+        if (ty.tags and TYVOID) != 0:
+            type_error("cannot get sizeof void")
+            return 0
+        if (ty.tags and (TYINT8 or TYUINT8)) != 0:
+          return 1
+        if (ty.tags and (TYINT16 or TYUINT16)) != 0:
+          return 2
+        if (ty.tags and (TYINT32 or TYUINT32)) != 0:
+          return 4
+        if (ty.tags and (TYINT64 or TYUINT64)) != 0:
+            return 8
+    if ty.spec == TYBITFIELD:
+        type_error("invalid application of 'sizeof' to bit-field")
+        return 0
+    if ty.spec == TYENUM:
+        return sizeofint
+    if ty.spec == TYPOINTER:
+        return app.pointersize
+    return app.getSizeof(ty)
+
+proc getsizeof*(e: Expr): culonglong =
+    getsizeof(e.ty)
+
+proc getAlignof*(ty: CType): culonglong =
+    if ty.spec == TYFUNCTION:
+        return 1
+    if ty.spec == TYENUM:
+        return sizeofint
+    if ty.spec == TYINCOMPLETE:
+        error_incomplete(ty)
+        return 0
+    app.getAlignOf(ty)
+
+proc getAlignof*(e: Expr): culonglong =
+    getAlignof(e.ty)
+
+proc checkInteger*(a: CType): bool =
+    return (a.spec == TYPRIM) and 
+    bool(
+        a.tags and (
+            TYINT8 or TYINT16 or TYINT32 or TYINT64 or 
+            TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64 or 
+            TYBOOL
+        )
+    )
+
+proc checkScalar(a: CType): bool =
+    return a.spec == TYPOINTER or 
+    (
+        a.spec == TYPRIM and
+        (
+            (a.tags and TYVOID) == 0
+        )
+    )
+
+proc intRank*(a: uint32): int =
+    if bool(a and TYBOOL):
+        return 1
+    if bool(a and (TYINT8 or TYUINT8)):
+        return 2
+    if bool(a and (TYINT16 or TYUINT16)):
+        return 3
+    if bool(a and (TYINT32 or TYUINT32)):
+        return 4
+    return 5
+
 proc err*(): bool =
   p.type_error or p.parse_error or p.eval_error
 
 proc note*(msg: string) =
     if ord(app.verboseLevel) >= ord(WNote):
-      stderr.writeLine("\e[32mnote: " & msg & "\e[0m")
+      cstderr << "\e[32mnote: " & msg & "\e[0m\n"
 
 proc error*(msg: string) =
     if p.bad_error == false:
-      stderr.writeLine("\e[31m" & p.filename & ":" & $p.line & '.' & $p.col & ": error: " & msg & "\e[0m")
+      cstderr << "\e[31m" & p.filename & ":" & $p.line & '.' & $p.col & ": error: " & msg & "\e[0m\n"
       if p.fstack.len > 0:
           printSourceLine(p.fstack[^1], p.line)
       p.bad_error = true
 
-proc type_error*(msg: string) =
-    stderr.writeLine("\e[35m" & p.filename & ":" & $p.line & '.' & $p.col & ": type error: " & msg & "\e[0m")
-    if p.fstack.len > 0:
-        printSourceLine(p.fstack[^1], p.line)
-    p.type_error = true
-
-proc error_incomplete*(ty: CType) =
-  let s = if ty.tag == TYSTRUCT:  "struct" else: (if ty.tag == TYUNION: "union" else: "enum")
-  type_error("use of incomplete type '" & s & " " & ty.name & '\'')
-
 proc inTheExpression*(e: Expr) =
     ## emit in the expression message
-    parse_error("in the expression '" & $e & '\'')
+    note("in the expression '" & $e & '\'')
 
 proc enterBlock*() =
   p.typedefs.add(newTable[string, typeof(p.typedefs[0][""])]())
@@ -473,98 +533,6 @@ proc isprint*(a: cint): cint {.importc: "isprint", nodecl, header: "ctype.h".}
 
 const hexs*: cstring = "0123456789ABCDEF"
 
-when TYINT == TYINT32:
-    const sizeofint = 4.culonglong
-else:
-    const sizeofint = 8.culonglong
-
-proc isFloating*(ty: CType): bool =
-    bool(ty.tags and (TYFLOAT or TYDOUBLE))
-
-proc isSigned*(ty: CType): bool =
-    ## `_Bool` is not signed
-    if ty.spec == TYBITFIELD:
-        isSigned(ty.bittype)
-    else:
-        bool(ty.tags and (
-            TYINT8 or
-            TYINT16 or
-            TYINT16 or
-            TYINT32 or
-            TYINT64
-        ))
-
-proc getsizeof*(ty: CType): culonglong =
-    if ty.spec == TYINCOMPLETE:
-        error_incomplete(ty)
-        return 0
-    if ty.spec == TYPRIM:
-        if (ty.tags and TYVOID) != 0:
-            type_error("cannot get sizeof void")
-            return 0
-        if (ty.tags and (TYINT8 or TYUINT8)) != 0:
-          return 1
-        if (ty.tags and (TYINT16 or TYUINT16)) != 0:
-          return 2
-        if (ty.tags and (TYINT32 or TYUINT32)) != 0:
-          return 4
-        if (ty.tags and (TYINT64 or TYUINT64)) != 0:
-            return 8
-    if ty.spec == TYBITFIELD:
-        type_error("invalid application of 'sizeof' to bit-field")
-        return 0
-    if ty.spec == TYENUM:
-        return sizeofint
-    if ty.spec == TYPOINTER:
-        return app.pointersize
-    return app.getSizeof(ty)
-
-proc getsizeof*(e: Expr): culonglong =
-    getsizeof(e.ty)
-
-proc getAlignof*(ty: CType): culonglong =
-    if ty.spec == TYFUNCTION:
-        return 1
-    if ty.spec == TYENUM:
-        return sizeofint
-    if ty.spec == TYINCOMPLETE:
-        error_incomplete(ty)
-        return 0
-    app.getAlignOf(ty)
-
-proc getAlignof*(e: Expr): culonglong =
-    getAlignof(e.ty)
-
-proc checkInteger*(a: CType): bool =
-    return (a.spec == TYPRIM) and 
-    bool(
-        a.tags and (
-            TYINT8 or TYINT16 or TYINT32 or TYINT64 or 
-            TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64 or 
-            TYBOOL
-        )
-    )
-
-proc checkScalar(a: CType): bool =
-    return a.spec == TYPOINTER or 
-    (
-        a.spec == TYPRIM and
-        (
-            (a.tags and TYVOID) == 0
-        )
-    )
-
-proc intRank*(a: uint32): int =
-    if bool(a and TYBOOL):
-        return 1
-    if bool(a and (TYINT8 or TYUINT8)):
-        return 2
-    if bool(a and (TYINT16 or TYUINT16)):
-        return 3
-    if bool(a and (TYINT32 or TYUINT32)):
-        return 4
-    return 5
-
 proc intcast*(e: Expr, to: CType): Expr = 
     if bool(to.tags and (TYINT8 or TYINT16 or TYINT32 or TYINT64 or 
         TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64)) and 
@@ -672,51 +640,53 @@ proc integer_promotions*(e: var Expr) =
         to(e, TYINT)
 
 proc conv*(a, b: var Expr) =
-    a.ty.tags = a.ty.tags and prim
-    b.ty.tags = b.ty.tags and prim
+    # a.ty.tags = a.ty.tags and prim
+    # b.ty.tags = b.ty.tags and prim
+    var at = a.ty.tags and prim
+    var bt = b.ty.tags and prim
     if a.ty.spec != TYPRIM or b.ty.spec != TYPRIM:
         return
-    if (a.ty.tags and TYLONGDOUBLE) != 0:
+    if (at and TYLONGDOUBLE) != 0:
         to(b, TYLONGDOUBLE)
-    elif (b.ty.tags and TYLONGDOUBLE) != 0:
+    elif (bt and TYLONGDOUBLE) != 0:
         to(a, TYLONGDOUBLE)
-    elif (a.ty.tags and TYDOUBLE) != 0:
+    elif (at and TYDOUBLE) != 0:
         to(b, TYDOUBLE)
-    elif (b.ty.tags and TYDOUBLE) != 0:
+    elif (bt and TYDOUBLE) != 0:
         to(a, TYDOUBLE)
-    elif (a.ty.tags and TYFLOAT) != 0:
+    elif (at and TYFLOAT) != 0:
         to(b, TYFLOAT)
-    elif (b.ty.tags and TYFLOAT) != 0:
+    elif (bt and TYFLOAT) != 0:
         to(a, TYFLOAT)
     else:
         integer_promotions(a)
         integer_promotions(b)
-        if a.ty.tags == b.ty.tags:
+        if at == bt:
             return
         let
           sizeofa = getsizeof(a.ty)
           sizeofb = getsizeof(b.ty)
-          isaunsigned = bool(a.ty.tags and unsigned)
-          isbunsigned = bool(b.ty.tags and unsigned)
+          isaunsigned = bool(at and unsigned)
+          isbunsigned = bool(bt and unsigned)
         if (isaunsigned and isbunsigned) or (isaunsigned == false and isbunsigned == false):
             if sizeofa > sizeofb:
-                to(b, a.ty.tags)
+                to(b, at)
             else:
-                to(a, b.ty.tags)
+                to(a, bt)
         else:
             if isaunsigned and (sizeofa > sizeofb):
-                to(b, a.ty.tags)
+                to(b, at)
             elif isbunsigned and (sizeofb > sizeofa):
-                to(a, b.ty.tags)
+                to(a, bt)
             elif isaunsigned==false and sizeofa > sizeofb:
-                to(b, a.ty.tags)
+                to(b, at)
             elif isbunsigned==false and sizeofb > sizeofa:
-                to(a, b.ty.tags)
+                to(a, bt)
             else:
                 if isaunsigned:
-                    to(b, a.ty.tags)
+                    to(b, at)
                 else:
-                    to(a, b.ty.tags)
+                    to(a, bt)
 
 
 proc compatible*(p, expected: CType): bool =
@@ -741,7 +711,8 @@ proc compatible*(p, expected: CType): bool =
         of TYSTRUCT, TYENUM, TYUNION:
             return cast[pointer](p) == cast[pointer](expected)
         of TYPOINTER:
-            return compatible(p.p, expected.p)
+            const mask = TYRESTRICT or TYCONST or TYVOLATILE
+            return bool(p.p.tags and TYVOID) or bool(expected.p.tags and TYVOID) or (((p.tags and mask) == (expected.tags and mask)) and compatible(p.p, expected.p))
         of TYINCOMPLETE:
             return p.tag == expected.tag and p.name == expected.name
         of TYBITFIELD:
@@ -750,6 +721,8 @@ proc compatible*(p, expected: CType): bool =
             return compatible(p.arrtype, expected.arrtype)
 
 proc default_argument_promotions*(e: Expr): Expr =
+    if e.ty.spec == TYENUM or e.ty.spec == TYUNION or e.ty.spec == TYSTRUCT or e.ty.spec == TYPOINTER:
+        return e
     if bool(e.ty.tags and TYFLOAT):
         castto(e, CType(tags: TYDOUBLE, spec: TYPRIM))
     else:
@@ -1283,7 +1256,10 @@ proc declarator*(base: CType; flags=Direct): Stmt =
 proc initializer_list*(): Expr =
     if p.tok.tok != TLcurlyBracket:
         return assignment_expression()
-    result = Expr(k: EArray)
+    if p.currentInitTy.spec == TYARRAY:
+        result = Expr(k: EArray, ty: p.currentInitTy)
+    else:
+        result = Expr(k: EStruct, ty: p.currentInitTy)
     consume()
     while true:
         if p.tok.tok == TRcurlyBracket:
@@ -1336,7 +1312,7 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
     case p.tok.tok:
     of TLSquareBrackets: # int arr[5], int arr[*], int arr[static 5], int arr[static const 5], int arr[const static 5], int arr2[static const restrict 5]
         consume() # eat ]
-        var ty = CType(tags: TYINVALID, spec: TYARRAY, arrsize: 0, arrtype: base)
+        var ty = CType(tags: TYINVALID, spec: TYARRAY, arrsize: 0, arrtype: base, hassize: false)
         if p.tok.tok == TMul: # int arr[*]
           consume()
           if p.tok.tok != TRSquareBrackets:
@@ -1358,6 +1334,7 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
             if e == nil:
                 expectExpression()
                 return nil
+            ty.hassize = true
             ty.arrsize = app.eval_const_expression(e)
             if p.tok.tok != TRSquareBrackets:
                parse_error("expect ']'")
@@ -1829,7 +1806,26 @@ proc declaration*(): Stmt =
                     type_error("function declaration has no initializer")
                     note("only variables can be initialized")
                 else:
-                    result.vars[^1][2] = castto(init, st.var1type)
+                    block:
+                        if st.var1type.spec == TYARRAY:
+                            if init.k != ArrToAddress:
+                                type_error("expect array initializer")
+                                return nil
+                            result.vars[^1][2] = init
+                            if st.var1type.hassize == false:
+                                st.var1type.arrsize = len(init.arr)
+                            else:
+                                if len(init.voidexpr.arr) > st.var1type.arrsize:
+                                    warning("excess elements in array initializer")
+                                    while true:
+                                        discard init.arr.pop()
+                                        if len(init.arr) == st.var1type.arrsize:
+                                            break
+                            break
+                        result.vars[^1][2] = castto(init, st.var1type)
+                    if isTopLevel() and isConstant(result.vars[^1][2]) == false:
+                        type_error("initializer element is not constant")
+                        note("global variable requires constant initializer")
             if p.tok.tok == TComma:
                 consume()
             elif p.tok.tok == TSemicolon:
@@ -1842,10 +1838,11 @@ proc cast_expression*(): Expr =
     of TLbracket:
         consume()
         if istype(p.tok.tok):
-            let (n, isf) = type_name()
+            var (n, isf) = type_name()
             discard isf
             if n == nil:
                 return nil
+            n.tags = n.tags or TYLVALUE
             if p.tok.tok != TRbracket:
                 expect("`)`")
                 return nil
@@ -1901,17 +1898,17 @@ proc unary_expression*(): Expr =
         return result
     of TMul:
         consume()
-        let e = cast_expression()
+        var e = cast_expression()
         if e.ty.spec != TYPOINTER:
             type_error("pointer expected")
             return nil
-        var ty = e.ty.p
+        var ty = deepCopy(e.ty)
         ty.tags = ty.tags or TYLVALUE
         result = unary(e, Dereference, ty)
         return result
     of TBitNot:
         consume()
-        let e = cast_expression()
+        var e = cast_expression()
         if e == nil:
             return nil
         result = unary(e, Not, e.ty)
@@ -1922,8 +1919,10 @@ proc unary_expression*(): Expr =
         var e = expression()
         if e == nil:
             return nil
+        if e.k == EString:
+            return e
         if e.k == ArrToAddress:
-            e.ty.tags = TYINVALID
+            e.ty = CType(tags: TYLVALUE, spec: TYPOINTER, p: e.voidexpr.ty)
             return e
         if not bool(e.ty.tags and TYLVALUE):
             type_error("cannot take the address of an rvalue")
@@ -2339,19 +2338,29 @@ proc primary_expression*(): Expr =
                 return
         case enc:
         of 8:
-            return Expr(k: EString, str: s, ty: CType(tags: TYCONST, spec: TYPOINTER, p: CType(tags: TYCHAR, spec: TYPRIM)))
+            let ty = CType(tags: TYINT8, spec: TYPRIM)
+            return Expr(
+                k: ArrToAddress, voidexpr: Expr(k: EString, ty: ty, str: s), 
+                ty: CType(tags: TYINVALID, spec: TYPOINTER, p: ty)
+            )
         of 16:
             var a: seq[Expr]
             let ty = CType(tags: TYUSHORT, spec: TYPRIM)
             for i in writeUTF8toUTF16(s):
                 a.add(Expr(k: EIntLit, ival: cast[int](i), ty: ty))
-            return Expr(k: EArray, ty: CType(tags: TYINVALID, spec: TYPOINTER, p: ty), arr: a)
+            return Expr(
+                k: ArrToAddress, voidexpr: Expr(k: EArray, ty: ty, arr: a), 
+                ty: CType(tags: TYINVALID, spec: TYPOINTER, p: ty)
+            )
         of 32:
             var a: seq[Expr]
-            let ty = CType(tags: TYUINT, spec: TYPRIM)
+            let ty = CType(tags: TYUINT32, spec: TYPRIM)
             for i in writeUTF8toUTF32(s):
                 a.add(Expr(k: EIntLit, ival: cast[int](i), ty: ty))
-            return Expr(k: EArray, ty: CType(tags: TYINVALID, spec: TYPOINTER, p: ty), arr: a)
+            return Expr(
+                k: ArrToAddress, voidexpr: Expr(k: EArray, ty: ty, arr: a), 
+                ty: CType(tags: TYINVALID, spec: TYPOINTER, p: ty)
+            )
         else:
             unreachable()
     of TPPNumber:
@@ -2404,8 +2413,10 @@ proc primary_expression*(): Expr =
                     CType(tags: TYLVALUE, spec: TYPOINTER, p: ty)
                 )
             of TYARRAY:
+                var cp = deepCopy(ty)
+                cp.arrtype.tags = cp.arrtype.tags and prim
                 result = Expr(
-                    k: ArrToAddress, voidexpr: Expr(k: EVar, sval: p.tok.s, ty: ty), 
+                    k: ArrToAddress, voidexpr: Expr(k: EVar, sval: p.tok.s, ty: cp),
                     ty: CType(tags: TYLVALUE, spec: TYPOINTER, p: ty.arrtype)
                 )
             else:
@@ -3034,7 +3045,7 @@ proc statament*(): Stmt =
             note("A return statement with an expression shall not appear in a function whose return type is void")
             return Stmt(k: SReturn, exprbody: nil)
         if not compatible(e.ty, p.currentfunctionRet):
-            type_error("incompatible type in 'return' statement")
+            warning("incompatible type in 'return' statement")
             note("expect " & $p.currentfunctionRet & ", but got " & $e.ty)
             inTheExpression(e)
         return Stmt(k: SReturn, exprbody: castto(e, p.currentfunctionRet))

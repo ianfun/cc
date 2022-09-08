@@ -1080,6 +1080,7 @@ incl	llvm.html#incl,Value,Type,uint32	llvm: incl(p: Value; t: Type; align: uint3
 decl	llvm.html#decl,Value,Type,uint32	llvm: decl(p: Value; t: Type; align: uint32)	
 decl	llvm.html#decl,Value,Type	llvm: decl(p: Value; t: Type)	
 getAddress	llvm.html#getAddress,Expr	llvm: getAddress(e: Expr): Value	
+pointerBitCast	llvm.html#pointerBitCast,Value,Type,TypeRef	llvm: pointerBitCast(v: Value; fromTy: Type; to: TypeRef): Value	
 gen	llvm.html#gen,Expr	llvm: gen(e: Expr): Value	
 gen_cast	llvm.html#gen_cast,Expr,CType,CastOp	llvm: gen_cast(e: Expr; to: CType; op: CastOp): Value	
 jit_error	llvm.html#jit_error,string	llvm: jit_error(msg: string)	

@@ -10,9 +10,14 @@ when defined(windows):
 else:
     {.passL: "-lLLVM-15 llvmAPI".}
 
-import core, cli, stream
+import core, cli, stream, lexer, cpp, parser, eval, llvm
 
-core.init(lexer, cpp, parser, eval, llvm)
+setLexer()
+setCpp()
+setParser()
+setEval()
+parseCLI()
+setBackend()
 
 proc link(opath: string = app.output) =
     case app.linker:
@@ -110,4 +115,5 @@ of InputIR, InputBC:
 of InputObject, InputAsm:
     warning("use gcc instead for object and assembly file")
 
-core.shutdown()
+closeParser()
+shutdown_backend()

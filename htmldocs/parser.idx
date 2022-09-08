@@ -1,3 +1,4 @@
+isConstant	parser.html#isConstant,Expr	parser: isConstant(e: Expr): bool	
 type_specifier_set	parser.html#type_specifier_set	parser: type_specifier_set	
 function_specifier_set	parser.html#function_specifier_set	parser: function_specifier_set	
 storage_class_specifier_set	parser.html#storage_class_specifier_set	parser: storage_class_specifier_set	

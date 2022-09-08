@@ -1,4 +1,4 @@
-import core
+import config, ast, operators, core
 from parser import constant_expression, p
 
 proc my_UNEG(a: uintmax_t): intmax_t {.importc: "myopneg", nodecl, header: "myop.h".}

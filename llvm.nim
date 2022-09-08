@@ -18,8 +18,7 @@
 ## `runjit()` will run module.
 
 import std/[tables, exitprocs]
-import core, parser, builtins
-
+import config, core, parser, builtins, ast, operators, types
 
 type
   OpaqueMemoryBuffer*{.pure, final.} = object
@@ -266,7 +265,7 @@ type
   Label* = BasicBlockRef ## LLVM block
 
 type
-    Backend* = ref object
+    Backend* = object
       # jump labels
       labels*: seq[TableRef[string, Label]]
       # struct/union
@@ -289,9 +288,11 @@ type
       topContinue*: Label
       target*: TargetRef
       topCase*: Label
+      # LLVM Types
+      i1, i8*, i16*, i32*, i64*, ffloat*, fdouble*, voidty*, ptrty*: Type
 
 
-var b*: Backend
+var b*: ptr Backend
 
 proc llvm_error*(msg: string) =
   stderr.writeLine("LLVM ERROR: " & msg)
@@ -322,15 +323,23 @@ proc newBackend*(module_name, source_file: string) =
   #initializeNativeAsmPrinter()
   #initializeAllAsmParsers()
   nimLLVMinit()
-  b = Backend(
-    tsCtx: orcCreateNewThreadSafeContext(),
-    builder: createBuilder()
-  )
+  b = create(Backend)
+  b.tsCtx = orcCreateNewThreadSafeContext()
   b.ctx = orcThreadSafeContextGetContext(b.tsCtx)
+  b.builder = createBuilderInContext(b.ctx)
   if app.input == InputC:
     contextSetDiscardValueNames(b.ctx, True)
   b.module = moduleCreateWithNameInContext(module_name, b.ctx)
   setSourceFileName(b.module, source_file, source_file.len.csize_t)
+  b.voidty = voidTypeInContext(b.ctx)
+  b.ptrty = pointerTypeInContext(b.ctx, 0)
+  b.i1 = int1TypeInContext(b.ctx)
+  b.i8 = int8TypeInContext(b.ctx)
+  b.i16 = int16TypeInContext(b.ctx)
+  b.i32 = int32TypeInContext(b.ctx)
+  b.i64 = int64TypeInContext(b.ctx)
+  b.ffloat = floatTypeInContext(b.ctx)
+  b.fdouble = doubleTypeInContext(b.ctx)
 
 proc initTarget*() =
   var err: cstring
@@ -356,7 +365,7 @@ proc handle_asm(s: string) =
     # module level asm
     appendModuleInlineAsm(b.module, cstring(s), len(s).csize_t)
   else:
-    var asmtype = functionType(voidTypeInContext(b.ctx), nil, 0, False)
+    var asmtype = functionType(b.voidty, nil, 0, False)
     var f = getInlineAsm(asmtype, cstring(s), len(s).csize_t, nil, 0, True, False, InlineAsmDialectATT, False)
     var c = buildCall2(b.builder, asmtype, f, nil, 0, "") 
     setTailCall(c, True)
@@ -407,6 +416,8 @@ proc putTags*(name: string, t: Type) =
   b.tags[^1][name] = t
 
 proc shutdownBackend*() =
+  if b != nil:
+     dealloc(b)
   shutdown()
 
 proc optimize*() =
@@ -499,37 +510,38 @@ proc gen_cond*(a: Expr): Value =
     buildICmp(b.builder, IntNE, lhs, rhs, "")
 
 proc gen_bool*(val: bool): Value =
-  constInt(int1TypeInContext(b.ctx), if val: 1 else: 0, False)
+  constInt(b.i1, if val: 1 else: 0, False)
 
 proc gen_true*(): Value =
-  constInt(int1TypeInContext(b.ctx), 1, False)
+  constInt(b.i1, 1, False)
 
 proc gen_false*(): Value =
-  constInt(int1TypeInContext(b.ctx), 0, False)
+  constInt(b.i1, 0, False)
 
 proc gen_int*(i: culonglong, tags: uint32): Value =
     if (tags and TYBOOL) != 0:
-        constInt(int1TypeInContext(b.ctx), i, False)
+        constInt(b.i1, i, False)
     elif (tags and (TYINT8 or TYUINT8)) != 0:
-        constInt(int8TypeInContext(b.ctx), i, False)
+        constInt(b.i8, i, False)
     elif (tags and (TYINT16 or TYUINT16)) != 0:
-        constInt(int16TypeInContext(b.ctx), i, False)
+        constInt(b.i16, i, False)
     elif (tags and (TYINT32 or TYUINT32)) != 0:
-        constInt(int32TypeInContext(b.ctx), i, False)
+        constInt(b.i32, i, False)
     elif (tags and (TYINT64 or TYUINT64)) != 0:
-        constInt(int64TypeInContext(b.ctx), i, False)
+        constInt(b.i64, i, False)
     else:
         unreachable()
         nil
 
 proc gen_float*(f: float, tag: uint32): Value =
-  constReal(if (tag and TYFLOAT) != 0: floatTypeInContext(b.ctx) else: doubleTypeInContext(b.ctx), f)
+  constReal(if (tag and TYFLOAT) != 0: b.ffloat else: b.fdouble, f)
 
 proc gen_str*(val: string, ty: var Type): Value =
   var gstr = constStringInContext(b.ctx, cstring(val), len(val).cuint, False)
   ty = typeOfX(gstr)
   result = addGlobal(b.module, ty, "")
-  setGlobalConstant(result, True)
+  # setGlobalConstant(result, True)
+  # we use array instead of constant string!
   setLinkage(result, PrivateLinkage)
   setInitializer(result, gstr)
   setAlignment(result, 1)
@@ -538,16 +550,16 @@ proc gen_str*(val: string, ty: var Type): Value =
 proc gen_str_ptr*(val: string): Value =
   var ty: Type
   var s = gen_str(val, ty)
-  var zero = constInt(int32Type(), 0, False)
+  var zero = constInt(b.i32, 0, False)
   var indices = [zero, zero]
   buildInBoundsGEP2(b.builder, pointerType(ty, 0), s, addr indices[0], 2, "")
 
 proc backendint*(): Type =
     ## note: we do not used `intTypeInContext()` for int
     if TYINT == TYINT32:
-      int32TypeInContext(b.ctx)
+      b.i32
     else:
-      int64TypeInContext(b.ctx)
+      b.i64
 
 proc load*(p: Value, t: Type, align: uint32 = 0): Value =
   result = buildLoad2(b.builder, t, p, "")
@@ -563,20 +575,14 @@ proc wrap2*(ty: CType): Type =
   case ty.spec:
   of TYPRIM:
     return (
-      if (ty.tags and (TYINT8 or TYUINT8)) != 0:
-          int8TypeInContext(b.ctx)
-      elif (ty.tags and (TYINT16 or TYUINT16)) != 0:
-          int16TypeInContext(b.ctx)
-      elif (ty.tags and (TYINT32 or TYUINT32)) != 0:
-          int32TypeInContext(b.ctx)
-      elif (ty.tags and (TYINT64 or TYUINT64)) != 0:
-          int64TypeInContext(b.ctx)
-      elif (ty.tags and TYFLOAT) != 0:
-          floatTypeInContext(b.ctx)
-      elif (ty.tags and TYDOUBLE) != 0:
-          doubleTypeInContext(b.ctx)
-      elif (ty.tags and TYVOID) != 0:
-          voidTypeInContext(b.ctx)
+      if (ty.tags and (TYBOOL)) != 0: b.i1
+      elif (ty.tags and (TYINT8 or TYUINT8)) != 0: b.i8
+      elif (ty.tags and (TYINT16 or TYUINT16)) != 0: b.i16
+      elif (ty.tags and (TYINT32 or TYUINT32)) != 0: b.i32
+      elif (ty.tags and (TYINT64 or TYUINT64)) != 0: b.i64
+      elif (ty.tags and TYFLOAT) != 0: b.ffloat
+      elif (ty.tags and TYDOUBLE) != 0: b.fdouble
+      elif (ty.tags and TYVOID) != 0: b.voidty
       else:
         unreachable()
         nil
@@ -603,33 +609,25 @@ proc wrap*(ty: CType): Type =
   case ty.spec:
   of TYPRIM:
     return (
-      if (ty.tags and TYBOOL) != 0:
-          int1TypeInContext(b.ctx)
-      elif (ty.tags and (TYINT8 or TYUINT8)) != 0:
-          int8TypeInContext(b.ctx)
-      elif (ty.tags and (TYINT16 or TYUINT16)) != 0:
-          int16TypeInContext(b.ctx)
-      elif (ty.tags and (TYINT32 or TYUINT32)) != 0:
-          int32TypeInContext(b.ctx)
-      elif (ty.tags and (TYINT64 or TYUINT64)) != 0:
-          int64TypeInContext(b.ctx)
-      elif (ty.tags and TYFLOAT) != 0:
-          floatTypeInContext(b.ctx)
-      elif (ty.tags and TYDOUBLE) != 0:
-          doubleTypeInContext(b.ctx)
-      elif (ty.tags and TYVOID) != 0:
-          voidTypeInContext(b.ctx)
+      if (ty.tags and TYBOOL) != 0: b.i1
+      elif (ty.tags and (TYINT8 or TYUINT8)) != 0: b.i8
+      elif (ty.tags and (TYINT16 or TYUINT16)) != 0: b.i16
+      elif (ty.tags and (TYINT32 or TYUINT32)) != 0: b.i32
+      elif (ty.tags and (TYINT64 or TYUINT64)) != 0: b.i64
+      elif (ty.tags and TYFLOAT) != 0: b.ffloat
+      elif (ty.tags and TYDOUBLE) != 0: b.fdouble
+      elif (ty.tags and TYVOID) != 0: b.voidty
       else:
         unreachable()
         nil
       )
   of TYPOINTER:
     if app.opaquePointerEnabled:
-      return pointerTypeInContext(b.ctx, 0)
+      return b.ptrty
     else:
       # `return pointerType(voidTypeInContext(b.ctx), 0)`
       # clang use `i8*` for `void*` and `char*`
-      return pointerType(int8TypeInContext(b.ctx), 0)
+      return pointerType(b.i8, 0)
   of TYSTRUCT, TYUNION:
     if len(ty.sname) > 0:
       # try to find old definition or declaration
@@ -1133,16 +1131,14 @@ proc gen*(s: Stmt) =
       else:
         var ty = wrap(varty)
         if b.currentfunction == nil:
-          var g = addGlobal(b.module, ty, cstring(name))
+          var ginit = if init == nil: constNull(ty) else: gen(init)
+          var g = addGlobal(b.module, typeOfX(ginit), cstring(name))
           if align != 0:
             setAlignment(g, align)
-          if init == nil:
-            setInitializer(g, constNull(ty))
-          else:
-            var i = gen(init)
-            if isConstant(i) == False:
-              llvm_error("global initializer is not constant")
-            setInitializer(g, i)
+          if isConstant(ginit) == False:
+            llvm_error("global initializer is not constant")
+            return
+          setInitializer(g, ginit)
           if (varty.tags and TYTHREAD_LOCAL) != 0:
             # LLVMSetThreadLocalMode ?
             setThreadLocal(g, 1)
@@ -1158,14 +1154,14 @@ proc gen*(s: Stmt) =
           putVar(name, g)
         else:
           if align != 0:
-            var val = buildAlloca(b.builder, ty, cstring(name))
+            var val = buildAlloca(b.builder, ty, "")
             setAlignment(val, align)
             if init != nil:
               let initv = gen(init)
               store(val, initv, align)
             putVar(name, val)
           else:
-            var val = buildAlloca(b.builder, ty, cstring(name))
+            var val = buildAlloca(b.builder, ty, "")
             if init != nil:
               let initv = gen(init)
               store(val, initv)
@@ -1201,6 +1197,29 @@ proc decl*(p: Value, t: Type) =
   var l2 = buildSub(b.builder, l, constInt(t, 1.culonglong, False), "")
   store(p, l2)
 
+proc getArray(e: Expr): Value =
+    var elemTy = wrap(e.ty.arrtype)
+    if len(e.arr) != e.ty.arrsize:
+      var l = len(e.arr)
+      var inits = create(Value, l + 1)
+      var arr = cast[ptr UncheckedArray[Value]](inits)
+      for i in 0 ..< l:
+        arr[i] = gen(e.arr[i])
+      var rem = e.ty.arrsize - len(e.arr)
+      arr[l] = constNull(vectorType(elemTy, cuint(rem)))
+      var initStruct = constStruct(inits, cuint(l) + 1, True)
+      dealloc(inits)
+      initStruct
+    else:
+      var l = len(e.arr)
+      var inits = create(Value, l or 1)
+      var arr = cast[ptr UncheckedArray[Value]](inits)
+      for i in 0 ..< l:
+        arr[i] = gen(e.arr[i])
+      var ret = constArray(elemTy, inits, l.cuint)
+      dealloc(inits)
+      ret
+
 proc getAddress*(e: Expr): Value =
   # return address
   case e.k:
@@ -1208,7 +1227,7 @@ proc getAddress*(e: Expr): Value =
     getVar(e.sval)
   of EPointerMemberAccess, EMemberAccess:
     var basep = if e.k == EMemberAccess: getAddress(e.obj) else: gen(e.obj)
-    var r = [constInt(int64TypeInContext(b.ctx), 0, False), constInt(int32TypeInContext(b.ctx), e.idx.culonglong, False)]
+    var r = [constInt(b.i64, 0, False), constInt(b.i32, e.idx.culonglong, False)]
     var ty = wrap(e.obj.ty)
     buildInBoundsGEP2(b.builder, ty, basep, addr r[0], 2, "")
   of EPostFix:
@@ -1230,11 +1249,35 @@ proc getAddress*(e: Expr): Value =
   of ArrToAddress:
     var arr = getAddress(e.voidexpr)
     var ty = wrap(e.voidexpr.ty)
-    var idx = [constInt(int32Type(), 0, False), constInt(int32Type(), 0, False)]
+    var idx = [constInt(b.i32, 0, False), constInt(b.i32, 0, False)]
     buildInBoundsGEP2(b.builder, ty, arr, addr idx[0], 2, "")
+  of EString:
+    gen_str_ptr(e.str)
+  of EArray:
+    var v = getArray(e)
+    if b.currentfunction == nil:
+      var g = addGlobal(b.module, typeOfX(v), "")
+      setLinkage(g, InternalLinkage)
+      setInitializer(g, v)
+      g
+    else:
+      var local = buildAlloca(b.builder, typeOfX(v), "")
+      discard buildStore(b.builder, v, local)
+      local
   else:
     unreachable()
     nil
+
+proc pointerBitCast*(v: Value, fromTy: Type, to: TypeRef): Value =
+  if b.currentfunction == nil:
+    var g = addGlobal(b.module, fromTy, "")
+    setLinkage(g, InternalLinkage)
+    setInitializer(g, v)
+    g
+  else:
+    var local = buildAlloca(b.builder, fromTy, "")
+    discard buildStore(b.builder, v, local)
+    local
 
 proc gen*(e: Expr): Value =
   case e.k:
@@ -1243,7 +1286,7 @@ proc gen*(e: Expr): Value =
   of ArrToAddress:
     var arr = getAddress(e.voidexpr)
     var ty = wrap(e.ty.p)
-    var idx = [constInt(int32Type(), 0, False), constInt(int32Type(), 0, False)]
+    var idx = [constInt(b.i32, 0, False), constInt(b.i32, 0, False)]
     buildInBoundsGEP2(b.builder, ty, arr, addr idx[0], 2, "")
   of ESubscript:
     assert e.left.ty.spec == TYPOINTER # the left must be a pointer
@@ -1387,20 +1430,7 @@ proc gen*(e: Expr): Value =
       dealloc(inits)
       ret
   of EArray:
-    assert e.ty.arrsize == len(e.arr)
-    var elemTy = wrap(e.ty.arrtype)
-    var ty = arrayType(elemTy, cuint(e.ty.arrsize))
-    if len(e.arr) == 0:
-      constNull(ty)
-    else:
-        var l = len(e.arr)
-        var inits = create(Value, l)
-        var arr = cast[ptr UncheckedArray[Value]](inits)
-        for i in 0 ..< l:
-          arr[i] = gen(e.arr[i])
-        var ret = constArray(elemTy, inits, cuint(l))
-        dealloc(inits)
-        ret
+    getArray(e)
 
 proc gen_cast*(e: Expr, to: CType, op: CastOp): Value =
   var c = gen(e)

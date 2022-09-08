@@ -1,38 +1,52 @@
 type
-    Fd {.importc: "struct FILE*", nodecl, header: "stdio.h".} = pointer
-    StreamType = enum
+    Fd* {.importc: "struct FILE*", nodecl, header: "stdio.h".} = pointer
+    StreamType* = enum
       FileStream, StringStream, StdinStream
     Stream* = ref object
-      lastc: cint
+      lastc*: cint
       case k: StreamType
       of FileStream:
-        fd: Fd
+        fd*: Fd
       of StringStream, StdinStream:
-        s: string
-        i: int
-    fpos_t {.importc: "fpos_t", nodecl, header: "stdio.h".} = object
+        s*: string
+        i*: int
+    fpos_t* {.importc: "fpos_t", nodecl, header: "stdio.h".} = object
 
-proc fgetc(stream: Fd): cint {.importc, header: "stdio.h", nodecl.}
+proc fputs*(str: cstring, stream: Fd): cint {.importc, header: "stdio.h", nodecl.}
 
-proc fclose(stream: Fd): cint {.importc, header: "stdio.h", nodecl.}
+proc fputc*(c: cint, stream: Fd): cint {.importc, header: "stdio.h", nodecl.}
 
-proc fopen(filename, mode: cstring): Fd {.importc, header: "stdio.h", nodecl.}
+proc fgetc*(stream: Fd): cint {.importc, header: "stdio.h", nodecl.}
 
-proc fgetpos(stream: Fd, pos: ptr fpos_t): cint {.importc, header: "stdio.h", nodecl.}
+proc fclose*(stream: Fd): cint {.importc, header: "stdio.h", nodecl.}
 
-proc fsetpos(stream: Fd, pos: ptr fpos_t): cint {.importc, header: "stdio.h", nodecl.}
+proc fopen*(filename, mode: cstring): Fd {.importc, header: "stdio.h", nodecl.}
 
-proc fseek(stream: Fd, offset: clong, origin: cint): cint {.importc, header: "stdio.h", nodecl.}
+proc fgetpos*(stream: Fd, pos: ptr fpos_t): cint {.importc, header: "stdio.h", nodecl.}
 
-# proc ftell(stream: Fd): clong {.importc, header: "stdio.h", nodecl.}
+proc fsetpos*(stream: Fd, pos: ptr fpos_t): cint {.importc, header: "stdio.h", nodecl.}
+
+proc fseek*(stream: Fd, offset: clong, origin: cint): cint {.importc, header: "stdio.h", nodecl.}
+
+proc ftell*(stream: Fd): clong {.importc, header: "stdio.h", nodecl.}
+
+proc `<<`*(stream: Fd, msg: string) =
+    discard fputs(msg, stream)
+
+proc `<<`*(stream: Fd, c: char) =
+    discard fputc(c.cint, stream)
+
+proc `<<`*(stream: Fd, c: SomeInteger) =
+    discard fputc(c.cint, stream)
 
 let 
-  EOF {.importc: "EOF", nodecl.} : cint
-  SEEK_CUR {.importc: "SEEK_CUR", nodecl.}: cint
-  #SEEK_END {.importc: "SEEK_END", nodecl.}: cint
-  #SEEK_SET {.importc: "SEEK_SET", nodecl.}: cint
+  EOF* {.importc: "EOF", nodecl.} : cint
+  SEEK_CUR* {.importc: "SEEK_CUR", nodecl.}: cint
+  SEEK_END* {.importc: "SEEK_END", nodecl.}: cint
+  SEEK_SET* {.importc: "SEEK_SET", nodecl.}: cint
+  cstderr* {.importc: "stderr", nodecl.}: Fd
 
-proc printSourceLine*(s: Stream, line: int) =
+proc printSourceLine*(s: Stream, line: int) {.raises: [].} =
     case s.k:
     of StdinStream, StringStream:
         discard
@@ -58,40 +72,40 @@ proc printSourceLine*(s: Stream, line: int) =
                 inc off
             var f = $line
             for i in 0..<(6-len(f)):
-                stderr.write(' ')
-            stderr.write(f)
-            stderr.write(" | ")
+                cstderr << ' '
+            cstderr << f
+            cstderr << " | "
             while true:
                 let c = fgetc(s.fd)
-                if c > 0xFF or c == '\n'.cint or c == '\r'.cint:
+                if c == EOF or c == '\n'.cint or c == '\r'.cint:
                     break
-                stderr.write(char(c))
-            stderr.write("\n       | ")
+                stderr << c
+            cstderr << "\n       | "
             for i in 0..<off:
-                stderr.write('~')
-            stderr.write("\e[32m^\e[0m\n")
+                stderr << '~'
+            stderr << "\e[32m^\e[0m\n"
             discard fsetpos(s.fd, addr old)
 
-proc newStringStream*(s: string): Stream =
+proc newStringStream*(s: string): Stream {.raises: [].} =
     result = Stream(k: StringStream, s: s, i: 0, lastc: 256)
 
-proc newFileStream*(path: string): Stream =
+proc newFileStream*(path: string): Stream {.raises: [].} =
     let fd = fopen(path, "rb")
     if fd == nil:
         return nil
     result = Stream(k: FileStream, fd: fd, lastc: 256)
 
-proc newFileStream*(fd: File): Stream =
+proc newFileStream*(fd: File): Stream {.raises: [].} =
     result = Stream(k: FileStream, fd: fd, lastc: 256)
 
-proc newStdinStream*(): Stream =
+proc newStdinStream*(): Stream {.raises: [].} =
     result = Stream(k: StdinStream, lastc: 256)
 
-proc putc*(s: Stream, c: cint) =
+proc putc*(s: Stream, c: cint) {.raises: [].} =
     s.lastc = c
 
-proc readChar*(s: Stream): char =
-    if s.lastc <= 0xFF:
+proc readChar*(s: Stream): char {.raises: [].} =
+    if s.lastc == EOF:
         result = char(s.lastc)
         s.lastc = 256
         return
@@ -109,7 +123,7 @@ proc readChar*(s: Stream): char =
         inc s.i
     of StdinStream:
         if s.i >= len(s.s):
-            stderr.write(">>> ")
+            cstderr << ">>> "
             try:
                 s.s = stdin.readLine() & '\n'
             except IOError:
@@ -118,8 +132,7 @@ proc readChar*(s: Stream): char =
         result = s.s[s.i]
         inc s.i
 
-
-proc close*(s: Stream) =
+proc close*(s: Stream) {.raises: [].} =
     case s.k:
     of FileStream:
         discard fclose(s.fd)
