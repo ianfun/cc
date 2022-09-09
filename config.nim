@@ -9,7 +9,7 @@ const
   INFO_USED* = 2
 
 proc unreachable*() =
-  assert false
+  assert false, "INTERNAL ERROR: unreachable executed!"
 
 iterator getDefines*(): (string, seq[TokenV]) =
   proc str(s: string): TokenV =

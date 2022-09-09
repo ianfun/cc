@@ -9,3 +9,4 @@ cc.out
 *.o
 llvmAPI
 *.bc
+test.c

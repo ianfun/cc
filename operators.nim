@@ -20,7 +20,8 @@ type
 
       LogicalAnd, LogicalOr, 
       Assign,
-      SAddP, # num add/sub pointer 
+      SAddP,
+      PtrDiff,
       Comma,
 
       # compare operators
@@ -62,3 +63,26 @@ proc `$`*(o: UnaryOP): string =
     "*"
   of LogicalNot:
     "~"
+proc `$`*(o: BinOP): string =
+  case o:
+  of Nop: "<nop>"
+  of UAdd, SAdd, FAdd, SAddP: "+"
+  of USub, SSub, FSub, PtrDiff: "-"
+  of UMul, SMul, FMul: "*"
+  of UDiv, SDiv, FDiv: "/"
+  of URem, SRem, FRem: "%"
+  of Shr, AShr: ">>"
+  of Shl: "<<"
+  of And: "&"
+  of Xor: "^"
+  of Or: "|"
+  of LogicalAnd: "&&"
+  of LogicalOr: "||"
+  of Assign: "="
+  of Comma: ","
+  of EQ, FEQ: "=="
+  of NE, FNE: "!="
+  of UGT, SGT, FGT: ">"
+  of UGE, SGE, FGE: ">="
+  of ULT, SLT, FLT: "<"
+  of ULE, SLE, FLE: "<="

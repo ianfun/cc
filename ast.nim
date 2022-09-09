@@ -225,7 +225,7 @@ proc `$`*(e: Expr): string =
   of ECondition:
     $e.cond & '?' & $e.cleft & ':' & $e.cright
   of ECast:
-    '(' & $e.ty & ')' & $e.castval & "(" & $e.castop & ')'
+    '(' & $e.ty & ')' & $e.castval
   of ESubscript:
     $e.left & '[' & $e.right & ']'
   of ECall:

@@ -266,13 +266,13 @@ type
 
 type
     Backend* = object
-      # jump labels
+      ## jump labels
       labels*: seq[TableRef[string, Label]]
-      # struct/union
+      ## struct/union
       tags*: seq[TableRef[string, Type]]
-      # variable and enum constants
+      ## variable and enum constants
       vars*: seq[TableRef[string, Value]]
-      # module
+      ## module
       m*: ModuleRef
       module*: ModuleRef
       builder*: BuilderRef
@@ -281,6 +281,7 @@ type
       tsCtx*: OrcThreadSafeContextRef
       ctx*: ContextRef
       layout*: TargetDataRef
+      ## jump labels
       topBreak*: Label
       topTest*: Value
       topdefaultCase*: Label
@@ -288,9 +289,12 @@ type
       topContinue*: Label
       target*: TargetRef
       topCase*: Label
-      # LLVM Types
+      ## LLVM Types
       i1, i8*, i16*, i32*, i64*, ffloat*, fdouble*, voidty*, ptrty*: Type
-
+      ## `i32 1/0` constant
+      i32_1*, i32_0*: Value
+      ## LLVM false/true constant
+      i1_0, i1_1*: Value
 
 var b*: ptr Backend
 
@@ -340,6 +344,10 @@ proc newBackend*(module_name, source_file: string) =
   b.i64 = int64TypeInContext(b.ctx)
   b.ffloat = floatTypeInContext(b.ctx)
   b.fdouble = doubleTypeInContext(b.ctx)
+  b.i32_1 = constInt(b.i32, 1, False)
+  b.i32_0 = constInt(b.i32, 0, False)
+  b.i1_0 = constInt(b.i1, 0, False)
+  b.i1_1 = constInt(b.i1, 1, False)
 
 proc initTarget*() =
   var err: cstring
@@ -505,22 +513,20 @@ proc gen_cond*(a: Expr): Value =
   if bool(a.ty.tags and TYBOOL):
     gen(a)
   else:
-    let lhs = gen(a)
-    let rhs = constNull(wrap(a.ty))
-    buildICmp(b.builder, IntNE, lhs, rhs, "")
+    buildIsNotNull(b.builder, gen(a), "")
 
 proc gen_bool*(val: bool): Value =
-  constInt(b.i1, if val: 1 else: 0, False)
+  if val: b.i1_1 else: b.i1_0
 
 proc gen_true*(): Value =
-  constInt(b.i1, 1, False)
+  b.i1_1
 
 proc gen_false*(): Value =
-  constInt(b.i1, 0, False)
+  b.i1_0
 
 proc gen_int*(i: culonglong, tags: uint32): Value =
     if (tags and TYBOOL) != 0:
-        constInt(b.i1, i, False)
+        if i > 0: b.i1_1 else: b.i1_0
     elif (tags and (TYINT8 or TYUINT8)) != 0:
         constInt(b.i8, i, False)
     elif (tags and (TYINT16 or TYUINT16)) != 0:
@@ -550,18 +556,18 @@ proc gen_str*(val: string, ty: var Type): Value =
 proc gen_str_ptr*(val: string): Value =
   var ty: Type
   var s = gen_str(val, ty)
-  var zero = constInt(b.i32, 0, False)
-  var indices = [zero, zero]
+  var indices = [b.i32_0, b.i32_0]
   buildInBoundsGEP2(b.builder, pointerType(ty, 0), s, addr indices[0], 2, "")
 
 proc backendint*(): Type =
-    ## note: we do not used `intTypeInContext()` for int
     if TYINT == TYINT32:
       b.i32
     else:
       b.i64
 
 proc load*(p: Value, t: Type, align: uint32 = 0): Value =
+  assert p != nil
+  assert t != nil
   result = buildLoad2(b.builder, t, p, "")
   if align != 0:
     setAlignment(result, align.cuint)
@@ -601,7 +607,9 @@ proc wrap2*(ty: CType): Type =
     return structTypeInContext(b.ctx, buf, cuint(l), False)
   of TYARRAY:
     return arrayType(wrap(ty.arrtype), cuint(ty.arrsize))
-  of TYINCOMPLETE, TYBITFIELD, TYENUM, TYFUNCTION:
+  of TYENUM:
+    return backendint()
+  else:
     unreachable()
 
 proc wrap*(ty: CType): Type =
@@ -684,7 +692,21 @@ proc wrap*(ty: CType): Type =
   of TYARRAY:
     return arrayType(wrap(ty.arrtype), cuint(ty.arrsize))
   of TYENUM:
-    return backendint()
+    if ty.ename.len != 0:
+      result = getTags(ty.ename)
+      if result != nil:
+        return result
+    result = backendint()
+    if ty.ename.len != 0:
+        putTags(ty.ename, result)
+    for (name, v) in ty.eelems:
+        var init = constInt(result, v.culonglong, False)
+        var g = addGlobal(b.module, result, name.cstring)
+        setInitializer(g, init)
+        setLinkage(g, PrivateLinkage)
+        setGlobalConstant(g, True)
+        putVar(name, g)
+    return result
   of TYINCOMPLETE:
     case ty.tag:
     of TYSTRUCT:
@@ -1227,18 +1249,35 @@ proc getAddress*(e: Expr): Value =
     getVar(e.sval)
   of EPointerMemberAccess, EMemberAccess:
     var basep = if e.k == EMemberAccess: getAddress(e.obj) else: gen(e.obj)
-    var r = [constInt(b.i64, 0, False), constInt(b.i32, e.idx.culonglong, False)]
+    var r = [b.i32_0, constInt(b.i32, e.idx.culonglong, False)]
     var ty = wrap(e.obj.ty)
     buildInBoundsGEP2(b.builder, ty, basep, addr r[0], 2, "")
+  of EUnary:
+    case e.uop:
+    of Dereference:
+      gen(e.uoperand)
+    else:
+      unreachable()
+      nil
   of EPostFix:
     case e.pop:
-    of PostfixIncrement:
+    of PostfixIncrement, PostfixDecrement:
       var basep = getAddress(e.poperand)
-      incl(basep, wrap(e.ty), e.poperand.ty.align)
-      basep
-    of PostfixDecrement:
-      var basep = getAddress(e.poperand)
-      decl(basep, wrap(e.ty), e.poperand.ty.align)
+      if e.ty.spec == TYPOINTER:
+        var ty = wrap(e.poperand.ty)
+        var i = b.i32_1
+        if e.pop == PostfixDecrement:
+          i = constNeg(i)
+        var l = load(basep, wrap(e.poperand.ty))
+        var g = buildInBoundsGEP2(b.builder, ty, l, addr i, 1, "")
+        store(basep, g)
+      else:
+        var a = e.poperand.ty.align
+        var ty = wrap(e.ty)
+        if e.pop == PostfixDecrement:
+          decl(basep, ty, a)
+        else:
+          incl(basep, ty, a)
       basep
   of ESubscript:
     assert e.left.ty.spec == TYPOINTER # the left must be a pointer
@@ -1249,7 +1288,7 @@ proc getAddress*(e: Expr): Value =
   of ArrToAddress:
     var arr = getAddress(e.voidexpr)
     var ty = wrap(e.voidexpr.ty)
-    var idx = [constInt(b.i32, 0, False), constInt(b.i32, 0, False)]
+    var idx = [b.i32_0, b.i32_0]
     buildInBoundsGEP2(b.builder, ty, arr, addr idx[0], 2, "")
   of EString:
     gen_str_ptr(e.str)
@@ -1286,7 +1325,7 @@ proc gen*(e: Expr): Value =
   of ArrToAddress:
     var arr = getAddress(e.voidexpr)
     var ty = wrap(e.ty.p)
-    var idx = [constInt(b.i32, 0, False), constInt(b.i32, 0, False)]
+    var idx = [b.i32_0, b.i32_0]
     buildInBoundsGEP2(b.builder, ty, arr, addr idx[0], 2, "")
   of ESubscript:
     assert e.left.ty.spec == TYPOINTER # the left must be a pointer
@@ -1322,7 +1361,18 @@ proc gen*(e: Expr): Value =
     of SMul:
       var l = gen(e.lhs)
       var r = gen(e.rhs)
-      buildNSWSub(b.builder, l, r, "")
+      buildNSWMul(b.builder, l, r, "")
+    of PtrDiff:
+      var l = gen(e.lhs)
+      var r = gen(e.rhs)
+      var sub = buildSub(b.builder, l, r, "")
+      var t = e.lhs.castval.ty.p
+      let s = getsizeof(t)
+      if s != 1:
+        var c = constInt(intPtrType(b.layout), s.culonglong, False)
+        buildExactSDiv(b.builder, sub, c, "")
+      else:
+        sub
     of SAddP:
       var l = gen(e.lhs)
       var r = gen(e.rhs)
@@ -1344,7 +1394,10 @@ proc gen*(e: Expr): Value =
       discard gen(e.lhs)
       gen(e.rhs)
     else:
-      buildBinOp(b.builder, getOp(e.bop), gen(e.lhs), gen(e.rhs), "")
+      var op = getOp(e.bop)
+      var lhs = gen(e.lhs)
+      var rhs = gen(e.rhs)
+      buildBinOp(b.builder, op, lhs, rhs, "")
   of EIntLit:
     gen_int(e.ival.culonglong, e.ty.tags)
   of EFloatLit:
@@ -1359,36 +1412,48 @@ proc gen*(e: Expr): Value =
     of FNeg: buildFNeg(b.builder, gen(e.uoperand), "")
     of Not: buildNot(b.builder, gen(e.uoperand), "")
     of AddressOf: getAddress(e.uoperand)
-    of PrefixIncrement:
+    of PrefixIncrement, PrefixDecrement:
       var ty = wrap(e.ty)
+      var i = b.i32_1
+      if e.uop == PrefixDecrement:
+        i = constNeg(i)
       let basep = getAddress(e.uoperand)
-      var l = load(basep, ty)
-      var l2 = buildAdd(b.builder, l, constInt(ty, 1.culonglong, False), "")
-      store(basep, l2)
-      load(basep, ty)
-    of PrefixDecrement:
-      var ty = wrap(e.ty)
-      let basep = getAddress(e.uoperand)
-      var l = load(basep, ty)
-      var l2 = buildSub(b.builder, l, constInt(ty, 1.culonglong, False), "")
-      store(basep, l2)
-      load(basep, ty)
-    of Dereference: buildLoad2(b.builder, wrap(e.ty), gen(e.uoperand), "")
-    of LogicalNot: buildICmp(b.builder, IntEQ, gen(e.uoperand), getZero(e.ty), "")
+      assert basep != nil
+      if e.ty.spec == TYPOINTER:
+        var g = buildInBoundsGEP2(b.builder, ty, basep, addr i, 1, "")
+        store(basep, g)
+        g
+      else:
+        var l = load(basep, ty)
+        var l2 = buildAdd(b.builder, l, i, "")
+        store(basep, l2)
+        load(basep, ty)
+    of Dereference: load(gen(e.uoperand), wrap(e.ty))
+    of LogicalNot: buildisNull(b.builder, gen(e.uoperand), "")
   of EPostFix:
     case e.pop:
-    of PostfixIncrement:
+    of PostfixIncrement, PostfixDecrement:
       var basep = getAddress(e.poperand)
-      var a = e.poperand.ty.align
-      incl(basep, wrap(e.ty), a)
-      load(basep, wrap(e.ty), a)
-    of PostfixDecrement:
-      var basep = getAddress(e.poperand)
-      var a = e.poperand.ty.align
-      decl(basep, wrap(e.ty), a)
-      load(basep, wrap(e.ty), a)
+      if e.ty.spec == TYPOINTER:
+        var ty = wrap(e.poperand.ty)
+        var i = b.i32_1
+        if e.pop == PostfixDecrement:
+          i = constNot(i)
+        var l = load(basep, wrap(e.poperand.ty))
+        var g = buildInBoundsGEP2(b.builder, ty, l, addr i, 1, "")
+        store(basep, g)
+        g
+      else:
+        var a = e.poperand.ty.align
+        var ty = wrap(e.ty)
+        if e.pop == PostfixDecrement:
+          decl(basep, ty, a)
+        else:
+          incl(basep, ty, a)
+        load(basep, wrap(e.ty), a)
   of EVar:
     var pvar = getVar(e.sval)
+    assert pvar != nil, e.sval
     load(pvar, wrap(e.ty), e.ty.align)
   of ECondition:
     gen_condition(e.cond, e.cleft, e.cright)

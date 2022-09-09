@@ -59,6 +59,7 @@ proc c() =
             if app.mode != OutputLink:
                 stderr.write("cc: warning: jit cannot combine with other output flags\njit will not write output\n")
         else:
+            verify()
             output()
 
 proc brainfuck(i: Stream) =

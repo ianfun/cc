@@ -81,7 +81,7 @@ proc compatible*(p, expected: CType): bool
 
 proc parse_error*(msg: string) =
     # p.tok = TokenV(tok: TNul, tags: TVNormal)
-    if p.parse_error == false:
+    if p.parse_error == false and p.type_error == false:
       cstderr << "\e[34m" & p.filename & ":" & $p.line & '.' & $p.col & ": parse error: " & msg & "\e[0m\n"
       if p.fstack.len > 0:
           printSourceLine(p.fstack[^1], p.line)
@@ -294,7 +294,7 @@ proc leaveBlock*() =
   if isTopLevel() == false:
     for (name, i) in p.typedefs[^1].pairs():
       if not bool(i.tag and INFO_USED):
-          warningPlain("declared but not used: " & name)
+          warning("declared but not used: '" & name & '\'')
           note("declared at " & $i.loc)
   discard p.typedefs.pop()
   discard p.tags.pop()
@@ -640,8 +640,6 @@ proc integer_promotions*(e: var Expr) =
         to(e, TYINT)
 
 proc conv*(a, b: var Expr) =
-    # a.ty.tags = a.ty.tags and prim
-    # b.ty.tags = b.ty.tags and prim
     var at = a.ty.tags and prim
     var bt = b.ty.tags and prim
     if a.ty.spec != TYPRIM or b.ty.spec != TYPRIM:
@@ -661,7 +659,7 @@ proc conv*(a, b: var Expr) =
     else:
         integer_promotions(a)
         integer_promotions(b)
-        if at == bt:
+        if intRank(a.ty.tags) == intRank(b.ty.tags):
             return
         let
           sizeofa = getsizeof(a.ty)
@@ -765,7 +763,7 @@ proc make_add*(result, r: var Expr) =
                 type_error("integer expected")
             result = binop(result, SAddP, r, result.ty)
         else:
-            checkScalar(result, r)
+            checkSpec(result, r)
             result = binop(result, if isSigned(r.ty): SAdd else: UAdd, r, r.ty)
 
 proc make_sub*(result, r: var Expr) =
@@ -774,11 +772,27 @@ proc make_sub*(result, r: var Expr) =
         conv(result, r)
     else:
         if result.ty.spec == TYPOINTER:
+            if r.ty.spec == TYPOINTER:
+                # two pointer substraction
+                # https://stackoverflow.com/questions/65748155/what-is-the-motivation-for-ptrdiff-t
+                if bool(result.ty.p.tags and TYVOID) or bool(r.ty.p.tags and TYVOID):
+                    type_error("cannot substract on a pointer to void")
+                    return
+                if not compatible(result.ty.p, r.ty.p):
+                    type_error("incompatible type when substract two pointers")
+                    return
+                result = binop(
+                    Expr(k: ECast, castop: PtrToInt, castval: result, ty: getPtrDiff_t()),
+                    PtrDiff,
+                    Expr(k: ECast, castop: PtrToInt, castval: r, ty: getPtrDiff_t()),
+                    getPtrDiff_t()
+                )
+                return
             if checkInteger(r.ty) == false:
                 type_error("integer expected")
             result = binop(result, SAddP, unary(r, if isSigned(r.ty): SNeg else: UNeg, r.ty), result.ty)
         else:
-            checkScalar(result, r)
+            checkSpec(result, r)
             result = binop(result, if isSigned(r.ty): SSub else: USub, r, r.ty) 
 
 proc make_shl*(result, r: var Expr) =
@@ -895,7 +909,8 @@ proc stringizing*(a: seq[TokenV]): string =
     for t in a:
         result.add(stringizing(t))
 
-
+proc boolToInt*(e: Expr): Expr =
+    Expr(k: ECast, castop: ZExt, castval: e, ty: CType(tags: TYINT, spec: TYPRIM))
 
 proc conditional_expression*(): Expr
 
@@ -979,6 +994,8 @@ proc translation_unit*(): Stmt
 proc statament*(): Stmt
 
 proc compound_statement*(): Stmt
+
+proc compound_statement*(params: seq[(string, CType)]): Stmt
 
 proc postfix*(e: Expr, op: PostfixOP, ty: CType): Expr = 
     ## construct a postfix operator
@@ -1359,10 +1376,6 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
         if p.tok.tok == TLcurlyBracket: # function definition
             putsymtype3(name, ty)
             p.pfunc = name
-            for (name, vty) in ty.params:
-                if vty == nil:
-                    break
-                putsymtype(name, vty)
             if not isTopLevel():
                 parse_error("function definition is not allowed here")
                 note("function can only declared in global scope")
@@ -1370,7 +1383,7 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
             block:
                 var oldRet = p.currentfunctionRet
                 p.currentfunctionRet = ty.ret
-                body = compound_statement()
+                body = compound_statement(ty.params)
                 p.currentfunctionRet = oldRet
             if body == nil:
                 expect("function body")
@@ -1894,22 +1907,26 @@ proc unary_expression*(): Expr =
         let e = cast_expression()
         if e == nil:
             return nil
-        result = unary(e, LogicalNot, CType(tags: TYINT, spec: TYPRIM))
-        return result
+        if not checkScalar(e.ty):
+            type_error("scalar expected")
+            return nil
+        return boolToInt(unary(e, LogicalNot, CType(tags: TYINT, spec: TYPRIM)))
     of TMul:
         consume()
         var e = cast_expression()
         if e.ty.spec != TYPOINTER:
             type_error("pointer expected")
             return nil
-        var ty = deepCopy(e.ty)
+        var ty = deepCopy(e.ty.p)
         ty.tags = ty.tags or TYLVALUE
-        result = unary(e, Dereference, ty)
-        return result
+        return unary(e, Dereference, ty)
     of TBitNot:
         consume()
         var e = cast_expression()
         if e == nil:
+            return nil
+        if not checkInteger(e.ty):
+            type_error("integer type expected")
             return nil
         result = unary(e, Not, e.ty)
         integer_promotions(result)
@@ -1937,6 +1954,9 @@ proc unary_expression*(): Expr =
         let e = unary_expression()
         if e == nil:
             return nil
+        if not checkArithmetic(e.ty):
+            type_error("arithmetic type expected")
+            return nil
         result = unary(e, if isSigned(e.ty): SNeg else: UNeg, e.ty)
         integer_promotions(result)
         return result
@@ -1945,6 +1965,9 @@ proc unary_expression*(): Expr =
         let e = unary_expression()
         if e == nil:
             return nil
+        if not checkArithmetic(e.ty):
+            type_error("arithmetic type expected")
+            return nil
         result = unary(e, Pos, e.ty)
         integer_promotions(result)
         return result
@@ -1952,6 +1975,9 @@ proc unary_expression*(): Expr =
         consume()
         let e = unary_expression()
         if e == nil:
+            return nil
+        if not checkScalar(e.ty):
+            type_error("scalar expected")
             return nil
         return unary(e, if tok == TAddAdd: PrefixIncrement else: PrefixDecrement, e.ty)
     of Ksizeof:
@@ -2588,11 +2614,10 @@ proc postfix_expression*(): Expr =
                 for j in i ..< len(args):
                     args[j] = default_argument_promotions(args[j])
                 break
+            #if not compatible(args[i].ty, params[i][1]):
+            #    warning("incompatible type in calling function '" & $f & '\'')
+            #    note("expect '" & $params[i][1] & "' but argument " & $i & " is of type '" & $args[i].ty & '\'')
             var a = castto(args[i], params[i][1])
-            if a == nil:
-                note("expected " & $params[i] & " but argument is of type " & $args[i].ty)
-                note("in argument " & $i & " of calling function " & $f)
-                return nil
             args[i] = a
             inc i
         return Expr(k: ECall, callfunc: f, callargs: args, ty: ty.ret)
@@ -2680,9 +2705,6 @@ proc shift_expression*(): Expr =
         else:
             return result
 
-proc boolToInt*(e: Expr): Expr =
-    Expr(k: ECast, castop: ZExt, castval: e, ty: CType(tags: TYINT, spec: TYPRIM))
-
 proc relational_expression*(): Expr =
     result = shift_expression()
     while true:
@@ -2727,15 +2749,21 @@ proc equality_expression*(): Expr =
             var r = relational_expression()
             if r == nil:
                 return nil
-            checkSpec(result, r)
-            result = boolToInt(binop(result, if isFloating(r.ty): FEQ else: EQ, r, CType(tags: TYBOOL, spec: TYPRIM)))
+            if result.ty.spec == TYPOINTER and r.ty.spec == TYPOINTER:
+                result = boolToInt(binop(result, EQ, r, CType(tags: TYBOOL, spec: TYPRIM)))
+            else:
+                checkSpec(result, r)
+                result = boolToInt(binop(result, if isFloating(r.ty): FEQ else: EQ, r, CType(tags: TYBOOL, spec: TYPRIM)))
         of TNe:
             consume()
             var r = relational_expression()
             if r == nil:
                 return nil
-            checkSpec(result, r)
-            result = boolToInt(binop(result, if isFloating(r.ty): FNE else: NE, r, CType(tags: TYBOOL, spec: TYPRIM)))
+            if result.ty.spec == TYPOINTER and r.ty.spec == TYPOINTER:
+                result = boolToInt(binop(result, NE, r, CType(tags: TYBOOL, spec: TYPRIM)))
+            else:
+                checkSpec(result, r)
+                result = boolToInt(binop(result, if isFloating(r.ty): FNE else: NE, r, CType(tags: TYBOOL, spec: TYPRIM)))
         else:
             return result
 
@@ -2939,6 +2967,30 @@ proc compound_statement*(): Stmt =
     result = Stmt(k: SCompound)
     consume()
     enterBlock()
+    while p.tok.tok != TRcurlyBracket:
+        var s: Stmt = nil
+        if istype(p.tok.tok):
+            s = declaration()
+        else:
+            s = statament()
+        if s == nil:
+            leaveBlock()
+            return nil
+        result.stmts.add(s)
+    leaveBlock()
+    consume()
+    return result
+
+proc compound_statement*(params: seq[(string, CType)]): Stmt =
+    result = Stmt(k: SCompound)
+    consume()
+    enterBlock()
+    for (name, vty) in params:
+        if vty == nil:
+            break
+        var t = deepCopy(vty)
+        t.tags = t.tags or TYLVALUE
+        putsymtype(name, t)
     while p.tok.tok != TRcurlyBracket:
         var s: Stmt = nil
         if istype(p.tok.tok):
