@@ -89,9 +89,6 @@ proc bf() =
         close(s)
     c()
 
-parseCLI()
-setBackend()
-
 case app.input:
 of InputC:
     c()

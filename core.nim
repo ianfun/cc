@@ -1,4 +1,8 @@
 import config, types, stream, ast, token
+import std/[os]
+
+var options* = commandLineParams()
+var appFileName* = getAppFilename()
 
 type 
   VerboseLevel* = enum

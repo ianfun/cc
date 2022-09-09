@@ -88,6 +88,9 @@ type
   VerifierFailureAction {.size: sizeof(cint), pure.} = enum
     AbortProcessAction, PrintMessageAction, ReturnStatusAction
 
+import LLVMInstrinsics
+import LLVMAttribute
+
 const
   False*: Bool = 0
   True*: Bool = 1
@@ -296,6 +299,7 @@ type
       ## LLVM false/true constant
       i1_0, i1_1*: Value
 
+
 var b*: ptr Backend
 
 proc llvm_error*(msg: string) =
@@ -319,6 +323,21 @@ proc llvmGetsizeof*(ty: CType): culonglong =
 
 proc llvmGetOffsetof*(ty: CType, idx: int): culonglong =
   offsetOfElement(b.layout, wrap(ty), cuint(idx))
+
+proc initModule() =
+  const idents = "cc: A C Compiler(https://ianfun.github.io/cc.git)"
+  var ident = mDStringInContext(b.ctx, idents, len(idents))
+  addNamedMetadataOperand(b.module, "llvm.ident", ident)
+  
+  const wchars = "short_wchar"
+  var short_wchars = [constInt(b.i32, 1, False), mDStringInContext(b.ctx, wchars, len(wchars)), constInt(b.i32, 1, False)]
+  var short_wchar = mDNodeInContext(b.ctx, addr short_wchars[0], 3)
+  addNamedMetadataOperand(b.module, "llvm.module.flags", short_wchar)
+
+  const enums = "short_enum"
+  var short_enums = [constInt(b.i32, 1, False), mDStringInContext(b.ctx, enums, len(enums)), constInt(b.i32, 1, False)]
+  var short_enum = mDNodeInContext(b.ctx, addr short_enums[0], 3)
+  addNamedMetadataOperand(b.module, "llvm.module.flags", short_enum)
 
 proc newBackend*(module_name, source_file: string) =
   #initializeCore(getGlobalPassRegistry())
@@ -348,6 +367,10 @@ proc newBackend*(module_name, source_file: string) =
   b.i32_0 = constInt(b.i32, 0, False)
   b.i1_0 = constInt(b.i1, 0, False)
   b.i1_1 = constInt(b.i1, 1, False)
+  initModule()
+
+#proc lookupIntrinsicID(name: string): cuint =
+#  lookupIntrinsicID(name, name.len.csize_t)
 
 proc initTarget*() =
   var err: cstring
@@ -363,6 +386,9 @@ proc initTarget*() =
   setTarget(b.module, app.triple.cstring)
   app.pointersize = pointerSize(b.layout)
   contextSetOpaquePointers(b.ctx, if app.opaquePointerEnabled: True else: False)
+  #b.i_setjmp = lookupIntrinsicID("llvm.eh.sjlj.longjmp") # 69
+  #b.i_longjmp = lookupIntrinsicID("llvm.eh.sjlj.setjmp") # 71
+
 
 proc dumpVersionInfo*() =
   var arr = [cstring("llvm"), cstring("--version")]
@@ -1016,30 +1042,34 @@ proc getFCmpOp*(a: BinOP): RealPredicate =
 
 proc getCastOp*(a: CastOp): Opcode =
   case a:
-  of Trunc:
+  of CastOp.Trunc:
     LLVMTrunc
-  of ZExt:
+  of CastOp.ZExt:
     LLVMZExt
-  of SExt:
+  of CastOp.SExt:
     LLVMSExt
-  of FPToUI:
+  of CastOp.FPToUI:
     LLVMFPToUI
-  of FPToSI:
+  of CastOp.FPToSI:
     LLVMFPToSI
-  of UIToFP:
+  of CastOp.UIToFP:
     LLVMUIToFP
-  of SIToFP:
+  of CastOp.SIToFP:
     LLVMSIToFP
-  of FPTrunc:
+  of CastOp.FPTrunc:
     LLVMFPTrunc
-  of FPExt:
+  of CastOp.FPExt:
     LLVMFPExt
-  of PtrToInt:
+  of CastOp.PtrToInt:
     LLVMPtrToInt
-  of IntToPtr:
+  of CastOp.IntToPtr:
     LLVMIntToPtr
-  of BitCast:
+  of CastOp.BitCast:
     LLVMBitCast
+
+proc addAttribute(f: Value, attrID: cuint) =
+    var attr = createEnumAttribute(b.ctx, attrID, 0)
+    addAttributeAtIndex(f, cast[AttributeIndex](AttributeFunctionIndex), attr)
 
 proc newFunction*(varty: CType, name: string): Value =
     result = b.vars[0].getOrDefault(name, nil)
@@ -1047,6 +1077,14 @@ proc newFunction*(varty: CType, name: string): Value =
       return result
     var fty = wrap(varty)
     result = addFunction(b.module, name.cstring, fty)
+    addAttribute(result, NoUnwind)
+    addAttribute(result, OptimizeForSize)
+    if bool(varty.ret.tags and TYSTATIC):
+      setLinkage(result, InternalLinkage)
+    if bool(varty.ret.tags and TYNORETURN):
+      addAttribute(result, NoReturn)
+    if bool(varty.ret.tags and TYINLINE):
+      addAttribute(result, InlineHint)
     b.vars[0][name] = result
     #for i in 0 ..< len(varty.params):
     #  if varty.params[i][1] == nil:
@@ -1282,14 +1320,12 @@ proc getAddress*(e: Expr): Value =
   of ESubscript:
     assert e.left.ty.spec == TYPOINTER # the left must be a pointer
     var ty = wrap(e.left.ty.p)
-    var v = getAddress(e.left) # a pointer
-    var r = gen(e.right) # get index
-    buildInBoundsGEP2(b.builder, ty, v, addr r, 1, "")
+    var v = gen(e.left) # a pointer
+    var r = [gen(e.right)] # get index
+    buildInBoundsGEP2(b.builder, ty, v, addr r[0], 1, "")
   of ArrToAddress:
     var arr = getAddress(e.voidexpr)
-    var ty = wrap(e.voidexpr.ty)
-    var idx = [b.i32_0, b.i32_0]
-    buildInBoundsGEP2(b.builder, ty, arr, addr idx[0], 2, "")
+    buildBitCast(b.builder, arr, wrap(e.ty), "")
   of EString:
     gen_str_ptr(e.str)
   of EArray:
@@ -1324,15 +1360,13 @@ proc gen*(e: Expr): Value =
     getUndef(wrap(e.ty))
   of ArrToAddress:
     var arr = getAddress(e.voidexpr)
-    var ty = wrap(e.ty.p)
-    var idx = [b.i32_0, b.i32_0]
-    buildInBoundsGEP2(b.builder, ty, arr, addr idx[0], 2, "")
+    buildBitCast(b.builder, arr, wrap(e.ty), "")
   of ESubscript:
     assert e.left.ty.spec == TYPOINTER # the left must be a pointer
     var ty = wrap(e.left.ty.p)
-    var v = getAddress(e.left) # a pointer
-    var r = gen(e.right) # get index
-    var gaddr = buildInBoundsGEP2(b.builder, ty, v, addr r, 1, "")
+    var v = gen(e.left) # a pointer
+    var r = [gen(e.right)] # get index
+    var gaddr = buildInBoundsGEP2(b.builder, ty, v, addr r[0], 1, "")
     load(gaddr, ty) # return lvalue
   of EMemberAccess, EPointerMemberAccess:
     var base = gen(e.obj)
@@ -1573,14 +1607,15 @@ proc runjit*() =
 
     let fmain = cast[MainTY](main)
 
-    var realargs = @["main"]
     # TODO: use command line args from CLI options
-    var argslen = len(realargs)
+    var o = @[appFileName]
+    o &= options
+    var argslen = len(o)
     var mainargs = create(cstring, argslen or 1)
     var arr = cast[ptr UncheckedArray[cstring]](mainargs)
 
     for i in 0..<argslen:
-      arr[i] = cstring(realargs[i])
+      arr[i] = cstring(o[i])
 
     let ret = fmain(cint(argslen), mainargs)
 

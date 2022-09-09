@@ -1,16 +1,6 @@
-//#include "llvm-c/Core.h"
-//#include "llvm/IR/Constants.h"
-//#include "llvm/Support/TargetSelect.h"
-//
-//using namespace llvm;
-//
-//extern "C" {
-//
-//LLVMBool LLVMConstIntIsZero(LLVMValueRef ConstantVal){
-//	return unwrap<ConstantInt>(ConstantVal)->isZero();
-//}
-//
-//}
+/*
+llvmAPI.c - helper functions
+*/
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
 #endif
@@ -59,4 +49,19 @@ extern void LLVMNimInit(){
 	LLVMInitializeNativeAsmPrinter();
 	LLVMInitializeNativeAsmParser();
 	//LLVMInitializeNativeDisassembler();
+}
+extern void LLVMNimFinalizeModule(LLVMModuleRef M, LLVMContextRef ctx){
+	const char *idents = "cc: A C Compiler(https://ianfun.github.io/cc.git)";
+	LLVMValueRef ident = LLVMMDStringInContext(ctx, idents, strlen(idents)); 
+	LLVMAddNamedMetadataOperand(M, "llvm.ident", ident);
+	LLVMTypeRef i32 = LLVMInt32TypeInContext(ctx);
+	const char * wchars = "short_wchar";
+	LLVMValueRef short_wchars[] = {LLVMConstInt(i32, 1, 0), LLVMMDStringInContext(ctx, wchars, strlen(wchars)), LLVMConstInt(i32, 1, 0)};
+	LLVMValueRef short_wchar = LLVMMDNodeInContext(ctx, short_wchars, 3);
+	const char * enums = "short_enum";
+	LLVMValueRef short_enums[] = {LLVMConstInt(i32, 1, 0), LLVMMDStringInContext(ctx, enums, strlen(enums)), LLVMConstInt(i32, 1, 0)};
+	LLVMValueRef short_enum = LLVMMDNodeInContext(ctx, short_enums, 3);
+	LLVMValueRef flags[2] = {short_wchar, short_enum};
+	LLVMAddNamedMetadataOperand(M, "llvm.module.flags", short_enum);
+	LLVMAddNamedMetadataOperand(M, "llvm.module.flags", short_wchar);
 }

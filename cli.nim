@@ -1,8 +1,7 @@
-import os, core, parser
+import core, parser
 import llvm
 
 var i = 0
-var options = commandLineParams()
 
 proc hasNext(): bool =
   return i < len(options)
@@ -172,5 +171,4 @@ proc parseCLI*() =
     app.output &= ".s"
   of OutputCheck:
     discard
-  setBackend()
   addString(builtin_predef, "built-in")
