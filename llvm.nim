@@ -330,14 +330,19 @@ proc initModule() =
   addNamedMetadataOperand(b.module, "llvm.ident", ident)
   
   const wchars = "short_wchar"
-  var short_wchars = [constInt(b.i32, 1, False), mDStringInContext(b.ctx, wchars, len(wchars)), constInt(b.i32, 1, False)]
+  var short_wchars = [b.i32_1, mDStringInContext(b.ctx, wchars, len(wchars)), b.i32_1]
   var short_wchar = mDNodeInContext(b.ctx, addr short_wchars[0], 3)
   addNamedMetadataOperand(b.module, "llvm.module.flags", short_wchar)
 
   const enums = "short_enum"
-  var short_enums = [constInt(b.i32, 1, False), mDStringInContext(b.ctx, enums, len(enums)), constInt(b.i32, 1, False)]
+  var short_enums = [b.i32_1, mDStringInContext(b.ctx, enums, len(enums)), b.i32_1]
   var short_enum = mDNodeInContext(b.ctx, addr short_enums[0], 3)
   addNamedMetadataOperand(b.module, "llvm.module.flags", short_enum)
+
+  const wcharsizes = "wchar_size"
+  var wcharsize_arr = [b.i32_1, mDStringInContext(b.ctx, wcharsizes, len(wcharsizes)), constInt(b.i32, 4, False)]
+  var wcharsizenode = mDNodeInContext(b.ctx, addr wcharsize_arr[0], 3)
+  addNamedMetadataOperand(b.module, "llvm.module.flags", wcharsizenode)
 
 proc newBackend*(module_name, source_file: string) =
   #initializeCore(getGlobalPassRegistry())
@@ -784,54 +789,25 @@ proc gen_condition*(test: Expr, lhs: Expr, rhs: Expr): Value =
   addIncoming(phi, addr values[0], addr blocks[0], 2)
   return phi
 
-proc gen_condition*(test: Expr, lhs: Value, rhs: Expr): Value =
-  ## build a `cond ? lhs : rhs` expression
-  var ty = wrap(rhs.ty)
-  var iftrue = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  var iffalse = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  var ifend = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  discard buildCondBr(b.builder, gen_cond(test), iftrue, iffalse)
-  
-  positionBuilderAtEnd(b.builder, iftrue)
-  var left = (lhs)
-  discard buildBr(b.builder, ifend)
-  
-  positionBuilderAtEnd(b.builder, iffalse)
-  var right = gen(rhs)
-  discard buildBr(b.builder, ifend)
+proc gen_logical*(lhs: Expr, rhs: Expr, isand = true): Value =
+  var cond2 = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var phib = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var a = buildAlloca(b.builder, b.i1, "")
+  var left = gen_cond(lhs)
+  store(a, left)
+  if isand:
+    discard buildCondBr(b.builder, left, cond2, phib)
+  else:
+    discard buildCondBr(b.builder, left, phib, cond2)
 
-  positionBuilderAtEnd(b.builder, ifend)
-  var phi = buildPhi(b.builder, ty, "")
+  positionBuilderAtEnd(b.builder, cond2)
+  var right = gen_cond(rhs)
+  store(a, right)
+  discard buildBr(b.builder, phib)
 
-  var blocks = [iftrue, iffalse]
-  var values = [left, right]
-  addIncoming(phi, addr values[0], addr blocks[0], 2)
-  return phi
+  positionBuilderAtEnd(b.builder, phib)
 
-proc gen_condition*(test: Expr, lhs: Expr, rhs: Value): Value =
-  ## build a `cond ? lhs : rhs` expression
-  var ty = wrap(lhs.ty)
-  var iftrue = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  var iffalse = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  var ifend = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  discard buildCondBr(b.builder, gen_cond(test), iftrue, iffalse)
-  
-  positionBuilderAtEnd(b.builder, iftrue)
-  var left = gen(lhs)
-  discard buildBr(b.builder, ifend)
-  
-  positionBuilderAtEnd(b.builder, iffalse)
-  var right = (rhs)
-  discard buildBr(b.builder, ifend)
-
-  positionBuilderAtEnd(b.builder, ifend)
-  var phi = buildPhi(b.builder, ty, "")
-
-  var blocks = [iftrue, iffalse]
-  var values = [left, right]
-  addIncoming(phi, addr values[0], addr blocks[0], 2)
-  return phi
-
+  return load(a, b.i1)
 
 proc gen_if*(test: Expr, body: Stmt) =
   var iftrue = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
@@ -1177,12 +1153,8 @@ proc gen*(s: Stmt) =
   of SCase:
     gen_case(s.case_expr, s.case_stmt)
   of SVarDecl:
-    # TODO: top-level fuction decl and def
-    # TODO: global, extern handling
     for (name, varty, init) in s.vars:
       var align = varty.align
-      # https://llvm.org/docs/tutorial/MyFirstLanguageFrontend/LangImpl03.html#function-code-generation
-      # code generation for function prototypes
       if bool(varty.tags and TYTYPEDEF):
         discard
       elif varty.spec == TYFUNCTION:
@@ -1208,8 +1180,9 @@ proc gen*(s: Stmt) =
             setExternallyInitialized(g, True)
             setLinkage(g, ExternalLinkage)
           else:
+            setLinkage(g, CommonLinkage)
             if (varty.tags and TYREGISTER) != 0:
-              warning("register is not supported in LLVM backend")
+              warning("register variables is ignored in LLVM backend")
           # setLinkage(g, CommonLinkage)
           putVar(name, g)
         else:
@@ -1237,25 +1210,29 @@ proc neZero*(a: Expr): Expr =
 proc eqZero*(a: Expr): Expr =
   Expr(k: EBin, lhs: a, rhs: Expr(k: EBackend, p: cast[pointer](getZero(a.ty))), bop: EQ)
 
-proc incl*(p: Value, t: Type) =
+proc incl*(p: Value, t: Type): Value =
   var l = load(p, t)
   var l2 = buildAdd(b.builder, l, constInt(t, 1.culonglong, False), "")
   store(p, l2)
+  return l
 
-proc incl*(p: Value, t: Type, align: uint32) =
+proc incl*(p: Value, t: Type, align: uint32): Value =
   var l = load(p, t, align)
   var l2 = buildAdd(b.builder, l, constInt(t, 1.culonglong, False), "")
   store(p, l2, align)
+  return l
 
-proc decl*(p: Value, t: Type, align: uint32) =
+proc decl*(p: Value, t: Type, align: uint32): Value =
   var l = load(p, t, align)
   var l2 = buildSub(b.builder, l, constInt(t, 1.culonglong, False), "")
   store(p, l2, align)
+  return l
 
-proc decl*(p: Value, t: Type) =
+proc decl*(p: Value, t: Type): Value =
   var l = load(p, t)
   var l2 = buildSub(b.builder, l, constInt(t, 1.culonglong, False), "")
   store(p, l2)
+  return l
 
 proc getArray(e: Expr): Value =
     var elemTy = wrap(e.ty.arrtype)
@@ -1313,9 +1290,9 @@ proc getAddress*(e: Expr): Value =
         var a = e.poperand.ty.align
         var ty = wrap(e.ty)
         if e.pop == PostfixDecrement:
-          decl(basep, ty, a)
+          discard decl(basep, ty, a)
         else:
-          incl(basep, ty, a)
+          discard incl(basep, ty, a)
       basep
   of ESubscript:
     assert e.left.ty.spec == TYPOINTER # the left must be a pointer
@@ -1416,14 +1393,13 @@ proc gen*(e: Expr): Value =
     of FEQ..FLE:
       buildFCmp(b.builder, getFCmpOp(e.bop), gen(e.lhs), gen(e.rhs), "")
     of LogicalAnd:
-      let x = buildICmp(b.builder, IntNE, getZero(e.lhs.ty), gen(e.lhs), "")
-      let y = buildICmp(b.builder, IntNE, getZero(e.lhs.ty), gen(e.rhs), "")
-      let c = buildAnd(b.builder, x, y, "")
-      buildZExt(b.builder, c, backendint(), "")
+      # a && b
+      # => a ? b : 0
+      gen_logical(e.lhs, e.rhs, isand=true)
     of LogicalOr:
-      let t = buildOr(b.builder, gen(e.lhs), gen(e.rhs), "")
-      let nz = buildICmp(b.builder, IntNE, getZero(e.lhs.ty), t, "")
-      buildZExt(b.builder, nz, backendint(), "")
+      # a || b
+      # => a ? 1 : b
+      gen_logical(e.rhs, e.lhs, isand=false)
     of Comma:
       discard gen(e.lhs)
       gen(e.rhs)
@@ -1454,7 +1430,8 @@ proc gen*(e: Expr): Value =
       let basep = getAddress(e.uoperand)
       assert basep != nil
       if e.ty.spec == TYPOINTER:
-        var g = buildInBoundsGEP2(b.builder, ty, basep, addr i, 1, "")
+        var l = load(basep, wrap(e.uoperand.ty))
+        var g = buildInBoundsGEP2(b.builder, ty, l, addr i, 1, "")
         store(basep, g)
         g
       else:
@@ -1476,7 +1453,7 @@ proc gen*(e: Expr): Value =
         var l = load(basep, wrap(e.poperand.ty))
         var g = buildInBoundsGEP2(b.builder, ty, l, addr i, 1, "")
         store(basep, g)
-        g
+        l
       else:
         var a = e.poperand.ty.align
         var ty = wrap(e.ty)
@@ -1484,7 +1461,6 @@ proc gen*(e: Expr): Value =
           decl(basep, ty, a)
         else:
           incl(basep, ty, a)
-        load(basep, wrap(e.ty), a)
   of EVar:
     var pvar = getVar(e.sval)
     assert pvar != nil, e.sval

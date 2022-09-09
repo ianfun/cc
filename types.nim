@@ -88,6 +88,7 @@ const ## basic types
 const ## type alias
   TYCHAR* = TYINT8
   TYSHORT* = TYINT16
+  TYWCHAR* = TYSHORT ## wchar type: may be 2 or 4 bytes ...
   TYINT* = TYINT32
   TYLONG* = TYINT64 ## 32 bit in MSVC, 64 bit in GCC/JVM
   TYLONGLONG* = TYINT64

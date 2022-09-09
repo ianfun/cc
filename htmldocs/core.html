@@ -107,17 +107,7 @@ window.addEventListener('DOMContentLoaded', main);
 <li>
   <a class="reference reference-toplevel" href="#7" id="57">Types</a>
   <ul class="simple simple-toc-section">
-      <li><a class="reference" href="#BinOP"
-    title="BinOP = enum
-  Nop = 0, UAdd, SAdd, FAdd, USub, SSub, FSub, UMul, SMul, FMul, UDiv, SDiv,
-  FDiv, URem, SRem, FRem, Shr, AShr, Shl, And, Xor, Or, LogicalAnd, LogicalOr,
-  Assign, SAddP, Comma, EQ, NE, UGT, UGE, ULT, ULE, SGT, SGE, SLT, SLE, FEQ,
-  FNE, FGT, FGE, FLT, FLE">BinOP</a></li>
-  <li><a class="reference" href="#CastOp"
-    title="CastOp = enum
-  Trunc, ZExt, SExt, FPToUI, FPToSI, UIToFP, SIToFP, FPTrunc, FPExt, PtrToInt,
-  IntToPtr, BitCast">CastOp</a></li>
-  <li><a class="reference" href="#CC"
+      <li><a class="reference" href="#CC"
     title="CC {.final.} = object
   input*: Input
   mode*: Output
@@ -140,242 +130,16 @@ window.addEventListener('DOMContentLoaded', main);
   eval_const_expression*: proc (e: Expr): intmax_t ## pragma handler
   pragma*: proc (tokens: seq[TokenV])
   pragmas*: proc (p: string)">CC</a></li>
-  <li><a class="reference" href="#Codepoint"
-    title="Codepoint = uint32">Codepoint</a></li>
-  <li><a class="reference" href="#Expr"
-    title="Expr = ref object
-  ty*: CType
-  case k*: ExprKind
-  of EVoid, ArrToAddress:
-      voidexpr*: Expr
-
-  of EBin:
-      lhs*, rhs*: Expr
-      bop*: BinOP
-
-  of EUnary:
-      uop*: UnaryOP
-      uoperand*: Expr
-
-  of EPostFix:
-      pop*: PostfixOP
-      poperand*: Expr
-
-  of EIntLit:
-      ival*: int
-
-  of EFloatLit:
-      fval*: float
-
-  of EString:
-      str*: string
-
-  of EVar:
-      sval*: string
-
-  of EArray, EStruct:
-      arr*: seq[Expr]
-
-  of ECondition:
-      cond*: Expr
-      cleft*, cright*: Expr
-
-  of ECast:
-      castop*: CastOp
-      castval*: Expr
-
-  of ECall:
-      callfunc*: Expr
-      callargs*: seq[Expr]
-
-  of ESubscript:
-      left*, right*: Expr
-
-  of EPointerMemberAccess, EMemberAccess:
-      obj*: Expr
-      idx*: int
-
-  of EBackend:
-      p*: pointer
-
-  of EDefault, EUndef:
-      nil">Expr</a></li>
-  <li><a class="reference" href="#ExprKind"
-    title="ExprKind = enum
-  EBin, EUnary, EPostFix, EIntLit, EFloatLit, EVoid, EVar, ECondition, ECast,
-  ECall, ESubscript, EDefault, EArray, EStruct, EBackend, EString, EUndef,
-  EPointerMemberAccess, EMemberAccess, ArrToAddress">ExprKind</a></li>
-  <li><a class="reference" href="#FTag"
-    title="FTag = enum
-  Fdobule, Ffloat">FTag</a></li>
-  <li><a class="reference" href="#Info"
-    title="Info = ref object
-  tag*: uint32
-  loc*: Location
-  ty*: CType">Info</a></li>
   <li><a class="reference" href="#Input"
     title="Input = enum
   InputC, InputIR, InputBC, InputObject, InputBF, InputAsm">Input</a></li>
-  <li><a class="reference" href="#ITag"
-    title="ITag = enum
-  Iint, Ilong, Iulong, Ilonglong, Iulonglong, Iuint">ITag</a></li>
   <li><a class="reference" href="#Linker"
     title="Linker = enum
   LLD, GCCLD">Linker</a></li>
-  <li><a class="reference" href="#Location"
-    title="Location = object
-  line*: int
-  col*: int">Location</a></li>
   <li><a class="reference" href="#Output"
     title="Output = enum
   OutputLink, OutputLLVMAssembly, OutputBitcode, OutputObjectFile,
   OutputAssembly, OutputCheck">Output</a></li>
-  <li><a class="reference" href="#ParseFlags"
-    title="ParseFlags = enum
-  PFNormal = 1, PFPP = 2">ParseFlags</a></li>
-  <li><a class="reference" href="#PostfixOP"
-    title="PostfixOP = enum
-  PostfixIncrement = &quot;++&quot;, PostfixDecrement = &quot;--&quot;">PostfixOP</a></li>
-  <li><a class="reference" href="#PPMacro"
-    title="PPMacro = ref object
-  tokens*: seq[TokenV]
-  case flags*: PPMacroFlags
-  of MFUNC:
-      params*: seq[string]
-      ivarargs*: bool
-
-  of MBuiltin:
-      fn*: proc ()
-
-  of MOBJ:
-      nil">PPMacro</a></li>
-  <li><a class="reference" href="#PPMacroFlags"
-    title="PPMacroFlags = enum
-  MOBJ, MFUNC, MBuiltin">PPMacroFlags</a></li>
-  <li><a class="reference" href="#Stmt"
-    title="Stmt = ref object
-  case k*: StmtKind
-  of SFunction:
-      funcname*: string
-      functy*: CType
-      funcbody*: Stmt
-
-  of SAsm:
-      asms*: string
-
-  of SCompound:
-      stmts*: StmtList
-
-  of SDefault:
-      default_stmt*: Stmt
-
-  of Scase:
-      case_expr*: Expr
-      case_stmt*: Stmt
-
-  of SBreak, SContinue, SSemicolon:
-      nil
-
-  of SExpr, SReturn:
-      exprbody*: Expr
-
-  of SGoto:
-      location*: string
-
-  of SLabled:
-      label*: string
-      labledstmt*: Stmt
-
-  of SIf:
-      iftest*: Expr
-      ifbody*: Stmt
-      elsebody*: Stmt
-
-  of SDoWhile, SWhile, SSwitch:
-      test*: Expr
-      body*: Stmt
-
-  of SFor:
-      forinit*: Stmt
-      forcond*, forincl*: Expr
-      forbody*: Stmt
-
-  of SVarDecl1:
-      var1name*: string
-      var1type*: CType
-
-  of SVarDecl:
-      vars*: seq[(string, CType, Expr)]
-
-  of SDeclOnly:
-      decl*: CType">Stmt</a></li>
-  <li><a class="reference" href="#StmtKind"
-    title="StmtKind = enum
-  SSemicolon, SCompound, SGoto, SContinue, SBreak, SReturn, SExpr, SLabled, SIf,
-  SDoWhile, SWhile, SFor, SSwitch, SDeclOnly, SAsm, SVarDecl, SDefault, SCase,
-  SFunction, SVarDecl1">StmtKind</a></li>
-  <li><a class="reference" href="#StmtList"
-    title="StmtList = seq[Stmt]">StmtList</a></li>
-  <li><a class="reference" href="#Token"
-    title="Token = enum
-  TNul = 0, TNewLine = 10, TSpace = 32, TNot, TDoubleQ, TBash = 35, TDolor,
-  TPercent, TBitAnd, TSignleQ, TLbracket, TRbracket, TMul, TAdd, TComma, TDash,
-  TDot, TSlash, TColon = 58, TSemicolon, TLt, TAssign, TGt, TQuestionMark,
-  TMouse, TLSquareBrackets = 91, TBackslash, TRSquareBrackets, TXor,
-  TUnderscore, TGraveAccent, TLcurlyBracket = 123, TBitOr, TRcurlyBracket,
-  TBitNot, T255 = 255, Kauto = &quot;auto&quot;, Kfor = &quot;for&quot;, Kgoto = &quot;goto&quot;, Kif = &quot;if&quot;,
-  Kinline = &quot;inline&quot;, Kint = &quot;int&quot;, Kchar = &quot;char&quot;, Klong = &quot;long&quot;,
-  Kregister = &quot;register&quot;, Krestrict = &quot;restrict&quot;, Kreturn = &quot;return&quot;,
-  Kshort = &quot;short&quot;, Kelse = &quot;else&quot;, Kenum = &quot;enum&quot;, Kextern = &quot;extern&quot;,
-  Kdouble = &quot;double&quot;, Kdo = &quot;do&quot;, Kdefault = &quot;default&quot;, Kfloat = &quot;float&quot;,
-  Ksigned = &quot;signed&quot;, Ksizeof = &quot;sizeof&quot;, Kstatic = &quot;static&quot;,
-  Kstruct = &quot;struct&quot;, Kswitch = &quot;switch&quot;, Kcase = &quot;case&quot;, Ktypedef = &quot;typedef&quot;,
-  Kunion = &quot;union&quot;, Kcontinue = &quot;continue&quot;, Kunsigned = &quot;unsigned&quot;,
-  Kvoid = &quot;void&quot;, Kvolatile = &quot;volatile&quot;, Kwhile = &quot;while&quot;, Kconst = &quot;const&quot;,
-  Kbreak = &quot;break&quot;, K_Alignas = &quot;_Alignas&quot;, K_Alignof = &quot;_Alignof&quot;,
-  K_Atomic = &quot;_Atomic&quot;, K_Bool = &quot;_Bool&quot;, K_Complex = &quot;Complex&quot;,
-  K_asm = &quot;__asm__&quot;, K_Decimal128 = &quot;_Decimal128&quot;, K_Decimal32 = &quot;_Decimal32&quot;,
-  K_Decimal64 = &quot;_Decimal64&quot;, K_Generic = &quot;_Generic&quot;,
-  K_Imaginary = &quot;_Imaginary&quot;, K_Noreturn = &quot;_Noreturn&quot;,
-  K_Static_assert = &quot;_Static_assert&quot;, K_Thread_local = &quot;_Thread_local&quot;,
-  TAddAdd = &quot;++&quot;, TSubSub = &quot;--&quot;, TArrow = &quot;-&gt;&quot;, Tshl = &quot;&lt;&lt;&quot;, Tshr = &quot;&gt;&gt;&quot;,
-  TGe = &quot;&gt;=&quot;, TLe = &quot;&lt;=&quot;, TEq = &quot;==&quot;, TNe = &quot;!=&quot;, TLogicalOr = &quot;||&quot;,
-  TLogicalAnd = &quot;&amp;&amp;&quot;, TAsignAdd = &quot;+=&quot;, TAsignSub = &quot;-=&quot;, TAsignMul = &quot;*=&quot;,
-  TAsignDiv = &quot;/=&quot;, TAsignRem = &quot;%=&quot;, TAsignShl = &quot;&lt;&lt;=&quot;, TAsignShr = &quot;&gt;&gt;=&quot;,
-  TAsignBitAnd = &quot;&amp;=&quot;, TAsignBitOr = &quot;|=&quot;, TAsignBitXor = &quot;^=&quot;,
-  TEllipsis2 = &quot;..&quot;, TEllipsis = &quot;...&quot;, TNumberLit = &quot;&lt;number&gt;&quot;,
-  TFloatLit = &quot;&lt;float&gt;&quot;, TCharLit = &quot;&lt;char&gt;&quot;, TIdentifier = &quot;&lt;identifier&gt;&quot;,
-  CPPIdent = &quot;&lt;CPPident&gt;&quot;, TStringLit = &quot;&lt;string&gt;&quot;, TPPNumber = &quot;&lt;pp-number&gt;&quot;,
-  PPPlaceholder = &quot;&lt;placeholder&gt;&quot;, PPSharp = &quot;#&quot;, PPSharpSharp = &quot;##&quot;,
-  PPMacroPop = &quot;&lt;pop&gt;&quot;, TEOF = &quot;&lt;EOF&gt;&quot;">Token</a></li>
-  <li><a class="reference" href="#TokenV"
-    title="TokenV = ref object
-  tok*: Token
-  case tags*: TokenVTags
-  of TVNormal:
-      nil
-
-  of TVSVal:
-      s*: string
-
-  of TVFval:
-      f*: float
-      ftag*: FTag
-
-  of TVIVal:
-      i*: int
-      itag*: ITag
-
-  of TVStr:
-      str*: string
-      enc*: uint8">TokenV</a></li>
-  <li><a class="reference" href="#TokenVTags"
-    title="TokenVTags = enum
-  TVNormal, TVSVal, TVIVal, TVFval, TVStr">TokenVTags</a></li>
-  <li><a class="reference" href="#UnaryOP"
-    title="UnaryOP = enum
-  Pos, UNeg, SNeg, FNeg, Not, AddressOf, PrefixIncrement, PrefixDecrement,
-  Dereference, LogicalNot">UnaryOP</a></li>
   <li><a class="reference" href="#VerboseLevel"
     title="VerboseLevel = enum
   WError, WWarning, WNote, WVerbose">VerboseLevel</a></li>
@@ -389,80 +153,34 @@ window.addEventListener('DOMContentLoaded', main);
     title="app = CC(optLevel: cuint(0), sizeLevel: cuint(0), inlineThreshold: 0,
          verboseLevel: WNote, opaquePointerEnabled: true, mode: OutputLink,
          input: InputC, output: &quot;&quot;, triple: &quot;&quot;, runJit: false, linker: GCCLD)">app</a></li>
-  <li><a class="reference" href="#gkeywordtable"
-    title="gkeywordtable = initTable(48)">gkeywordtable</a></li>
-
-  </ul>
-</li>
-<li>
-  <a class="reference reference-toplevel" href="#10" id="60">Consts</a>
-  <ul class="simple simple-toc-section">
-      <li><a class="reference" href="#CSkip"
-    title="CSkip = {' ', '\t', '\f', '\v'}">CSkip</a></li>
-  <li><a class="reference" href="#INFO_USED"
-    title="INFO_USED = 2">INFO_USED</a></li>
-  <li><a class="reference" href="#KwEnd"
-    title="KwEnd = K_Thread_local">KwEnd</a></li>
-  <li><a class="reference" href="#KwStart"
-    title="KwStart = Kauto">KwStart</a></li>
+  <li><a class="reference" href="#appFileName"
+    title="appFileName = getAppFilename()">appFileName</a></li>
+  <li><a class="reference" href="#options"
+    title="options = commandLineParams()">options</a></li>
 
   </ul>
 </li>
 <li>
   <a class="reference reference-toplevel" href="#12" id="62">Procs</a>
   <ul class="simple simple-toc-section">
-      <ul class="simple nested-toc-section">$
-      <li><a class="reference" href="#%24%2CStmt%2Cint"
-    title="`$`(a: Stmt; level = 0): string">`$`(a: Stmt; level = 0): string</a></li>
-  <li><a class="reference" href="#%24%2CExpr"
-    title="`$`(e: Expr): string">`$`(e: Expr): string</a></li>
-  <li><a class="reference" href="#%24%2CLocation"
-    title="`$`(loc: Location): string">`$`(loc: Location): string</a></li>
-
-  </ul>
-  <ul class="simple nested-toc-section">error
+      <ul class="simple nested-toc-section">error
       <li><a class="reference" href="#error"
     title="error()">error()</a></li>
 
   </ul>
-  <ul class="simple nested-toc-section">isKeyword
-      <li><a class="reference" href="#isKeyword%2Cstring"
-    title="isKeyword(a: string): Token">isKeyword(a: string): Token</a></li>
+  <ul class="simple nested-toc-section">getIntPtr_t
+      <li><a class="reference" href="#getIntPtr_t"
+    title="getIntPtr_t(): CType">getIntPtr_t(): CType</a></li>
 
   </ul>
-  <ul class="simple nested-toc-section">joinShow
-      <li><a class="reference" href="#joinShow%2Cseq%5BT%5D%2Cstring"
-    title="joinShow[T](a: seq[T]; c: string = &quot; &quot;): string">joinShow[T](a: seq[T]; c: string = &quot; &quot;): string</a></li>
-
-  </ul>
-  <ul class="simple nested-toc-section">joinShow5
-      <li><a class="reference" href="#joinShow5%2Cseq%5BStmt%5D%2Cint"
-    title="joinShow5(a: seq[Stmt]; level = 1): string">joinShow5(a: seq[Stmt]; level = 1): string</a></li>
-
-  </ul>
-  <ul class="simple nested-toc-section">joinShow6
-      <li><a class="reference" href="#joinShow6%2Cseq%5B%5D"
-    title="joinShow6(a: seq[(string, CType, Expr)]): string">joinShow6(a: seq[(string, CType, Expr)]): string</a></li>
+  <ul class="simple nested-toc-section">getPtrDiff_t
+      <li><a class="reference" href="#getPtrDiff_t"
+    title="getPtrDiff_t(): CType">getPtrDiff_t(): CType</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">perror
       <li><a class="reference" href="#perror%2Ccstring"
     title="perror(str: cstring)">perror(str: cstring)</a></li>
-
-  </ul>
-  <ul class="simple nested-toc-section">show
-      <li><a class="reference" href="#show%2Cchar"
-    title="show(c: char): string">show(c: char): string</a></li>
-
-  </ul>
-  <ul class="simple nested-toc-section">unreachable
-      <li><a class="reference" href="#unreachable"
-    title="unreachable()">unreachable()</a></li>
-
-  </ul>
-  <ul class="simple nested-toc-section">unsafe_utf8_codepoint
-      <li><a class="reference" href="#unsafe_utf8_codepoint%2Ccstring"
-    title="unsafe_utf8_codepoint(s: cstring): (Codepoint, int)">unsafe_utf8_codepoint(s: cstring): (Codepoint, int)</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">verbose
@@ -473,43 +191,6 @@ window.addEventListener('DOMContentLoaded', main);
   <ul class="simple nested-toc-section">warningPlain
       <li><a class="reference" href="#warningPlain%2Cstring"
     title="warningPlain(msg: string)">warningPlain(msg: string)</a></li>
-
-  </ul>
-  <ul class="simple nested-toc-section">writeUTF8toUTF16
-      <li><a class="reference" href="#writeUTF8toUTF16%2Cstring"
-    title="writeUTF8toUTF16(s: string): seq[uint16]">writeUTF8toUTF16(s: string): seq[uint16]</a></li>
-
-  </ul>
-  <ul class="simple nested-toc-section">writeUTF8toUTF32
-      <li><a class="reference" href="#writeUTF8toUTF32%2Cstring"
-    title="writeUTF8toUTF32(s: string): seq[Codepoint]">writeUTF8toUTF32(s: string): seq[Codepoint]</a></li>
-
-  </ul>
-
-  </ul>
-</li>
-<li>
-  <a class="reference reference-toplevel" href="#15" id="65">Iterators</a>
-  <ul class="simple simple-toc-section">
-      <ul class="simple nested-toc-section">getDefines
-      <li><a class="reference" href="#getDefines.i"
-    title="getDefines(): (string, seq[TokenV])">getDefines(): (string, seq[TokenV])</a></li>
-
-  </ul>
-
-  </ul>
-</li>
-<li>
-  <a class="reference reference-toplevel" href="#18" id="68">Templates</a>
-  <ul class="simple simple-toc-section">
-      <ul class="simple nested-toc-section">init
-      <li><a class="reference" href="#init.t%2C%2C%2C%2C%2C"
-    title="init(lexer, cpp, parser, eval, backend): untyped">init(lexer, cpp, parser, eval, backend): untyped</a></li>
-
-  </ul>
-  <ul class="simple nested-toc-section">shutdown
-      <li><a class="reference" href="#shutdown.t"
-    title="shutdown()">shutdown()</a></li>
 
   </ul>
 
@@ -531,41 +212,11 @@ class="link-seesrc" target="_blank">Source</a>
   <div class="section" id="6">
 <h1><a class="toc-backref" href="#6">Imports</a></h1>
 <dl class="item">
-<a class="reference external" href="config.html">config</a>, <a class="reference external" href="types.html">types</a>, <a class="reference external" href="stream.html">stream</a>
+<a class="reference external" href="config.html">config</a>, <a class="reference external" href="types.html">types</a>, <a class="reference external" href="stream.html">stream</a>, <a class="reference external" href="ast.html">ast</a>, <a class="reference external" href="token.html">token</a>
 </dl></div>
 <div class="section" id="7">
 <h1><a class="toc-backref" href="#7">Types</a></h1>
 <dl class="item">
-<div id="BinOP">
-<dt><pre><a href="core.html#BinOP"><span class="Identifier">BinOP</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
-  <span class="Identifier">Nop</span> <span class="Other">=</span> <span class="DecNumber">0</span><span class="Other">,</span> <span class="Identifier">UAdd</span><span class="Other">,</span> <span class="Identifier">SAdd</span><span class="Other">,</span> <span class="Identifier">FAdd</span><span class="Other">,</span> <span class="Identifier">USub</span><span class="Other">,</span> <span class="Identifier">SSub</span><span class="Other">,</span> <span class="Identifier">FSub</span><span class="Other">,</span> <span class="Identifier">UMul</span><span class="Other">,</span> <span class="Identifier">SMul</span><span class="Other">,</span> <span class="Identifier">FMul</span><span class="Other">,</span> <span class="Identifier">UDiv</span><span class="Other">,</span> <span class="Identifier">SDiv</span><span class="Other">,</span>
-  <span class="Identifier">FDiv</span><span class="Other">,</span> <span class="Identifier">URem</span><span class="Other">,</span> <span class="Identifier">SRem</span><span class="Other">,</span> <span class="Identifier">FRem</span><span class="Other">,</span> <span class="Identifier">Shr</span><span class="Other">,</span> <span class="Identifier">AShr</span><span class="Other">,</span> <span class="Identifier">Shl</span><span class="Other">,</span> <span class="Identifier">And</span><span class="Other">,</span> <span class="Identifier">Xor</span><span class="Other">,</span> <span class="Identifier">Or</span><span class="Other">,</span> <span class="Identifier">LogicalAnd</span><span class="Other">,</span> <span class="Identifier">LogicalOr</span><span class="Other">,</span>
-  <span class="Identifier">Assign</span><span class="Other">,</span> <span class="Identifier">SAddP</span><span class="Other">,</span> <span class="Identifier">Comma</span><span class="Other">,</span> <span class="Identifier">EQ</span><span class="Other">,</span> <span class="Identifier">NE</span><span class="Other">,</span> <span class="Identifier">UGT</span><span class="Other">,</span> <span class="Identifier">UGE</span><span class="Other">,</span> <span class="Identifier">ULT</span><span class="Other">,</span> <span class="Identifier">ULE</span><span class="Other">,</span> <span class="Identifier">SGT</span><span class="Other">,</span> <span class="Identifier">SGE</span><span class="Other">,</span> <span class="Identifier">SLT</span><span class="Other">,</span> <span class="Identifier">SLE</span><span class="Other">,</span> <span class="Identifier">FEQ</span><span class="Other">,</span>
-  <span class="Identifier">FNE</span><span class="Other">,</span> <span class="Identifier">FGT</span><span class="Other">,</span> <span class="Identifier">FGE</span><span class="Other">,</span> <span class="Identifier">FLT</span><span class="Other">,</span> <span class="Identifier">FLE</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L100"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L100" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="CastOp">
-<dt><pre><a href="core.html#CastOp"><span class="Identifier">CastOp</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
-  <span class="Identifier">Trunc</span><span class="Other">,</span> <span class="Identifier">ZExt</span><span class="Other">,</span> <span class="Identifier">SExt</span><span class="Other">,</span> <span class="Identifier">FPToUI</span><span class="Other">,</span> <span class="Identifier">FPToSI</span><span class="Other">,</span> <span class="Identifier">UIToFP</span><span class="Other">,</span> <span class="Identifier">SIToFP</span><span class="Other">,</span> <span class="Identifier">FPTrunc</span><span class="Other">,</span> <span class="Identifier">FPExt</span><span class="Other">,</span> <span class="Identifier">PtrToInt</span><span class="Other">,</span>
-  <span class="Identifier">IntToPtr</span><span class="Other">,</span> <span class="Identifier">BitCast</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L124"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L124" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
 <div id="CC">
 <dt><pre><a href="core.html#CC"><span class="Identifier">CC</span></a> {.<span class="Identifier">final</span>.} <span class="Other">=</span> <span class="Keyword">object</span>
   <span class="Identifier">input</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Input"><span class="Identifier">Input</span></a>
@@ -586,143 +237,17 @@ class="link-seesrc" target="_blank">Source</a>
   <span class="Identifier">getAlignOf</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">culonglong</span> <span class="Comment">## lexer</span>
   <span class="Identifier">lex</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Other">)</span>              <span class="Comment">## C preprocessor</span>
   <span class="Identifier">cpp</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Other">)</span>              <span class="Comment">## constant evaluator</span>
-  <span class="Identifier">eval_const_expression</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">e</span><span class="Other">:</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">)</span><span class="Other">:</span> <a href="config.html#intmax_t"><span class="Identifier">intmax_t</span></a> <span class="Comment">## pragma handler</span>
-  <span class="Identifier">pragma</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">tokens</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="core.html#TokenV"><span class="Identifier">TokenV</span></a><span class="Other">]</span><span class="Other">)</span>
+  <span class="Identifier">eval_const_expression</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">e</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">)</span><span class="Other">:</span> <a href="config.html#intmax_t"><span class="Identifier">intmax_t</span></a> <span class="Comment">## pragma handler</span>
+  <span class="Identifier">pragma</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">tokens</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="token.html#TokenV"><span class="Identifier">TokenV</span></a><span class="Other">]</span><span class="Other">)</span>
   <span class="Identifier">pragmas</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">p</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span>
 </pre></dt>
 <dd>
 
 command line options
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L561"
+href="https://github.com/ianfun/cc/tree/master/core.nim#L22"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L561" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="Codepoint">
-<dt><pre><a href="core.html#Codepoint"><span class="Identifier">Codepoint</span></a> <span class="Other">=</span> <span class="Identifier">uint32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L137"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L137" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="Expr">
-<dt><pre><a href="core.html#Expr"><span class="Identifier">Expr</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
-  <span class="Identifier">ty</span><span class="Operator">*</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a>
-  <span class="Keyword">case</span> <span class="Identifier">k</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#ExprKind"><span class="Identifier">ExprKind</span></a>
-  <span class="Keyword">of</span> <span class="Identifier">EVoid</span><span class="Other">,</span> <span class="Identifier">ArrToAddress</span><span class="Other">:</span>
-      <span class="Identifier">voidexpr</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a>
-
-  <span class="Keyword">of</span> <span class="Identifier">EBin</span><span class="Other">:</span>
-      <span class="Identifier">lhs</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">rhs</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a>
-      <span class="Identifier">bop</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#BinOP"><span class="Identifier">BinOP</span></a>
-
-  <span class="Keyword">of</span> <span class="Identifier">EUnary</span><span class="Other">:</span>
-      <span class="Identifier">uop</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#UnaryOP"><span class="Identifier">UnaryOP</span></a>
-      <span class="Identifier">uoperand</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a>
-
-  <span class="Keyword">of</span> <span class="Identifier">EPostFix</span><span class="Other">:</span>
-      <span class="Identifier">pop</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#PostfixOP"><span class="Identifier">PostfixOP</span></a>
-      <span class="Identifier">poperand</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a>
-
-  <span class="Keyword">of</span> <span class="Identifier">EIntLit</span><span class="Other">:</span>
-      <span class="Identifier">ival</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>
-
-  <span class="Keyword">of</span> <span class="Identifier">EFloatLit</span><span class="Other">:</span>
-      <span class="Identifier">fval</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">float</span>
-
-  <span class="Keyword">of</span> <span class="Identifier">EString</span><span class="Other">:</span>
-      <span class="Identifier">str</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
-
-  <span class="Keyword">of</span> <span class="Identifier">EVar</span><span class="Other">:</span>
-      <span class="Identifier">sval</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
-
-  <span class="Keyword">of</span> <span class="Identifier">EArray</span><span class="Other">,</span> <span class="Identifier">EStruct</span><span class="Other">:</span>
-      <span class="Identifier">arr</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="core.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">]</span>
-
-  <span class="Keyword">of</span> <span class="Identifier">ECondition</span><span class="Other">:</span>
-      <span class="Identifier">cond</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a>
-      <span class="Identifier">cleft</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">cright</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a>
-
-  <span class="Keyword">of</span> <span class="Identifier">ECast</span><span class="Other">:</span>
-      <span class="Identifier">castop</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#CastOp"><span class="Identifier">CastOp</span></a>
-      <span class="Identifier">castval</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a>
-
-  <span class="Keyword">of</span> <span class="Identifier">ECall</span><span class="Other">:</span>
-      <span class="Identifier">callfunc</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a>
-      <span class="Identifier">callargs</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="core.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">]</span>
-
-  <span class="Keyword">of</span> <span class="Identifier">ESubscript</span><span class="Other">:</span>
-      <span class="Identifier">left</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">right</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a>
-
-  <span class="Keyword">of</span> <span class="Identifier">EPointerMemberAccess</span><span class="Other">,</span> <span class="Identifier">EMemberAccess</span><span class="Other">:</span>
-      <span class="Identifier">obj</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a>
-      <span class="Identifier">idx</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>
-
-  <span class="Keyword">of</span> <span class="Identifier">EBackend</span><span class="Other">:</span>
-      <span class="Identifier">p</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">pointer</span>
-
-  <span class="Keyword">of</span> <span class="Identifier">EDefault</span><span class="Other">,</span> <span class="Identifier">EUndef</span><span class="Other">:</span>
-      <span class="Keyword">nil</span>
-
-  </pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L232"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L232" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="ExprKind">
-<dt><pre><a href="core.html#ExprKind"><span class="Identifier">ExprKind</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
-  <span class="Identifier">EBin</span><span class="Other">,</span> <span class="Identifier">EUnary</span><span class="Other">,</span> <span class="Identifier">EPostFix</span><span class="Other">,</span> <span class="Identifier">EIntLit</span><span class="Other">,</span> <span class="Identifier">EFloatLit</span><span class="Other">,</span> <span class="Identifier">EVoid</span><span class="Other">,</span> <span class="Identifier">EVar</span><span class="Other">,</span> <span class="Identifier">ECondition</span><span class="Other">,</span> <span class="Identifier">ECast</span><span class="Other">,</span>
-  <span class="Identifier">ECall</span><span class="Other">,</span> <span class="Identifier">ESubscript</span><span class="Other">,</span> <span class="Identifier">EDefault</span><span class="Other">,</span> <span class="Identifier">EArray</span><span class="Other">,</span> <span class="Identifier">EStruct</span><span class="Other">,</span> <span class="Identifier">EBackend</span><span class="Other">,</span> <span class="Identifier">EString</span><span class="Other">,</span> <span class="Identifier">EUndef</span><span class="Other">,</span>
-  <span class="Identifier">EPointerMemberAccess</span><span class="Other">,</span> <span class="Identifier">EMemberAccess</span><span class="Other">,</span> <span class="Identifier">ArrToAddress</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L227"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L227" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="FTag">
-<dt><pre><a href="core.html#FTag"><span class="Identifier">FTag</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
-  <span class="Identifier">Fdobule</span><span class="Other">,</span> <span class="Identifier">Ffloat</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L161"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L161" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="Info">
-<dt><pre><a href="core.html#Info"><span class="Identifier">Info</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
-  <span class="Identifier">tag</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">uint32</span>
-  <span class="Identifier">loc</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Location"><span class="Identifier">Location</span></a>
-  <span class="Identifier">ty</span><span class="Operator">*</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a>
-</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L21"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L21" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L22" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -733,22 +258,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L554"
+href="https://github.com/ianfun/cc/tree/master/core.nim#L15"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L554" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="ITag">
-<dt><pre><a href="core.html#ITag"><span class="Identifier">ITag</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
-  <span class="Identifier">Iint</span><span class="Other">,</span> <span class="Identifier">Ilong</span><span class="Other">,</span> <span class="Identifier">Iulong</span><span class="Other">,</span> <span class="Identifier">Ilonglong</span><span class="Other">,</span> <span class="Identifier">Iulonglong</span><span class="Other">,</span> <span class="Identifier">Iuint</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L155"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L155" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L15" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -759,24 +271,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L7"
+href="https://github.com/ianfun/cc/tree/master/core.nim#L10"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L7" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="Location">
-<dt><pre><a href="core.html#Location"><span class="Identifier">Location</span></a> <span class="Other">=</span> <span class="Keyword">object</span>
-  <span class="Identifier">line</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>
-  <span class="Identifier">col</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>
-</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L18"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L18" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L10" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -788,271 +285,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L556"
+href="https://github.com/ianfun/cc/tree/master/core.nim#L17"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L556" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="ParseFlags">
-<dt><pre><a href="core.html#ParseFlags"><span class="Identifier">ParseFlags</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
-  <span class="Identifier">PFNormal</span> <span class="Other">=</span> <span class="DecNumber">1</span><span class="Other">,</span> <span class="Identifier">PFPP</span> <span class="Other">=</span> <span class="DecNumber">2</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L150"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L150" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="PostfixOP">
-<dt><pre><a href="core.html#PostfixOP"><span class="Identifier">PostfixOP</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
-  <span class="Identifier">PostfixIncrement</span> <span class="Other">=</span> <span class="StringLit">&quot;++&quot;</span><span class="Other">,</span> <span class="Identifier">PostfixDecrement</span> <span class="Other">=</span> <span class="StringLit">&quot;--&quot;</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L93"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L93" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="PPMacro">
-<dt><pre><a href="core.html#PPMacro"><span class="Identifier">PPMacro</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
-  <span class="Identifier">tokens</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="core.html#TokenV"><span class="Identifier">TokenV</span></a><span class="Other">]</span>
-  <span class="Keyword">case</span> <span class="Identifier">flags</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#PPMacroFlags"><span class="Identifier">PPMacroFlags</span></a>
-  <span class="Keyword">of</span> <span class="Identifier">MFUNC</span><span class="Other">:</span>
-      <span class="Identifier">params</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span>
-      <span class="Identifier">ivarargs</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span>
-
-  <span class="Keyword">of</span> <span class="Identifier">MBuiltin</span><span class="Other">:</span>
-      <span class="Identifier">fn</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Other">)</span>
-
-  <span class="Keyword">of</span> <span class="Identifier">MOBJ</span><span class="Other">:</span>
-      <span class="Keyword">nil</span>
-
-  </pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L140"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L140" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="PPMacroFlags">
-<dt><pre><a href="core.html#PPMacroFlags"><span class="Identifier">PPMacroFlags</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
-  <span class="Identifier">MOBJ</span><span class="Other">,</span> <span class="Identifier">MFUNC</span><span class="Other">,</span> <span class="Identifier">MBuiltin</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L138"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L138" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="Stmt">
-<dt><pre><a href="core.html#Stmt"><span class="Identifier">Stmt</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
-  <span class="Keyword">case</span> <span class="Identifier">k</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#StmtKind"><span class="Identifier">StmtKind</span></a>
-  <span class="Keyword">of</span> <span class="Identifier">SFunction</span><span class="Other">:</span>
-      <span class="Identifier">funcname</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
-      <span class="Identifier">functy</span><span class="Operator">*</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a>
-      <span class="Identifier">funcbody</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Stmt"><span class="Identifier">Stmt</span></a>
-
-  <span class="Keyword">of</span> <span class="Identifier">SAsm</span><span class="Other">:</span>
-      <span class="Identifier">asms</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
-
-  <span class="Keyword">of</span> <span class="Identifier">SCompound</span><span class="Other">:</span>
-      <span class="Identifier">stmts</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#StmtList"><span class="Identifier">StmtList</span></a>
-
-  <span class="Keyword">of</span> <span class="Identifier">SDefault</span><span class="Other">:</span>
-      <span class="Identifier">default_stmt</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Stmt"><span class="Identifier">Stmt</span></a>
-
-  <span class="Keyword">of</span> <span class="Identifier">Scase</span><span class="Other">:</span>
-      <span class="Identifier">case_expr</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a>
-      <span class="Identifier">case_stmt</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Stmt"><span class="Identifier">Stmt</span></a>
-
-  <span class="Keyword">of</span> <span class="Identifier">SBreak</span><span class="Other">,</span> <span class="Identifier">SContinue</span><span class="Other">,</span> <span class="Identifier">SSemicolon</span><span class="Other">:</span>
-      <span class="Keyword">nil</span>
-
-  <span class="Keyword">of</span> <span class="Identifier">SExpr</span><span class="Other">,</span> <span class="Identifier">SReturn</span><span class="Other">:</span>
-      <span class="Identifier">exprbody</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a>
-
-  <span class="Keyword">of</span> <span class="Identifier">SGoto</span><span class="Other">:</span>
-      <span class="Identifier">location</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
-
-  <span class="Keyword">of</span> <span class="Identifier">SLabled</span><span class="Other">:</span>
-      <span class="Identifier">label</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
-      <span class="Identifier">labledstmt</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Stmt"><span class="Identifier">Stmt</span></a>
-
-  <span class="Keyword">of</span> <span class="Identifier">SIf</span><span class="Other">:</span>
-      <span class="Identifier">iftest</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a>
-      <span class="Identifier">ifbody</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Stmt"><span class="Identifier">Stmt</span></a>
-      <span class="Identifier">elsebody</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Stmt"><span class="Identifier">Stmt</span></a>
-
-  <span class="Keyword">of</span> <span class="Identifier">SDoWhile</span><span class="Other">,</span> <span class="Identifier">SWhile</span><span class="Other">,</span> <span class="Identifier">SSwitch</span><span class="Other">:</span>
-      <span class="Identifier">test</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a>
-      <span class="Identifier">body</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Stmt"><span class="Identifier">Stmt</span></a>
-
-  <span class="Keyword">of</span> <span class="Identifier">SFor</span><span class="Other">:</span>
-      <span class="Identifier">forinit</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Stmt"><span class="Identifier">Stmt</span></a>
-      <span class="Identifier">forcond</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">forincl</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a>
-      <span class="Identifier">forbody</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Stmt"><span class="Identifier">Stmt</span></a>
-
-  <span class="Keyword">of</span> <span class="Identifier">SVarDecl1</span><span class="Other">:</span>
-      <span class="Identifier">var1name</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
-      <span class="Identifier">var1type</span><span class="Operator">*</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a>
-
-  <span class="Keyword">of</span> <span class="Identifier">SVarDecl</span><span class="Other">:</span>
-      <span class="Identifier">vars</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Other">(</span><span class="Identifier">string</span><span class="Other">,</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">,</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">)</span><span class="Other">]</span>
-
-  <span class="Keyword">of</span> <span class="Identifier">SDeclOnly</span><span class="Other">:</span>
-      <span class="Identifier">decl</span><span class="Operator">*</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a>
-
-  </pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L184"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L184" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="StmtKind">
-<dt><pre><a href="core.html#StmtKind"><span class="Identifier">StmtKind</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
-  <span class="Identifier">SSemicolon</span><span class="Other">,</span> <span class="Identifier">SCompound</span><span class="Other">,</span> <span class="Identifier">SGoto</span><span class="Other">,</span> <span class="Identifier">SContinue</span><span class="Other">,</span> <span class="Identifier">SBreak</span><span class="Other">,</span> <span class="Identifier">SReturn</span><span class="Other">,</span> <span class="Identifier">SExpr</span><span class="Other">,</span> <span class="Identifier">SLabled</span><span class="Other">,</span> <span class="Identifier">SIf</span><span class="Other">,</span>
-  <span class="Identifier">SDoWhile</span><span class="Other">,</span> <span class="Identifier">SWhile</span><span class="Other">,</span> <span class="Identifier">SFor</span><span class="Other">,</span> <span class="Identifier">SSwitch</span><span class="Other">,</span> <span class="Identifier">SDeclOnly</span><span class="Other">,</span> <span class="Identifier">SAsm</span><span class="Other">,</span> <span class="Identifier">SVarDecl</span><span class="Other">,</span> <span class="Identifier">SDefault</span><span class="Other">,</span> <span class="Identifier">SCase</span><span class="Other">,</span>
-  <span class="Identifier">SFunction</span><span class="Other">,</span> <span class="Identifier">SVarDecl1</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L179"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L179" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="StmtList">
-<dt><pre><a href="core.html#StmtList"><span class="Identifier">StmtList</span></a> <span class="Other">=</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="core.html#Stmt"><span class="Identifier">Stmt</span></a><span class="Other">]</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L183"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L183" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="Token">
-<dt><pre><a href="core.html#Token"><span class="Identifier">Token</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
-  <span class="Identifier">TNul</span> <span class="Other">=</span> <span class="DecNumber">0</span><span class="Other">,</span> <span class="Identifier">TNewLine</span> <span class="Other">=</span> <span class="DecNumber">10</span><span class="Other">,</span> <span class="Identifier">TSpace</span> <span class="Other">=</span> <span class="DecNumber">32</span><span class="Other">,</span> <span class="Identifier">TNot</span><span class="Other">,</span> <span class="Identifier">TDoubleQ</span><span class="Other">,</span> <span class="Identifier">TBash</span> <span class="Other">=</span> <span class="DecNumber">35</span><span class="Other">,</span> <span class="Identifier">TDolor</span><span class="Other">,</span>
-  <span class="Identifier">TPercent</span><span class="Other">,</span> <span class="Identifier">TBitAnd</span><span class="Other">,</span> <span class="Identifier">TSignleQ</span><span class="Other">,</span> <span class="Identifier">TLbracket</span><span class="Other">,</span> <span class="Identifier">TRbracket</span><span class="Other">,</span> <span class="Identifier">TMul</span><span class="Other">,</span> <span class="Identifier">TAdd</span><span class="Other">,</span> <span class="Identifier">TComma</span><span class="Other">,</span> <span class="Identifier">TDash</span><span class="Other">,</span>
-  <span class="Identifier">TDot</span><span class="Other">,</span> <span class="Identifier">TSlash</span><span class="Other">,</span> <span class="Identifier">TColon</span> <span class="Other">=</span> <span class="DecNumber">58</span><span class="Other">,</span> <span class="Identifier">TSemicolon</span><span class="Other">,</span> <span class="Identifier">TLt</span><span class="Other">,</span> <span class="Identifier">TAssign</span><span class="Other">,</span> <span class="Identifier">TGt</span><span class="Other">,</span> <span class="Identifier">TQuestionMark</span><span class="Other">,</span>
-  <span class="Identifier">TMouse</span><span class="Other">,</span> <span class="Identifier">TLSquareBrackets</span> <span class="Other">=</span> <span class="DecNumber">91</span><span class="Other">,</span> <span class="Identifier">TBackslash</span><span class="Other">,</span> <span class="Identifier">TRSquareBrackets</span><span class="Other">,</span> <span class="Identifier">TXor</span><span class="Other">,</span>
-  <span class="Identifier">TUnderscore</span><span class="Other">,</span> <span class="Identifier">TGraveAccent</span><span class="Other">,</span> <span class="Identifier">TLcurlyBracket</span> <span class="Other">=</span> <span class="DecNumber">123</span><span class="Other">,</span> <span class="Identifier">TBitOr</span><span class="Other">,</span> <span class="Identifier">TRcurlyBracket</span><span class="Other">,</span>
-  <span class="Identifier">TBitNot</span><span class="Other">,</span> <span class="Identifier">T255</span> <span class="Other">=</span> <span class="DecNumber">255</span><span class="Other">,</span> <span class="Identifier">Kauto</span> <span class="Other">=</span> <span class="StringLit">&quot;auto&quot;</span><span class="Other">,</span> <span class="Identifier">Kfor</span> <span class="Other">=</span> <span class="StringLit">&quot;for&quot;</span><span class="Other">,</span> <span class="Identifier">Kgoto</span> <span class="Other">=</span> <span class="StringLit">&quot;goto&quot;</span><span class="Other">,</span> <span class="Identifier">Kif</span> <span class="Other">=</span> <span class="StringLit">&quot;if&quot;</span><span class="Other">,</span>
-  <span class="Identifier">Kinline</span> <span class="Other">=</span> <span class="StringLit">&quot;inline&quot;</span><span class="Other">,</span> <span class="Identifier">Kint</span> <span class="Other">=</span> <span class="StringLit">&quot;int&quot;</span><span class="Other">,</span> <span class="Identifier">Kchar</span> <span class="Other">=</span> <span class="StringLit">&quot;char&quot;</span><span class="Other">,</span> <span class="Identifier">Klong</span> <span class="Other">=</span> <span class="StringLit">&quot;long&quot;</span><span class="Other">,</span>
-  <span class="Identifier">Kregister</span> <span class="Other">=</span> <span class="StringLit">&quot;register&quot;</span><span class="Other">,</span> <span class="Identifier">Krestrict</span> <span class="Other">=</span> <span class="StringLit">&quot;restrict&quot;</span><span class="Other">,</span> <span class="Identifier">Kreturn</span> <span class="Other">=</span> <span class="StringLit">&quot;return&quot;</span><span class="Other">,</span>
-  <span class="Identifier">Kshort</span> <span class="Other">=</span> <span class="StringLit">&quot;short&quot;</span><span class="Other">,</span> <span class="Identifier">Kelse</span> <span class="Other">=</span> <span class="StringLit">&quot;else&quot;</span><span class="Other">,</span> <span class="Identifier">Kenum</span> <span class="Other">=</span> <span class="StringLit">&quot;enum&quot;</span><span class="Other">,</span> <span class="Identifier">Kextern</span> <span class="Other">=</span> <span class="StringLit">&quot;extern&quot;</span><span class="Other">,</span>
-  <span class="Identifier">Kdouble</span> <span class="Other">=</span> <span class="StringLit">&quot;double&quot;</span><span class="Other">,</span> <span class="Identifier">Kdo</span> <span class="Other">=</span> <span class="StringLit">&quot;do&quot;</span><span class="Other">,</span> <span class="Identifier">Kdefault</span> <span class="Other">=</span> <span class="StringLit">&quot;default&quot;</span><span class="Other">,</span> <span class="Identifier">Kfloat</span> <span class="Other">=</span> <span class="StringLit">&quot;float&quot;</span><span class="Other">,</span>
-  <span class="Identifier">Ksigned</span> <span class="Other">=</span> <span class="StringLit">&quot;signed&quot;</span><span class="Other">,</span> <span class="Identifier">Ksizeof</span> <span class="Other">=</span> <span class="StringLit">&quot;sizeof&quot;</span><span class="Other">,</span> <span class="Identifier">Kstatic</span> <span class="Other">=</span> <span class="StringLit">&quot;static&quot;</span><span class="Other">,</span>
-  <span class="Identifier">Kstruct</span> <span class="Other">=</span> <span class="StringLit">&quot;struct&quot;</span><span class="Other">,</span> <span class="Identifier">Kswitch</span> <span class="Other">=</span> <span class="StringLit">&quot;switch&quot;</span><span class="Other">,</span> <span class="Identifier">Kcase</span> <span class="Other">=</span> <span class="StringLit">&quot;case&quot;</span><span class="Other">,</span> <span class="Identifier">Ktypedef</span> <span class="Other">=</span> <span class="StringLit">&quot;typedef&quot;</span><span class="Other">,</span>
-  <span class="Identifier">Kunion</span> <span class="Other">=</span> <span class="StringLit">&quot;union&quot;</span><span class="Other">,</span> <span class="Identifier">Kcontinue</span> <span class="Other">=</span> <span class="StringLit">&quot;continue&quot;</span><span class="Other">,</span> <span class="Identifier">Kunsigned</span> <span class="Other">=</span> <span class="StringLit">&quot;unsigned&quot;</span><span class="Other">,</span>
-  <span class="Identifier">Kvoid</span> <span class="Other">=</span> <span class="StringLit">&quot;void&quot;</span><span class="Other">,</span> <span class="Identifier">Kvolatile</span> <span class="Other">=</span> <span class="StringLit">&quot;volatile&quot;</span><span class="Other">,</span> <span class="Identifier">Kwhile</span> <span class="Other">=</span> <span class="StringLit">&quot;while&quot;</span><span class="Other">,</span> <span class="Identifier">Kconst</span> <span class="Other">=</span> <span class="StringLit">&quot;const&quot;</span><span class="Other">,</span>
-  <span class="Identifier">Kbreak</span> <span class="Other">=</span> <span class="StringLit">&quot;break&quot;</span><span class="Other">,</span> <span class="Identifier">K_Alignas</span> <span class="Other">=</span> <span class="StringLit">&quot;_Alignas&quot;</span><span class="Other">,</span> <span class="Identifier">K_Alignof</span> <span class="Other">=</span> <span class="StringLit">&quot;_Alignof&quot;</span><span class="Other">,</span>
-  <span class="Identifier">K_Atomic</span> <span class="Other">=</span> <span class="StringLit">&quot;_Atomic&quot;</span><span class="Other">,</span> <span class="Identifier">K_Bool</span> <span class="Other">=</span> <span class="StringLit">&quot;_Bool&quot;</span><span class="Other">,</span> <span class="Identifier">K_Complex</span> <span class="Other">=</span> <span class="StringLit">&quot;Complex&quot;</span><span class="Other">,</span>
-  <span class="Identifier">K_asm</span> <span class="Other">=</span> <span class="StringLit">&quot;__asm__&quot;</span><span class="Other">,</span> <span class="Identifier">K_Decimal128</span> <span class="Other">=</span> <span class="StringLit">&quot;_Decimal128&quot;</span><span class="Other">,</span> <span class="Identifier">K_Decimal32</span> <span class="Other">=</span> <span class="StringLit">&quot;_Decimal32&quot;</span><span class="Other">,</span>
-  <span class="Identifier">K_Decimal64</span> <span class="Other">=</span> <span class="StringLit">&quot;_Decimal64&quot;</span><span class="Other">,</span> <span class="Identifier">K_Generic</span> <span class="Other">=</span> <span class="StringLit">&quot;_Generic&quot;</span><span class="Other">,</span>
-  <span class="Identifier">K_Imaginary</span> <span class="Other">=</span> <span class="StringLit">&quot;_Imaginary&quot;</span><span class="Other">,</span> <span class="Identifier">K_Noreturn</span> <span class="Other">=</span> <span class="StringLit">&quot;_Noreturn&quot;</span><span class="Other">,</span>
-  <span class="Identifier">K_Static_assert</span> <span class="Other">=</span> <span class="StringLit">&quot;_Static_assert&quot;</span><span class="Other">,</span> <span class="Identifier">K_Thread_local</span> <span class="Other">=</span> <span class="StringLit">&quot;_Thread_local&quot;</span><span class="Other">,</span>
-  <span class="Identifier">TAddAdd</span> <span class="Other">=</span> <span class="StringLit">&quot;++&quot;</span><span class="Other">,</span> <span class="Identifier">TSubSub</span> <span class="Other">=</span> <span class="StringLit">&quot;--&quot;</span><span class="Other">,</span> <span class="Identifier">TArrow</span> <span class="Other">=</span> <span class="StringLit">&quot;-&gt;&quot;</span><span class="Other">,</span> <span class="Identifier">Tshl</span> <span class="Other">=</span> <span class="StringLit">&quot;&lt;&lt;&quot;</span><span class="Other">,</span> <span class="Identifier">Tshr</span> <span class="Other">=</span> <span class="StringLit">&quot;&gt;&gt;&quot;</span><span class="Other">,</span>
-  <span class="Identifier">TGe</span> <span class="Other">=</span> <span class="StringLit">&quot;&gt;=&quot;</span><span class="Other">,</span> <span class="Identifier">TLe</span> <span class="Other">=</span> <span class="StringLit">&quot;&lt;=&quot;</span><span class="Other">,</span> <span class="Identifier">TEq</span> <span class="Other">=</span> <span class="StringLit">&quot;==&quot;</span><span class="Other">,</span> <span class="Identifier">TNe</span> <span class="Other">=</span> <span class="StringLit">&quot;!=&quot;</span><span class="Other">,</span> <span class="Identifier">TLogicalOr</span> <span class="Other">=</span> <span class="StringLit">&quot;||&quot;</span><span class="Other">,</span>
-  <span class="Identifier">TLogicalAnd</span> <span class="Other">=</span> <span class="StringLit">&quot;&amp;&amp;&quot;</span><span class="Other">,</span> <span class="Identifier">TAsignAdd</span> <span class="Other">=</span> <span class="StringLit">&quot;+=&quot;</span><span class="Other">,</span> <span class="Identifier">TAsignSub</span> <span class="Other">=</span> <span class="StringLit">&quot;-=&quot;</span><span class="Other">,</span> <span class="Identifier">TAsignMul</span> <span class="Other">=</span> <span class="StringLit">&quot;*=&quot;</span><span class="Other">,</span>
-  <span class="Identifier">TAsignDiv</span> <span class="Other">=</span> <span class="StringLit">&quot;/=&quot;</span><span class="Other">,</span> <span class="Identifier">TAsignRem</span> <span class="Other">=</span> <span class="StringLit">&quot;%=&quot;</span><span class="Other">,</span> <span class="Identifier">TAsignShl</span> <span class="Other">=</span> <span class="StringLit">&quot;&lt;&lt;=&quot;</span><span class="Other">,</span> <span class="Identifier">TAsignShr</span> <span class="Other">=</span> <span class="StringLit">&quot;&gt;&gt;=&quot;</span><span class="Other">,</span>
-  <span class="Identifier">TAsignBitAnd</span> <span class="Other">=</span> <span class="StringLit">&quot;&amp;=&quot;</span><span class="Other">,</span> <span class="Identifier">TAsignBitOr</span> <span class="Other">=</span> <span class="StringLit">&quot;|=&quot;</span><span class="Other">,</span> <span class="Identifier">TAsignBitXor</span> <span class="Other">=</span> <span class="StringLit">&quot;^=&quot;</span><span class="Other">,</span>
-  <span class="Identifier">TEllipsis2</span> <span class="Other">=</span> <span class="StringLit">&quot;..&quot;</span><span class="Other">,</span> <span class="Identifier">TEllipsis</span> <span class="Other">=</span> <span class="StringLit">&quot;...&quot;</span><span class="Other">,</span> <span class="Identifier">TNumberLit</span> <span class="Other">=</span> <span class="StringLit">&quot;&lt;number&gt;&quot;</span><span class="Other">,</span>
-  <span class="Identifier">TFloatLit</span> <span class="Other">=</span> <span class="StringLit">&quot;&lt;float&gt;&quot;</span><span class="Other">,</span> <span class="Identifier">TCharLit</span> <span class="Other">=</span> <span class="StringLit">&quot;&lt;char&gt;&quot;</span><span class="Other">,</span> <span class="Identifier">TIdentifier</span> <span class="Other">=</span> <span class="StringLit">&quot;&lt;identifier&gt;&quot;</span><span class="Other">,</span>
-  <span class="Identifier">CPPIdent</span> <span class="Other">=</span> <span class="StringLit">&quot;&lt;CPPident&gt;&quot;</span><span class="Other">,</span> <span class="Identifier">TStringLit</span> <span class="Other">=</span> <span class="StringLit">&quot;&lt;string&gt;&quot;</span><span class="Other">,</span> <span class="Identifier">TPPNumber</span> <span class="Other">=</span> <span class="StringLit">&quot;&lt;pp-number&gt;&quot;</span><span class="Other">,</span>
-  <span class="Identifier">PPPlaceholder</span> <span class="Other">=</span> <span class="StringLit">&quot;&lt;placeholder&gt;&quot;</span><span class="Other">,</span> <span class="Identifier">PPSharp</span> <span class="Other">=</span> <span class="StringLit">&quot;#&quot;</span><span class="Other">,</span> <span class="Identifier">PPSharpSharp</span> <span class="Other">=</span> <span class="StringLit">&quot;##&quot;</span><span class="Other">,</span>
-  <span class="Identifier">PPMacroPop</span> <span class="Other">=</span> <span class="StringLit">&quot;&lt;pop&gt;&quot;</span><span class="Other">,</span> <span class="Identifier">TEOF</span> <span class="Other">=</span> <span class="StringLit">&quot;&lt;EOF&gt;&quot;</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L26"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L26" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="TokenV">
-<dt><pre><a href="core.html#TokenV"><span class="Identifier">TokenV</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
-  <span class="Identifier">tok</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#Token"><span class="Identifier">Token</span></a>
-  <span class="Keyword">case</span> <span class="Identifier">tags</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#TokenVTags"><span class="Identifier">TokenVTags</span></a>
-  <span class="Keyword">of</span> <span class="Identifier">TVNormal</span><span class="Other">:</span>
-      <span class="Keyword">nil</span>
-
-  <span class="Keyword">of</span> <span class="Identifier">TVSVal</span><span class="Other">:</span>
-      <span class="Identifier">s</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
-
-  <span class="Keyword">of</span> <span class="Identifier">TVFval</span><span class="Other">:</span>
-      <span class="Identifier">f</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">float</span>
-      <span class="Identifier">ftag</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#FTag"><span class="Identifier">FTag</span></a>
-
-  <span class="Keyword">of</span> <span class="Identifier">TVIVal</span><span class="Other">:</span>
-      <span class="Identifier">i</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>
-      <span class="Identifier">itag</span><span class="Operator">*</span><span class="Other">:</span> <a href="core.html#ITag"><span class="Identifier">ITag</span></a>
-
-  <span class="Keyword">of</span> <span class="Identifier">TVStr</span><span class="Other">:</span>
-      <span class="Identifier">str</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
-      <span class="Identifier">enc</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">uint8</span>
-
-  </pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L163"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L163" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="TokenVTags">
-<dt><pre><a href="core.html#TokenVTags"><span class="Identifier">TokenVTags</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
-  <span class="Identifier">TVNormal</span><span class="Other">,</span> <span class="Identifier">TVSVal</span><span class="Other">,</span> <span class="Identifier">TVIVal</span><span class="Other">,</span> <span class="Identifier">TVFval</span><span class="Other">,</span> <span class="Identifier">TVStr</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L152"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L152" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="UnaryOP">
-<dt><pre><a href="core.html#UnaryOP"><span class="Identifier">UnaryOP</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
-  <span class="Identifier">Pos</span><span class="Other">,</span> <span class="Identifier">UNeg</span><span class="Other">,</span> <span class="Identifier">SNeg</span><span class="Other">,</span> <span class="Identifier">FNeg</span><span class="Other">,</span> <span class="Identifier">Not</span><span class="Other">,</span> <span class="Identifier">AddressOf</span><span class="Other">,</span> <span class="Identifier">PrefixIncrement</span><span class="Other">,</span> <span class="Identifier">PrefixDecrement</span><span class="Other">,</span>
-  <span class="Identifier">Dereference</span><span class="Other">,</span> <span class="Identifier">LogicalNot</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L95"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L95" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L17" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1063,9 +298,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L5"
+href="https://github.com/ianfun/cc/tree/master/core.nim#L8"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L5" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L8" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1082,74 +317,33 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L596"
+href="https://github.com/ianfun/cc/tree/master/core.nim#L57"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L596" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L57" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
-<div id="gkeywordtable">
-<dt><pre><a href="core.html#gkeywordtable"><span class="Identifier">gkeywordtable</span></a> <span class="Other">=</span> <span class="Identifier">initTable</span><span class="Other">(</span><span class="DecNumber">48</span><span class="Other">)</span></pre></dt>
+<div id="appFileName">
+<dt><pre><a href="core.html#appFileName"><span class="Identifier">appFileName</span></a> <span class="Other">=</span> <span class="Identifier">getAppFilename</span><span class="Other">(</span><span class="Other">)</span></pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L368"
+href="https://github.com/ianfun/cc/tree/master/core.nim#L5"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L368" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L5" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
-
-</dl></div>
-<div class="section" id="10">
-<h1><a class="toc-backref" href="#10">Consts</a></h1>
-<dl class="item">
-<div id="CSkip">
-<dt><pre><a href="core.html#CSkip"><span class="Identifier">CSkip</span></a> <span class="Other">=</span> <span class="Other">{</span><span class="CharLit">' '</span><span class="Other">,</span> <span class="CharLit">'\t'</span><span class="Other">,</span> <span class="CharLit">'\f'</span><span class="Other">,</span> <span class="CharLit">'\v'</span><span class="Other">}</span></pre></dt>
+<div id="options">
+<dt><pre><a href="core.html#options"><span class="Identifier">options</span></a> <span class="Other">=</span> <span class="Identifier">commandLineParams</span><span class="Other">(</span><span class="Other">)</span></pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L276"
+href="https://github.com/ianfun/cc/tree/master/core.nim#L4"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L276" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="INFO_USED">
-<dt><pre><a href="core.html#INFO_USED"><span class="Identifier">INFO_USED</span></a> <span class="Other">=</span> <span class="DecNumber">2</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L15"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L15" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="KwEnd">
-<dt><pre><a href="core.html#KwEnd"><span class="Identifier">KwEnd</span></a> <span class="Other">=</span> <span class="DecNumber">K_Thread_local</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L278"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L278" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="KwStart">
-<dt><pre><a href="core.html#KwStart"><span class="Identifier">KwStart</span></a> <span class="Other">=</span> <span class="DecNumber">Kauto</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L277"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L277" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L4" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1158,101 +352,39 @@ class="link-seesrc" target="_blank">Source</a>
 <div class="section" id="12">
 <h1><a class="toc-backref" href="#12">Procs</a></h1>
 <dl class="item">
-<div id="$,Stmt,int">
-<dt><pre><span class="Keyword">proc</span> <a href="#%24%2CStmt%2Cint"><span class="Identifier">`$`</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <a href="core.html#Stmt"><span class="Identifier">Stmt</span></a><span class="Other">;</span> <span class="Identifier">level</span> <span class="Other">=</span> <span class="DecNumber">0</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L316"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L316" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="$,Expr">
-<dt><pre><span class="Keyword">proc</span> <a href="#%24%2CExpr"><span class="Identifier">`$`</span></a><span class="Other">(</span><span class="Identifier">e</span><span class="Other">:</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L381"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L381" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="$,Location">
-<dt><pre><span class="Keyword">proc</span> <a href="#%24%2CLocation"><span class="Identifier">`$`</span></a><span class="Other">(</span><span class="Identifier">loc</span><span class="Other">:</span> <a href="core.html#Location"><span class="Identifier">Location</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L426"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L426" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
 <div id="error">
 <dt><pre><span class="Keyword">proc</span> <a href="#error"><span class="Identifier">error</span></a><span class="Other">(</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L614"
+href="https://github.com/ianfun/cc/tree/master/core.nim#L75"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L614" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L75" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
-<div id="isKeyword,string">
-<dt><pre><span class="Keyword">proc</span> <a href="#isKeyword%2Cstring"><span class="Identifier">isKeyword</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="core.html#Token"><span class="Identifier">Token</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<div id="getIntPtr_t">
+<dt><pre><span class="Keyword">proc</span> <a href="#getIntPtr_t"><span class="Identifier">getIntPtr_t</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L445"
+href="https://github.com/ianfun/cc/tree/master/core.nim#L85"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L445" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L85" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
-<div id="joinShow5,seq[Stmt],int">
-<dt><pre><span class="Keyword">proc</span> <a href="#joinShow5%2Cseq%5BStmt%5D%2Cint"><span class="Identifier">joinShow5</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="core.html#Stmt"><span class="Identifier">Stmt</span></a><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">level</span> <span class="Other">=</span> <span class="DecNumber">1</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
-    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<div id="getPtrDiff_t">
+<dt><pre><span class="Keyword">proc</span> <a href="#getPtrDiff_t"><span class="Identifier">getPtrDiff_t</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L296"
+href="https://github.com/ianfun/cc/tree/master/core.nim#L83"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L296" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="joinShow6,seq[]">
-<dt><pre><span class="Keyword">proc</span> <a href="#joinShow6%2Cseq%5B%5D"><span class="Identifier">joinShow6</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Other">(</span><span class="Identifier">string</span><span class="Other">,</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">,</span> <a href="core.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">)</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
-    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L284"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L284" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="joinShow,seq[T],string">
-<dt><pre><span class="Keyword">proc</span> <a href="#joinShow%2Cseq%5BT%5D%2Cstring"><span class="Identifier">joinShow</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">c</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot; &quot;</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L307"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L307" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L83" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1263,45 +395,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L9"
+href="https://github.com/ianfun/cc/tree/master/core.nim#L12"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L9" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="show,char">
-<dt><pre><span class="Keyword">proc</span> <a href="#show%2Cchar"><span class="Identifier">show</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <span class="Identifier">char</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L370"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L370" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="unreachable">
-<dt><pre><span class="Keyword">proc</span> <a href="#unreachable"><span class="Identifier">unreachable</span></a><span class="Other">(</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L11"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L11" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="unsafe_utf8_codepoint,cstring">
-<dt><pre><span class="Keyword">proc</span> <a href="#unsafe_utf8_codepoint%2Ccstring"><span class="Identifier">unsafe_utf8_codepoint</span></a><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">cstring</span><span class="Other">)</span><span class="Other">:</span> <span class="Other">(</span><a href="core.html#Codepoint"><span class="Identifier">Codepoint</span></a><span class="Other">,</span> <span class="Identifier">int</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L448"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L448" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L12" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1311,9 +407,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L617"
+href="https://github.com/ianfun/cc/tree/master/core.nim#L78"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L617" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L78" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1323,79 +419,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L610"
+href="https://github.com/ianfun/cc/tree/master/core.nim#L71"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L610" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="writeUTF8toUTF16,string">
-<dt><pre><span class="Keyword">proc</span> <a href="#writeUTF8toUTF16%2Cstring"><span class="Identifier">writeUTF8toUTF16</span></a><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">uint16</span><span class="Other">]</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L480"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L480" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="writeUTF8toUTF32,string">
-<dt><pre><span class="Keyword">proc</span> <a href="#writeUTF8toUTF32%2Cstring"><span class="Identifier">writeUTF8toUTF32</span></a><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="core.html#Codepoint"><span class="Identifier">Codepoint</span></a><span class="Other">]</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L470"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L470" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-
-</dl></div>
-<div class="section" id="15">
-<h1><a class="toc-backref" href="#15">Iterators</a></h1>
-<dl class="item">
-<div id="getDefines.i">
-<dt><pre><span class="Keyword">iterator</span> <a href="#getDefines.i"><span class="Identifier">getDefines</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <span class="Other">(</span><span class="Identifier">string</span><span class="Other">,</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="core.html#TokenV"><span class="Identifier">TokenV</span></a><span class="Other">]</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L504"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L504" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-
-</dl></div>
-<div class="section" id="18">
-<h1><a class="toc-backref" href="#18">Templates</a></h1>
-<dl class="item">
-<div id="init.t,,,,,">
-<dt><pre><span class="Keyword">template</span> <a href="#init.t%2C%2C%2C%2C%2C"><span class="Identifier">init</span></a><span class="Other">(</span><span class="Identifier">lexer</span><span class="Other">,</span> <span class="Identifier">cpp</span><span class="Other">,</span> <span class="Identifier">parser</span><span class="Other">,</span> <span class="Identifier">eval</span><span class="Other">,</span> <span class="Identifier">backend</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">untyped</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L433"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L433" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="shutdown.t">
-<dt><pre><span class="Keyword">template</span> <a href="#shutdown.t"><span class="Identifier">shutdown</span></a><span class="Other">(</span><span class="Other">)</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/core.nim#L441"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L441" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/core.nim#L71" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1409,7 +435,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-08 14:07:12 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-09 14:27:39 UTC</small>
       </div>
     </div>
   </div>

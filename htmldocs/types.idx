@@ -38,6 +38,7 @@ TYFLOAT	types.html#TYFLOAT	types: TYFLOAT
 TYDOUBLE	types.html#TYDOUBLE	types: TYDOUBLE	
 TYCHAR	types.html#TYCHAR	types: TYCHAR	
 TYSHORT	types.html#TYSHORT	types: TYSHORT	
+TYWCHAR	types.html#TYWCHAR	types: TYWCHAR	
 TYINT	types.html#TYINT	types: TYINT	
 TYLONG	types.html#TYLONG	types: TYLONG	
 TYLONGLONG	types.html#TYLONGLONG	types: TYLONGLONG	

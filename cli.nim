@@ -1,4 +1,4 @@
-import core, parser
+import core, parser, stream
 import llvm
 
 var i = 0
@@ -23,7 +23,9 @@ when defined(windows):
     let status = system(cmd.cstring)
     if status != 0:
       core.error()
-      stderr.writeLine("error: gcc returned " & $status & " exit status")
+      cstderr << "error: gcc returned " 
+      cstderr << status
+      cstderr << " exit status"
 else:
   import posix
   proc runLD*(input, path: string) =
@@ -51,12 +53,14 @@ proc runLLD*(input, output: string) =
   let status = system(cmd.cstring)
   if status != 0:
     core.error()
-    stderr.writeLine("error: ld.lld returned " & $status & " exit status")
+    cstderr << "error: ld.lld returned " 
+    cstderr << $status
+    cstderr << " exit status"
 
 proc showVersion() =
-  echo "CC: C Compiler"
-  echo "Homepage: https://github.com/ianfun/cc.git"
-  echo "Bug report: https://github.com/ianfun/cc/issues"
+  cstderr <<< "CC: C Compiler"
+  cstderr <<< "Homepage: https://github.com/ianfun/cc.git"
+  cstderr <<< "Bug report: https://github.com/ianfun/cc/issues"
   llvm.dumpVersionInfo()
 
 proc setStdin() =
@@ -75,7 +79,7 @@ proc setInput(s: string) =
     app.input = InputBC
   else:
     core.error()
-    stderr.write("unrecognized input language: " & s)
+    cstderr <<< "unrecognized input language: " & s
     quit 0
 
 proc help()
@@ -113,10 +117,13 @@ var cliOptions = [
 ]
 
 proc help() =
-  echo "command line options"
+  cstderr <<< "command line options"
   for i in cliOptions:
-    echo '-', i[0], "\t\t\t\t" ,i[3]
-  echo()
+    cstderr << '-'
+    cstderr << i[0]
+    cstderr << "\t\t\t\t"
+    cstderr << i[3]
+  stderr << '\n'
   showVersion()
 
 proc addFile(s: string) =
@@ -137,14 +144,15 @@ proc parseCLI*() =
           has = true
           if i[1] == 1:
             if hasNext() == false:
-              quit "command expect one argument"
+              cstderr <<< "command expect one argument"
+              quit 1
             var s = get()
             cast[proc (s: string){.nimcall.}](i[2])(s)
           else:
             i[2]()
       if has == false:
         core.error()
-        stderr.writeLine("unrecognized command line option '-" & o & '\'')
+        cstderr <<< "unrecognized command line option '-" & o & '\''
     else:
       if inputs == false:
         inputs = true
@@ -152,7 +160,7 @@ proc parseCLI*() =
       addFile(one)
   if p.fstack.len == 0:
     core.error()
-    stderr.writeLine "no input files"
+    cstderr <<< "no input files"
     quit 1
   if app.output.len == 0:
     i = name - 1

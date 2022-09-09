@@ -1057,8 +1057,7 @@ wrap	llvm.html#wrap,CType	llvm: wrap(ty: CType): Type
 getZero	llvm.html#getZero,CType	llvm: getZero(ty: CType): Value	
 getOne	llvm.html#getOne,CType	llvm: getOne(ty: CType): Value	
 gen_condition	llvm.html#gen_condition,Expr,Expr,Expr	llvm: gen_condition(test: Expr; lhs: Expr; rhs: Expr): Value	
-gen_condition	llvm.html#gen_condition,Expr,Value,Expr	llvm: gen_condition(test: Expr; lhs: Value; rhs: Expr): Value	
-gen_condition	llvm.html#gen_condition,Expr,Expr,Value	llvm: gen_condition(test: Expr; lhs: Expr; rhs: Value): Value	
+gen_logical	llvm.html#gen_logical,Expr,Expr	llvm: gen_logical(lhs: Expr; rhs: Expr; isand = true): Value	
 gen_if	llvm.html#gen_if,Expr,Stmt	llvm: gen_if(test: Expr; body: Stmt)	
 gen_if	llvm.html#gen_if,Expr,Stmt,Stmt	llvm: gen_if(test: Expr; body: Stmt; elsebody: Stmt)	
 gen_switch	llvm.html#gen_switch,Expr,Stmt	llvm: gen_switch(test: Expr; body: Stmt)	
@@ -1075,10 +1074,10 @@ newFunction	llvm.html#newFunction,CType,string	llvm: newFunction(varty: CType; n
 gen	llvm.html#gen,Stmt	llvm: gen(s: Stmt)	
 neZero	llvm.html#neZero,Expr	llvm: neZero(a: Expr): Expr	
 eqZero	llvm.html#eqZero,Expr	llvm: eqZero(a: Expr): Expr	
-incl	llvm.html#incl,Value,Type	llvm: incl(p: Value; t: Type)	
-incl	llvm.html#incl,Value,Type,uint32	llvm: incl(p: Value; t: Type; align: uint32)	
-decl	llvm.html#decl,Value,Type,uint32	llvm: decl(p: Value; t: Type; align: uint32)	
-decl	llvm.html#decl,Value,Type	llvm: decl(p: Value; t: Type)	
+incl	llvm.html#incl,Value,Type	llvm: incl(p: Value; t: Type): Value	
+incl	llvm.html#incl,Value,Type,uint32	llvm: incl(p: Value; t: Type; align: uint32): Value	
+decl	llvm.html#decl,Value,Type,uint32	llvm: decl(p: Value; t: Type; align: uint32): Value	
+decl	llvm.html#decl,Value,Type	llvm: decl(p: Value; t: Type): Value	
 getAddress	llvm.html#getAddress,Expr	llvm: getAddress(e: Expr): Value	
 pointerBitCast	llvm.html#pointerBitCast,Value,Type,TypeRef	llvm: pointerBitCast(v: Value; fromTy: Type; to: TypeRef): Value	
 gen	llvm.html#gen,Expr	llvm: gen(e: Expr): Value	

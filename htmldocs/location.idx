@@ -1,0 +1,3 @@
+Location	location.html#Location	location: Location	
+Info	location.html#Info	location: Info	
+`$`	location.html#$,Location	location: `$`(loc: Location): string	

@@ -2816,7 +2816,7 @@ proc logical_AND_expression*(): Expr =
             if r == nil:
                 return nil
             checkScalar(result, r)
-            result = binop(result, LogicalAnd, r, CType(tags: TYINT, spec: TYPRIM))
+            result = boolToInt(binop(result, LogicalAnd, r, CType(tags: TYINT, spec: TYPRIM)))
         else:
             return result
 
@@ -2830,7 +2830,7 @@ proc logical_OR_expression*(): Expr =
             if r == nil:
                 return nil
             checkScalar(result, r)
-            result = binop(result, LogicalOr, r, CType(tags: TYINT, spec: TYPRIM))
+            result = boolToInt(binop(result, LogicalOr, r, CType(tags: TYINT, spec: TYPRIM)))
         else:
             return result
 

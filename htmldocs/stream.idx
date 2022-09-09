@@ -17,6 +17,7 @@ ftell	stream.html#ftell,Fd	stream: ftell(stream: Fd): clong
 `&lt;&lt;`	stream.html#<<,Fd,string	stream: `&lt;&lt;`(stream: Fd; msg: string)	
 `&lt;&lt;`	stream.html#<<,Fd,char	stream: `&lt;&lt;`(stream: Fd; c: char)	
 `&lt;&lt;`	stream.html#<<,Fd,SomeInteger	stream: `&lt;&lt;`(stream: Fd; c: SomeInteger)	
+`&lt;&lt;&lt;`	stream.html#<<<,Fd,string	stream: `&lt;&lt;&lt;`(stream: Fd; msg: string)	
 EOF	stream.html#EOF	stream: EOF	
 SEEK_CUR	stream.html#SEEK_CUR	stream: SEEK_CUR	
 SEEK_END	stream.html#SEEK_END	stream: SEEK_END	

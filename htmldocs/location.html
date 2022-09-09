@@ -17,7 +17,7 @@
 <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro:400,500,600' rel='stylesheet' type='text/css'/>
 
 <!-- CSS -->
-<title>eval</title>
+<title>location</title>
 <link rel="stylesheet" type="text/css" href="nimdoc.out.css">
 
 <script type="text/javascript" src="dochack.js"></script>
@@ -69,7 +69,7 @@ window.addEventListener('DOMContentLoaded', main);
 <body>
 <div class="document" id="documentId">
   <div class="container">
-    <h1 class="title">eval</h1>
+    <h1 class="title">location</h1>
     <div class="row">
   <div class="three columns">
   <div class="theme-switch-wrapper">
@@ -105,21 +105,26 @@ window.addEventListener('DOMContentLoaded', main);
   </ul>
 </li>
 <li>
+  <a class="reference reference-toplevel" href="#7" id="57">Types</a>
+  <ul class="simple simple-toc-section">
+      <li><a class="reference" href="#Info"
+    title="Info = ref object
+  tag*: uint32
+  loc*: Location
+  ty*: CType">Info</a></li>
+  <li><a class="reference" href="#Location"
+    title="Location = object
+  line*: int
+  col*: int">Location</a></li>
+
+  </ul>
+</li>
+<li>
   <a class="reference reference-toplevel" href="#12" id="62">Procs</a>
   <ul class="simple simple-toc-section">
-      <ul class="simple nested-toc-section">eval_error
-      <li><a class="reference" href="#eval_error%2Cstring"
-    title="eval_error(msg: string)">eval_error(msg: string)</a></li>
-
-  </ul>
-  <ul class="simple nested-toc-section">evali
-      <li><a class="reference" href="#evali%2CExpr"
-    title="evali(e: Expr): intmax_t">evali(e: Expr): intmax_t</a></li>
-
-  </ul>
-  <ul class="simple nested-toc-section">setEval
-      <li><a class="reference" href="#setEval"
-    title="setEval()">setEval()</a></li>
+      <ul class="simple nested-toc-section">$
+      <li><a class="reference" href="#%24%2CLocation"
+    title="`$`(loc: Location): string">`$`(loc: Location): string</a></li>
 
   </ul>
 
@@ -130,9 +135,9 @@ window.addEventListener('DOMContentLoaded', main);
 
   </div>
   &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/eval.nim#L1"
+href="https://github.com/ianfun/cc/tree/master/location.nim#L1"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/eval.nim#L1" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/location.nim#L1" class="link-seesrc" target="_blank" >Edit</a>
 
   <div class="nine columns" id="content">
   <div id="tocRoot"></div>
@@ -141,47 +146,56 @@ class="link-seesrc" target="_blank">Source</a>
   <div class="section" id="6">
 <h1><a class="toc-backref" href="#6">Imports</a></h1>
 <dl class="item">
-<a class="reference external" href="config.html">config</a>, <a class="reference external" href="ast.html">ast</a>, <a class="reference external" href="operators.html">operators</a>, <a class="reference external" href="core.html">core</a>, <a class="reference external" href="parser.html">parser</a>
+<a class="reference external" href="types.html">types</a>
+</dl></div>
+<div class="section" id="7">
+<h1><a class="toc-backref" href="#7">Types</a></h1>
+<dl class="item">
+<div id="Info">
+<dt><pre><a href="location.html#Info"><span class="Identifier">Info</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
+  <span class="Identifier">tag</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">uint32</span>
+  <span class="Identifier">loc</span><span class="Operator">*</span><span class="Other">:</span> <a href="location.html#Location"><span class="Identifier">Location</span></a>
+  <span class="Identifier">ty</span><span class="Operator">*</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a>
+</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/location.nim#L7"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/location.nim#L7" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="Location">
+<dt><pre><a href="location.html#Location"><span class="Identifier">Location</span></a> <span class="Other">=</span> <span class="Keyword">object</span>
+  <span class="Identifier">line</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>
+  <span class="Identifier">col</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>
+</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/location.nim#L4"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/location.nim#L4" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+
 </dl></div>
 <div class="section" id="12">
 <h1><a class="toc-backref" href="#12">Procs</a></h1>
 <dl class="item">
-<div id="eval_error,string">
-<dt><pre><span class="Keyword">proc</span> <a href="#eval_error%2Cstring"><span class="Identifier">eval_error</span></a><span class="Other">(</span><span class="Identifier">msg</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WriteIOEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<div id="$,Location">
+<dt><pre><span class="Keyword">proc</span> <a href="#%24%2CLocation"><span class="Identifier">`$`</span></a><span class="Other">(</span><span class="Identifier">loc</span><span class="Other">:</span> <a href="location.html#Location"><span class="Identifier">Location</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/eval.nim#L14"
+href="https://github.com/ianfun/cc/tree/master/location.nim#L12"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/eval.nim#L14" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="evali,Expr">
-<dt><pre><span class="Keyword">proc</span> <a href="#evali%2CExpr"><span class="Identifier">evali</span></a><span class="Other">(</span><span class="Identifier">e</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">)</span><span class="Other">:</span> <a href="config.html#intmax_t"><span class="Identifier">intmax_t</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
-                                <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WriteIOEffect</span><span class="Other">,</span> <span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-<p>run the constant expression</p>
-<p>if error, setting eval_error</p>
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/eval.nim#L25"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/eval.nim#L25" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="setEval">
-<dt><pre><span class="Keyword">proc</span> <a href="#setEval"><span class="Identifier">setEval</span></a><span class="Other">(</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/eval.nim#L21"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/eval.nim#L21" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/location.nim#L12" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -195,7 +209,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-09 14:27:40 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-09 14:27:39 UTC</small>
       </div>
     </div>
   </div>
