@@ -1,9 +1,5 @@
 # cc
 
-![](screenshots5.png)
-
-![](screenshots3.png)
-
 C language Compiler, Frontend!
 
 ## About
