@@ -70,6 +70,7 @@ int expr_type;   // the type of an expression
 int index_of_bp; // index of bp pointer on stack
 
 void next() {
+    printf("next\n");
     char *last_pos;
     int hash;
     while (token = *src) {
@@ -112,14 +113,12 @@ void next() {
             // look for existing identifier, linear search
             current_id = symbols;
             while (current_id[Token]) {
-                printf("memcmp: %d\n", src - last_pos);
+                printf("\tmemcmp: %d\n", src - last_pos);
                 if (current_id[Hash] == hash && !memcmp((char *)current_id[Name], last_pos, src - last_pos)) {
                     //found one, return
                     token = current_id[Token];
-                    printf("ok!\n");
                     return;
                 }
-                printf("ok!\n");
                 current_id = current_id + IdSize;
             }
 

@@ -1115,6 +1115,7 @@ proc gen*(s: Stmt) =
       for i in s.funcbody.stmts:
         gen(i)
       leaveScope()
+      b.currentfunction = nil
   of SReturn:
       if s.exprbody != nil:
         discard buildRet(b.builder, gen(s.exprbody))
@@ -1450,6 +1451,7 @@ proc gen*(e: Expr): Value =
         g
       else:
         var l = load(basep, ty)
+        i = constIntCast(i, ty, False)
         var l2 = buildAdd(b.builder, l, i, "")
         store(basep, l2)
         load(basep, ty)

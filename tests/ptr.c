@@ -25,3 +25,6 @@ int* add(int *base){
 long long diffint(int* a, int* b){
 	return a - b;
 }
+void test(int a){
+	*++src = a;
+}
