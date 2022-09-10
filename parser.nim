@@ -25,7 +25,7 @@
 ## ```
 
 import config, types, stream, core, ast, token, operators, location
-import std/[math, tables, sets]
+import std/[math, tables, sets, editdistance]
 from std/sequtils import count
 
 type
@@ -468,26 +468,28 @@ proc getsymtype*(name: string): CType =
   else:
     o.ty
 
+# function definition
 proc putsymtype3*(name: string, t: CType) =
-  let ty = getsymtype(name)
+  let ty = p.typedefs[^1].getOrDefault(name, nil)
   if ty != nil:
     type_error("function " & name & " redefined")
   p.typedefs[^1][name] = Info(ty: t, loc: Location(line: p.line, col: p.col))
 
+# function declaration
 proc putsymtype2*(name: string, t: CType) =
-  let ty = getsymtype(name)
+  let ty = p.typedefs[^1].getOrDefault(name, nil)
   if ty != nil:
-    if not compatible(t, ty):
-        type_error("conflicting types for '" & name &  "'")
+    if not compatible(t, ty.ty):
+        type_error("conflicting types for function declaration '" & name &  "'")
   p.typedefs[^1][name] = Info(ty: t, loc: Location(line: p.line, col: p.col))
 
-# typedef, symbol
+# typedef, variable
 proc putsymtype*(name: string, t: CType) =
   if t.spec == TYFUNCTION:
     putsymtype2(name, t)
     return
-  let ty = getsymtype(name)
-  if ty != nil:
+  let ty = p.typedefs[^1].getOrDefault(name, nil)
+  if ty != nil and not bool(ty.ty.tags and TYEXTERN):
     type_error(name & " redeclared")
     return
   p.typedefs[^1][name] = Info(ty: t, loc: Location(line: p.line, col: p.col))
@@ -584,15 +586,15 @@ proc castto*(e: Expr, to: CType): Expr =
         return e
     if e.ty.spec == TYENUM:
         # cast enum to int
-        return castto(Expr(k: ECast, castop: BitCast, castval: e, ty: CType(tags: TYINT, spec: TYPRIM)), to)
+        return castto(Expr(k: ECast, castop: BitCast, castval: e, ty: getIntType()), to)
     if to.spec == TYENUM:
         # cast xxx to int, then cast(bitcast) to enum
-        return Expr(k: ECast, castop: BitCast, castval: castto(e, CType(tags: TYINT, spec: TYPRIM)), ty: to)
+        return Expr(k: ECast, castop: BitCast, castval: castto(e, getIntType()), ty: to)
     if checkScalar(e.ty) == false or checkScalar(to) == false:
         type_error("cast uoperand shall have scalar type")
         return nil
     if bool(to.tags and TYBOOL):
-        return binop(e, NE, Expr(k: EDefault, ty: e.ty), CType(tags: TYBOOL, spec: TYPRIM))
+        return binop(e, NE, Expr(k: EDefault, ty: e.ty), getBoolType())
     if bool(to.tags and (TYFLOAT or TYDOUBLE)) and e.ty.spec == TYPOINTER:
         type_error("A floating type shall not be converted to any pointer type")
         return nil
@@ -631,7 +633,7 @@ proc to*(e: var Expr, tag: uint32) =
 
 proc integer_promotions*(e: Expr): Expr =
     if e.ty.spec == TYBITFIELD or getsizeof(e) < sizeofint:
-        castto(e, CType(tags: TYINT, spec: TYPRIM))
+        castto(e, getIntType())
     else:
         e
 
@@ -722,7 +724,7 @@ proc default_argument_promotions*(e: Expr): Expr =
     if e.ty.spec == TYENUM or e.ty.spec == TYUNION or e.ty.spec == TYSTRUCT or e.ty.spec == TYPOINTER:
         return e
     if bool(e.ty.tags and TYFLOAT):
-        castto(e, CType(tags: TYDOUBLE, spec: TYPRIM))
+        castto(e, getDoubleType())
     else:
         integer_promotions(e)
 
@@ -805,7 +807,7 @@ proc make_shr*(result, r: var Expr) =
     checkInteger(result, r)
     integer_promotions(result)
     integer_promotions(r)
-    if isSigned(r.ty):
+    if isSigned(result.ty):
         result = binop(result, AShr, r, result.ty)
     else:
         result = binop(result, Shr, r, result.ty)
@@ -910,7 +912,7 @@ proc stringizing*(a: seq[TokenV]): string =
         result.add(stringizing(t))
 
 proc boolToInt*(e: Expr): Expr =
-    Expr(k: ECast, castop: ZExt, castval: e, ty: CType(tags: TYINT, spec: TYPRIM))
+    Expr(k: ECast, castop: ZExt, castval: e, ty: getIntType())
 
 proc conditional_expression*(): Expr
 
@@ -1266,7 +1268,7 @@ proc declarator*(base: CType; flags=Direct): Stmt =
     var ty = base
     while p.tok.tok == TMul:
         consume()
-        ty = CType(tags: TYINVALID, spec: TYPOINTER, p: ty)
+        ty = getPointerType(ty)
         type_qualifier_list(ty)
     return direct_declarator(ty, flags)
 
@@ -1543,7 +1545,7 @@ proc penum*(): CType =
             if err():
                 return nil
         result.eelems.add((s, c))
-        putsymtype(s, CType(tags: TYINT, spec: TYPRIM))
+        putsymtype(s, getIntType())
         inc c
         if p.tok.tok == TComma:
             consume()
@@ -1667,7 +1669,7 @@ proc declaration_specifiers*(): CType =
     if s.len > 0:
         return merge_types(s)
     warning("type defaults to 'int' in declaration")
-    return CType(tags: TYINT, spec: TYPRIM)
+    return getIntType()
 
 proc parse_asm*(): Stmt =
    consume() # eat asm
@@ -1871,7 +1873,7 @@ proc cast_expression*(): Expr =
             if e == nil:
                 return nil
             if (n.tags and TYVOID) != 0:
-                return Expr(k: EVoid, voidexpr: e, ty: CType(tags: TYVOID, spec: TYPRIM))
+                return Expr(k: EVoid, voidexpr: e, ty: getVoidType())
             return castto(e, n)
         putToken()
         p.tok = TokenV(tok: TLbracket, tags: TVNormal)
@@ -1910,7 +1912,7 @@ proc unary_expression*(): Expr =
         if not checkScalar(e.ty):
             type_error("scalar expected")
             return nil
-        return boolToInt(unary(e, LogicalNot, CType(tags: TYINT, spec: TYPRIM)))
+        return boolToInt(unary(e, LogicalNot, getIntType()))
     of TMul:
         consume()
         var e = cast_expression()
@@ -1939,7 +1941,7 @@ proc unary_expression*(): Expr =
         if e.k == EString:
             return e
         if e.k == ArrToAddress:
-            e.ty = CType(tags: TYLVALUE, spec: TYPOINTER, p: e.voidexpr.ty)
+            e.ty = getPointerType(e.voidexpr.ty)
             return e
         if not bool(e.ty.tags and TYLVALUE):
             type_error("cannot take the address of an rvalue")
@@ -1948,7 +1950,7 @@ proc unary_expression*(): Expr =
         if (e.k == EUnary and e.uop == AddressOf) and e.ty.p.spec == TYFUNCTION:
             e.ty.tags = TYINVALID
             return e
-        return unary(e, AddressOf, CType(tags: TYINVALID, spec:TYPOINTER, p: e.ty))
+        return unary(e, AddressOf, getPointerType(e.ty))
     of TDash:
         consume()
         let e = unary_expression()
@@ -1995,7 +1997,7 @@ proc unary_expression*(): Expr =
                     expectRB()
                     return nil
                 consume()
-                return Expr(ty: CType(tags: TYSIZE_T, spec: TYPRIM), k: EIntLit, ival: cast[int](getsizeof(ty[0])))
+                return Expr(ty: getSizetType(), k: EIntLit, ival: cast[int](getsizeof(ty[0])))
             let e = unary_expression()
             if e == nil:
                 expectExpression()
@@ -2004,13 +2006,13 @@ proc unary_expression*(): Expr =
                 expectRB()
                 return nil
             consume()
-            return Expr(ty: CType(tags: TYSIZE_T, spec: TYPRIM), k: EIntLit, ival: cast[int](getsizeof(e)))
+            return Expr(ty: getSizetType(), k: EIntLit, ival: cast[int](getsizeof(e)))
         else:
             let e = unary_expression()
             if e == nil:
                 expectExpression()
                 return nil
-            return Expr(ty: CType(tags: TYSIZE_T, spec: TYPRIM), k: EIntLit, ival: cast[int](getsizeof(e)))
+            return Expr(ty: getSizetType(), k: EIntLit, ival: cast[int](getsizeof(e)))
     of K_Alignof:
         consume()
         if p.tok.tok != TLbracket:
@@ -2024,13 +2026,13 @@ proc unary_expression*(): Expr =
                 return nil
             if ty[1] == true:
                 type_error("invalid application of '_Alignof' to a function type")
-            result = Expr(ty: CType(tags: TYSIZE_T, spec: TYPRIM), k: EIntLit, ival: cast[int](getAlignof(ty[0])))
+            result = Expr(ty: getSizetType(), k: EIntLit, ival: cast[int](getAlignof(ty[0])))
         else:
             let e = constant_expression()
             if e == nil:
                 expectExpression()
                 return nil
-            result = Expr(ty: CType(tags: TYSIZE_T, spec: TYPRIM), k: EIntLit, ival: cast[int](getAlignof(e)))
+            result = Expr(ty: getSizetType(), k: EIntLit, ival: cast[int](getAlignof(e)))
         if p.tok.tok != TRbracket:
             expectRB()
             return nil
@@ -2306,6 +2308,28 @@ proc read_pp_number*(s: string, f: var float, n: var int): int =
         n = num
     return result
 
+type FixName = object
+    priority: int
+    name: string
+
+import std/[heapqueue]
+
+proc `<`(a, b: FixName): bool = a.priority < b.priority
+
+proc fixName(v: string) =
+    var fixList = initHeapQueue[FixName]()
+    for i in countdown(len(p.typedefs)-1, 0):
+        for name in p.typedefs[i].keys():
+            var d = editDistance(name, v)
+            fixList.push(FixName(priority: d, name: name))
+    var msg = "\n"
+    while len(fixList) > 0:
+        var f = fixList.pop()
+        if f.priority < 3:
+            msg.add("Perhaps you meant: " & f.name & "\n")
+    if msg.len > 0:
+        note(msg)
+
 proc primary_expression*(): Expr =
     ## primary expressions:
     ##     * constant
@@ -2364,28 +2388,28 @@ proc primary_expression*(): Expr =
                 return
         case enc:
         of 8:
-            let ty = CType(tags: TYINT8, spec: TYPRIM)
+            let ty = getInt8Type()
             return Expr(
                 k: ArrToAddress, voidexpr: Expr(k: EString, ty: ty, str: s), 
-                ty: CType(tags: TYINVALID, spec: TYPOINTER, p: ty)
+                ty: getPointerType(ty)
             )
         of 16:
             var a: seq[Expr]
-            let ty = CType(tags: TYUSHORT, spec: TYPRIM)
+            let ty = getUShortType()
             for i in writeUTF8toUTF16(s):
                 a.add(Expr(k: EIntLit, ival: cast[int](i), ty: ty))
             return Expr(
                 k: ArrToAddress, voidexpr: Expr(k: EArray, ty: ty, arr: a), 
-                ty: CType(tags: TYINVALID, spec: TYPOINTER, p: ty)
+                ty: getPointerType(ty)
             )
         of 32:
             var a: seq[Expr]
-            let ty = CType(tags: TYUINT32, spec: TYPRIM)
+            let ty = getUInt32Type()
             for i in writeUTF8toUTF32(s):
                 a.add(Expr(k: EIntLit, ival: cast[int](i), ty: ty))
             return Expr(
                 k: ArrToAddress, voidexpr: Expr(k: EArray, ty: ty, arr: a), 
-                ty: CType(tags: TYINVALID, spec: TYPOINTER, p: ty)
+                ty: getPointerType(ty)
             )
         else:
             unreachable()
@@ -2397,40 +2421,42 @@ proc primary_expression*(): Expr =
         of 0:
             result = nil
         of 1:
-            result = Expr(ty: CType(tags: TYINT, spec: TYPRIM), k: EIntLit, ival: n)
+            result = Expr(ty: getIntType(), k: EIntLit, ival: n)
             consume()
         of 2, 3:
-            result = Expr(ty: CType(tags: if ok == 2: TYDOUBLE else: TYFLOAT, spec: TYPRIM), k: EFloatLit, fval: f)
+            result = Expr(ty: if ok == 2: getDoubleType() else: getFloatType(), k: EFloatLit, fval: f)
             consume()
         of 4:
-            result = Expr(ty: CType(tags: TYLONG, spec: TYPRIM), k: EIntLit, ival: n)
+            result = Expr(ty: getLongType(), k: EIntLit, ival: n)
             consume()
         of 5:
-            result = Expr(ty: CType(tags: TYULONG, spec: TYPRIM), k: EIntLit, ival: n)
+            result = Expr(ty: getULongType(), k: EIntLit, ival: n)
             consume() 
         of 6:
-            result = Expr(ty: CType(tags: TYLONGLONG, spec: TYPRIM), k: EIntLit, ival: n)
+            result = Expr(ty: getLongLongType(), k: EIntLit, ival: n)
             consume()
         of 7:
-            result = Expr(ty: CType(tags: TYULONGLONG, spec: TYPRIM), k: EIntLit, ival: n)
+            result = Expr(ty: getULongLongType(), k: EIntLit, ival: n)
             consume()
         of 8:
-            result = Expr(ty: CType(tags: TYUINT, spec: TYPRIM), k: EIntLit, ival: n)
+            result = Expr(ty: getUIntType(), k: EIntLit, ival: n)
             consume()
         else:
             unreachable()
     of CPPident:
-        result = Expr(k: EIntLit, ival: 0, ty: CType(tags: TYINT, spec: TYPRIM))  
+        result = Expr(k: EIntLit, ival: 0, ty: getIntType())  
         consume()
     of TIdentifier:
         if p.want_expr:
-            result = Expr(k: EIntLit, ival: 0, ty: CType(tags: TYINT, spec: TYPRIM))
+            result = Expr(k: EIntLit, ival: 0, ty: getIntType())
         elif p.tok.s == "__func__":
-            result = Expr(k: EString, str: p.pfunc, ty: CType(tags: TYCONST, spec: TYPOINTER, p: CType(tags: TYCHAR, spec: TYPRIM)))
+            result = Expr(k: EString, str: p.pfunc, ty: CType(tags: TYCONST, spec: TYPOINTER, p: getCharType()))
         else:
             let ty = getsymtype(p.tok.s)
             if ty == nil:
-                type_error("symbol not found: " & p.tok.s)
+                type_error("Variable not in scope: " & p.tok.s)
+                if p.tok.s.len > 2:
+                    fixName(p.tok.s)
                 return nil
             case ty.spec:
             of TYFUNCTION:
@@ -2715,28 +2741,28 @@ proc relational_expression*(): Expr =
             if r == nil:
                 return nil
             checkSpec(result, r)
-            result =  boolToInt(binop(result, if isFloating(r.ty): FLT else: (if isSigned(r.ty): SLT else: ULT), r, CType(tags: TYBOOL, spec: TYPRIM)))
+            result =  boolToInt(binop(result, if isFloating(r.ty): FLT else: (if isSigned(r.ty): SLT else: ULT), r, getBoolType()))
         of TLe:
             consume()
             var r = shift_expression()
             if r == nil:
                 return nil
             checkSpec(result, r)
-            result = boolToInt(binop(result, if isFloating(r.ty): FLE else: (if isSigned(r.ty): SLE else: ULE), r, CType(tags: TYBOOL, spec: TYPRIM)))
+            result = boolToInt(binop(result, if isFloating(r.ty): FLE else: (if isSigned(r.ty): SLE else: ULE), r, getBoolType()))
         of TGt:
             consume()
             var r = shift_expression()
             if r == nil:
                 return nil
             checkSpec(result, r)
-            result = boolToInt(binop(result, if isFloating(r.ty): FGT else: (if isSigned(r.ty): SGT else: UGT), r, CType(tags: TYBOOL, spec: TYPRIM)))
+            result = boolToInt(binop(result, if isFloating(r.ty): FGT else: (if isSigned(r.ty): SGT else: UGT), r, getBoolType()))
         of TGe:
             consume()
             var r = shift_expression()
             if r == nil:
                 return nil
             checkSpec(result, r)
-            result = boolToInt(binop(result, if isFloating(r.ty): FGE else: (if isSigned(r.ty): SGE else: UGE), r, CType(tags: TYBOOL, spec: TYPRIM)))
+            result = boolToInt(binop(result, if isFloating(r.ty): FGE else: (if isSigned(r.ty): SGE else: UGE), r, getBoolType()))
         else:
             return result
 
@@ -2750,20 +2776,20 @@ proc equality_expression*(): Expr =
             if r == nil:
                 return nil
             if result.ty.spec == TYPOINTER and r.ty.spec == TYPOINTER:
-                result = boolToInt(binop(result, EQ, r, CType(tags: TYBOOL, spec: TYPRIM)))
+                result = boolToInt(binop(result, EQ, r, getBoolType()))
             else:
                 checkSpec(result, r)
-                result = boolToInt(binop(result, if isFloating(r.ty): FEQ else: EQ, r, CType(tags: TYBOOL, spec: TYPRIM)))
+                result = boolToInt(binop(result, if isFloating(r.ty): FEQ else: EQ, r, getBoolType()))
         of TNe:
             consume()
             var r = relational_expression()
             if r == nil:
                 return nil
             if result.ty.spec == TYPOINTER and r.ty.spec == TYPOINTER:
-                result = boolToInt(binop(result, NE, r, CType(tags: TYBOOL, spec: TYPRIM)))
+                result = boolToInt(binop(result, NE, r, getBoolType()))
             else:
                 checkSpec(result, r)
-                result = boolToInt(binop(result, if isFloating(r.ty): FNE else: NE, r, CType(tags: TYBOOL, spec: TYPRIM)))
+                result = boolToInt(binop(result, if isFloating(r.ty): FNE else: NE, r, getBoolType()))
         else:
             return result
 
@@ -2816,7 +2842,7 @@ proc logical_AND_expression*(): Expr =
             if r == nil:
                 return nil
             checkScalar(result, r)
-            result = boolToInt(binop(result, LogicalAnd, r, CType(tags: TYINT, spec: TYPRIM)))
+            result = boolToInt(binop(result, LogicalAnd, r, getIntType()))
         else:
             return result
 
@@ -2830,7 +2856,7 @@ proc logical_OR_expression*(): Expr =
             if r == nil:
                 return nil
             checkScalar(result, r)
-            result = boolToInt(binop(result, LogicalOr, r, CType(tags: TYINT, spec: TYPRIM)))
+            result = boolToInt(binop(result, LogicalOr, r, getIntType()))
         else:
             return result
 

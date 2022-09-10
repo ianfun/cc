@@ -212,9 +212,13 @@ proc `$`*(a: CType, level=0): string =
 proc make_primitive*(tag: uint32): CType =
   CType(tags: tag, spec: TYPRIM)
 
+proc getCharType*(): CType = make_primitive(TYCHAR)
+
 proc getIntType*(): CType = make_primitive(TYINT)
 
 proc getBoolType*(): CType = make_primitive(TYBOOL)
+
+proc getInt8Type*(): CType = make_primitive(TYINT8)
 
 proc getUInt8Type*(): CType = make_primitive(TYUINT8)
 
@@ -234,9 +238,11 @@ proc getLongType*(): CType = make_primitive(TYLONG)
 
 proc getULongType*(): CType = make_primitive(TYULONG)
 
-proc getLongLongType*(): CType = make_primitive(TYLongLong)
+proc getLongLongType*(): CType = make_primitive(TYLONGLONG)
 
-proc getULongLongType*(): CType = make_primitive(TYULongLong)
+proc getULongLongType*(): CType = make_primitive(TYULONGLONG)
+
+proc getSizetType*(): CType = make_primitive(TYSIZE_T)
 
 proc getUIntType*(): CType = make_primitive(TYUINT)
 
@@ -244,3 +250,10 @@ proc getShortType*(): CType = make_primitive(TYSHORT)
 
 proc getUShortType*(): CType = make_primitive(TYUSHORT)
 
+proc getFloatType*(): CType = make_primitive(TYFLOAT)
+
+proc getDoubleType*(): CType = make_primitive(TYDOUBLE)
+
+proc getVoidType*(): CType = make_primitive(TYVOID)
+
+proc getPointerType*(base: CType): CType = CType(tags: TYINVALID, spec: TYPOINTER, p: base)

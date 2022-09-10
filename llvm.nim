@@ -175,9 +175,18 @@ proc elementAtOffset*(td: TargetDataRef; structTy: TypeRef; offset: culonglong):
 proc offsetOfElement*(td: TargetDataRef; structTy: TypeRef; element: cuint): culonglong {.
   importc: "LLVMOffsetOfElement".}
 
+
+# ** begin wrapper from llvmAPI.cpp ***
+
 proc nimLLVMinit*() {.importc: "LLVMNimInit".}
 
+proc nimLLVMinitAll*() {.importc: "LLVMNimInitAll".}
+
+proc nimLLVMSetDSOLocal*(Global: ValueRef) {.importc: "LLVMNimSetDSOLocal".}
+
 proc nimLLVMOptModule*(m: ModuleRef) {.importc: "LLVMNimOptModule".}
+
+# *** end wrapper ***
 
 proc typeOfX*(val: ValueRef): TypeRef {.importc: "LLVMTypeOf".}
 
@@ -294,6 +303,8 @@ type
       topCase*: Label
       ## LLVM Types
       i1, i8*, i16*, i32*, i64*, ffloat*, fdouble*, voidty*, ptrty*: Type
+      ## intptr
+      intPtr*: Type
       ## `i32 1/0` constant
       i32_1*, i32_0*: Value
       ## LLVM false/true constant
@@ -391,6 +402,7 @@ proc initTarget*() =
   setTarget(b.module, app.triple.cstring)
   app.pointersize = pointerSize(b.layout)
   contextSetOpaquePointers(b.ctx, if app.opaquePointerEnabled: True else: False)
+  b.intPtr = intPtrTypeInContext(b.ctx, b.layout)
   #b.i_setjmp = lookupIntrinsicID("llvm.eh.sjlj.longjmp") # 69
   #b.i_longjmp = lookupIntrinsicID("llvm.eh.sjlj.setjmp") # 71
 
@@ -1053,6 +1065,7 @@ proc newFunction*(varty: CType, name: string): Value =
       return result
     var fty = wrap(varty)
     result = addFunction(b.module, name.cstring, fty)
+    nimLLVMSetDSOLocal(result)
     addAttribute(result, NoUnwind)
     addAttribute(result, OptimizeForSize)
     if bool(varty.ret.tags and TYSTATIC):
@@ -1165,6 +1178,7 @@ proc gen*(s: Stmt) =
         if b.currentfunction == nil:
           var ginit = if init == nil: constNull(ty) else: gen(init)
           var g = addGlobal(b.module, typeOfX(ginit), cstring(name))
+          nimLLVMSetDSOLocal(g)
           if align != 0:
             setAlignment(g, align)
           if isConstant(ginit) == False:
@@ -1380,7 +1394,7 @@ proc gen*(e: Expr): Value =
       var t = e.lhs.castval.ty.p
       let s = getsizeof(t)
       if s != 1:
-        var c = constInt(intPtrType(b.layout), s.culonglong, False)
+        var c = constInt(b.intPtr, s.culonglong, False)
         buildExactSDiv(b.builder, sub, c, "")
       else:
         sub
