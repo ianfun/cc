@@ -932,6 +932,8 @@ preferredAlignmentOfGlobal	llvm.html#preferredAlignmentOfGlobal,TargetDataRef,Va
 elementAtOffset	llvm.html#elementAtOffset,TargetDataRef,TypeRef,culonglong	llvm: elementAtOffset(td: TargetDataRef; structTy: TypeRef; offset: culonglong): cuint	
 offsetOfElement	llvm.html#offsetOfElement,TargetDataRef,TypeRef,cuint	llvm: offsetOfElement(td: TargetDataRef; structTy: TypeRef; element: cuint): culonglong	
 nimLLVMinit	llvm.html#nimLLVMinit	llvm: nimLLVMinit()	
+nimLLVMinitAll	llvm.html#nimLLVMinitAll	llvm: nimLLVMinitAll()	
+nimLLVMSetDSOLocal	llvm.html#nimLLVMSetDSOLocal,ValueRef	llvm: nimLLVMSetDSOLocal(Global: ValueRef)	
 nimLLVMOptModule	llvm.html#nimLLVMOptModule,ModuleRef	llvm: nimLLVMOptModule(m: ModuleRef)	
 typeOfX	llvm.html#typeOfX,ValueRef	llvm: typeOfX(val: ValueRef): TypeRef	
 constIntIsZero	llvm.html#constIntIsZero,ValueRef	llvm: constIntIsZero(constantVal: ValueRef): Bool	

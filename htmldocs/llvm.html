@@ -143,7 +143,8 @@ window.addEventListener('DOMContentLoaded', main);
   topContinue*: Label
   target*: TargetRef
   topCase*: Label            ## LLVM Types
-  i1, i8*, i16*, i32*, i64*, ffloat*, fdouble*, voidty*, ptrty*: Type ## `i32 1/0` constant
+  i1, i8*, i16*, i32*, i64*, ffloat*, fdouble*, voidty*, ptrty*: Type ## intptr
+  intPtr*: Type              ## `i32 1/0` constant
   i32_1*, i32_0*: Value      ## LLVM false/true constant
   i1_0, i1_1*: Value">Backend</a></li>
   <li><a class="reference" href="#BasicBlockRef"
@@ -3907,9 +3908,19 @@ window.addEventListener('DOMContentLoaded', main);
     title="nimLLVMinit()">nimLLVMinit()</a></li>
 
   </ul>
+  <ul class="simple nested-toc-section">nimLLVMinitAll
+      <li><a class="reference" href="#nimLLVMinitAll"
+    title="nimLLVMinitAll()">nimLLVMinitAll()</a></li>
+
+  </ul>
   <ul class="simple nested-toc-section">nimLLVMOptModule
       <li><a class="reference" href="#nimLLVMOptModule%2CModuleRef"
     title="nimLLVMOptModule(m: ModuleRef)">nimLLVMOptModule(m: ModuleRef)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">nimLLVMSetDSOLocal
+      <li><a class="reference" href="#nimLLVMSetDSOLocal%2CValueRef"
+    title="nimLLVMSetDSOLocal(Global: ValueRef)">nimLLVMSetDSOLocal(Global: ValueRef)</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">normalizeTargetTriple
@@ -5413,7 +5424,8 @@ class="link-seesrc" target="_blank">Source</a>
   <span class="Identifier">topContinue</span><span class="Operator">*</span><span class="Other">:</span> <a href="llvm.html#Label"><span class="Identifier">Label</span></a>
   <span class="Identifier">target</span><span class="Operator">*</span><span class="Other">:</span> <a href="llvm.html#TargetRef"><span class="Identifier">TargetRef</span></a>
   <span class="Identifier">topCase</span><span class="Operator">*</span><span class="Other">:</span> <a href="llvm.html#Label"><span class="Identifier">Label</span></a>            <span class="Comment">## LLVM Types</span>
-  <span class="Identifier">i1</span><span class="Other">,</span> <span class="Identifier">i8</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">i16</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">i32</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">i64</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">ffloat</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">fdouble</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">voidty</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">ptrty</span><span class="Operator">*</span><span class="Other">:</span> <a href="llvm.html#Type"><span class="Identifier">Type</span></a> <span class="Comment">## `i32 1/0` constant</span>
+  <span class="Identifier">i1</span><span class="Other">,</span> <span class="Identifier">i8</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">i16</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">i32</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">i64</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">ffloat</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">fdouble</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">voidty</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">ptrty</span><span class="Operator">*</span><span class="Other">:</span> <a href="llvm.html#Type"><span class="Identifier">Type</span></a> <span class="Comment">## intptr</span>
+  <span class="Identifier">intPtr</span><span class="Operator">*</span><span class="Other">:</span> <a href="llvm.html#Type"><span class="Identifier">Type</span></a>              <span class="Comment">## `i32 1/0` constant</span>
   <span class="Identifier">i32_1</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">i32_0</span><span class="Operator">*</span><span class="Other">:</span> <a href="llvm.html#Value"><span class="Identifier">Value</span></a>      <span class="Comment">## LLVM false/true constant</span>
   <span class="Identifier">i1_0</span><span class="Other">,</span> <span class="Identifier">i1_1</span><span class="Operator">*</span><span class="Other">:</span> <a href="llvm.html#Value"><span class="Identifier">Value</span></a>
 </pre></dt>
@@ -5421,9 +5433,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 jump labels
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L271"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L280"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L271" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L280" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -5791,9 +5803,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 LLVM block
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L268"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L277"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L268" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L277" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -7129,9 +7141,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 LLVM Type
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L267"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L276"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L267" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L276" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -7195,9 +7207,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 LLVM Value
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L266"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L275"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L266" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L275" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -7283,9 +7295,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L303"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L314"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L303" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L314" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -7336,194 +7348,14 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L205"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L214"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L205" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L214" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="LLVMAddrSpaceCast">
 <dt><pre><a href="llvm.html#LLVMAddrSpaceCast"><span class="Identifier">LLVMAddrSpaceCast</span></a> <span class="Other">=</span> <span class="DecNumber">60'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L239"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L239" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMAlloca">
-<dt><pre><a href="llvm.html#LLVMAlloca"><span class="Identifier">LLVMAlloca</span></a> <span class="Other">=</span> <span class="DecNumber">26'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L223"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L223" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMAnd">
-<dt><pre><a href="llvm.html#LLVMAnd"><span class="Identifier">LLVMAnd</span></a> <span class="Other">=</span> <span class="DecNumber">23'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L220"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L220" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMAShr">
-<dt><pre><a href="llvm.html#LLVMAShr"><span class="Identifier">LLVMAShr</span></a> <span class="Other">=</span> <span class="DecNumber">22'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L219"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L219" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMAtomicCmpXchg">
-<dt><pre><a href="llvm.html#LLVMAtomicCmpXchg"><span class="Identifier">LLVMAtomicCmpXchg</span></a> <span class="Other">=</span> <span class="DecNumber">56'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L255"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L255" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMAtomicRMW">
-<dt><pre><a href="llvm.html#LLVMAtomicRMW"><span class="Identifier">LLVMAtomicRMW</span></a> <span class="Other">=</span> <span class="DecNumber">57'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L256"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L256" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMBitCast">
-<dt><pre><a href="llvm.html#LLVMBitCast"><span class="Identifier">LLVMBitCast</span></a> <span class="Other">=</span> <span class="DecNumber">41'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L238"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L238" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMBr">
-<dt><pre><a href="llvm.html#LLVMBr"><span class="Identifier">LLVMBr</span></a> <span class="Other">=</span> <span class="DecNumber">2'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L198"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L198" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMCall">
-<dt><pre><a href="llvm.html#LLVMCall"><span class="Identifier">LLVMCall</span></a> <span class="Other">=</span> <span class="DecNumber">45'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L243"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L243" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMCallBr">
-<dt><pre><a href="llvm.html#LLVMCallBr"><span class="Identifier">LLVMCallBr</span></a> <span class="Other">=</span> <span class="DecNumber">67'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L203"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L203" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMCatchPad">
-<dt><pre><a href="llvm.html#LLVMCatchPad"><span class="Identifier">LLVMCatchPad</span></a> <span class="Other">=</span> <span class="DecNumber">63'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L261"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L261" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMCatchRet">
-<dt><pre><a href="llvm.html#LLVMCatchRet"><span class="Identifier">LLVMCatchRet</span></a> <span class="Other">=</span> <span class="DecNumber">62'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L260"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L260" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMCatchSwitch">
-<dt><pre><a href="llvm.html#LLVMCatchSwitch"><span class="Identifier">LLVMCatchSwitch</span></a> <span class="Other">=</span> <span class="DecNumber">65'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L263"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L263" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMCleanupPad">
-<dt><pre><a href="llvm.html#LLVMCleanupPad"><span class="Identifier">LLVMCleanupPad</span></a> <span class="Other">=</span> <span class="DecNumber">64'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L262"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L262" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMCleanupRet">
-<dt><pre><a href="llvm.html#LLVMCleanupRet"><span class="Identifier">LLVMCleanupRet</span></a> <span class="Other">=</span> <span class="DecNumber">61'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L259"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L259" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMExtractElement">
-<dt><pre><a href="llvm.html#LLVMExtractElement"><span class="Identifier">LLVMExtractElement</span></a> <span class="Other">=</span> <span class="DecNumber">50'i32</span></pre></dt>
 <dd>
 
 
@@ -7534,512 +7366,8 @@ class="link-seesrc" target="_blank">Source</a>
 
 </dd>
 </div>
-<div id="LLVMExtractValue">
-<dt><pre><a href="llvm.html#LLVMExtractValue"><span class="Identifier">LLVMExtractValue</span></a> <span class="Other">=</span> <span class="DecNumber">53'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L251"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L251" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMFAdd">
-<dt><pre><a href="llvm.html#LLVMFAdd"><span class="Identifier">LLVMFAdd</span></a> <span class="Other">=</span> <span class="DecNumber">9'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L206"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L206" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMFCmp">
-<dt><pre><a href="llvm.html#LLVMFCmp"><span class="Identifier">LLVMFCmp</span></a> <span class="Other">=</span> <span class="DecNumber">43'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L241"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L241" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMFDiv">
-<dt><pre><a href="llvm.html#LLVMFDiv"><span class="Identifier">LLVMFDiv</span></a> <span class="Other">=</span> <span class="DecNumber">16'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L213"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L213" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMFence">
-<dt><pre><a href="llvm.html#LLVMFence"><span class="Identifier">LLVMFence</span></a> <span class="Other">=</span> <span class="DecNumber">55'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L254"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L254" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMFMul">
-<dt><pre><a href="llvm.html#LLVMFMul"><span class="Identifier">LLVMFMul</span></a> <span class="Other">=</span> <span class="DecNumber">13'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L210"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L210" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMFNeg">
-<dt><pre><a href="llvm.html#LLVMFNeg"><span class="Identifier">LLVMFNeg</span></a> <span class="Other">=</span> <span class="DecNumber">66'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L204"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L204" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMFPExt">
-<dt><pre><a href="llvm.html#LLVMFPExt"><span class="Identifier">LLVMFPExt</span></a> <span class="Other">=</span> <span class="DecNumber">38'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L235"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L235" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMFPToSI">
-<dt><pre><a href="llvm.html#LLVMFPToSI"><span class="Identifier">LLVMFPToSI</span></a> <span class="Other">=</span> <span class="DecNumber">34'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L231"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L231" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMFPToUI">
-<dt><pre><a href="llvm.html#LLVMFPToUI"><span class="Identifier">LLVMFPToUI</span></a> <span class="Other">=</span> <span class="DecNumber">33'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L230"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L230" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMFPTrunc">
-<dt><pre><a href="llvm.html#LLVMFPTrunc"><span class="Identifier">LLVMFPTrunc</span></a> <span class="Other">=</span> <span class="DecNumber">37'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L234"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L234" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMFreeze">
-<dt><pre><a href="llvm.html#LLVMFreeze"><span class="Identifier">LLVMFreeze</span></a> <span class="Other">=</span> <span class="DecNumber">68'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L253"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L253" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMFRem">
-<dt><pre><a href="llvm.html#LLVMFRem"><span class="Identifier">LLVMFRem</span></a> <span class="Other">=</span> <span class="DecNumber">19'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L216"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L216" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMFSub">
-<dt><pre><a href="llvm.html#LLVMFSub"><span class="Identifier">LLVMFSub</span></a> <span class="Other">=</span> <span class="DecNumber">11'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L208"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L208" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMGetElementPtr">
-<dt><pre><a href="llvm.html#LLVMGetElementPtr"><span class="Identifier">LLVMGetElementPtr</span></a> <span class="Other">=</span> <span class="DecNumber">29'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L226"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L226" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMICmp">
-<dt><pre><a href="llvm.html#LLVMICmp"><span class="Identifier">LLVMICmp</span></a> <span class="Other">=</span> <span class="DecNumber">42'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L240"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L240" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMIndirectBr">
-<dt><pre><a href="llvm.html#LLVMIndirectBr"><span class="Identifier">LLVMIndirectBr</span></a> <span class="Other">=</span> <span class="DecNumber">4'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L200"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L200" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMInsertElement">
-<dt><pre><a href="llvm.html#LLVMInsertElement"><span class="Identifier">LLVMInsertElement</span></a> <span class="Other">=</span> <span class="DecNumber">51'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L249"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L249" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMInsertValue">
-<dt><pre><a href="llvm.html#LLVMInsertValue"><span class="Identifier">LLVMInsertValue</span></a> <span class="Other">=</span> <span class="DecNumber">54'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L252"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L252" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMIntToPtr">
-<dt><pre><a href="llvm.html#LLVMIntToPtr"><span class="Identifier">LLVMIntToPtr</span></a> <span class="Other">=</span> <span class="DecNumber">40'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L237"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L237" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMInvoke">
-<dt><pre><a href="llvm.html#LLVMInvoke"><span class="Identifier">LLVMInvoke</span></a> <span class="Other">=</span> <span class="DecNumber">5'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L201"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L201" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMLandingPad">
-<dt><pre><a href="llvm.html#LLVMLandingPad"><span class="Identifier">LLVMLandingPad</span></a> <span class="Other">=</span> <span class="DecNumber">59'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L258"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L258" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMLoad">
-<dt><pre><a href="llvm.html#LLVMLoad"><span class="Identifier">LLVMLoad</span></a> <span class="Other">=</span> <span class="DecNumber">27'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L224"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L224" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMLShr">
-<dt><pre><a href="llvm.html#LLVMLShr"><span class="Identifier">LLVMLShr</span></a> <span class="Other">=</span> <span class="DecNumber">21'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L218"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L218" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMMul">
-<dt><pre><a href="llvm.html#LLVMMul"><span class="Identifier">LLVMMul</span></a> <span class="Other">=</span> <span class="DecNumber">12'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L209"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L209" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMOr">
-<dt><pre><a href="llvm.html#LLVMOr"><span class="Identifier">LLVMOr</span></a> <span class="Other">=</span> <span class="DecNumber">24'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L221"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L221" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMPHI">
-<dt><pre><a href="llvm.html#LLVMPHI"><span class="Identifier">LLVMPHI</span></a> <span class="Other">=</span> <span class="DecNumber">44'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L242"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L242" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMPtrToInt">
-<dt><pre><a href="llvm.html#LLVMPtrToInt"><span class="Identifier">LLVMPtrToInt</span></a> <span class="Other">=</span> <span class="DecNumber">39'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L236"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L236" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMResume">
-<dt><pre><a href="llvm.html#LLVMResume"><span class="Identifier">LLVMResume</span></a> <span class="Other">=</span> <span class="DecNumber">58'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L257"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L257" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMRet">
-<dt><pre><a href="llvm.html#LLVMRet"><span class="Identifier">LLVMRet</span></a> <span class="Other">=</span> <span class="DecNumber">1'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L197"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L197" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMSDiv">
-<dt><pre><a href="llvm.html#LLVMSDiv"><span class="Identifier">LLVMSDiv</span></a> <span class="Other">=</span> <span class="DecNumber">15'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L212"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L212" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMSelect">
-<dt><pre><a href="llvm.html#LLVMSelect"><span class="Identifier">LLVMSelect</span></a> <span class="Other">=</span> <span class="DecNumber">46'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L244"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L244" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMSExt">
-<dt><pre><a href="llvm.html#LLVMSExt"><span class="Identifier">LLVMSExt</span></a> <span class="Other">=</span> <span class="DecNumber">32'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L229"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L229" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMShl">
-<dt><pre><a href="llvm.html#LLVMShl"><span class="Identifier">LLVMShl</span></a> <span class="Other">=</span> <span class="DecNumber">20'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L217"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L217" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMShuffleVector">
-<dt><pre><a href="llvm.html#LLVMShuffleVector"><span class="Identifier">LLVMShuffleVector</span></a> <span class="Other">=</span> <span class="DecNumber">52'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L250"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L250" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMSIToFP">
-<dt><pre><a href="llvm.html#LLVMSIToFP"><span class="Identifier">LLVMSIToFP</span></a> <span class="Other">=</span> <span class="DecNumber">36'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L233"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L233" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMSRem">
-<dt><pre><a href="llvm.html#LLVMSRem"><span class="Identifier">LLVMSRem</span></a> <span class="Other">=</span> <span class="DecNumber">18'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L215"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L215" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMStore">
-<dt><pre><a href="llvm.html#LLVMStore"><span class="Identifier">LLVMStore</span></a> <span class="Other">=</span> <span class="DecNumber">28'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L225"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L225" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMSub">
-<dt><pre><a href="llvm.html#LLVMSub"><span class="Identifier">LLVMSub</span></a> <span class="Other">=</span> <span class="DecNumber">10'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L207"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L207" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMSwitch">
-<dt><pre><a href="llvm.html#LLVMSwitch"><span class="Identifier">LLVMSwitch</span></a> <span class="Other">=</span> <span class="DecNumber">3'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L199"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L199" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMTrunc">
-<dt><pre><a href="llvm.html#LLVMTrunc"><span class="Identifier">LLVMTrunc</span></a> <span class="Other">=</span> <span class="DecNumber">30'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L227"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L227" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMUDiv">
-<dt><pre><a href="llvm.html#LLVMUDiv"><span class="Identifier">LLVMUDiv</span></a> <span class="Other">=</span> <span class="DecNumber">14'i32</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L211"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L211" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="LLVMUIToFP">
-<dt><pre><a href="llvm.html#LLVMUIToFP"><span class="Identifier">LLVMUIToFP</span></a> <span class="Other">=</span> <span class="DecNumber">35'i32</span></pre></dt>
+<div id="LLVMAlloca">
+<dt><pre><a href="llvm.html#LLVMAlloca"><span class="Identifier">LLVMAlloca</span></a> <span class="Other">=</span> <span class="DecNumber">26'i32</span></pre></dt>
 <dd>
 
 
@@ -8050,56 +7378,56 @@ class="link-seesrc" target="_blank">Source</a>
 
 </dd>
 </div>
-<div id="LLVMUnreachable">
-<dt><pre><a href="llvm.html#LLVMUnreachable"><span class="Identifier">LLVMUnreachable</span></a> <span class="Other">=</span> <span class="DecNumber">7'i32</span></pre></dt>
+<div id="LLVMAnd">
+<dt><pre><a href="llvm.html#LLVMAnd"><span class="Identifier">LLVMAnd</span></a> <span class="Other">=</span> <span class="DecNumber">23'i32</span></pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L202"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L229"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L202" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L229" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
-<div id="LLVMURem">
-<dt><pre><a href="llvm.html#LLVMURem"><span class="Identifier">LLVMURem</span></a> <span class="Other">=</span> <span class="DecNumber">17'i32</span></pre></dt>
+<div id="LLVMAShr">
+<dt><pre><a href="llvm.html#LLVMAShr"><span class="Identifier">LLVMAShr</span></a> <span class="Other">=</span> <span class="DecNumber">22'i32</span></pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L214"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L228"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L214" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L228" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
-<div id="LLVMUserOp1">
-<dt><pre><a href="llvm.html#LLVMUserOp1"><span class="Identifier">LLVMUserOp1</span></a> <span class="Other">=</span> <span class="DecNumber">47'i32</span></pre></dt>
+<div id="LLVMAtomicCmpXchg">
+<dt><pre><a href="llvm.html#LLVMAtomicCmpXchg"><span class="Identifier">LLVMAtomicCmpXchg</span></a> <span class="Other">=</span> <span class="DecNumber">56'i32</span></pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L245"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L264"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L245" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L264" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
-<div id="LLVMUserOp2">
-<dt><pre><a href="llvm.html#LLVMUserOp2"><span class="Identifier">LLVMUserOp2</span></a> <span class="Other">=</span> <span class="DecNumber">48'i32</span></pre></dt>
+<div id="LLVMAtomicRMW">
+<dt><pre><a href="llvm.html#LLVMAtomicRMW"><span class="Identifier">LLVMAtomicRMW</span></a> <span class="Other">=</span> <span class="DecNumber">57'i32</span></pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L246"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L265"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L246" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L265" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
-<div id="LLVMVAArg">
-<dt><pre><a href="llvm.html#LLVMVAArg"><span class="Identifier">LLVMVAArg</span></a> <span class="Other">=</span> <span class="DecNumber">49'i32</span></pre></dt>
+<div id="LLVMBitCast">
+<dt><pre><a href="llvm.html#LLVMBitCast"><span class="Identifier">LLVMBitCast</span></a> <span class="Other">=</span> <span class="DecNumber">41'i32</span></pre></dt>
 <dd>
 
 
@@ -8110,8 +7438,152 @@ class="link-seesrc" target="_blank">Source</a>
 
 </dd>
 </div>
-<div id="LLVMXor">
-<dt><pre><a href="llvm.html#LLVMXor"><span class="Identifier">LLVMXor</span></a> <span class="Other">=</span> <span class="DecNumber">25'i32</span></pre></dt>
+<div id="LLVMBr">
+<dt><pre><a href="llvm.html#LLVMBr"><span class="Identifier">LLVMBr</span></a> <span class="Other">=</span> <span class="DecNumber">2'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L207"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L207" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMCall">
+<dt><pre><a href="llvm.html#LLVMCall"><span class="Identifier">LLVMCall</span></a> <span class="Other">=</span> <span class="DecNumber">45'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L252"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L252" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMCallBr">
+<dt><pre><a href="llvm.html#LLVMCallBr"><span class="Identifier">LLVMCallBr</span></a> <span class="Other">=</span> <span class="DecNumber">67'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L212"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L212" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMCatchPad">
+<dt><pre><a href="llvm.html#LLVMCatchPad"><span class="Identifier">LLVMCatchPad</span></a> <span class="Other">=</span> <span class="DecNumber">63'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L270"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L270" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMCatchRet">
+<dt><pre><a href="llvm.html#LLVMCatchRet"><span class="Identifier">LLVMCatchRet</span></a> <span class="Other">=</span> <span class="DecNumber">62'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L269"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L269" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMCatchSwitch">
+<dt><pre><a href="llvm.html#LLVMCatchSwitch"><span class="Identifier">LLVMCatchSwitch</span></a> <span class="Other">=</span> <span class="DecNumber">65'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L272"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L272" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMCleanupPad">
+<dt><pre><a href="llvm.html#LLVMCleanupPad"><span class="Identifier">LLVMCleanupPad</span></a> <span class="Other">=</span> <span class="DecNumber">64'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L271"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L271" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMCleanupRet">
+<dt><pre><a href="llvm.html#LLVMCleanupRet"><span class="Identifier">LLVMCleanupRet</span></a> <span class="Other">=</span> <span class="DecNumber">61'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L268"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L268" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMExtractElement">
+<dt><pre><a href="llvm.html#LLVMExtractElement"><span class="Identifier">LLVMExtractElement</span></a> <span class="Other">=</span> <span class="DecNumber">50'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L257"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L257" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMExtractValue">
+<dt><pre><a href="llvm.html#LLVMExtractValue"><span class="Identifier">LLVMExtractValue</span></a> <span class="Other">=</span> <span class="DecNumber">53'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L260"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L260" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMFAdd">
+<dt><pre><a href="llvm.html#LLVMFAdd"><span class="Identifier">LLVMFAdd</span></a> <span class="Other">=</span> <span class="DecNumber">9'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L215"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L215" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMFCmp">
+<dt><pre><a href="llvm.html#LLVMFCmp"><span class="Identifier">LLVMFCmp</span></a> <span class="Other">=</span> <span class="DecNumber">43'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L250"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L250" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMFDiv">
+<dt><pre><a href="llvm.html#LLVMFDiv"><span class="Identifier">LLVMFDiv</span></a> <span class="Other">=</span> <span class="DecNumber">16'i32</span></pre></dt>
 <dd>
 
 
@@ -8122,15 +7594,555 @@ class="link-seesrc" target="_blank">Source</a>
 
 </dd>
 </div>
+<div id="LLVMFence">
+<dt><pre><a href="llvm.html#LLVMFence"><span class="Identifier">LLVMFence</span></a> <span class="Other">=</span> <span class="DecNumber">55'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L263"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L263" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMFMul">
+<dt><pre><a href="llvm.html#LLVMFMul"><span class="Identifier">LLVMFMul</span></a> <span class="Other">=</span> <span class="DecNumber">13'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L219"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L219" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMFNeg">
+<dt><pre><a href="llvm.html#LLVMFNeg"><span class="Identifier">LLVMFNeg</span></a> <span class="Other">=</span> <span class="DecNumber">66'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L213"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L213" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMFPExt">
+<dt><pre><a href="llvm.html#LLVMFPExt"><span class="Identifier">LLVMFPExt</span></a> <span class="Other">=</span> <span class="DecNumber">38'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L244"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L244" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMFPToSI">
+<dt><pre><a href="llvm.html#LLVMFPToSI"><span class="Identifier">LLVMFPToSI</span></a> <span class="Other">=</span> <span class="DecNumber">34'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L240"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L240" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMFPToUI">
+<dt><pre><a href="llvm.html#LLVMFPToUI"><span class="Identifier">LLVMFPToUI</span></a> <span class="Other">=</span> <span class="DecNumber">33'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L239"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L239" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMFPTrunc">
+<dt><pre><a href="llvm.html#LLVMFPTrunc"><span class="Identifier">LLVMFPTrunc</span></a> <span class="Other">=</span> <span class="DecNumber">37'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L243"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L243" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMFreeze">
+<dt><pre><a href="llvm.html#LLVMFreeze"><span class="Identifier">LLVMFreeze</span></a> <span class="Other">=</span> <span class="DecNumber">68'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L262"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L262" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMFRem">
+<dt><pre><a href="llvm.html#LLVMFRem"><span class="Identifier">LLVMFRem</span></a> <span class="Other">=</span> <span class="DecNumber">19'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L225"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L225" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMFSub">
+<dt><pre><a href="llvm.html#LLVMFSub"><span class="Identifier">LLVMFSub</span></a> <span class="Other">=</span> <span class="DecNumber">11'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L217"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L217" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMGetElementPtr">
+<dt><pre><a href="llvm.html#LLVMGetElementPtr"><span class="Identifier">LLVMGetElementPtr</span></a> <span class="Other">=</span> <span class="DecNumber">29'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L235"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L235" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMICmp">
+<dt><pre><a href="llvm.html#LLVMICmp"><span class="Identifier">LLVMICmp</span></a> <span class="Other">=</span> <span class="DecNumber">42'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L249"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L249" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMIndirectBr">
+<dt><pre><a href="llvm.html#LLVMIndirectBr"><span class="Identifier">LLVMIndirectBr</span></a> <span class="Other">=</span> <span class="DecNumber">4'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L209"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L209" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMInsertElement">
+<dt><pre><a href="llvm.html#LLVMInsertElement"><span class="Identifier">LLVMInsertElement</span></a> <span class="Other">=</span> <span class="DecNumber">51'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L258"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L258" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMInsertValue">
+<dt><pre><a href="llvm.html#LLVMInsertValue"><span class="Identifier">LLVMInsertValue</span></a> <span class="Other">=</span> <span class="DecNumber">54'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L261"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L261" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMIntToPtr">
+<dt><pre><a href="llvm.html#LLVMIntToPtr"><span class="Identifier">LLVMIntToPtr</span></a> <span class="Other">=</span> <span class="DecNumber">40'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L246"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L246" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMInvoke">
+<dt><pre><a href="llvm.html#LLVMInvoke"><span class="Identifier">LLVMInvoke</span></a> <span class="Other">=</span> <span class="DecNumber">5'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L210"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L210" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMLandingPad">
+<dt><pre><a href="llvm.html#LLVMLandingPad"><span class="Identifier">LLVMLandingPad</span></a> <span class="Other">=</span> <span class="DecNumber">59'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L267"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L267" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMLoad">
+<dt><pre><a href="llvm.html#LLVMLoad"><span class="Identifier">LLVMLoad</span></a> <span class="Other">=</span> <span class="DecNumber">27'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L233"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L233" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMLShr">
+<dt><pre><a href="llvm.html#LLVMLShr"><span class="Identifier">LLVMLShr</span></a> <span class="Other">=</span> <span class="DecNumber">21'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L227"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L227" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMMul">
+<dt><pre><a href="llvm.html#LLVMMul"><span class="Identifier">LLVMMul</span></a> <span class="Other">=</span> <span class="DecNumber">12'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L218"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L218" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMOr">
+<dt><pre><a href="llvm.html#LLVMOr"><span class="Identifier">LLVMOr</span></a> <span class="Other">=</span> <span class="DecNumber">24'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L230"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L230" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMPHI">
+<dt><pre><a href="llvm.html#LLVMPHI"><span class="Identifier">LLVMPHI</span></a> <span class="Other">=</span> <span class="DecNumber">44'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L251"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L251" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMPtrToInt">
+<dt><pre><a href="llvm.html#LLVMPtrToInt"><span class="Identifier">LLVMPtrToInt</span></a> <span class="Other">=</span> <span class="DecNumber">39'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L245"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L245" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMResume">
+<dt><pre><a href="llvm.html#LLVMResume"><span class="Identifier">LLVMResume</span></a> <span class="Other">=</span> <span class="DecNumber">58'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L266"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L266" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMRet">
+<dt><pre><a href="llvm.html#LLVMRet"><span class="Identifier">LLVMRet</span></a> <span class="Other">=</span> <span class="DecNumber">1'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L206"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L206" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMSDiv">
+<dt><pre><a href="llvm.html#LLVMSDiv"><span class="Identifier">LLVMSDiv</span></a> <span class="Other">=</span> <span class="DecNumber">15'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L221"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L221" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMSelect">
+<dt><pre><a href="llvm.html#LLVMSelect"><span class="Identifier">LLVMSelect</span></a> <span class="Other">=</span> <span class="DecNumber">46'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L253"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L253" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMSExt">
+<dt><pre><a href="llvm.html#LLVMSExt"><span class="Identifier">LLVMSExt</span></a> <span class="Other">=</span> <span class="DecNumber">32'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L238"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L238" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMShl">
+<dt><pre><a href="llvm.html#LLVMShl"><span class="Identifier">LLVMShl</span></a> <span class="Other">=</span> <span class="DecNumber">20'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L226"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L226" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMShuffleVector">
+<dt><pre><a href="llvm.html#LLVMShuffleVector"><span class="Identifier">LLVMShuffleVector</span></a> <span class="Other">=</span> <span class="DecNumber">52'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L259"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L259" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMSIToFP">
+<dt><pre><a href="llvm.html#LLVMSIToFP"><span class="Identifier">LLVMSIToFP</span></a> <span class="Other">=</span> <span class="DecNumber">36'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L242"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L242" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMSRem">
+<dt><pre><a href="llvm.html#LLVMSRem"><span class="Identifier">LLVMSRem</span></a> <span class="Other">=</span> <span class="DecNumber">18'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L224"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L224" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMStore">
+<dt><pre><a href="llvm.html#LLVMStore"><span class="Identifier">LLVMStore</span></a> <span class="Other">=</span> <span class="DecNumber">28'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L234"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L234" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMSub">
+<dt><pre><a href="llvm.html#LLVMSub"><span class="Identifier">LLVMSub</span></a> <span class="Other">=</span> <span class="DecNumber">10'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L216"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L216" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMSwitch">
+<dt><pre><a href="llvm.html#LLVMSwitch"><span class="Identifier">LLVMSwitch</span></a> <span class="Other">=</span> <span class="DecNumber">3'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L208"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L208" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMTrunc">
+<dt><pre><a href="llvm.html#LLVMTrunc"><span class="Identifier">LLVMTrunc</span></a> <span class="Other">=</span> <span class="DecNumber">30'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L236"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L236" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMUDiv">
+<dt><pre><a href="llvm.html#LLVMUDiv"><span class="Identifier">LLVMUDiv</span></a> <span class="Other">=</span> <span class="DecNumber">14'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L220"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L220" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMUIToFP">
+<dt><pre><a href="llvm.html#LLVMUIToFP"><span class="Identifier">LLVMUIToFP</span></a> <span class="Other">=</span> <span class="DecNumber">35'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L241"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L241" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMUnreachable">
+<dt><pre><a href="llvm.html#LLVMUnreachable"><span class="Identifier">LLVMUnreachable</span></a> <span class="Other">=</span> <span class="DecNumber">7'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L211"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L211" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMURem">
+<dt><pre><a href="llvm.html#LLVMURem"><span class="Identifier">LLVMURem</span></a> <span class="Other">=</span> <span class="DecNumber">17'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L223"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L223" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMUserOp1">
+<dt><pre><a href="llvm.html#LLVMUserOp1"><span class="Identifier">LLVMUserOp1</span></a> <span class="Other">=</span> <span class="DecNumber">47'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L254"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L254" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMUserOp2">
+<dt><pre><a href="llvm.html#LLVMUserOp2"><span class="Identifier">LLVMUserOp2</span></a> <span class="Other">=</span> <span class="DecNumber">48'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L255"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L255" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMVAArg">
+<dt><pre><a href="llvm.html#LLVMVAArg"><span class="Identifier">LLVMVAArg</span></a> <span class="Other">=</span> <span class="DecNumber">49'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L256"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L256" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="LLVMXor">
+<dt><pre><a href="llvm.html#LLVMXor"><span class="Identifier">LLVMXor</span></a> <span class="Other">=</span> <span class="DecNumber">25'i32</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L231"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L231" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
 <div id="LLVMZExt">
 <dt><pre><a href="llvm.html#LLVMZExt"><span class="Identifier">LLVMZExt</span></a> <span class="Other">=</span> <span class="DecNumber">31'i32</span></pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L228"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L237"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L228" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L237" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -8157,9 +8169,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L191"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L200"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L191" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L200" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -8169,9 +8181,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L186"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L195"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L186" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L195" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -8576,9 +8588,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L593"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L605"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L593" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L605" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -10092,9 +10104,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L535"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L547"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L535" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L547" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -10451,9 +10463,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L184"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L193"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L184" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L193" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -11521,9 +11533,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1231"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1245"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1231" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1245" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -11533,9 +11545,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1225"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1239"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1225" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1239" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -11801,9 +11813,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L398"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L410"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L398" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L410" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -11826,9 +11838,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 not token.enterBlock
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L418"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L430"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L418" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L430" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -11838,9 +11850,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1210"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1224"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1210" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1224" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -11941,9 +11953,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1334"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1348"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1334" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1348" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -11954,9 +11966,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1071"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1084"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1071" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1084" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -11966,9 +11978,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L549"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L561"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L549" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L561" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -11978,9 +11990,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L864"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L876"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L864" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L876" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -11991,9 +12003,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1510"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1524"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1510" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1524" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -12003,9 +12015,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 generate bool(conditional) expression
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L542"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L554"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L542" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L554" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -12016,9 +12028,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 build a <tt class="docutils literal"><span class="pre"><span class="Identifier">cond</span> <span class="Operator">?</span> <span class="Identifier">lhs</span> <span class="Punctuation">:</span> <span class="Identifier">rhs</span></span></tt> expression
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L768"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L780"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L768" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L780" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -12028,9 +12040,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L878"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L890"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L878" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L890" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -12041,9 +12053,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L950"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L962"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L950" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L962" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -12053,9 +12065,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L555"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L567"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L555" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L567" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -12065,9 +12077,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L573"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L585"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L573" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L585" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -12078,9 +12090,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L912"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L924"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L912" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L924" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -12090,9 +12102,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L812"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L824"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L812" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L824" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -12103,9 +12115,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L823"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L835"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L823" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L835" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -12115,9 +12127,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L558"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L570"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L558" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L570" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -12128,9 +12140,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L792"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L804"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L792" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L804" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -12140,9 +12152,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L576"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L588"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L576" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L588" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -12152,9 +12164,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L587"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L599"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L587" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L599" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -12165,9 +12177,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L839"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L851"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L839" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L851" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -12177,9 +12189,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L552"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L564"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L552" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L564" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -12189,9 +12201,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L885"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L897"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L885" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L897" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -12201,9 +12213,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1260"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1274"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1260" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1274" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -12544,9 +12556,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1019"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1031"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1019" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1031" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -12908,9 +12920,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1009"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1021"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1009" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1021" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -13192,9 +13204,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L995"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1007"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L995" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1007" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -13377,9 +13389,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L439"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L451"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L439" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L451" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -14013,9 +14025,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L764"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L776"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L764" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L776" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -14025,9 +14037,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L973"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L985"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L973" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L985" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -14454,9 +14466,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L448"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L460"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L448" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L460" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -14597,9 +14609,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1529"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1543"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1529" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1543" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -14790,9 +14802,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L430"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L442"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L430" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L442" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -14854,9 +14866,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L761"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L773"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L761" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L773" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -14995,9 +15007,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1213"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1227"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1213" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1227" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -15007,9 +15019,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1219"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1233"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1219" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1233" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -15045,9 +15057,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L380"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L391"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L380" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L391" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -15785,9 +15797,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1521"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1535"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1521" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1535" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -15797,9 +15809,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1517"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1531"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1517" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1531" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -15809,9 +15821,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1514"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1528"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1514" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1528" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -15846,9 +15858,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 not token.leaveBlock
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L424"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L436"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L424" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L436" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -15858,9 +15870,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 return true when error
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L484"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L496"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L484" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L496" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -15883,9 +15895,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L308"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L319"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L308" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L319" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -15895,9 +15907,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L305"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L316"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L305" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L316" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -15908,9 +15920,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L318"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L329"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L318" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L329" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -15921,9 +15933,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L324"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L335"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L324" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L335" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -15934,9 +15946,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L321"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L332"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L321" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L332" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -15946,9 +15958,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L599"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L611"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L599" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L611" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -16167,9 +16179,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L347"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L358"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L347" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L358" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -16179,9 +16191,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1050"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1062"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1050" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1062" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -16191,9 +16203,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1207"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1221"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1207" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1221" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -16203,9 +16215,21 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L178"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L181"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L178" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L181" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="nimLLVMinitAll">
+<dt><pre><span class="Keyword">proc</span> <a href="#nimLLVMinitAll"><span class="Identifier">nimLLVMinitAll</span></a><span class="Other">(</span><span class="Other">)</span> {.<span class="Identifier">importc</span><span class="Other">:</span> <span class="StringLit">&quot;LLVMNimInitAll&quot;</span><span class="Other">,</span> <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L183"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L183" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -16216,9 +16240,22 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L180"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L187"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L180" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L187" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="nimLLVMSetDSOLocal,ValueRef">
+<dt><pre><span class="Keyword">proc</span> <a href="#nimLLVMSetDSOLocal%2CValueRef"><span class="Identifier">nimLLVMSetDSOLocal</span></a><span class="Other">(</span><span class="Identifier">Global</span><span class="Other">:</span> <a href="llvm.html#ValueRef"><span class="Identifier">ValueRef</span></a><span class="Other">)</span> {.<span class="Identifier">importc</span><span class="Other">:</span> <span class="StringLit">&quot;LLVMNimSetDSOLocal&quot;</span><span class="Other">,</span>
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L185"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L185" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -16254,9 +16291,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L462"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L474"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L462" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L474" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -16267,9 +16304,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1526"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1540"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1526" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1540" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -17729,9 +17766,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1323"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1337"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1323" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1337" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -17949,9 +17986,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L445"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L457"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L445" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L457" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -17961,9 +17998,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L454"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L466"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L454" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L466" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -17973,9 +18010,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L436"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L448"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L436" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L448" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -17986,9 +18023,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L488"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L500"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L488" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L500" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -17999,9 +18036,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L496"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L508"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L496" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L508" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -18117,9 +18154,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1533"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L1547"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1533" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L1547" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -18220,9 +18257,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L412"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L424"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L412" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L424" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -18842,9 +18879,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L457"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L469"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L457" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L469" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -18906,9 +18943,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L606"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L618"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L606" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L618" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -19095,9 +19132,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L182"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L191"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L182" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L191" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -19186,9 +19223,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L480"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L492"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L480" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L492" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -19276,9 +19313,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 wrap a CType to LLVM Type
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L646"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L658"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L646" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L658" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -19288,9 +19325,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L611"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L623"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L611" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L623" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -19300,9 +19337,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L532"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L544"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L532" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L544" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -19313,9 +19350,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L527"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L539"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L527" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L539" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -19352,9 +19389,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L516"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L528"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L516" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L528" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -19365,9 +19402,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L512"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L524"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L512" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L524" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -19403,9 +19440,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L509"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L521"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L509" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L521" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -19416,9 +19453,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L504"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L516"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L504" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L516" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -19428,9 +19465,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L524"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L536"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L524" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L536" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -19441,9 +19478,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/llvm.nim#L519"
+href="https://github.com/ianfun/cc/tree/master/llvm.nim#L531"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L519" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm.nim#L531" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -19561,7 +19598,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-09 14:27:40 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-10 13:23:16 UTC</small>
       </div>
     </div>
   </div>

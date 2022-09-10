@@ -261,6 +261,26 @@ window.addEventListener('DOMContentLoaded', main);
     title="getBoolType(): CType">getBoolType(): CType</a></li>
 
   </ul>
+  <ul class="simple nested-toc-section">getCharType
+      <li><a class="reference" href="#getCharType"
+    title="getCharType(): CType">getCharType(): CType</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">getDoubleType
+      <li><a class="reference" href="#getDoubleType"
+    title="getDoubleType(): CType">getDoubleType(): CType</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">getFloatType
+      <li><a class="reference" href="#getFloatType"
+    title="getFloatType(): CType">getFloatType(): CType</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">getInt8Type
+      <li><a class="reference" href="#getInt8Type"
+    title="getInt8Type(): CType">getInt8Type(): CType</a></li>
+
+  </ul>
   <ul class="simple nested-toc-section">getInt16Type
       <li><a class="reference" href="#getInt16Type"
     title="getInt16Type(): CType">getInt16Type(): CType</a></li>
@@ -291,9 +311,19 @@ window.addEventListener('DOMContentLoaded', main);
     title="getLongType(): CType">getLongType(): CType</a></li>
 
   </ul>
+  <ul class="simple nested-toc-section">getPointerType
+      <li><a class="reference" href="#getPointerType%2CCType"
+    title="getPointerType(base: CType): CType">getPointerType(base: CType): CType</a></li>
+
+  </ul>
   <ul class="simple nested-toc-section">getShortType
       <li><a class="reference" href="#getShortType"
     title="getShortType(): CType">getShortType(): CType</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">getSizetType
+      <li><a class="reference" href="#getSizetType"
+    title="getSizetType(): CType">getSizetType(): CType</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">getUInt8Type
@@ -336,6 +366,11 @@ window.addEventListener('DOMContentLoaded', main);
     title="getUShortType(): CType">getUShortType(): CType</a></li>
 
   </ul>
+  <ul class="simple nested-toc-section">getVoidType
+      <li><a class="reference" href="#getVoidType"
+    title="getVoidType(): CType">getVoidType(): CType</a></li>
+
+  </ul>
   <ul class="simple nested-toc-section">joinShow2
       <li><a class="reference" href="#joinShow2%2Cseq%5B%5D"
     title="joinShow2[A, B](a: seq[(A, B)]): string">joinShow2[A, B](a: seq[(A, B)]): string</a></li>
@@ -351,9 +386,15 @@ window.addEventListener('DOMContentLoaded', main);
     title="joinShow4(a: seq[(string, intmax_t)]; level = 1): string">joinShow4(a: seq[(string, intmax_t)]; level = 1): string</a></li>
 
   </ul>
-  <ul class="simple nested-toc-section">make_primitive
-      <li><a class="reference" href="#make_primitive%2Cuint32"
-    title="make_primitive(tag: uint32): CType">make_primitive(tag: uint32): CType</a></li>
+
+  </ul>
+</li>
+<li>
+  <a class="reference reference-toplevel" href="#18" id="68">Templates</a>
+  <ul class="simple simple-toc-section">
+      <ul class="simple nested-toc-section">get
+      <li><a class="reference" href="#get.t%2Cuint32"
+    title="get(a: uint32): CType">get(a: uint32): CType</a></li>
 
   </ul>
 
@@ -454,9 +495,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L104"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L102"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L104" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L102" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -466,9 +507,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L108"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L106"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L108" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L106" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -502,9 +543,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L75"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L73"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L75" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L73" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -514,9 +555,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L89"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L87"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L89" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L87" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -526,9 +567,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L76"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L74"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L76" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L74" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -550,9 +591,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L86"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L84"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L86" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L84" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -574,9 +615,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L85"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L83"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L85" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L83" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -598,14 +639,38 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L92"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L90"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L92" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L90" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="TYINT8">
 <dt><pre><a href="types.html#TYINT8"><span class="Identifier">TYINT8</span></a> <span class="Other">=</span> <span class="DecNumber">65536</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L75"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L75" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="TYINT16">
+<dt><pre><a href="types.html#TYINT16"><span class="Identifier">TYINT16</span></a> <span class="Other">=</span> <span class="DecNumber">131072</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L76"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L76" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="TYINT32">
+<dt><pre><a href="types.html#TYINT32"><span class="Identifier">TYINT32</span></a> <span class="Other">=</span> <span class="DecNumber">262144</span></pre></dt>
 <dd>
 
 
@@ -616,8 +681,8 @@ class="link-seesrc" target="_blank">Source</a>
 
 </dd>
 </div>
-<div id="TYINT16">
-<dt><pre><a href="types.html#TYINT16"><span class="Identifier">TYINT16</span></a> <span class="Other">=</span> <span class="DecNumber">131072</span></pre></dt>
+<div id="TYINT64">
+<dt><pre><a href="types.html#TYINT64"><span class="Identifier">TYINT64</span></a> <span class="Other">=</span> <span class="DecNumber">524288</span></pre></dt>
 <dd>
 
 
@@ -625,30 +690,6 @@ class="link-seesrc" target="_blank">Source</a>
 href="https://github.com/ianfun/cc/tree/master/types.nim#L78"
 class="link-seesrc" target="_blank">Source</a>
 &nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L78" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="TYINT32">
-<dt><pre><a href="types.html#TYINT32"><span class="Identifier">TYINT32</span></a> <span class="Other">=</span> <span class="DecNumber">262144</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L79"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L79" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="TYINT64">
-<dt><pre><a href="types.html#TYINT64"><span class="Identifier">TYINT64</span></a> <span class="Other">=</span> <span class="DecNumber">524288</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L80"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L80" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -670,9 +711,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 32 bit in MSVC, 64 bit in GCC/JVM
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L93"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L91"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L93" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L91" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -682,9 +723,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L100"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L98"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L100" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L98" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -694,9 +735,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L94"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L92"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L94" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L92" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -754,9 +795,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L90"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L88"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L90" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L88" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -766,9 +807,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L101"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L99"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L101" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L99" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -814,9 +855,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L95"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L93"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L95" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L93" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -826,14 +867,38 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L97"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L95"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L97" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L95" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="TYUINT8">
 <dt><pre><a href="types.html#TYUINT8"><span class="Identifier">TYUINT8</span></a> <span class="Other">=</span> <span class="DecNumber">1048576</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L79"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L79" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="TYUINT16">
+<dt><pre><a href="types.html#TYUINT16"><span class="Identifier">TYUINT16</span></a> <span class="Other">=</span> <span class="DecNumber">2097152</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L80"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L80" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="TYUINT32">
+<dt><pre><a href="types.html#TYUINT32"><span class="Identifier">TYUINT32</span></a> <span class="Other">=</span> <span class="DecNumber">4194304</span></pre></dt>
 <dd>
 
 
@@ -844,8 +909,8 @@ class="link-seesrc" target="_blank">Source</a>
 
 </dd>
 </div>
-<div id="TYUINT16">
-<dt><pre><a href="types.html#TYUINT16"><span class="Identifier">TYUINT16</span></a> <span class="Other">=</span> <span class="DecNumber">2097152</span></pre></dt>
+<div id="TYUINT64">
+<dt><pre><a href="types.html#TYUINT64"><span class="Identifier">TYUINT64</span></a> <span class="Other">=</span> <span class="DecNumber">8388608</span></pre></dt>
 <dd>
 
 
@@ -856,39 +921,15 @@ class="link-seesrc" target="_blank">Source</a>
 
 </dd>
 </div>
-<div id="TYUINT32">
-<dt><pre><a href="types.html#TYUINT32"><span class="Identifier">TYUINT32</span></a> <span class="Other">=</span> <span class="DecNumber">4194304</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L83"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L83" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="TYUINT64">
-<dt><pre><a href="types.html#TYUINT64"><span class="Identifier">TYUINT64</span></a> <span class="Other">=</span> <span class="DecNumber">8388608</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L84"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L84" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
 <div id="TYULONG">
 <dt><pre><a href="types.html#TYULONG"><span class="Identifier">TYULONG</span></a> <span class="Other">=</span> <span class="DecNumber">8388608</span></pre></dt>
 <dd>
 
 32 bit in MSVC, 64 bit in GCC/JVM
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L98"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L96"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L98" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L96" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -898,9 +939,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L99"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L97"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L99" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L97" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -910,9 +951,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L96"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L94"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L96" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L94" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -922,9 +963,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L74"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L72"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L74" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L72" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -946,9 +987,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 wchar type: may be 2 or 4 bytes ...
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L91"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L89"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L91" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L89" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -958,9 +999,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L109"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L107"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L109" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L107" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -975,9 +1016,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L166"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L164"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L166" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L164" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -987,9 +1028,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L113"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L111"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L113" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L111" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -999,182 +1040,14 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L217"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L249"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L217" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L249" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
-<div id="getInt16Type">
-<dt><pre><span class="Keyword">proc</span> <a href="#getInt16Type"><span class="Identifier">getInt16Type</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L221"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L221" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="getInt32Type">
-<dt><pre><span class="Keyword">proc</span> <a href="#getInt32Type"><span class="Identifier">getInt32Type</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L225"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L225" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="getInt64Type">
-<dt><pre><span class="Keyword">proc</span> <a href="#getInt64Type"><span class="Identifier">getInt64Type</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L229"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L229" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="getIntType">
-<dt><pre><span class="Keyword">proc</span> <a href="#getIntType"><span class="Identifier">getIntType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L215"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L215" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="getLongLongType">
-<dt><pre><span class="Keyword">proc</span> <a href="#getLongLongType"><span class="Identifier">getLongLongType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L237"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L237" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="getLongType">
-<dt><pre><span class="Keyword">proc</span> <a href="#getLongType"><span class="Identifier">getLongType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L233"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L233" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="getShortType">
-<dt><pre><span class="Keyword">proc</span> <a href="#getShortType"><span class="Identifier">getShortType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L243"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L243" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="getUInt8Type">
-<dt><pre><span class="Keyword">proc</span> <a href="#getUInt8Type"><span class="Identifier">getUInt8Type</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L219"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L219" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="getUInt16Type">
-<dt><pre><span class="Keyword">proc</span> <a href="#getUInt16Type"><span class="Identifier">getUInt16Type</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L223"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L223" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="getUInt32Type">
-<dt><pre><span class="Keyword">proc</span> <a href="#getUInt32Type"><span class="Identifier">getUInt32Type</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L227"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L227" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="getUInt64Type">
-<dt><pre><span class="Keyword">proc</span> <a href="#getUInt64Type"><span class="Identifier">getUInt64Type</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L231"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L231" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="getUIntType">
-<dt><pre><span class="Keyword">proc</span> <a href="#getUIntType"><span class="Identifier">getUIntType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L241"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L241" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="getULongLongType">
-<dt><pre><span class="Keyword">proc</span> <a href="#getULongLongType"><span class="Identifier">getULongLongType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L239"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L239" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="getULongType">
-<dt><pre><span class="Keyword">proc</span> <a href="#getULongType"><span class="Identifier">getULongType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L235"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L235" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="getUShortType">
-<dt><pre><span class="Keyword">proc</span> <a href="#getUShortType"><span class="Identifier">getUShortType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<div id="getCharType">
+<dt><pre><span class="Keyword">proc</span> <a href="#getCharType"><span class="Identifier">getCharType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
@@ -1185,15 +1058,267 @@ class="link-seesrc" target="_blank">Source</a>
 
 </dd>
 </div>
+<div id="getDoubleType">
+<dt><pre><span class="Keyword">proc</span> <a href="#getDoubleType"><span class="Identifier">getDoubleType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L285"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L285" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getFloatType">
+<dt><pre><span class="Keyword">proc</span> <a href="#getFloatType"><span class="Identifier">getFloatType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L283"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L283" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getInt8Type">
+<dt><pre><span class="Keyword">proc</span> <a href="#getInt8Type"><span class="Identifier">getInt8Type</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L251"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L251" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getInt16Type">
+<dt><pre><span class="Keyword">proc</span> <a href="#getInt16Type"><span class="Identifier">getInt16Type</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L255"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L255" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getInt32Type">
+<dt><pre><span class="Keyword">proc</span> <a href="#getInt32Type"><span class="Identifier">getInt32Type</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L259"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L259" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getInt64Type">
+<dt><pre><span class="Keyword">proc</span> <a href="#getInt64Type"><span class="Identifier">getInt64Type</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L263"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L263" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getIntType">
+<dt><pre><span class="Keyword">proc</span> <a href="#getIntType"><span class="Identifier">getIntType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L247"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L247" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getLongLongType">
+<dt><pre><span class="Keyword">proc</span> <a href="#getLongLongType"><span class="Identifier">getLongLongType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L271"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L271" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getLongType">
+<dt><pre><span class="Keyword">proc</span> <a href="#getLongType"><span class="Identifier">getLongType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L267"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L267" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getPointerType,CType">
+<dt><pre><span class="Keyword">proc</span> <a href="#getPointerType%2CCType"><span class="Identifier">getPointerType</span></a><span class="Other">(</span><span class="Identifier">base</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L289"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L289" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getShortType">
+<dt><pre><span class="Keyword">proc</span> <a href="#getShortType"><span class="Identifier">getShortType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L279"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L279" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getSizetType">
+<dt><pre><span class="Keyword">proc</span> <a href="#getSizetType"><span class="Identifier">getSizetType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L275"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L275" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getUInt8Type">
+<dt><pre><span class="Keyword">proc</span> <a href="#getUInt8Type"><span class="Identifier">getUInt8Type</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L253"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L253" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getUInt16Type">
+<dt><pre><span class="Keyword">proc</span> <a href="#getUInt16Type"><span class="Identifier">getUInt16Type</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L257"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L257" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getUInt32Type">
+<dt><pre><span class="Keyword">proc</span> <a href="#getUInt32Type"><span class="Identifier">getUInt32Type</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L261"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L261" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getUInt64Type">
+<dt><pre><span class="Keyword">proc</span> <a href="#getUInt64Type"><span class="Identifier">getUInt64Type</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L265"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L265" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getUIntType">
+<dt><pre><span class="Keyword">proc</span> <a href="#getUIntType"><span class="Identifier">getUIntType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L277"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L277" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getULongLongType">
+<dt><pre><span class="Keyword">proc</span> <a href="#getULongLongType"><span class="Identifier">getULongLongType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L273"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L273" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getULongType">
+<dt><pre><span class="Keyword">proc</span> <a href="#getULongType"><span class="Identifier">getULongType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L269"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L269" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getUShortType">
+<dt><pre><span class="Keyword">proc</span> <a href="#getUShortType"><span class="Identifier">getUShortType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L281"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L281" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getVoidType">
+<dt><pre><span class="Keyword">proc</span> <a href="#getVoidType"><span class="Identifier">getVoidType</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/types.nim#L287"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L287" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
 <div id="joinShow2,seq[]">
 <dt><pre><span class="Keyword">proc</span> <a href="#joinShow2%2Cseq%5B%5D"><span class="Identifier">joinShow2</span></a><span class="Other">[</span><span class="Identifier">A</span><span class="Other">,</span> <span class="Identifier">B</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Other">(</span><span class="Identifier">A</span><span class="Other">,</span> <span class="Identifier">B</span><span class="Other">)</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span></pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L128"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L126"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L128" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L126" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1204,9 +1329,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L152"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L150"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L152" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L150" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1217,21 +1342,26 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L138"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L136"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L138" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L136" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
-<div id="make_primitive,uint32">
-<dt><pre><span class="Keyword">proc</span> <a href="#make_primitive%2Cuint32"><span class="Identifier">make_primitive</span></a><span class="Other">(</span><span class="Identifier">tag</span><span class="Other">:</span> <span class="Identifier">uint32</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+
+</dl></div>
+<div class="section" id="18">
+<h1><a class="toc-backref" href="#18">Templates</a></h1>
+<dl class="item">
+<div id="get.t,uint32">
+<dt><pre><span class="Keyword">template</span> <a href="#get.t%2Cuint32"><span class="Identifier">get</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <span class="Identifier">uint32</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a></pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/types.nim#L212"
+href="https://github.com/ianfun/cc/tree/master/types.nim#L227"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L212" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/types.nim#L227" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1245,7 +1375,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-09 14:27:39 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-10 13:23:14 UTC</small>
       </div>
     </div>
   </div>

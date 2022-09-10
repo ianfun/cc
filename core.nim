@@ -80,7 +80,7 @@ proc verbose*(msg: string) =
     cstderr << "cc: "
     cstderr << msg
 
-proc getPtrDiff_t*(): CType = make_primitive(if app.pointersize == 4: TYINT32 else: TYINT64)
+proc getPtrDiff_t*(): CType = get(if app.pointersize == 4: TYINT32 else: TYINT64)
 
 proc getIntPtr_t*(): CType = getPtrDiff_t()
 

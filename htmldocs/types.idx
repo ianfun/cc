@@ -57,9 +57,11 @@ joinShow2	types.html#joinShow2,seq[]	types: joinShow2[A, B](a: seq[(A, B)]): str
 joinShow4	types.html#joinShow4,seq[],int	types: joinShow4(a: seq[(string, intmax_t)]; level = 1): string	
 joinShow3	types.html#joinShow3,seq[],int	types: joinShow3(a: seq[(string, CType)]; level = 1): string	
 `$`	types.html#$,CType,int	types: `$`(a: CType; level = 0): string	
-make_primitive	types.html#make_primitive,uint32	types: make_primitive(tag: uint32): CType	
+get	types.html#get.t,uint32	types: get(a: uint32): CType	
+getCharType	types.html#getCharType	types: getCharType(): CType	
 getIntType	types.html#getIntType	types: getIntType(): CType	
 getBoolType	types.html#getBoolType	types: getBoolType(): CType	
+getInt8Type	types.html#getInt8Type	types: getInt8Type(): CType	
 getUInt8Type	types.html#getUInt8Type	types: getUInt8Type(): CType	
 getInt16Type	types.html#getInt16Type	types: getInt16Type(): CType	
 getUInt16Type	types.html#getUInt16Type	types: getUInt16Type(): CType	
@@ -71,6 +73,11 @@ getLongType	types.html#getLongType	types: getLongType(): CType
 getULongType	types.html#getULongType	types: getULongType(): CType	
 getLongLongType	types.html#getLongLongType	types: getLongLongType(): CType	
 getULongLongType	types.html#getULongLongType	types: getULongLongType(): CType	
+getSizetType	types.html#getSizetType	types: getSizetType(): CType	
 getUIntType	types.html#getUIntType	types: getUIntType(): CType	
 getShortType	types.html#getShortType	types: getShortType(): CType	
 getUShortType	types.html#getUShortType	types: getUShortType(): CType	
+getFloatType	types.html#getFloatType	types: getFloatType(): CType	
+getDoubleType	types.html#getDoubleType	types: getDoubleType(): CType	
+getVoidType	types.html#getVoidType	types: getVoidType(): CType	
+getPointerType	types.html#getPointerType,CType	types: getPointerType(base: CType): CType	

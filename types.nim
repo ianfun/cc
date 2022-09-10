@@ -69,8 +69,6 @@ const ## optional type tags
   TYLVALUE* = make_ty()
 
 const ## basic types
-  ## note: they value ordered by bit size!
-  ## do not re-order them
   TYVOID* = make_ty()
   TYBOOL* = make_ty()
   TYCOMPLEX* = make_ty()
@@ -209,51 +207,83 @@ proc `$`*(a: CType, level=0): string =
   of TYARRAY:
     result.add($a.arrtype & " [" & (if a.arrsize < 0: "*" else: $a.arrsize) & "]")
 
-proc make_primitive*(tag: uint32): CType =
+proc make_primitive(tag: uint32): CType =
   CType(tags: tag, spec: TYPRIM)
 
-proc getCharType*(): CType = make_primitive(TYCHAR)
+let
+  b = make_primitive(TYBOOL)
+  v = make_primitive(TYVOID)
+  i8 = make_primitive(TYINT8)
+  u8 = make_primitive(TYUINT8)
+  i16 = make_primitive(TYINT16)
+  u16 = make_primitive(TYINT16)
+  i32 = make_primitive(TYINT32)
+  u32 = make_primitive(TYUINT32)
+  i64 = make_primitive(TYINT64)
+  u64 = make_primitive(TYUINT64)
+  ff = make_primitive(TYFLOAT)
+  fd = make_primitive(TYDOUBLE)
 
-proc getIntType*(): CType = make_primitive(TYINT)
+template get*(a: uint32): CType =
+  case a:
+  of TYVOID: v
+  of TYBOOL: b
+  of TYINT8: i8
+  of TYUINT8: u8
+  of TYINT16: i16
+  of TYUINT16: u16
+  of TYINT32: i32
+  of TYUINT32: u32
+  of TYINT64: i64
+  of TYUINT64: u64
+  of TYFLOAT: ff
+  of TYDOUBLE: fd
+  else:
+    unreachable()
+    nil
 
-proc getBoolType*(): CType = make_primitive(TYBOOL)
+proc getCharType*(): CType = get(TYCHAR)
 
-proc getInt8Type*(): CType = make_primitive(TYINT8)
+proc getIntType*(): CType = get(TYINT)
 
-proc getUInt8Type*(): CType = make_primitive(TYUINT8)
+proc getBoolType*(): CType = get(TYBOOL)
 
-proc getInt16Type*(): CType = make_primitive(TYINT16)
+proc getInt8Type*(): CType = get(TYINT8)
 
-proc getUInt16Type*(): CType = make_primitive(TYUINT16)
+proc getUInt8Type*(): CType = get(TYUINT8)
 
-proc getInt32Type*(): CType = make_primitive(TYINT32)
+proc getInt16Type*(): CType = get(TYINT16)
 
-proc getUInt32Type*(): CType = make_primitive(TYUINT32)
+proc getUInt16Type*(): CType = get(TYUINT16)
 
-proc getInt64Type*(): CType = make_primitive(TYINT64)
+proc getInt32Type*(): CType = get(TYINT32)
 
-proc getUInt64Type*(): CType = make_primitive(TYUINT64)
+proc getUInt32Type*(): CType = get(TYUINT32)
 
-proc getLongType*(): CType = make_primitive(TYLONG)
+proc getInt64Type*(): CType = get(TYINT64)
 
-proc getULongType*(): CType = make_primitive(TYULONG)
+proc getUInt64Type*(): CType = get(TYUINT64)
 
-proc getLongLongType*(): CType = make_primitive(TYLONGLONG)
+proc getLongType*(): CType = get(TYLONG)
 
-proc getULongLongType*(): CType = make_primitive(TYULONGLONG)
+proc getULongType*(): CType = get(TYULONG)
 
-proc getSizetType*(): CType = make_primitive(TYSIZE_T)
+proc getLongLongType*(): CType = get(TYLONGLONG)
 
-proc getUIntType*(): CType = make_primitive(TYUINT)
+proc getULongLongType*(): CType = get(TYULONGLONG)
 
-proc getShortType*(): CType = make_primitive(TYSHORT)
+proc getSizetType*(): CType = get(TYSIZE_T)
 
-proc getUShortType*(): CType = make_primitive(TYUSHORT)
+proc getUIntType*(): CType = get(TYUINT)
 
-proc getFloatType*(): CType = make_primitive(TYFLOAT)
+proc getShortType*(): CType = get(TYSHORT)
 
-proc getDoubleType*(): CType = make_primitive(TYDOUBLE)
+proc getUShortType*(): CType = get(TYUSHORT)
 
-proc getVoidType*(): CType = make_primitive(TYVOID)
+proc getFloatType*(): CType = get(TYFLOAT)
+
+proc getDoubleType*(): CType = get(TYDOUBLE)
+
+proc getVoidType*(): CType = get(TYVOID)
 
 proc getPointerType*(base: CType): CType = CType(tags: TYINVALID, spec: TYPOINTER, p: base)
