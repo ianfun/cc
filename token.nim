@@ -1,7 +1,6 @@
 ## token.nim - C's tokens
 import std/[tables]
 
-
 type Token* = enum
   TNul=0, TNewLine=int('\n'),
 #    ' '             !      "

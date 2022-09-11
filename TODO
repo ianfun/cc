@@ -1,12 +1,8 @@
-* VLA, sizeof VLA in runtime
 * union
 * bitfield
-* support GCC __attribute__ 
-* variable align
-* struct align __attribute__((aligned(n)))
-* support GCC/MSCV pragmas
-* function with no prototype / vararg function
-* LLVMSetVolatile
-* switch
+* __attribute__ 
+* __declspec
+* pragmas
+* LLVMSetVolatile ...
 * `indirectbr` / Labels as Values <https://gcc.gnu.org/onlinedocs/gcc/Labels-as-Values.html> <http://blog.llvm.org/2010/01/address-of-label-and-indirect-branches.html>
-* builtin functions
+* many builtin functions...

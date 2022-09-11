@@ -16,6 +16,7 @@ llvmAPI.cpp - helper functions
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
+#include <llvm/IR/Instructions.h>
 
 using namespace llvm;
 
@@ -36,6 +37,9 @@ extern "C" {
 void LLVMNimSetDSOLocal(LLVMValueRef Global){
 	GlobalValue *GV = unwrap<GlobalValue>(Global);
 	GV->setDSOLocal(true);
+}
+LLVMValueRef LLVMNimGetAllocaArraySize(LLVMValueRef Alloca){
+	return wrap(unwrap<AllocaInst>(Alloca)->getArraySize());
 }
 void LLVMNimOptModule(LLVMModuleRef M){
 	Module *Mod = unwrap(M);

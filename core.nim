@@ -1,4 +1,4 @@
-import config, types, stream, ast, token
+import config, stream, ast, token
 import std/[os]
 
 var options* = commandLineParams()

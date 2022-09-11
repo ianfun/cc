@@ -150,15 +150,14 @@ for example, `LLVMpointerTypeInContext()`, `LLVMBuildLoad2()`, `LLVMConstInBound
 
 However, you can disable opaque Pointer in command line options.(use `LLVMContextSetOpaquePointers()` to disable)
 
-## Bugs
-
-In LLVM, init array require number of init elements must array type.
-
-So cc will generate large LLVM IR code if you use `int arr[1000];`
-
 ## JIT
 
 cc use LLVM JIT, by default, `main(argc, argv)` cc will call this function as program startup .
+
+## Features Supported
+
+* VLA
+* `__asm__` strings
 
 ## Contribute
 

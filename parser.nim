@@ -24,7 +24,7 @@
 ## #define myopneg(a) (-(a))
 ## ```
 
-import config, types, stream, core, ast, token, operators, location
+import config, stream, core, ast, token, operators, location
 import std/[math, tables, sets, editdistance]
 from std/sequtils import count
 
@@ -217,6 +217,9 @@ proc getsizeof*(ty: CType): culonglong =
             return 8
     if ty.spec == TYBITFIELD:
         type_error("invalid application of 'sizeof' to bit-field")
+        return 0
+    if ty.spec == TYFUNCTION:
+        type_error("invalid application of 'sizeof' to a function type")
         return 0
     if ty.spec == TYENUM:
         return sizeofint
@@ -1385,23 +1388,30 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
             parse_error("expect ']'")
             note("the syntax is:\n\tint arr[*]")
             return nil
+          # only allowed at extern variable and function prototype scope!
           return Stmt(k: SVarDecl1, var1name: name, var1type: ty)
         if p.tok.tok == Kstatic:
            consume()
-           ty.tags = ty.tags or TYSTATIC
            type_qualifier_list(ty)
         else:
             type_qualifier_list(ty)
             if p.tok.tok == Kstatic:
-                ty.tags = ty.tags or TYSTATIC
                 consume()
         if p.tok.tok != TRSquareBrackets:
             let e = assignment_expression()
             if e == nil:
                 expectExpression()
                 return nil
+            if not checkInteger(e.ty):
+                type_error("size of array has non-integer type '" & $e.ty & '\'')
             ty.hassize = true
+            var o = p.eval_error
             ty.arrsize = app.eval_const_expression(e)
+            if p.eval_error:
+                p.eval_error = o
+                # VLA
+                ty.vla = e
+                ty.arrsize = 0
             if p.tok.tok != TRSquareBrackets:
                parse_error("expect ']'")
                return nil
@@ -1854,6 +1864,9 @@ proc declaration*(): Stmt =
             result.vars.add((st.var1name, st.var1type, nil))
             putsymtype(st.var1name, st.var1type)
             if p.tok.tok == TAssign:
+                if st.var1type.spec == TYARRAY and st.var1type.vla != nil:
+                    type_error("variable-sized object may not be initialized")
+                    return nil
                 consume()
                 var old = p.currentInitTy
                 p.currentInitTy = st.var1type
@@ -1872,7 +1885,10 @@ proc declaration*(): Stmt =
                         note("global variable requires constant initializer")
             else:
                 if st.var1type.spec == TYARRAY:
-                    if st.var1type.hassize == false:
+                    if st.var1type.vla != nil and isTopLevel():
+                        type_error("variable length array declaration not allowed at file scope")
+                        note("in the declaration of variable: '" & st.var1name & '\'')
+                    elif st.var1type.hassize == false and st.var1type.vla == nil:
                         if isTopLevel():
                             warning("array '" & st.var1name & "' assumed to have one element")
                             st.var1type.hassize = true
@@ -1938,6 +1954,15 @@ proc type_name*(): (CType, bool) =
             (st.functy, true)
         else:
             (st.var1type, false)
+
+proc getsizeof2(e: Expr): Expr =
+    if e.k == ArrToAddress:
+        if e.voidexpr.ty.vla != nil:
+            Expr(ty: getSizetType(), k: EVLAGetSize, vla: e)
+        else:
+            Expr(ty: getSizetType(), k: EIntLit, ival: cast[int](getsizeof(e.voidexpr.ty)))
+    else:
+        Expr(ty: getSizetType(), k: EIntLit, ival: cast[int](getsizeof(e)))
 
 proc unary_expression*(): Expr =
     let tok = p.tok.tok
@@ -2044,13 +2069,13 @@ proc unary_expression*(): Expr =
                 expectRB()
                 return nil
             consume()
-            return Expr(ty: getSizetType(), k: EIntLit, ival: cast[int](getsizeof(e)))
+            return getsizeof2(e)
         else:
             let e = unary_expression()
             if e == nil:
                 expectExpression()
                 return nil
-            return Expr(ty: getSizetType(), k: EIntLit, ival: cast[int](getsizeof(e)))
+            return getsizeof2(e)
     of K_Alignof:
         consume()
         if p.tok.tok != TLbracket:

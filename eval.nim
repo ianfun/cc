@@ -1,4 +1,4 @@
-import config, ast, operators, core
+import config, ast, operators, core, stream
 from parser import constant_expression, p
 
 proc my_UNEG(a: uintmax_t): intmax_t {.importc: "myopneg", nodecl, header: "myop.h".}
@@ -11,16 +11,21 @@ proc `||`(a, b: intmax_t): intmax_t {.importc: "myopor", nodecl, header: "myop.h
 
 proc `!`(a: intmax_t): intmax_t {.importc: "myopnot", nodecl, header: "myop.h".}
 
-proc eval_error*(msg: string) =
-    if p.eval_error == false:
-      stderr.writeLine("\e[34m" & p.filename & ": " & $p.line & '.' & $p.col & ": parse error: " & msg & "\e[0m")
-      p.eval_error = true
-
 proc evali*(e: Expr): intmax_t
 
 proc setEval*() =
   app.eval_const_expression = evali
 
+var eval_error_msg*: string
+
+proc eval_error(msg: string): intmax_t =
+  p.eval_error = true
+  eval_error_msg = msg
+  return intmax_t(0)
+
+proc write_eval_msg*() = 
+  core.error()
+  cstderr <<< eval_error_msg
 
 proc evali*(e: Expr): intmax_t =
   ## run the constant expression
@@ -79,7 +84,6 @@ proc evali*(e: Expr): intmax_t =
         evali(e.lhs) || evali(e.rhs)
       else:
         eval_error("cannot eval constant-expression: " & $e)
-        intmax_t(0)
   of EUnary:
     case e.uop:
     of Pos:
@@ -94,14 +98,11 @@ proc evali*(e: Expr): intmax_t =
       not evali(e.uoperand)
     else:
       eval_error("cannot eval constant-expression: bad unary operator: " & $e)
-      intmax_t(0)
   of EIntLit:
     e.ival
   of EFloatLit:
-    eval_error("floating constant in constant-expression")
-    intmax_t(0)
+    return eval_error("floating constant in constant-expression")
   of ECondition:
     if evali(e.cond) != 0: evali(e.cleft) else: evali(e.cright)
   else:
     eval_error("cannot eval constant-expression: " & $e)
-    intmax_t(0)

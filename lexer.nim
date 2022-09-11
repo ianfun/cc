@@ -1,4 +1,4 @@
-import config, core, parser, stream, token
+import config, core, parser, stream, token, eval
 import std/[unicode, math]
 
 proc nextTok*()
@@ -629,6 +629,8 @@ proc nextTok*() =
                     ok = false
                 else:
                     ok = app.eval_const_expression(e) != 0
+                    if p.eval_error:
+                        write_eval_msg()
                 p.ppstack.add(if ok: 1 else: 0)
                 p.ok = ok
                 skipLine()

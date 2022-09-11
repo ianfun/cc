@@ -18,7 +18,7 @@
 ## `runjit()` will run module.
 
 import std/[tables, exitprocs]
-import config, core, parser, builtins, ast, operators, types
+import config, core, parser, builtins, ast, operators
 
 type
   OpaqueMemoryBuffer*{.pure, final.} = object
@@ -185,6 +185,8 @@ proc nimLLVMinitAll*() {.importc: "LLVMNimInitAll".}
 proc nimLLVMSetDSOLocal*(Global: ValueRef) {.importc: "LLVMNimSetDSOLocal".}
 
 proc nimLLVMOptModule*(m: ModuleRef) {.importc: "LLVMNimOptModule".}
+
+proc nimLLVMGetAllocaArraySize*(Alloca: ValueRef): ValueRef {.importc: "LLVMNimGetAllocaArraySize".}
 
 # *** end wrapper ***
 
@@ -418,8 +420,7 @@ proc handle_asm(s: string) =
   else:
     var asmtype = functionType(b.voidty, nil, 0, False)
     var f = getInlineAsm(asmtype, cstring(s), len(s).csize_t, nil, 0, True, False, InlineAsmDialectATT, False)
-    var c = buildCall2(b.builder, asmtype, f, nil, 0, "") 
-    setTailCall(c, True)
+    discard buildCall2(b.builder, asmtype, f, nil, 0, "") 
 
 proc setBackend*() =
   app.getSizeof = llvmGetsizeof
@@ -1178,8 +1179,8 @@ proc gen*(s: Stmt) =
         if not is_builtin_name(name):
           discard newFunction(varty, name)
       else:
-        var ty = wrap(varty)
         if b.currentfunction == nil:
+          var ty = wrap(varty)
           var ginit = if init == nil: constNull(ty) else: gen(init)
           var g = addGlobal(b.module, ty, cstring(name))
           nimLLVMSetDSOLocal(g)
@@ -1205,19 +1206,28 @@ proc gen*(s: Stmt) =
           # setLinkage(g, CommonLinkage)
           putVar(name, g)
         else:
+          var ty: Type = nil
+          var vla: Value = nil
+          if varty.spec == TYARRAY and varty.vla != nil:
+            vla = gen(varty.vla)
+            ty = wrap(varty.arrtype)
+          else:
+            ty = wrap(varty)
+          var val: Value
+          if vla != nil:
+            val = buildArrayAlloca(b.builder, ty, vla, "")
+          else:
+            val = buildAlloca(b.builder, ty, "")
           if align != 0:
-            var val = buildAlloca(b.builder, ty, "")
             setAlignment(val, align)
             if init != nil:
               let initv = gen(init)
               store(val, initv, align)
-            putVar(name, val)
           else:
-            var val = buildAlloca(b.builder, ty, "")
             if init != nil:
               let initv = gen(init)
               store(val, initv)
-            putVar(name, val)
+          putVar(name, val)
   of SVarDecl1:
     unreachable()
 
@@ -1359,6 +1369,10 @@ proc gen*(e: Expr): Value =
   case e.k:
   of EUndef:
     getUndef(wrap(e.ty))
+  of EVLAGetSize:
+    var s = nimLLVMGetAllocaArraySize(gen(e.vla))
+    var z = buildZExt(b.builder, s, b.i64, "")
+    buildMul(b.builder, z, constInt(b.i64, getsizeof(e.vla.voidexpr.ty.arrtype), False), "")
   of ArrToAddress:
     var arr = getAddress(e.voidexpr)
     buildBitCast(b.builder, arr, wrap(e.ty), "")
@@ -1515,7 +1529,6 @@ proc gen*(e: Expr): Value =
         arr[i] = gen(e.callargs[i]) # eval argument from left to right
       var res = buildCall2(b.builder, ty, f, args, l.cuint, "")
       dealloc(args)
-      setTailCall(res, True)
       res
   of EStruct:
     getStruct(e)
