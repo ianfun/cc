@@ -212,7 +212,7 @@ class="link-seesrc" target="_blank">Source</a>
   <div class="section" id="6">
 <h1><a class="toc-backref" href="#6">Imports</a></h1>
 <dl class="item">
-<a class="reference external" href="config.html">config</a>, <a class="reference external" href="types.html">types</a>, <a class="reference external" href="stream.html">stream</a>, <a class="reference external" href="ast.html">ast</a>, <a class="reference external" href="token.html">token</a>
+<a class="reference external" href="config.html">config</a>, <a class="reference external" href="stream.html">stream</a>, <a class="reference external" href="ast.html">ast</a>, <a class="reference external" href="token.html">token</a>
 </dl></div>
 <div class="section" id="7">
 <h1><a class="toc-backref" href="#7">Types</a></h1>
@@ -232,9 +232,9 @@ class="link-seesrc" target="_blank">Source</a>
   <span class="Identifier">triple</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>            <span class="Comment">## input files</span>
   <span class="Identifier">inputs</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">]</span>       <span class="Comment">## backend</span>
   <span class="Identifier">pointersize</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">culonglong</span>
-  <span class="Identifier">getSizeof</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">culonglong</span>
-  <span class="Identifier">getoffsetof</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">;</span> <span class="Identifier">idx</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">culonglong</span>
-  <span class="Identifier">getAlignOf</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">culonglong</span> <span class="Comment">## lexer</span>
+  <span class="Identifier">getSizeof</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">culonglong</span>
+  <span class="Identifier">getoffsetof</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">;</span> <span class="Identifier">idx</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">culonglong</span>
+  <span class="Identifier">getAlignOf</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">culonglong</span> <span class="Comment">## lexer</span>
   <span class="Identifier">lex</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Other">)</span>              <span class="Comment">## C preprocessor</span>
   <span class="Identifier">cpp</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Other">)</span>              <span class="Comment">## constant evaluator</span>
   <span class="Identifier">eval_const_expression</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">e</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">)</span><span class="Other">:</span> <a href="config.html#intmax_t"><span class="Identifier">intmax_t</span></a> <span class="Comment">## pragma handler</span>
@@ -365,7 +365,7 @@ class="link-seesrc" target="_blank">Source</a>
 </dd>
 </div>
 <div id="getIntPtr_t">
-<dt><pre><span class="Keyword">proc</span> <a href="#getIntPtr_t"><span class="Identifier">getIntPtr_t</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#getIntPtr_t"><span class="Identifier">getIntPtr_t</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
@@ -377,7 +377,7 @@ class="link-seesrc" target="_blank">Source</a>
 </dd>
 </div>
 <div id="getPtrDiff_t">
-<dt><pre><span class="Keyword">proc</span> <a href="#getPtrDiff_t"><span class="Identifier">getPtrDiff_t</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#getPtrDiff_t"><span class="Identifier">getPtrDiff_t</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
@@ -435,7 +435,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-11 00:50:02 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-11 05:36:45 UTC</small>
       </div>
     </div>
   </div>

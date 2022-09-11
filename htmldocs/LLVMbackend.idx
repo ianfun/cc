@@ -1,0 +1,88 @@
+nimLLVMinit	LLVMbackend.html#nimLLVMinit	LLVMbackend: nimLLVMinit()	
+nimLLVMinitAll	LLVMbackend.html#nimLLVMinitAll	LLVMbackend: nimLLVMinitAll()	
+nimLLVMSetDSOLocal	LLVMbackend.html#nimLLVMSetDSOLocal,ValueRef	LLVMbackend: nimLLVMSetDSOLocal(Global: ValueRef)	
+nimLLVMOptModule	LLVMbackend.html#nimLLVMOptModule,ModuleRef	LLVMbackend: nimLLVMOptModule(m: ModuleRef)	
+nimLLVMGetAllocaArraySize	LLVMbackend.html#nimLLVMGetAllocaArraySize,ValueRef	LLVMbackend: nimLLVMGetAllocaArraySize(Alloca: ValueRef): ValueRef	
+Backend	LLVMbackend.html#Backend	LLVMbackend: Backend	
+b	LLVMbackend.html#b	LLVMbackend: b	
+llvm_error	LLVMbackend.html#llvm_error,string	LLVMbackend: llvm_error(msg: string)	
+llvm_error	LLVMbackend.html#llvm_error,cstring	LLVMbackend: llvm_error(msg: cstring)	
+llvmGetAlignOf	LLVMbackend.html#llvmGetAlignOf,CType	LLVMbackend: llvmGetAlignOf(ty: CType): culonglong	
+llvmGetsizeof	LLVMbackend.html#llvmGetsizeof,CType	LLVMbackend: llvmGetsizeof(ty: CType): culonglong	
+llvmGetOffsetof	LLVMbackend.html#llvmGetOffsetof,CType,int	LLVMbackend: llvmGetOffsetof(ty: CType; idx: int): culonglong	
+newBackend	LLVMbackend.html#newBackend,string,string	LLVMbackend: newBackend(module_name, source_file: string)	
+initTarget	LLVMbackend.html#initTarget	LLVMbackend: initTarget()	
+dumpVersionInfo	LLVMbackend.html#dumpVersionInfo	LLVMbackend: dumpVersionInfo()	
+setBackend	LLVMbackend.html#setBackend	LLVMbackend: setBackend()	
+enterScope	LLVMbackend.html#enterScope	LLVMbackend: enterScope()	
+leaveScope	LLVMbackend.html#leaveScope	LLVMbackend: leaveScope()	
+getVar	LLVMbackend.html#getVar,string	LLVMbackend: getVar(name: string): Value	
+putVar	LLVMbackend.html#putVar,string,Value	LLVMbackend: putVar(name: string; val: Value)	
+getLabel	LLVMbackend.html#getLabel,string	LLVMbackend: getLabel(name: string): Label	
+putLabel	LLVMbackend.html#putLabel,string,Label	LLVMbackend: putLabel(name: string; label: Label)	
+getTags	LLVMbackend.html#getTags,string	LLVMbackend: getTags(name: string): Type	
+putTags	LLVMbackend.html#putTags,string,Type	LLVMbackend: putTags(name: string; t: Type)	
+shutdownBackend	LLVMbackend.html#shutdownBackend	LLVMbackend: shutdownBackend()	
+optimize	LLVMbackend.html#optimize	LLVMbackend: optimize()	
+verify	LLVMbackend.html#verify	LLVMbackend: verify()	
+link	LLVMbackend.html#link,ModuleRef,ModuleRef	LLVMbackend: link(dest, src: ModuleRef): bool	
+readBitcodeToModule	LLVMbackend.html#readBitcodeToModule,cstring	LLVMbackend: readBitcodeToModule(path: cstring): ModuleRef	
+readIRToModule	LLVMbackend.html#readIRToModule,cstring	LLVMbackend: readIRToModule(path: cstring): ModuleRef	
+writeModuleToFile	LLVMbackend.html#writeModuleToFile,string,ModuleRef	LLVMbackend: writeModuleToFile(path: string; m: ModuleRef)	
+writeModuleToFile	LLVMbackend.html#writeModuleToFile,string	LLVMbackend: writeModuleToFile(path: string)	
+writeBitcodeToFile	LLVMbackend.html#writeBitcodeToFile,string,ModuleRef	LLVMbackend: writeBitcodeToFile(path: string; m: ModuleRef)	
+writeBitcodeToFile	LLVMbackend.html#writeBitcodeToFile,string	LLVMbackend: writeBitcodeToFile(path: string)	
+writeObjectFile	LLVMbackend.html#writeObjectFile,string,ModuleRef	LLVMbackend: writeObjectFile(path: string; m: ModuleRef)	
+writeObjectFile	LLVMbackend.html#writeObjectFile,string	LLVMbackend: writeObjectFile(path: string)	
+writeAssemblyFile	LLVMbackend.html#writeAssemblyFile,string,ModuleRef	LLVMbackend: writeAssemblyFile(path: string; m: ModuleRef)	
+writeAssemblyFile	LLVMbackend.html#writeAssemblyFile,string	LLVMbackend: writeAssemblyFile(path: string)	
+close_backend	LLVMbackend.html#close_backend	LLVMbackend: close_backend()	
+gen_cond	LLVMbackend.html#gen_cond,Expr	LLVMbackend: gen_cond(a: Expr): Value	
+gen_bool	LLVMbackend.html#gen_bool,bool	LLVMbackend: gen_bool(val: bool): Value	
+gen_true	LLVMbackend.html#gen_true	LLVMbackend: gen_true(): Value	
+gen_false	LLVMbackend.html#gen_false	LLVMbackend: gen_false(): Value	
+gen_int	LLVMbackend.html#gen_int,culonglong,uint32	LLVMbackend: gen_int(i: culonglong; tags: uint32): Value	
+gen_float	LLVMbackend.html#gen_float,float,uint32	LLVMbackend: gen_float(f: float; tag: uint32): Value	
+gen_str	LLVMbackend.html#gen_str,string,Type	LLVMbackend: gen_str(val: string; ty: var Type): Value	
+gen_str_ptr	LLVMbackend.html#gen_str_ptr,string	LLVMbackend: gen_str_ptr(val: string): Value	
+backendint	LLVMbackend.html#backendint	LLVMbackend: backendint(): Type	
+load	LLVMbackend.html#load,Value,Type,uint32	LLVMbackend: load(p: Value; t: Type; align: uint32 = 0): Value	
+store	LLVMbackend.html#store,Value,Value,uint32	LLVMbackend: store(p: Value; v: Value; align: uint32 = 0)	
+wrap2	LLVMbackend.html#wrap2,CType	LLVMbackend: wrap2(ty: CType): Type	
+wrap	LLVMbackend.html#wrap,CType	LLVMbackend: wrap(ty: CType): Type	
+getZero	LLVMbackend.html#getZero,CType	LLVMbackend: getZero(ty: CType): Value	
+getOne	LLVMbackend.html#getOne,CType	LLVMbackend: getOne(ty: CType): Value	
+gen_condition	LLVMbackend.html#gen_condition,Expr,Expr,Expr	LLVMbackend: gen_condition(test: Expr; lhs: Expr; rhs: Expr): Value	
+gen_logical	LLVMbackend.html#gen_logical,Expr,Expr	LLVMbackend: gen_logical(lhs: Expr; rhs: Expr; isand = true): Value	
+gen_if	LLVMbackend.html#gen_if,Expr,Stmt	LLVMbackend: gen_if(test: Expr; body: Stmt)	
+gen_if	LLVMbackend.html#gen_if,Expr,Stmt,Stmt	LLVMbackend: gen_if(test: Expr; body: Stmt; elsebody: Stmt)	
+gen_switch	LLVMbackend.html#gen_switch,Expr,Stmt	LLVMbackend: gen_switch(test: Expr; body: Stmt)	
+gen_case	LLVMbackend.html#gen_case,Expr,Stmt	LLVMbackend: gen_case(test: Expr; body: Stmt)	
+gen_default	LLVMbackend.html#gen_default,Stmt	LLVMbackend: gen_default(body: Stmt)	
+gen_while	LLVMbackend.html#gen_while,Expr,Stmt	LLVMbackend: gen_while(test: Expr; body: Stmt)	
+gen_for	LLVMbackend.html#gen_for,Expr,Stmt,Stmt,Expr	LLVMbackend: gen_for(test: Expr; body: Stmt; sforinit: Stmt; eforincl: Expr)	
+gen_dowhile	LLVMbackend.html#gen_dowhile,Expr,Stmt	LLVMbackend: gen_dowhile(test: Expr; body: Stmt)	
+getOp	LLVMbackend.html#getOp,BinOP	LLVMbackend: getOp(a: BinOP): llvm.Opcode	
+getICmpOp	LLVMbackend.html#getICmpOp,BinOP	LLVMbackend: getICmpOp(a: BinOP): llvm.IntPredicate	
+getFCmpOp	LLVMbackend.html#getFCmpOp,BinOP	LLVMbackend: getFCmpOp(a: BinOP): RealPredicate	
+getCastOp	LLVMbackend.html#getCastOp,CastOp	LLVMbackend: getCastOp(a: CastOp): llvm.Opcode	
+newFunction	LLVMbackend.html#newFunction,CType,string	LLVMbackend: newFunction(varty: CType; name: string): Value	
+gen	LLVMbackend.html#gen,Stmt	LLVMbackend: gen(s: Stmt)	
+neZero	LLVMbackend.html#neZero,Expr	LLVMbackend: neZero(a: Expr): Expr	
+eqZero	LLVMbackend.html#eqZero,Expr	LLVMbackend: eqZero(a: Expr): Expr	
+incl	LLVMbackend.html#incl,Value,Type	LLVMbackend: incl(p: Value; t: Type): Value	
+incl	LLVMbackend.html#incl,Value,Type,uint32	LLVMbackend: incl(p: Value; t: Type; align: uint32): Value	
+decl	LLVMbackend.html#decl,Value,Type,uint32	LLVMbackend: decl(p: Value; t: Type; align: uint32): Value	
+decl	LLVMbackend.html#decl,Value,Type	LLVMbackend: decl(p: Value; t: Type): Value	
+getStruct	LLVMbackend.html#getStruct,Expr	LLVMbackend: getStruct(e: Expr): Value	
+getArray	LLVMbackend.html#getArray,Expr	LLVMbackend: getArray(e: Expr): Value	
+getAddress	LLVMbackend.html#getAddress,Expr	LLVMbackend: getAddress(e: Expr): Value	
+pointerBitCast	LLVMbackend.html#pointerBitCast,Value,Type,TypeRef	LLVMbackend: pointerBitCast(v: Value; fromTy: Type; to: TypeRef): Value	
+gen	LLVMbackend.html#gen,Expr	LLVMbackend: gen(e: Expr): Value	
+gen_cast	LLVMbackend.html#gen_cast,Expr,CType,CastOp	LLVMbackend: gen_cast(e: Expr; to: CType; op: CastOp): Value	
+jit_error	LLVMbackend.html#jit_error,string	LLVMbackend: jit_error(msg: string)	
+jit_error	LLVMbackend.html#jit_error,cstring	LLVMbackend: jit_error(msg: cstring)	
+jit_error	LLVMbackend.html#jit_error,ErrorRef	LLVMbackend: jit_error(err: ErrorRef)	
+orc_error_report	LLVMbackend.html#orc_error_report,pointer,ErrorRef	LLVMbackend: orc_error_report(ctx: pointer; err: ErrorRef)	
+getThreadSafeModule	LLVMbackend.html#getThreadSafeModule	LLVMbackend: getThreadSafeModule(): OrcThreadSafeModuleRef	
+runjit	LLVMbackend.html#runjit	LLVMbackend: runjit()	

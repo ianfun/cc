@@ -847,7 +847,7 @@ class="link-seesrc" target="_blank">Source</a>
   <div class="section" id="6">
 <h1><a class="toc-backref" href="#6">Imports</a></h1>
 <dl class="item">
-<a class="reference external" href="config.html">config</a>, <a class="reference external" href="types.html">types</a>, <a class="reference external" href="stream.html">stream</a>, <a class="reference external" href="core.html">core</a>, <a class="reference external" href="ast.html">ast</a>, <a class="reference external" href="token.html">token</a>, <a class="reference external" href="operators.html">operators</a>, <a class="reference external" href="location.html">location</a>
+<a class="reference external" href="config.html">config</a>, <a class="reference external" href="stream.html">stream</a>, <a class="reference external" href="core.html">core</a>, <a class="reference external" href="ast.html">ast</a>, <a class="reference external" href="token.html">token</a>, <a class="reference external" href="operators.html">operators</a>, <a class="reference external" href="location.html">location</a>
 </dl></div>
 <div class="section" id="7">
 <h1><a class="toc-backref" href="#7">Types</a></h1>
@@ -863,15 +863,15 @@ class="link-seesrc" target="_blank">Source</a>
 </ul>
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L977"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L980"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L977" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L980" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="Parser">
 <dt><pre><a href="parser.html#Parser"><span class="Identifier">Parser</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
-  <span class="Identifier">currentfunctionRet</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">currentInitTy</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">currentCase</span><span class="Operator">*</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a>
+  <span class="Identifier">currentfunctionRet</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">currentInitTy</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">currentCase</span><span class="Operator">*</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a>
   <span class="Identifier">pfunc</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
   <span class="Identifier">currentAlign</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">uint32</span>
   <span class="Identifier">fstack</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">]</span>
@@ -894,7 +894,7 @@ class="link-seesrc" target="_blank">Source</a>
   <span class="Identifier">typedefs</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">TableRef</span><span class="Other">[</span><span class="Identifier">string</span><span class="Other">,</span> <a href="location.html#Info"><span class="Identifier">Info</span></a><span class="Other">]</span><span class="Other">]</span>
   <span class="Identifier">tokenq</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="token.html#TokenV"><span class="Identifier">TokenV</span></a><span class="Other">]</span>
   <span class="Identifier">counter</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>
-  <span class="Identifier">retTy</span><span class="Operator">*</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a>
+  <span class="Identifier">retTy</span><span class="Operator">*</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a>
   <span class="Identifier">type_error</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span>
   <span class="Identifier">eval_error</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span>
   <span class="Identifier">parse_error</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span>
@@ -938,9 +938,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L542"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L545"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L542" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L545" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -955,9 +955,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L365"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L368"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L365" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L368" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -967,14 +967,38 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L376"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L379"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L376" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L379" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="addInclude,string,bool">
 <dt><pre><span class="Keyword">proc</span> <a href="#addInclude%2Cstring%2Cbool"><span class="Identifier">addInclude</span></a><span class="Other">(</span><span class="Identifier">filename</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">isInclude</span><span class="Other">:</span> <span class="Identifier">bool</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L520"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L520" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="additive_expression">
+<dt><pre><span class="Keyword">proc</span> <a href="#additive_expression"><span class="Identifier">additive_expression</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2759"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2759" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="addOnce">
+<dt><pre><span class="Keyword">proc</span> <a href="#addOnce"><span class="Identifier">addOnce</span></a><span class="Other">(</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
@@ -985,39 +1009,15 @@ class="link-seesrc" target="_blank">Source</a>
 
 </dd>
 </div>
-<div id="additive_expression">
-<dt><pre><span class="Keyword">proc</span> <a href="#additive_expression"><span class="Identifier">additive_expression</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2707"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2707" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="addOnce">
-<dt><pre><span class="Keyword">proc</span> <a href="#addOnce"><span class="Identifier">addOnce</span></a><span class="Other">(</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L514"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L514" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
 <div id="addStdin">
 <dt><pre><span class="Keyword">proc</span> <a href="#addStdin"><span class="Identifier">addStdin</span></a><span class="Other">(</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L355"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L358"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L355" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L358" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1027,9 +1027,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L345"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L348"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L345" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L348" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1039,9 +1039,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2807"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2859"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2807" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2859" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1051,14 +1051,14 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2915"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2967"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2915" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2967" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="binop,Expr,BinOP,Expr,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#binop%2CExpr%2CBinOP%2CExpr%2CCType"><span class="Identifier">binop</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">;</span> <span class="Identifier">op</span><span class="Other">:</span> <a href="operators.html#BinOP"><span class="Identifier">BinOP</span></a><span class="Other">;</span> <span class="Identifier">b</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">;</span> <span class="Identifier">ty</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#binop%2CExpr%2CBinOP%2CExpr%2CCType"><span class="Identifier">binop</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">;</span> <span class="Identifier">op</span><span class="Other">:</span> <a href="operators.html#BinOP"><span class="Identifier">BinOP</span></a><span class="Other">;</span> <span class="Identifier">b</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">;</span> <span class="Identifier">ty</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 construct a binary operator
@@ -1075,9 +1075,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L920"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L923"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L920" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L923" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1087,21 +1087,21 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1861"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1905"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1861" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1905" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="castto,Expr,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#castto%2CExpr%2CCType"><span class="Identifier">castto</span></a><span class="Other">(</span><span class="Identifier">e</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">;</span> <span class="Identifier">to</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#castto%2CExpr%2CCType"><span class="Identifier">castto</span></a><span class="Other">(</span><span class="Identifier">e</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">;</span> <span class="Identifier">to</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L579"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L582"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L579" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L582" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1111,21 +1111,21 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L752"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L755"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L752" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L755" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="checkArithmetic,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#checkArithmetic%2CCType"><span class="Identifier">checkArithmetic</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#checkArithmetic%2CCType"><span class="Identifier">checkArithmetic</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L747"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L750"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L747" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L750" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1135,21 +1135,21 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L737"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L740"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L737" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L740" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="checkInteger,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#checkInteger%2CCType"><span class="Identifier">checkInteger</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#checkInteger%2CCType"><span class="Identifier">checkInteger</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L243"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L246"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L243" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L246" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1159,9 +1159,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L503"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L506"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L503" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L506" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1171,9 +1171,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L742"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L745"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L742" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L745" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1183,9 +1183,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L757"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L760"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L757" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L760" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1195,21 +1195,21 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L389"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L392"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L389" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L392" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="compatible,CType,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#compatible%2CCType%2CCType"><span class="Identifier">compatible</span></a><span class="Other">(</span><span class="Identifier">p</span><span class="Other">,</span> <span class="Identifier">expected</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#compatible%2CCType%2CCType"><span class="Identifier">compatible</span></a><span class="Other">(</span><span class="Identifier">p</span><span class="Other">,</span> <span class="Identifier">expected</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 <a class="reference external" href="https://en.cppreference.com/w/c/language/type">https://en.cppreference.com/w/c/language/type</a>
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L698"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L701"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L698" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L701" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1219,22 +1219,22 @@ class="link-seesrc" target="_blank">Source</a>
 
 parse mant statements
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L3002"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L3054"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L3002" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L3054" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="compound_statement,seq[]">
-<dt><pre><span class="Keyword">proc</span> <a href="#compound_statement%2Cseq%5B%5D"><span class="Identifier">compound_statement</span></a><span class="Other">(</span><span class="Identifier">params</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Other">(</span><span class="Identifier">string</span><span class="Other">,</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Stmt"><span class="Identifier">Stmt</span></a> {.
+<dt><pre><span class="Keyword">proc</span> <a href="#compound_statement%2Cseq%5B%5D"><span class="Identifier">compound_statement</span></a><span class="Other">(</span><span class="Identifier">params</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Other">(</span><span class="Identifier">string</span><span class="Other">,</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Stmt"><span class="Identifier">Stmt</span></a> {.
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L3021"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L3073"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L3021" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L3073" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1244,9 +1244,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2907"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2959"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2907" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2959" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1257,9 +1257,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2887"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2939"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2887" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2939" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1269,9 +1269,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L973"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L976"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L973" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L976" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1283,9 +1283,9 @@ class="link-seesrc" target="_blank">Source</a>
 <p>alias for <tt class="docutils literal"><span class="pre"><span class="Identifier">getToken</span></span></tt></p>
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1012"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1015"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1012" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1015" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1295,9 +1295,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L650"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L653"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L650" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L653" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1307,9 +1307,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2067"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2120"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2067" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2120" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1319,9 +1319,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2058"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2111"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2058" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2111" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1331,9 +1331,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2054"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2107"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2054" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2107" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1345,26 +1345,26 @@ class="link-seesrc" target="_blank">Source</a>
 <p>this is different from ISO C grammar</p>
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1772"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1819"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1772" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1819" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="declaration_specifiers">
-<dt><pre><span class="Keyword">proc</span> <a href="#declaration_specifiers"><span class="Identifier">declaration_specifiers</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#declaration_specifiers"><span class="Identifier">declaration_specifiers</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 declaration_specfier is used in function and variable declaration/definition
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1634"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1681"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1634" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1681" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="declarator,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#declarator%2CCType"><span class="Identifier">declarator</span></a><span class="Other">(</span><span class="Identifier">base</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">;</span> <span class="Identifier">flags</span> <span class="Other">=</span> <span class="Identifier">Direct</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Stmt"><span class="Identifier">Stmt</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
+<dt><pre><span class="Keyword">proc</span> <a href="#declarator%2CCType"><span class="Identifier">declarator</span></a><span class="Other">(</span><span class="Identifier">base</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">;</span> <span class="Identifier">flags</span> <span class="Other">=</span> <span class="Identifier">Direct</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Stmt"><span class="Identifier">Stmt</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
@@ -1373,9 +1373,9 @@ class="link-seesrc" target="_blank">Source</a>
 <blockquote><p>base-type    decorator</p></blockquote>
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1272"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1275"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1272" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1275" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1386,35 +1386,35 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L729"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L732"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L729" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L732" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="direct_declarator,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#direct_declarator%2CCType"><span class="Identifier">direct_declarator</span></a><span class="Other">(</span><span class="Identifier">base</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">;</span> <span class="Identifier">flags</span> <span class="Other">=</span> <span class="Identifier">Direct</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Stmt"><span class="Identifier">Stmt</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
+<dt><pre><span class="Keyword">proc</span> <a href="#direct_declarator%2CCType"><span class="Identifier">direct_declarator</span></a><span class="Other">(</span><span class="Identifier">base</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">;</span> <span class="Identifier">flags</span> <span class="Other">=</span> <span class="Identifier">Direct</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Stmt"><span class="Identifier">Stmt</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1313"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1353"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1313" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1353" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="direct_declarator_end,CType,string">
-<dt><pre><span class="Keyword">proc</span> <a href="#direct_declarator_end%2CCType%2Cstring"><span class="Identifier">direct_declarator_end</span></a><span class="Other">(</span><span class="Identifier">base</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">;</span> <span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Stmt"><span class="Identifier">Stmt</span></a> {.
+<dt><pre><span class="Keyword">proc</span> <a href="#direct_declarator_end%2CCType%2Cstring"><span class="Identifier">direct_declarator_end</span></a><span class="Other">(</span><span class="Identifier">base</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">;</span> <span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Stmt"><span class="Identifier">Stmt</span></a> {.
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1340"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1380"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1340" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1380" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1424,9 +1424,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L291"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L294"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L291" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L294" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1436,9 +1436,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2780"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2832"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2780" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2832" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1448,9 +1448,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L273"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L276"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L273" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L276" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1460,14 +1460,14 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L280"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L283"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L280" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L283" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="error_incomplete,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#error_incomplete%2CCType"><span class="Identifier">error_incomplete</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#error_incomplete%2CCType"><span class="Identifier">error_incomplete</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
@@ -1484,9 +1484,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2820"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2872"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2820" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2872" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1556,9 +1556,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 parse a expression
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2874"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2926"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2874" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2926" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1568,33 +1568,33 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L240"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L243"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L240" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L243" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="getAlignof,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#getAlignof%2CCType"><span class="Identifier">getAlignof</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">culonglong</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#getAlignof%2CCType"><span class="Identifier">getAlignof</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">culonglong</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L230"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L233"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L230" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L233" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="getenumdef,string">
-<dt><pre><span class="Keyword">proc</span> <a href="#getenumdef%2Cstring"><span class="Identifier">getenumdef</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#getenumdef%2Cstring"><span class="Identifier">getenumdef</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L436"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L439"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L436" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L439" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1616,14 +1616,14 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L227"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L230"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L227" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L230" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="getsizeof,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#getsizeof%2CCType"><span class="Identifier">getsizeof</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">culonglong</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#getsizeof%2CCType"><span class="Identifier">getsizeof</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">culonglong</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
@@ -1635,26 +1635,26 @@ class="link-seesrc" target="_blank">Source</a>
 </dd>
 </div>
 <div id="getstructdef,string">
-<dt><pre><span class="Keyword">proc</span> <a href="#getstructdef%2Cstring"><span class="Identifier">getstructdef</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#getstructdef%2Cstring"><span class="Identifier">getstructdef</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L419"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L422"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L419" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L422" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="getsymtype,string">
-<dt><pre><span class="Keyword">proc</span> <a href="#getsymtype%2Cstring"><span class="Identifier">getsymtype</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#getsymtype%2Cstring"><span class="Identifier">getsymtype</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L470"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L473"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L470" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L473" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1664,21 +1664,21 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L400"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L403"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L400" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L403" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="getuniondef,string">
-<dt><pre><span class="Keyword">proc</span> <a href="#getuniondef%2Cstring"><span class="Identifier">getuniondef</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#getuniondef%2Cstring"><span class="Identifier">getuniondef</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L453"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L456"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L453" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L456" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1688,9 +1688,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L407"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L410"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L407" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L410" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1700,9 +1700,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L848"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L851"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L848" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L851" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1712,9 +1712,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2833"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2885"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2833" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2885" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1724,21 +1724,21 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1285"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1288"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1285" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1288" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="intcast,Expr,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#intcast%2CExpr%2CCType"><span class="Identifier">intcast</span></a><span class="Other">(</span><span class="Identifier">e</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">;</span> <span class="Identifier">to</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#intcast%2CExpr%2CCType"><span class="Identifier">intcast</span></a><span class="Other">(</span><span class="Identifier">e</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">;</span> <span class="Identifier">to</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L544"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L547"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L544" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L547" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1748,9 +1748,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L640"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L643"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L640" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L643" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1760,9 +1760,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L646"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L649"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L646" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L649" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1772,9 +1772,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 emit in the expression message
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L287"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L290"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L287" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L290" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1784,14 +1784,14 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L262"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L265"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L262" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L265" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="isFloating,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#isFloating%2CCType"><span class="Identifier">isFloating</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#isFloating%2CCType"><span class="Identifier">isFloating</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
@@ -1809,14 +1809,14 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L540"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L543"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L540" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L543" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="isSigned,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#isSigned%2CCType"><span class="Identifier">isSigned</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#isSigned%2CCType"><span class="Identifier">isSigned</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 <tt class="docutils literal"><span class="pre"><span class="Identifier">_Bool</span></span></tt> is not signed
@@ -1833,9 +1833,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L299"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L302"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L299" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L302" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1845,9 +1845,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2846"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2898"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2846" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2898" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1857,9 +1857,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2860"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2912"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2860" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2912" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1905,9 +1905,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L764"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L767"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L764" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L767" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1918,9 +1918,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L821"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L824"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L821" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L824" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1942,9 +1942,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L831"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L834"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L831" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L834" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1954,9 +1954,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L826"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L829"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L826" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L829" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1966,9 +1966,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L836"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L839"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L836" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L839" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1978,9 +1978,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L806"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L809"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L806" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L809" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1990,9 +1990,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L812"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L815"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L812" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L815" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2002,9 +2002,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L777"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L780"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L777" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L780" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2021,7 +2021,7 @@ class="link-seesrc" target="_blank">Source</a>
 </dd>
 </div>
 <div id="merge_types,seq[Token]">
-<dt><pre><span class="Keyword">proc</span> <a href="#merge_types%2Cseq%5BToken%5D"><span class="Identifier">merge_types</span></a><span class="Other">(</span><span class="Identifier">ts</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="token.html#Token"><span class="Identifier">Token</span></a><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#merge_types%2Cseq%5BToken%5D"><span class="Identifier">merge_types</span></a><span class="Other">(</span><span class="Identifier">ts</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="token.html#Token"><span class="Identifier">Token</span></a><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 <p>merge many token to a type</p>
@@ -2029,9 +2029,9 @@ class="link-seesrc" target="_blank">Source</a>
 <blockquote><p><tt class="docutils literal"><span class="pre"><span class="Identifier">long</span> <span class="Identifier">long</span> <span class="Identifier">int</span> <span class="Keyword">const</span></span></tt> =&gt; const long long</p></blockquote>
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1045"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1048"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1045" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1048" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2041,9 +2041,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2682"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2734"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2682" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2734" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2053,22 +2053,22 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L276"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L279"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L276" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L279" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="parameter_type_list">
-<dt><pre><span class="Keyword">proc</span> <a href="#parameter_type_list"><span class="Identifier">parameter_type_list</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <span class="Other">(</span><span class="Identifier">bool</span><span class="Other">,</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Other">(</span><span class="Identifier">string</span><span class="Other">,</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">]</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
+<dt><pre><span class="Keyword">proc</span> <a href="#parameter_type_list"><span class="Identifier">parameter_type_list</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <span class="Other">(</span><span class="Identifier">bool</span><span class="Other">,</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Other">(</span><span class="Identifier">string</span><span class="Other">,</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">]</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1571"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1618"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1571" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1618" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2078,9 +2078,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1602"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1649"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1602" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1649" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2090,9 +2090,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1684"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1731"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1684" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1731" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2109,7 +2109,7 @@ class="link-seesrc" target="_blank">Source</a>
 </dd>
 </div>
 <div id="penum">
-<dt><pre><span class="Keyword">proc</span> <a href="#penum"><span class="Identifier">penum</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#penum"><span class="Identifier">penum</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 parse a enum, return it for example:<blockquote><p><p><tt class="docutils literal"><span class="pre"><span class="Keyword">enum</span> <span class="Identifier">State</span></span></tt></p>
@@ -2118,21 +2118,21 @@ parse a enum, return it for example:<blockquote><p><p><tt class="docutils litera
 </p></blockquote>
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1524"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1571"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1524" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1571" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="postfix,Expr,PostfixOP,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#postfix%2CExpr%2CPostfixOP%2CCType"><span class="Identifier">postfix</span></a><span class="Other">(</span><span class="Identifier">e</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">;</span> <span class="Identifier">op</span><span class="Other">:</span> <a href="operators.html#PostfixOP"><span class="Identifier">PostfixOP</span></a><span class="Other">;</span> <span class="Identifier">ty</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#postfix%2CExpr%2CPostfixOP%2CCType"><span class="Identifier">postfix</span></a><span class="Other">(</span><span class="Identifier">e</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">;</span> <span class="Identifier">op</span><span class="Other">:</span> <a href="operators.html#PostfixOP"><span class="Identifier">PostfixOP</span></a><span class="Other">;</span> <span class="Identifier">ty</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 construct a postfix operator
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1008"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1011"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1008" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1011" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2142,9 +2142,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2567"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2619"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2567" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2619" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2154,9 +2154,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2074"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2127"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2074" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2127" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2173,21 +2173,21 @@ class="link-seesrc" target="_blank">Source</a>
 </dl>
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2343"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2396"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2343" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2396" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="putenumdef,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#putenumdef%2CCType"><span class="Identifier">putenumdef</span></a><span class="Other">(</span><span class="Identifier">t</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#putenumdef%2CCType"><span class="Identifier">putenumdef</span></a><span class="Other">(</span><span class="Identifier">t</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L445"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L448"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L445" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L448" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2197,59 +2197,59 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L413"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L416"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L413" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L416" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="putstructdef,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#putstructdef%2CCType"><span class="Identifier">putstructdef</span></a><span class="Other">(</span><span class="Identifier">t</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#putstructdef%2CCType"><span class="Identifier">putstructdef</span></a><span class="Other">(</span><span class="Identifier">t</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L428"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L431"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L428" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L431" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="putsymtype,string,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#putsymtype%2Cstring%2CCType"><span class="Identifier">putsymtype</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">t</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
+<dt><pre><span class="Keyword">proc</span> <a href="#putsymtype%2Cstring%2CCType"><span class="Identifier">putsymtype</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">t</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L493"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L496"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L493" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L496" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="putsymtype2,string,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#putsymtype2%2Cstring%2CCType"><span class="Identifier">putsymtype2</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">t</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
+<dt><pre><span class="Keyword">proc</span> <a href="#putsymtype2%2Cstring%2CCType"><span class="Identifier">putsymtype2</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">t</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L485"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L488"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L485" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L488" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="putsymtype3,string,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#putsymtype3%2Cstring%2CCType"><span class="Identifier">putsymtype3</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">t</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#putsymtype3%2Cstring%2CCType"><span class="Identifier">putsymtype3</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">t</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L478"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L481"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L478" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L481" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2259,33 +2259,33 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L537"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L540"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L537" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L540" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="putuniondef,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#putuniondef%2CCType"><span class="Identifier">putuniondef</span></a><span class="Other">(</span><span class="Identifier">t</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#putuniondef%2CCType"><span class="Identifier">putuniondef</span></a><span class="Other">(</span><span class="Identifier">t</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L462"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L465"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L462" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L465" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="read_enum_sepcs,CType,Token">
-<dt><pre><span class="Keyword">proc</span> <a href="#read_enum_sepcs%2CCType%2CToken"><span class="Identifier">read_enum_sepcs</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <span class="Keyword">var</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">;</span> <span class="Identifier">sepc</span><span class="Other">:</span> <a href="token.html#Token"><span class="Identifier">Token</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#read_enum_sepcs%2CCType%2CToken"><span class="Identifier">read_enum_sepcs</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <span class="Keyword">var</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">;</span> <span class="Identifier">sepc</span><span class="Other">:</span> <a href="token.html#Token"><span class="Identifier">Token</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1195"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1198"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1195" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1198" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2296,21 +2296,21 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2166"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2219"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2166" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2219" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="read_struct_union_sepcs,CType,Token">
-<dt><pre><span class="Keyword">proc</span> <a href="#read_struct_union_sepcs%2CCType%2CToken"><span class="Identifier">read_struct_union_sepcs</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <span class="Keyword">var</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">;</span> <span class="Identifier">sepc</span><span class="Other">:</span> <a href="token.html#Token"><span class="Identifier">Token</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#read_struct_union_sepcs%2CCType%2CToken"><span class="Identifier">read_struct_union_sepcs</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <span class="Keyword">var</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">;</span> <span class="Identifier">sepc</span><span class="Other">:</span> <a href="token.html#Token"><span class="Identifier">Token</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1199"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1202"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1199" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1202" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2320,9 +2320,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2745"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2797"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2745" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2797" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2332,9 +2332,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L309"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L312"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L309" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L312" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2346,9 +2346,9 @@ class="link-seesrc" target="_blank">Source</a>
 <p>never return nil, return a compound statement</p>
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2994"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L3046"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2994" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L3046" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2358,9 +2358,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 create a Parser, and call <a class="reference external" href="#setParser,Parser">setParser proc</a>, then call <a class="reference external" href="#reset">reset proc</a>
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L3316"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L3368"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L3316" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L3368" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2382,9 +2382,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2726"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L2778"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2726" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2778" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2401,14 +2401,14 @@ class="link-seesrc" target="_blank">Source</a>
 </dd>
 </div>
 <div id="specifier_qualifier_list">
-<dt><pre><span class="Keyword">proc</span> <a href="#specifier_qualifier_list"><span class="Identifier">specifier_qualifier_list</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#specifier_qualifier_list"><span class="Identifier">specifier_qualifier_list</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 specfier_qualifier_list is used in struct declaration
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1221"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1224"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1221" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1224" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2418,9 +2418,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 parse a statement
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L3045"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L3097"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L3045" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L3097" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2430,9 +2430,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1700"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1747"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1700" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1747" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2442,9 +2442,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L858"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L861"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L858" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L861" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2454,9 +2454,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L916"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L919"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L916" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L919" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2466,9 +2466,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L884"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L887"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L884" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L887" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2478,14 +2478,14 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L890"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L893"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L890" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L893" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="struct_union,Token">
-<dt><pre><span class="Keyword">proc</span> <a href="#struct_union%2CToken"><span class="Identifier">struct_union</span></a><span class="Other">(</span><span class="Identifier">t</span><span class="Other">:</span> <a href="token.html#Token"><span class="Identifier">Token</span></a><span class="Other">)</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#struct_union%2CToken"><span class="Identifier">struct_union</span></a><span class="Other">(</span><span class="Identifier">t</span><span class="Other">:</span> <a href="token.html#Token"><span class="Identifier">Token</span></a><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 parse a struct or union, return it for example:  <tt class="docutils literal"><span class="pre"><span class="Identifier">struct</span> <span class="Identifier">Foo</span></span></tt><blockquote><p><p><tt class="docutils literal"><span class="pre"><span class="Identifier">struct</span> <span class="Punctuation">{</span> <span class="Operator">...</span> <span class="Punctuation">}</span></span></tt></p>
@@ -2493,9 +2493,9 @@ parse a struct or union, return it for example:  <tt class="docutils literal"><s
 </p></blockquote>
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1452"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1499"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1452" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1499" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2505,9 +2505,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L636"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L639"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L636" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L639" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2519,21 +2519,21 @@ class="link-seesrc" target="_blank">Source</a>
 <p>never return nil, return a compound statement</p>
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L2975"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L3027"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L2975" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L3027" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="type_equal,CType,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#type_equal%2CCType%2CCType"><span class="Identifier">type_equal</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">,</span> <span class="Identifier">b</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#type_equal%2CCType%2CCType"><span class="Identifier">type_equal</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">,</span> <span class="Identifier">b</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L562"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L565"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L562" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L565" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2550,7 +2550,7 @@ class="link-seesrc" target="_blank">Source</a>
 </dd>
 </div>
 <div id="type_name">
-<dt><pre><span class="Keyword">proc</span> <a href="#type_name"><span class="Identifier">type_name</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <span class="Other">(</span><a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">,</span> <span class="Identifier">bool</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#type_name"><span class="Identifier">type_name</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <span class="Other">(</span><a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">,</span> <span class="Identifier">bool</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 <p>parse a type-name</p>
@@ -2558,27 +2558,27 @@ class="link-seesrc" target="_blank">Source</a>
 <blockquote><p>sizeof(type-name)</p></blockquote>
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1894"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1938"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1894" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1938" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="type_qualifier_list,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#type_qualifier_list%2CCType"><span class="Identifier">type_qualifier_list</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <span class="Keyword">var</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
+<dt><pre><span class="Keyword">proc</span> <a href="#type_qualifier_list%2CCType"><span class="Identifier">type_qualifier_list</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <span class="Keyword">var</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 parse many type qualifiers, add to type
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1171"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1174"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1171" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1174" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="unary,Expr,UnaryOP,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#unary%2CExpr%2CUnaryOP%2CCType"><span class="Identifier">unary</span></a><span class="Other">(</span><span class="Identifier">e</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">;</span> <span class="Identifier">op</span><span class="Other">:</span> <a href="operators.html#UnaryOP"><span class="Identifier">UnaryOP</span></a><span class="Other">;</span> <span class="Identifier">ty</span><span class="Other">:</span> <a href="types.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#unary%2CExpr%2CUnaryOP%2CCType"><span class="Identifier">unary</span></a><span class="Other">(</span><span class="Identifier">e</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">;</span> <span class="Identifier">op</span><span class="Other">:</span> <a href="operators.html#UnaryOP"><span class="Identifier">UnaryOP</span></a><span class="Other">;</span> <span class="Identifier">ty</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 construct a unary operator
@@ -2595,9 +2595,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L1914"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L1967"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1914" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L1967" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2627,9 +2627,9 @@ abstract decorator has no name<dl class="docutils"><dt>for example: <tt class="d
 </dl>
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/parser.nim#L987"
+href="https://github.com/ianfun/cc/tree/master/parser.nim#L990"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L987" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/parser.nim#L990" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -2643,7 +2643,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-11 00:50:02 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-11 05:36:45 UTC</small>
       </div>
     </div>
   </div>

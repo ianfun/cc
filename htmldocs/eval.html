@@ -105,14 +105,17 @@ window.addEventListener('DOMContentLoaded', main);
   </ul>
 </li>
 <li>
-  <a class="reference reference-toplevel" href="#12" id="62">Procs</a>
+  <a class="reference reference-toplevel" href="#8" id="58">Vars</a>
   <ul class="simple simple-toc-section">
-      <ul class="simple nested-toc-section">eval_error
-      <li><a class="reference" href="#eval_error%2Cstring"
-    title="eval_error(msg: string)">eval_error(msg: string)</a></li>
+      <li><a class="reference" href="#eval_error_msg"
+    title="eval_error_msg: string">eval_error_msg</a></li>
 
   </ul>
-  <ul class="simple nested-toc-section">evali
+</li>
+<li>
+  <a class="reference reference-toplevel" href="#12" id="62">Procs</a>
+  <ul class="simple simple-toc-section">
+      <ul class="simple nested-toc-section">evali
       <li><a class="reference" href="#evali%2CExpr"
     title="evali(e: Expr): intmax_t">evali(e: Expr): intmax_t</a></li>
 
@@ -120,6 +123,11 @@ window.addEventListener('DOMContentLoaded', main);
   <ul class="simple nested-toc-section">setEval
       <li><a class="reference" href="#setEval"
     title="setEval()">setEval()</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">write_eval_msg
+      <li><a class="reference" href="#write_eval_msg"
+    title="write_eval_msg()">write_eval_msg()</a></li>
 
   </ul>
 
@@ -141,35 +149,39 @@ class="link-seesrc" target="_blank">Source</a>
   <div class="section" id="6">
 <h1><a class="toc-backref" href="#6">Imports</a></h1>
 <dl class="item">
-<a class="reference external" href="config.html">config</a>, <a class="reference external" href="ast.html">ast</a>, <a class="reference external" href="operators.html">operators</a>, <a class="reference external" href="core.html">core</a>, <a class="reference external" href="parser.html">parser</a>
+<a class="reference external" href="config.html">config</a>, <a class="reference external" href="ast.html">ast</a>, <a class="reference external" href="operators.html">operators</a>, <a class="reference external" href="core.html">core</a>, <a class="reference external" href="stream.html">stream</a>, <a class="reference external" href="parser.html">parser</a>
 </dl></div>
-<div class="section" id="12">
-<h1><a class="toc-backref" href="#12">Procs</a></h1>
+<div class="section" id="8">
+<h1><a class="toc-backref" href="#8">Vars</a></h1>
 <dl class="item">
-<div id="eval_error,string">
-<dt><pre><span class="Keyword">proc</span> <a href="#eval_error%2Cstring"><span class="Identifier">eval_error</span></a><span class="Other">(</span><span class="Identifier">msg</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WriteIOEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<div id="eval_error_msg">
+<dt><pre><a href="eval.html#eval_error_msg"><span class="Identifier">eval_error_msg</span></a><span class="Other">:</span> <span class="Identifier">string</span></pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/eval.nim#L14"
+href="https://github.com/ianfun/cc/tree/master/eval.nim#L19"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/eval.nim#L14" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/eval.nim#L19" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
+
+</dl></div>
+<div class="section" id="12">
+<h1><a class="toc-backref" href="#12">Procs</a></h1>
+<dl class="item">
 <div id="evali,Expr">
-<dt><pre><span class="Keyword">proc</span> <a href="#evali%2CExpr"><span class="Identifier">evali</span></a><span class="Other">(</span><span class="Identifier">e</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">)</span><span class="Other">:</span> <a href="config.html#intmax_t"><span class="Identifier">intmax_t</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
-                                <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WriteIOEffect</span><span class="Other">,</span> <span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#evali%2CExpr"><span class="Identifier">evali</span></a><span class="Other">(</span><span class="Identifier">e</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">)</span><span class="Other">:</span> <a href="config.html#intmax_t"><span class="Identifier">intmax_t</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 <p>run the constant expression</p>
 <p>if error, setting eval_error</p>
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/eval.nim#L25"
+href="https://github.com/ianfun/cc/tree/master/eval.nim#L30"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/eval.nim#L25" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/eval.nim#L30" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -179,9 +191,21 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/eval.nim#L21"
+href="https://github.com/ianfun/cc/tree/master/eval.nim#L16"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/eval.nim#L21" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/eval.nim#L16" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="write_eval_msg">
+<dt><pre><span class="Keyword">proc</span> <a href="#write_eval_msg"><span class="Identifier">write_eval_msg</span></a><span class="Other">(</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/eval.nim#L26"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/eval.nim#L26" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -195,7 +219,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-11 00:50:03 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-11 05:36:46 UTC</small>
       </div>
     </div>
   </div>
