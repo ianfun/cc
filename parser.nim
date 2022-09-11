@@ -1284,29 +1284,66 @@ proc declarator*(base: CType; flags=Direct): Stmt =
 
 proc initializer_list*(): Expr =
     if p.tok.tok != TLcurlyBracket:
-        return assignment_expression()
-    if p.currentInitTy.spec == TYARRAY:
-        result = Expr(k: EArray, ty: p.currentInitTy)
-    else:
+        if p.currentInitTy == nil:
+            # when 'excess elements in initializer-list', 'p.currentInitTy' is nil
+            return assignment_expression()
+        if p.currentInitTy.spec notin {TYPRIM, TYPOINTER}:
+            type_error("expect bracket initializer")
+            return nil
+        var e = assignment_expression()
+        if e == nil:
+            expectExpression()
+            return nil
+        return castto(e, p.currentInitTy)
+    if p.currentInitTy.spec == TYSTRUCT:
         result = Expr(k: EStruct, ty: p.currentInitTy)
+    else:
+        # array, scalar
+        result = Expr(k: EArray, ty: p.currentInitTy)
     consume()
+    var m: int
+    if p.currentInitTy.spec == TYARRAY:
+        if p.currentInitTy.hassize:
+            m = p.currentInitTy.arrsize.int
+        else:
+            result.ty.hassize = true
+            result.ty.arrsize = 0
+            m = -1
+    elif p.currentInitTy.spec == TYSTRUCT:
+        m = p.currentInitTy.selems.len.int
+    else:
+        # warning("braces around scalar initializer")
+        m = 1
+    var i = 0
     while true:
         if p.tok.tok == TRcurlyBracket:
             consume()
             break
-        if p.tok.tok == TLcurlyBracket:
-            let e = initializer_list()
-            if e == nil:
-                return nil
+        var ty: CType
+        if p.currentInitTy.spec == TYSTRUCT:
+            ty = if i < m: p.currentInitTy.selems[i][1] else: nil
+        elif p.currentInitTy.spec == TYARRAY:
+            ty = p.currentInitTy.arrtype
+        else:
+            ty = p.currentInitTy
+        var o = p.currentInitTy
+        p.currentInitTy = ty
+        var e = initializer_list()
+        p.currentInitTy = o
+        if e == nil:
+            return nil
+        if m == -1:
+            result.arr.add(e)
+            inc result.ty.arrsize
+        elif i < m:
             result.arr.add(e)
         else:
-            let e = assignment_expression()
-            if e == nil:
-                parse_error("expect expression")
-                return nil
-            result.arr.add(e)
+            warning("excess elements in initializer-list")
         if p.tok.tok == TComma:
             consume()
+        inc i
+    if p.currentInitTy.spec == TYPRIM or p.currentInitTy.spec == TYPOINTER:
+        result = result.arr[0]
 
 proc direct_declarator_end*(base: CType, name: string): Stmt
 
@@ -1817,13 +1854,11 @@ proc declaration*(): Stmt =
             result.vars.add((st.var1name, st.var1type, nil))
             putsymtype(st.var1name, st.var1type)
             if p.tok.tok == TAssign:
-                var init: Expr
                 consume()
-                block:
-                    var old = p.currentInitTy
-                    p.currentInitTy = st.var1type
-                    init = initializer_list()
-                    p.currentInitTy = old
+                var old = p.currentInitTy
+                p.currentInitTy = st.var1type
+                let init = initializer_list()
+                p.currentInitTy = old
                 if init == nil:
                     expect("initializer-list")
                     return nil
@@ -1831,26 +1866,19 @@ proc declaration*(): Stmt =
                     type_error("function declaration has no initializer")
                     note("only variables can be initialized")
                 else:
-                    block:
-                        if st.var1type.spec == TYARRAY:
-                            if init.k != ArrToAddress:
-                                type_error("expect array initializer")
-                                return nil
-                            result.vars[^1][2] = init
-                            if st.var1type.hassize == false:
-                                st.var1type.arrsize = len(init.arr)
-                            else:
-                                if len(init.voidexpr.arr) > st.var1type.arrsize:
-                                    warning("excess elements in array initializer")
-                                    while true:
-                                        discard init.arr.pop()
-                                        if len(init.arr) == st.var1type.arrsize:
-                                            break
-                            break
-                        result.vars[^1][2] = castto(init, st.var1type)
+                    result.vars[^1][2] = init
                     if isTopLevel() and isConstant(result.vars[^1][2]) == false:
                         type_error("initializer element is not constant")
                         note("global variable requires constant initializer")
+            else:
+                if st.var1type.spec == TYARRAY:
+                    if st.var1type.hassize == false:
+                        if isTopLevel():
+                            warning("array '" & st.var1name & "' assumed to have one element")
+                            st.var1type.hassize = true
+                            st.var1type.arrsize = 1
+                        else:
+                            type_error("array size missing in ‘" & st.var1name & "’")
             if p.tok.tok == TComma:
                 consume()
             elif p.tok.tok == TSemicolon:
@@ -2337,7 +2365,7 @@ proc fixName(v: string) =
         var f = fixList.pop()
         if f.priority < 3:
             msg.add("Perhaps you meant: " & f.name & "\n")
-    if msg.len > 0:
+    if msg.len > 1:
         note(msg)
 
 proc primary_expression*(): Expr =
@@ -2454,7 +2482,6 @@ proc primary_expression*(): Expr =
         else:
             unreachable()
     of CPPident:
-        echo "CPPident"
         result = Expr(k: EIntLit, ival: 0, ty: getIntType())  
         consume()
     of TIdentifier:

@@ -88,7 +88,7 @@ type
   VerifierFailureAction {.size: sizeof(cint), pure.} = enum
     AbortProcessAction, PrintMessageAction, ReturnStatusAction
 
-import LLVMInstrinsics
+#import LLVMInstrinsics
 import LLVMAttribute
 
 const
@@ -1121,8 +1121,8 @@ proc gen*(s: Stmt) =
       b.currentfunction = nil
   of SReturn:
       if s.exprbody != nil:
+        # gen(s.exprbody) may be nil if EVoid
         discard buildRet(b.builder, gen(s.exprbody))
-        # ret void if gen(s.exprbody) == nil
       else:
         discard buildRetVoid(b.builder)
   of SIf:
@@ -1181,7 +1181,7 @@ proc gen*(s: Stmt) =
         var ty = wrap(varty)
         if b.currentfunction == nil:
           var ginit = if init == nil: constNull(ty) else: gen(init)
-          var g = addGlobal(b.module, typeOfX(ginit), cstring(name))
+          var g = addGlobal(b.module, ty, cstring(name))
           nimLLVMSetDSOLocal(g)
           if align != 0:
             setAlignment(g, align)
@@ -1198,7 +1198,8 @@ proc gen*(s: Stmt) =
             setExternallyInitialized(g, True)
             setLinkage(g, ExternalLinkage)
           else:
-            setLinkage(g, CommonLinkage)
+            if init == nil:
+              setLinkage(g, CommonLinkage)
             if (varty.tags and TYREGISTER) != 0:
               warning("register variables is ignored in LLVM backend")
           # setLinkage(g, CommonLinkage)
@@ -1252,28 +1253,33 @@ proc decl*(p: Value, t: Type): Value =
   store(p, l2)
   return l
 
-proc getArray(e: Expr): Value =
-    var elemTy = wrap(e.ty.arrtype)
-    if len(e.arr) != e.ty.arrsize:
-      var l = len(e.arr)
-      var inits = create(Value, l + 1)
-      var arr = cast[ptr UncheckedArray[Value]](inits)
-      for i in 0 ..< l:
-        arr[i] = gen(e.arr[i])
-      var rem = e.ty.arrsize - len(e.arr)
-      arr[l] = constNull(vectorType(elemTy, cuint(rem)))
-      var initStruct = constStruct(inits, cuint(l) + 1, True)
-      dealloc(inits)
-      initStruct
+proc getStruct*(e: Expr): Value =
+    var ty = wrap(e.ty)
+    if len(e.arr) == 0:
+      result = constNull(ty)
     else:
       var l = len(e.arr)
-      var inits = create(Value, l or 1)
+      var L = e.ty.selems.len
+      var inits = create(Value, L)
       var arr = cast[ptr UncheckedArray[Value]](inits)
       for i in 0 ..< l:
         arr[i] = gen(e.arr[i])
-      var ret = constArray(elemTy, inits, l.cuint)
+      for i in l ..< L:
+        arr[i] = constNull(wrap(e.ty.selems[i][1]))
+      result = constNamedStruct(ty, inits, cuint(L))
       dealloc(inits)
-      ret
+
+proc getArray*(e: Expr): Value =
+    var l = len(e.arr)
+    var elemTy = wrap(e.ty.arrtype)
+    var inits = create(Value, e.ty.arrsize or 1)
+    var arr = cast[ptr UncheckedArray[Value]](inits)
+    for i in 0 ..< l:
+      arr[i] = gen(e.arr[i])
+    for i in l ..< e.ty.arrsize:
+      arr[i] = constNull(elemTy)
+    result = constArray(elemTy, inits, e.ty.arrsize.cuint)
+    dealloc(inits)
 
 proc getAddress*(e: Expr): Value =
   # return address
@@ -1323,8 +1329,8 @@ proc getAddress*(e: Expr): Value =
     buildBitCast(b.builder, arr, wrap(e.ty), "")
   of EString:
     gen_str_ptr(e.str)
-  of EArray:
-    var v = getArray(e)
+  of EArray, EStruct:
+    var v = if e.k == EArray: getArray(e) else: getStruct(e)
     if b.currentfunction == nil:
       var g = addGlobal(b.module, typeOfX(v), "")
       setLinkage(g, InternalLinkage)
@@ -1431,7 +1437,8 @@ proc gen*(e: Expr): Value =
   of EFloatLit:
     gen_float(e.fval, e.ty.tags)
   of EVoid:
-    gen(e.voidexpr)
+    discard gen(e.voidexpr)
+    return nil
   of EUnary:
     case e.uop:
     of Pos: gen(e.uoperand)
@@ -1511,19 +1518,7 @@ proc gen*(e: Expr): Value =
       setTailCall(res, True)
       res
   of EStruct:
-    var ty = wrap(e.ty)
-    if len(e.arr) == 0:
-      constNull(ty)
-    else:
-      # TODO: bit field, padding
-      var l = len(e.arr)
-      var inits = create(Value, l)
-      var arr = cast[ptr UncheckedArray[Value]](inits)
-      for i in 0 ..< l:
-        arr[i] = gen(e.arr[i])
-      var ret = constNamedStruct(ty, inits, cuint(l))
-      dealloc(inits)
-      ret
+    getStruct(e)
   of EArray:
     getArray(e)
 
