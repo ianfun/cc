@@ -33,6 +33,9 @@ proc ftell*(stream: Fd): clong {.importc, header: "stdio.h", nodecl.}
 proc `<<`*(stream: Fd, msg: string) =
     discard fputs(msg, stream)
 
+proc `<<`*(stream: Fd, msg: cstring) =
+    discard fputs(msg, stream)
+
 proc `<<`*(stream: Fd, c: char) =
     discard fputc(c.cint, stream)
 
@@ -40,6 +43,10 @@ proc `<<`*(stream: Fd, c: SomeInteger) =
     discard fputc(c.cint, stream)
 
 proc `<<<`*(stream: Fd, msg: string) =
+    stream << msg
+    stream << '\n'
+
+proc `<<<`*(stream: Fd, msg: cstring) =
     stream << msg
     stream << '\n'
 

@@ -1,182 +1,14 @@
 ## LLVM Backend
 ##
-## LLVM-15 C API
-##
-## https://llvm.org/docs/OpaquePointers.html
-##
-## since `sizeof` is contant expression (operand cannot be VLA), so `LLVMSizeOfTypeInBits()` and `LLVMStoreSizeOfType()`
-## should called when eval constant expression or let compiler give it a assumption(for example, `_Bool` and `char` is 1 bytes, `int32` is 4 bytes ...)
-##
-## in LLVM, interger type has bits, so it is not necessarily to call LLVM API, but struct and bool type may has align bits or storage size  for a LLVM target
-##
 ## the main export function is `gen()`
-##
-## application should call setBackend to initialize backend, call `app.getSizeof()` to get sizeof CType, and call `gen()` to build whole *translation-unit* to single LLVM Module
-##
-## when there no need for calling `gen()` function, call `shutdownBackend()` to shutdown LLVM
 ##
 ## `runjit()` will run module.
 
+import llvm/llvm
 import std/[tables, exitprocs]
-import config, core, parser, builtins, ast, operators
+import config, core, parser, builtins, ast, operators, stream
 
-type
-  OpaqueMemoryBuffer*{.pure, final.} = object
-  OpaqueAttributeRef*{.pure, final.} = object
-  OpaqueContext*{.pure, final.} = object
-  OpaqueModule*{.pure, final.} = object
-  OpaqueType*{.pure, final.} = object
-  OpaqueValue*{.pure, final.} = object
-  OpaqueBasicBlock*{.pure, final.} = object
-  OpaqueBuilder*{.pure, final.} = object
-  OpaqueModuleProvider*{.pure, final.} = object
-  OpaquePassManager*{.pure, final.} = object
-  OpaquePassRegistry*{.pure, final.} = object
-  OpaqueUse*{.pure, final.} = object
-  OpaqueDiagnosticInfo*{.pure, final.} = object
-  OpaqueTargetMachine*{.pure, final.} = object
-  orcOpaqueLLJITBuilder*{.pure, final.} = object
-  orcOpaqueLLJIT*{.pure, final.} = object
-  orcOpaqueSymbolStringPool*{.pure, final.} = object
-  orcOpaqueSymbolStringPoolEntry*{.pure, final.} = object
-  orcOpaqueJITDylib*{.pure, final.} = object
-  orcOpaqueJITTargetMachineBuilder*{.pure, final.} = object
-  orcOpaqueMaterializationUnit*{.pure, final.} = object
-  orcOpaqueMaterializationResponsibility*{.pure, final.} = object
-  orcOpaqueResourceTracker*{.pure, final.} = object
-  orcOpaqueDefinitionGenerator*{.pure, final.} = object
-  orcOpaqueLookupState{.pure, final.} = object
-  orcOpaqueThreadSafeContext{.pure, final.} = object
-  orcOpaqueObjectTransformLayer*{.pure, final.} = object
-  orcOpaqueExecutionSession*{.pure, final.} = object
-  orcOpaqueIRTransformLayer*{.pure, final.} = object
-  opaqueError*{.pure, final.} = object
-  orcOpaqueObjectLayer*{.pure, final.} = object
-  orcOpaqueObjectLinkingLayer*{.pure, final.} = object
-  orcOpaqueIndirectStubsManager*{.pure, final.} = object
-  orcOpaqueLazyCallThroughManager*{.pure, final.} = object
-  orcOpaqueDumpObjects*{.pure, final.} = object
-  ErrorRef* = pointer
-  orcOpaqueThreadSafeModule*{.pure, final.} = object
-  OpaquePassManagerBuilder*{.pure, final.} = object
-  OpaqueMetaData{.pure, final.} = object
-  OpaqueDIBuilder{.pure, final.} = object
-  target{.pure, final.} = object
-  OpaqueJITEventListener{.pure, final.} = object
-  OpaqueNamedMDNode{.pure, final.} = object
-  opaqueValueMetadataEntry{.pure, final.} = object
-  comdat{.pure, final.} = object
-  opaqueModuleFlagEntry{.pure, final.} = object
-  OpaqueBinary{.pure, final.} = object
-  int64T = int64
-  uint64T = uint64
-  uint8T = uint8
-  int32T = int32
-  uint32T = uint32
-  Bool* = cint
-  AttributeIndex* = cuint
-  TargetDataRef* = distinct pointer
-  TargetLibraryInfoRef* = distinct pointer
-  Opcode {.pure, size: sizeof(cint).} = cint
-  DIFlags* = cint
-  DWARFTypeEncoding* = cuint
-  MetadataKind* = cuint
-  ByteOrdering* {.size: sizeof(cint).} = enum
-    BigEndian, LittleEndian
-  TargetMachineRef* = distinct pointer
-  PassManagerBuilderRef* = distinct pointer
-  VerifierFailureAction {.size: sizeof(cint), pure.} = enum
-    AbortProcessAction, PrintMessageAction, ReturnStatusAction
-
-#import LLVMInstrinsics
-import LLVMAttribute
-
-const
-  False*: Bool = 0
-  True*: Bool = 1
-
-# LLVM Core
-include llvm/Types
-include llvm/Support
-include llvm/Error
-include llvm/Core
-
-#LLVMParseBitcodeInContext
-include llvm/BitReader
-
-# LLVMParseIRInContext
-include llvm/IRReader
-
-# writing LLVM IR
-# writeBitcodeToFile
-include llvm/BitWriter
-
-# LLVMLinkModules2
-include llvm/Linker
-
-# verifyModule
-include llvm/Analysis
-
-# target machine
-include llvm/TargetMachine
-
-# optmize modules
-include llvm/Transforms/PassManagerBuilder
-# include llvm/Transforms/Scalar
-
-# jit headers
-include llvm/Orc
-include llvm/LLJIT
-
-#  initializeNativeTarget
-#  initializeNativeAsmPrinter
-# include LLVMTarget
-
-proc setModuleDataLayout*(m: ModuleRef; dl: TargetDataRef) {.
-    importc: "LLVMSetModuleDataLayout".}
-proc createTargetData*(stringRep: cstring): TargetDataRef {.
-    importc: "LLVMCreateTargetData".}
-proc disposeTargetData*(td: TargetDataRef) {.importc: "LLVMDisposeTargetData",
-.}
-proc addTargetLibraryInfo*(tli: TargetLibraryInfoRef; pm: PassManagerRef) {.
-    importc: "LLVMAddTargetLibraryInfo".}
-proc copyStringRepOfTargetData*(td: TargetDataRef): cstring {.
-    importc: "LLVMCopyStringRepOfTargetData".}
-proc byteOrder*(td: TargetDataRef): ByteOrdering {.importc: "LLVMByteOrder",
-.}
-proc pointerSize*(td: TargetDataRef): cuint {.importc: "LLVMPointerSize",
-.}
-proc pointerSizeForAS*(td: TargetDataRef; `as`: cuint): cuint {.
-    importc: "LLVMPointerSizeForAS".}
-proc intPtrType*(td: TargetDataRef): TypeRef {.importc: "LLVMIntPtrType",
-.}
-proc intPtrTypeForAS*(td: TargetDataRef; `as`: cuint): TypeRef {.
-    importc: "LLVMIntPtrTypeForAS".}
-proc intPtrTypeInContext*(c: ContextRef; td: TargetDataRef): TypeRef {.
-    importc: "LLVMIntPtrTypeInContext".}
-proc intPtrTypeForASInContext*(c: ContextRef; td: TargetDataRef; `as`: cuint): TypeRef {.
-    importc: "LLVMIntPtrTypeForASInContext".}
-proc sizeOfTypeInBits*(td: TargetDataRef; ty: TypeRef): culonglong {.
-    importc: "LLVMSizeOfTypeInBits".}
-proc storeSizeOfType*(td: TargetDataRef; ty: TypeRef): culonglong {.
-    importc: "LLVMStoreSizeOfType".}
-proc aBISizeOfType*(td: TargetDataRef; ty: TypeRef): culonglong {.
-    importc: "LLVMABISizeOfType".}
-proc aBIAlignmentOfType*(td: TargetDataRef; ty: TypeRef): cuint {.
-    importc: "LLVMABIAlignmentOfType".}
-proc callFrameAlignmentOfType*(td: TargetDataRef; ty: TypeRef): cuint {.
-    importc: "LLVMCallFrameAlignmentOfType".}
-proc preferredAlignmentOfType*(td: TargetDataRef; ty: TypeRef): cuint {.
-    importc: "LLVMPreferredAlignmentOfType".}
-proc preferredAlignmentOfGlobal*(td: TargetDataRef; globalVar: ValueRef): cuint {.
-    importc: "LLVMPreferredAlignmentOfGlobal".}
-proc elementAtOffset*(td: TargetDataRef; structTy: TypeRef; offset: culonglong): cuint {.
-    importc: "LLVMElementAtOffset".}
-proc offsetOfElement*(td: TargetDataRef; structTy: TypeRef; element: cuint): culonglong {.
-  importc: "LLVMOffsetOfElement".}
-
-
-# ** begin wrapper from llvmAPI.cpp ***
+# === begin wrapper from llvmAPI.cpp ===
 
 proc nimLLVMinit*() {.importc: "LLVMNimInit".}
 
@@ -188,95 +20,7 @@ proc nimLLVMOptModule*(m: ModuleRef) {.importc: "LLVMNimOptModule".}
 
 proc nimLLVMGetAllocaArraySize*(Alloca: ValueRef): ValueRef {.importc: "LLVMNimGetAllocaArraySize".}
 
-# *** end wrapper ***
-
-proc typeOfX*(val: ValueRef): TypeRef {.importc: "LLVMTypeOf".}
-
-proc constIntIsZero*(constantVal: ValueRef): Bool {.importc: "LLVMConstIntIsZero".}
-
-proc `$`*(v: ValueRef): string =
-  let tmp = v.printValueToString()
-  result = $tmp
-  disposeMessage(tmp)
-
-proc `$`*(v: TypeRef): string =
-  let tmp = v.printTypeToString()
-  result = $tmp
-  disposeMessage(tmp)
-
-const
-   LLVMRet*            = 1.Opcode
-   LLVMBr*             = 2.Opcode
-   LLVMSwitch*         = 3.Opcode
-   LLVMIndirectBr*     = 4.Opcode
-   LLVMInvoke*         = 5.Opcode
-   LLVMUnreachable*    = 7.Opcode
-   LLVMCallBr*         = 67.Opcode
-   LLVMFNeg*           = 66.Opcode
-   LLVMAdd*            = 8.Opcode
-   LLVMFAdd*           = 9.Opcode
-   LLVMSub*            = 10.Opcode
-   LLVMFSub*           = 11.Opcode
-   LLVMMul*            = 12.Opcode
-   LLVMFMul*           = 13.Opcode
-   LLVMUDiv*           = 14.Opcode
-   LLVMSDiv*           = 15.Opcode
-   LLVMFDiv*           = 16.Opcode
-   LLVMURem*           = 17.Opcode
-   LLVMSRem*           = 18.Opcode
-   LLVMFRem*           = 19.Opcode
-   LLVMShl*            = 20.Opcode
-   LLVMLShr*           = 21.Opcode
-   LLVMAShr*           = 22.Opcode
-   LLVMAnd*            = 23.Opcode
-   LLVMOr*             = 24.Opcode
-   LLVMXor*            = 25.Opcode
-   LLVMAlloca*         = 26.Opcode
-   LLVMLoad*           = 27.Opcode
-   LLVMStore*          = 28.Opcode
-   LLVMGetElementPtr*  = 29.Opcode
-   LLVMTrunc*          = 30.Opcode
-   LLVMZExt*           = 31.Opcode
-   LLVMSExt*           = 32.Opcode
-   LLVMFPToUI*         = 33.Opcode
-   LLVMFPToSI*         = 34.Opcode
-   LLVMUIToFP*         = 35.Opcode
-   LLVMSIToFP*         = 36.Opcode
-   LLVMFPTrunc*        = 37.Opcode
-   LLVMFPExt*          = 38.Opcode
-   LLVMPtrToInt*       = 39.Opcode
-   LLVMIntToPtr*       = 40.Opcode
-   LLVMBitCast*        = 41.Opcode
-   LLVMAddrSpaceCast*  = 60.Opcode
-   LLVMICmp*           = 42.Opcode
-   LLVMFCmp*           = 43.Opcode
-   LLVMPHI*            = 44.Opcode
-   LLVMCall*           = 45.Opcode
-   LLVMSelect*         = 46.Opcode
-   LLVMUserOp1*        = 47.Opcode
-   LLVMUserOp2*        = 48.Opcode
-   LLVMVAArg*          = 49.Opcode
-   LLVMExtractElement* = 50.Opcode
-   LLVMInsertElement*  = 51.Opcode
-   LLVMShuffleVector*  = 52.Opcode
-   LLVMExtractValue*   = 53.Opcode
-   LLVMInsertValue*    = 54.Opcode
-   LLVMFreeze*         = 68.Opcode
-   LLVMFence*          = 55.Opcode
-   LLVMAtomicCmpXchg*  = 56.Opcode
-   LLVMAtomicRMW*      = 57.Opcode
-   LLVMResume*         = 58.Opcode
-   LLVMLandingPad*     = 59.Opcode
-   LLVMCleanupRet*     = 61.Opcode
-   LLVMCatchRet*       = 62.Opcode
-   LLVMCatchPad*       = 63.Opcode
-   LLVMCleanupPad*     = 64.Opcode
-   LLVMCatchSwitch*    = 65.Opcode
-
-type
-  Value* = ValueRef ## LLVM Value
-  Type* = TypeRef ## LLVM Type
-  Label* = BasicBlockRef ## LLVM block
+# === end wrapper ===
 
 type
     Backend* = object
@@ -312,17 +56,16 @@ type
       ## LLVM false/true constant
       i1_0, i1_1*: Value
 
-
 var b*: ptr Backend
 
 proc llvm_error*(msg: string) =
-  stderr.writeLine("LLVM ERROR: " & msg)
+  cstderr << "LLVM ERROR: "
+  cstderr <<< cstring(msg)
 
 proc llvm_error*(msg: cstring) =
   if msg != nil:
-    stderr.write("LLVM ERROR: ")
-    stderr.write(msg)
-    stderr.write('\n')
+    cstderr << "LLVM ERROR: "
+    cstderr <<< msg
 
 proc wrap*(ty: CType): Type
 
@@ -358,11 +101,6 @@ proc initModule() =
   addNamedMetadataOperand(b.module, "llvm.module.flags", wcharsizenode)
 
 proc newBackend*(module_name, source_file: string) =
-  #initializeCore(getGlobalPassRegistry())
-  #initializeNativeTarget()
-  #initializeNativeAsmParser()
-  #initializeNativeAsmPrinter()
-  #initializeAllAsmParsers()
   nimLLVMinit()
   b = create(Backend)
   b.tsCtx = orcCreateNewThreadSafeContext()
@@ -387,9 +125,6 @@ proc newBackend*(module_name, source_file: string) =
   b.i1_1 = constInt(b.i1, 1, False)
   initModule()
 
-#proc lookupIntrinsicID(name: string): cuint =
-#  lookupIntrinsicID(name, name.len.csize_t)
-
 proc initTarget*() =
   var err: cstring
   if app.triple.len == 0:
@@ -405,9 +140,6 @@ proc initTarget*() =
   app.pointersize = pointerSize(b.layout)
   contextSetOpaquePointers(b.ctx, if app.opaquePointerEnabled: True else: False)
   b.intPtr = intPtrTypeInContext(b.ctx, b.layout)
-  #b.i_setjmp = lookupIntrinsicID("llvm.eh.sjlj.longjmp") # 69
-  #b.i_longjmp = lookupIntrinsicID("llvm.eh.sjlj.setjmp") # 71
-
 
 proc dumpVersionInfo*() =
   var arr = [cstring("llvm"), cstring("--version")]
@@ -986,78 +718,78 @@ proc gen_dowhile*(test: Expr, body: Stmt) =
   b.topContinue = old_continue
 
 # the compiler may generate a table(array), so require `O(1)` time indexing
-proc getOp*(a: BinOP): Opcode =
+proc getOp*(a: BinOP): llvm.Opcode =
   case a:
-  of UAdd: LLVMAdd
-  of FAdd: LLVMFAdd
-  of USub: LLVMSub
-  of FSub: LLVMFSub
-  of UMul: LLVMMul
-  of FMul: LLVMFMul
-  of UDiv: LLVMUDiv
-  of SDiv: LLVMSDiv
-  of FDiv: LLVMFDiv
-  of URem: LLVMURem
-  of SRem: LLVMSRem
-  of FRem: LLVMFRem
-  of Shr: LLVMLShr
-  of AShr: LLVMAShr
-  of Shl: LLVMShl
-  of And: LLVMAnd
-  of Xor: LLVMXor
-  of Or: LLVMOr
-  else: assert(false);cast[Opcode](0)
+  of BinOp.UAdd: llvm.LLVMAdd
+  of BinOp.FAdd: llvm.LLVMFAdd
+  of BinOp.USub: llvm.LLVMSub
+  of BinOp.FSub: llvm.LLVMFSub
+  of BinOp.UMul: llvm.LLVMMul
+  of BinOp.FMul: llvm.LLVMFMul
+  of BinOp.UDiv: llvm.LLVMUDiv
+  of BinOp.SDiv: llvm.LLVMSDiv
+  of BinOp.FDiv: llvm.LLVMFDiv
+  of BinOp.URem: llvm.LLVMURem
+  of BinOp.SRem: llvm.LLVMSRem
+  of BinOp.FRem: llvm.LLVMFRem
+  of BinOp.Shr: llvm.LLVMLShr
+  of BinOp.AShr: llvm.LLVMAShr
+  of BinOp.Shl: llvm.LLVMShl
+  of BinOp.And: llvm.LLVMAnd
+  of BinOp.Xor: llvm.LLVMXor
+  of BinOp.Or: llvm.LLVMOr
+  else: assert(false);cast[llvm.Opcode](0)
 
-proc getICmpOp*(a: BinOP): IntPredicate =
+proc getICmpOp*(a: BinOP): llvm.IntPredicate =
   case a:
-  of EQ: IntEQ
-  of NE: IntNE
-  of UGE: IntUGE
-  of UGT: IntUGT
-  of ULE: IntULE
-  of ULT: IntULT
-  of SGE: IntSGE
-  of SGT: IntSGT
-  of SLT: IntSLT
-  of SLE: IntSLE 
-  else: unreachable();cast[IntPredicate](0)
+  of BinOP.EQ: llvm.IntEQ
+  of BinOP.NE: llvm.IntNE
+  of BinOP.UGE: llvm.IntUGE
+  of BinOP.UGT: llvm.IntUGT
+  of BinOP.ULE: llvm.IntULE
+  of BinOP.ULT: llvm.IntULT
+  of BinOP.SGE: llvm.IntSGE
+  of BinOP.SGT: llvm.IntSGT
+  of BinOP.SLT: llvm.IntSLT
+  of BinOP.SLE: llvm.IntSLE 
+  else: unreachable();cast[llvm.IntPredicate](0)
 
 proc getFCmpOp*(a: BinOP): RealPredicate =
   case a:
-  of FEQ: RealOEQ
-  of FNE: RealONE
-  of FGT: RealOGT
-  of FGE: RealOGE
-  of FLT: RealOLT
-  of FLE: RealOLE
+  of BinOP.FEQ: RealOEQ
+  of BinOP.FNE: RealONE
+  of BinOP.FGT: RealOGT
+  of BinOP.FGE: RealOGE
+  of BinOP.FLT: RealOLT
+  of BinOP.FLE: RealOLE
   else: unreachable();cast[RealPredicate](0)
 
-proc getCastOp*(a: CastOp): Opcode =
+proc getCastOp*(a: CastOp): llvm.Opcode =
   case a:
   of CastOp.Trunc:
-    LLVMTrunc
+    llvm.LLVMTrunc
   of CastOp.ZExt:
-    LLVMZExt
+    llvm.LLVMZExt
   of CastOp.SExt:
-    LLVMSExt
+    llvm.LLVMSExt
   of CastOp.FPToUI:
-    LLVMFPToUI
+    llvm.LLVMFPToUI
   of CastOp.FPToSI:
-    LLVMFPToSI
+    llvm.LLVMFPToSI
   of CastOp.UIToFP:
-    LLVMUIToFP
+    llvm.LLVMUIToFP
   of CastOp.SIToFP:
-    LLVMSIToFP
+    llvm.LLVMSIToFP
   of CastOp.FPTrunc:
-    LLVMFPTrunc
+    llvm.LLVMFPTrunc
   of CastOp.FPExt:
-    LLVMFPExt
+    llvm.LLVMFPExt
   of CastOp.PtrToInt:
-    LLVMPtrToInt
+    llvm.LLVMPtrToInt
   of CastOp.IntToPtr:
-    LLVMIntToPtr
+    llvm.LLVMIntToPtr
   of CastOp.BitCast:
-    LLVMBitCast
+    llvm.LLVMBitCast
 
 proc addAttribute(f: Value, attrID: cuint) =
     var attr = createEnumAttribute(b.ctx, attrID, 0)
@@ -1540,15 +1272,16 @@ proc gen_cast*(e: Expr, to: CType, op: CastOp): Value =
   buildCast(b.builder, getCastOp(op), c, wrap(to), "")
 
 proc jit_error*(msg: string) =
-  stderr.writeLine("LLVM JIT ERROR: " & msg)
+  cstderr << "LLVM JIT ERROR: " 
+  cstderr <<< msg
 
 proc jit_error*(msg: cstring) =
-  stderr.write("LLVM JIT ERROR: ")
-  stderr.writeLine(msg)
+  cstderr << "LLVM JIT ERROR: "
+  cstderr <<< msg
 
 proc jit_error*(err: ErrorRef) =
   var msg = getErrorMessage(err)
-  stdout.writeLine(msg)
+  cstderr <<< msg
   disposeErrorMessage(msg)
 
 proc orc_error_report*(ctx: pointer; err: ErrorRef) {.cdecl, gcsafe.} =
@@ -1611,7 +1344,6 @@ proc runjit*() =
 
     let fmain = cast[MainTY](main)
 
-    # TODO: use command line args from CLI options
     var o = @[appFileName]
     o &= options
     var argslen = len(o)

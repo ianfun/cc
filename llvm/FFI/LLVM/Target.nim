@@ -1,7 +1,3 @@
-type
-  TargetDataRef* = ptr OpaqueTargetData
-  TargetLibraryInfoRef* = ptr OpaqueTargetLibraryInfotData
-
 proc setModuleDataLayout*(m: ModuleRef; dl: TargetDataRef) {.
     importc: "LLVMSetModuleDataLayout".}
 

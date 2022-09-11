@@ -1,5 +1,5 @@
 import core, parser, stream
-import llvm
+import LLVMbackend
 
 var i = 0
 
@@ -61,7 +61,7 @@ proc showVersion() =
   cstderr <<< "CC: C Compiler"
   cstderr <<< "Homepage: https://github.com/ianfun/cc.git"
   cstderr <<< "Bug report: https://github.com/ianfun/cc/issues"
-  llvm.dumpVersionInfo()
+  LLVMbackend.dumpVersionInfo()
 
 proc setStdin() =
   addStdin()

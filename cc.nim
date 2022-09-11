@@ -6,11 +6,11 @@ when defined(windows):
     # download from https://github.com/llvm/llvm-project/releases
     # LLVM-15.0.0-rc3-win64.exe 
     # unpack and install
-    {.passL: "\"C:\\Program Files\\LLVM\\lib\\LLVM-C.lib\"".}
+    {.passL: "\"C:\\Program Files\\LLVM\\lib\\LLVM-C.lib\" llvm/llvmAPI".}
 else:
-    {.passL: "-lLLVM-15 llvmAPI".}
+    {.passL: "-lLLVM-15 ./llvm/llvmAPI".}
 
-import core, cli, stream, lexer, cpp, parser, eval, llvm
+import core, cli, stream, lexer, cpp, parser, eval, LLVMbackend
 
 setLexer()
 setCpp()
