@@ -84,12 +84,6 @@ proc eat*() =
         return
     do_eat()
 
-proc make_tok(op: Token) {.inline.} =
-    p.tok = TokenV(tok: op, tags: TVNormal)
-
-proc make_ch_lit(ch: char) {.inline.} =
-    p.tok.i = ch.int
-
 proc readHexChar(): Codepoint =
     var n = Codepoint(0)
     while true:
@@ -250,10 +244,6 @@ proc readIdentLit() =
             break
         p.tok.s.add(p.c)
         eat()
-    if p.flags == PFNormal:
-      let k = isKeyword(p.tok.s)
-      if k != TNul:
-          make_tok(k)
 
 proc readHexFloatLit(intPart: float = 0.0) =
     # read a float start from '.'

@@ -62,6 +62,12 @@ type
 
 var p*: Parser = nil
 
+proc make_tok*(op: Token) {.inline.} =
+    p.tok = TokenV(tok: op, tags: TVNormal)
+
+proc make_ch_lit*(ch: char) {.inline.} =
+    p.tok.i = ch.int
+
 when TYINT == TYINT32:
     const sizeofint = 4.culonglong
 else:
@@ -1008,6 +1014,10 @@ proc consume*() =
     ##
     ## alias for `getToken`
     app.cpp()
+    if p.tok.tok == TIdentifier:
+        let k = isKeyword(p.tok.s)
+        if k != TNul:
+            make_tok(k)
 
 
 proc addTag(ty: var CType, t: Token): bool =
@@ -2444,6 +2454,7 @@ proc primary_expression*(): Expr =
         else:
             unreachable()
     of CPPident:
+        echo "CPPident"
         result = Expr(k: EIntLit, ival: 0, ty: getIntType())  
         consume()
     of TIdentifier:
@@ -2473,7 +2484,7 @@ proc primary_expression*(): Expr =
                 )
             else:
                 result = Expr(k: EVar, sval: p.tok.s, ty: ty)
-        consume()
+            consume()
     of TLbracket:
         consume()
         result = expression()
@@ -3122,7 +3133,8 @@ proc statament*(): Stmt =
             warning("'return' a value in function return void")
             note("A return statement with an expression shall not appear in a function whose return type is void")
             return Stmt(k: SReturn, exprbody: nil)
-        if not compatible(e.ty, p.currentfunctionRet):
+        if not compatible(e.ty, p.currentfunctionRet) and e.ty.spec != TYPRIM:
+            # if it is cast from int to long, int to double, ...etc, we do not emit a warning
             warning("incompatible type in 'return' statement")
             note("expect " & $p.currentfunctionRet & ", but got " & $e.ty)
             inTheExpression(e)

@@ -588,7 +588,7 @@ proc gen_float*(f: float, tag: uint32): Value =
 proc gen_str*(val: string, ty: var Type): Value =
   var gstr = constStringInContext(b.ctx, cstring(val), len(val).cuint, False)
   ty = typeOfX(gstr)
-  result = addGlobal(b.module, ty, "")
+  result = addGlobal(b.module, ty, ".str")
   # setGlobalConstant(result, True)
   # we use array instead of constant string!
   setLinkage(result, PrivateLinkage)
@@ -599,8 +599,11 @@ proc gen_str*(val: string, ty: var Type): Value =
 proc gen_str_ptr*(val: string): Value =
   var ty: Type
   var s = gen_str(val, ty)
-  var indices = [b.i32_0, b.i32_0]
-  buildInBoundsGEP2(b.builder, pointerType(ty, 0), s, addr indices[0], 2, "")
+  if app.opaquePointerEnabled:
+    s
+  else:
+    var indices = [b.i32_0, b.i32_0]
+    buildInBoundsGEP2(b.builder, ty, s, addr indices[0], 2, "")
 
 proc backendint*(): Type =
     if TYINT == TYINT32:
@@ -1294,7 +1297,7 @@ proc getAddress*(e: Expr): Value =
     of PostfixIncrement, PostfixDecrement:
       var basep = getAddress(e.poperand)
       if e.ty.spec == TYPOINTER:
-        var ty = wrap(e.poperand.ty)
+        var ty = wrap(e.poperand.ty.p)
         var i = b.i32_1
         if e.pop == PostfixDecrement:
           i = constNeg(i)
@@ -1402,7 +1405,7 @@ proc gen*(e: Expr): Value =
     of SAddP:
       var l = gen(e.lhs)
       var r = gen(e.rhs)
-      buildInBoundsGEP2(b.builder, wrap(e.ty), l, addr r, 1, "")
+      buildInBoundsGEP2(b.builder, wrap(e.ty.p), l, addr r, 1, "")
     of EQ..SLE:
       buildICmp(b.builder, getICmpOp(e.bop), gen(e.lhs), gen(e.rhs), "")
     of FEQ..FLE:
@@ -1438,18 +1441,19 @@ proc gen*(e: Expr): Value =
     of Not: buildNot(b.builder, gen(e.uoperand), "")
     of AddressOf: getAddress(e.uoperand)
     of PrefixIncrement, PrefixDecrement:
-      var ty = wrap(e.ty)
       var i = b.i32_1
       if e.uop == PrefixDecrement:
         i = constNeg(i)
       let basep = getAddress(e.uoperand)
       assert basep != nil
       if e.ty.spec == TYPOINTER:
+        var ty = wrap(e.ty.p)
         var l = load(basep, wrap(e.uoperand.ty))
         var g = buildInBoundsGEP2(b.builder, ty, l, addr i, 1, "")
         store(basep, g)
         g
       else:
+        var ty = wrap(e.ty)
         var l = load(basep, ty)
         i = constIntCast(i, ty, False)
         var l2 = buildAdd(b.builder, l, i, "")
@@ -1462,7 +1466,7 @@ proc gen*(e: Expr): Value =
     of PostfixIncrement, PostfixDecrement:
       var basep = getAddress(e.poperand)
       if e.ty.spec == TYPOINTER:
-        var ty = wrap(e.poperand.ty)
+        var ty = wrap(e.poperand.ty.p)
         var i = b.i32_1
         if e.pop == PostfixDecrement:
           i = constNot(i)
