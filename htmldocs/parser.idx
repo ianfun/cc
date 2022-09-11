@@ -1,5 +1,7 @@
 Parser	parser.html#Parser	parser: Parser	
 p	parser.html#p	parser: p	
+make_tok	parser.html#make_tok,Token	parser: make_tok(op: Token)	
+make_ch_lit	parser.html#make_ch_lit,char	parser: make_ch_lit(ch: char)	
 type_error	parser.html#type_error,string	parser: type_error(msg: string)	
 error_incomplete	parser.html#error_incomplete,CType	parser: error_incomplete(ty: CType)	
 parse_error	parser.html#parse_error,string	parser: parse_error(msg: string)	
