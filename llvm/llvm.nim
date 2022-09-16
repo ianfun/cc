@@ -109,6 +109,9 @@ proc `$`*(err: ErrorRef): string =
   result = $m
   disposeErrorMessage(m)
 
+proc constInt*(ty: TypeRef, a: culonglong): ValueRef =
+  constInt(ty, a, False)
+
 const
    LLVMRet*            = 1.Opcode
    LLVMBr*             = 2.Opcode

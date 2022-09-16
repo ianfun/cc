@@ -96,9 +96,18 @@ proc initModule() =
   addNamedMetadataOperand(b.module, "llvm.module.flags", short_enum)
 
   const wcharsizes = "wchar_size"
-  var wcharsize_arr = [b.i32_1, mDStringInContext(b.ctx, wcharsizes, len(wcharsizes)), constInt(b.i32, 4, False)]
+  var wcharsize_arr = [b.i32_1, mDStringInContext(b.ctx, wcharsizes, len(wcharsizes)), constInt(b.i32, 4)]
   var wcharsizenode = mDNodeInContext(b.ctx, addr wcharsize_arr[0], 3)
   addNamedMetadataOperand(b.module, "llvm.module.flags", wcharsizenode)
+
+proc gep*(ty: TypeRef, p: ValueRef, indices: var ValueRef): ValueRef =
+  buildInBoundsGEP2(b.builder, ty, p, addr indices, 1, "")
+
+proc gep*(ty: TypeRef, p: ValueRef, indices: ptr ValueRef, num: cuint): ValueRef =
+  buildInBoundsGEP2(b.builder, ty, p, indices, num, "")
+
+proc gep*(ty: TypeRef, p: ValueRef, indices: var openarray[ValueRef]): ValueRef =
+  gep(ty, p, addr indices[0], indices.len.cuint)
 
 proc newBackend*(module_name, source_file: string) =
   nimLLVMinit()
@@ -119,10 +128,10 @@ proc newBackend*(module_name, source_file: string) =
   b.i64 = int64TypeInContext(b.ctx)
   b.ffloat = floatTypeInContext(b.ctx)
   b.fdouble = doubleTypeInContext(b.ctx)
-  b.i32_1 = constInt(b.i32, 1, False)
-  b.i32_0 = constInt(b.i32, 0, False)
-  b.i1_0 = constInt(b.i1, 0, False)
-  b.i1_1 = constInt(b.i1, 1, False)
+  b.i32_1 = constInt(b.i32, 1)
+  b.i32_0 = constInt(b.i32, 0)
+  b.i1_0 = constInt(b.i1, 0)
+  b.i1_1 = constInt(b.i1, 1)
   initModule()
 
 proc initTarget*() =
@@ -304,13 +313,13 @@ proc gen_int*(i: culonglong, tags: uint32): Value =
     if (tags and TYBOOL) != 0:
         if i > 0: b.i1_1 else: b.i1_0
     elif (tags and (TYINT8 or TYUINT8)) != 0:
-        constInt(b.i8, i, False)
+        constInt(b.i8, i)
     elif (tags and (TYINT16 or TYUINT16)) != 0:
-        constInt(b.i16, i, False)
+        constInt(b.i16, i)
     elif (tags and (TYINT32 or TYUINT32)) != 0:
-        constInt(b.i32, i, False)
+        constInt(b.i32, i)
     elif (tags and (TYINT64 or TYUINT64)) != 0:
-        constInt(b.i64, i, False)
+        constInt(b.i64, i)
     else:
         unreachable()
         nil
@@ -336,7 +345,7 @@ proc gen_str_ptr*(val: string): Value =
     s
   else:
     var indices = [b.i32_0, b.i32_0]
-    buildInBoundsGEP2(b.builder, ty, s, addr indices[0], 2, "")
+    gep(ty, s, indices)
 
 proc backendint*(): Type =
     if TYINT == TYINT32:
@@ -479,7 +488,7 @@ proc wrap*(ty: CType): Type =
     if ty.ename.len != 0:
         putTags(ty.ename, result)
     for (name, v) in ty.eelems:
-        var init = constInt(result, v.culonglong, False)
+        var init = constInt(result, v.culonglong)
         var g = addGlobal(b.module, result, name.cstring)
         setInitializer(g, init)
         setLinkage(g, PrivateLinkage)
@@ -511,7 +520,7 @@ proc getZero*(ty: CType): Value =
 
 proc getOne*(ty: CType): Value =
   assert ty.spec == TYPRIM
-  constInt(wrap(ty), 1, False)
+  constInt(wrap(ty), 1)
 
 proc gen_condition*(test: Expr, lhs: Expr, rhs: Expr): Value =
   ## build a `cond ? lhs : rhs` expression
@@ -973,25 +982,25 @@ proc eqZero*(a: Expr): Expr =
 
 proc incl*(p: Value, t: Type): Value =
   var l = load(p, t)
-  var l2 = buildAdd(b.builder, l, constInt(t, 1.culonglong, False), "")
+  var l2 = buildAdd(b.builder, l, constInt(t, 1), "")
   store(p, l2)
   return l
 
 proc incl*(p: Value, t: Type, align: uint32): Value =
   var l = load(p, t, align)
-  var l2 = buildAdd(b.builder, l, constInt(t, 1.culonglong, False), "")
+  var l2 = buildAdd(b.builder, l, constInt(t, 1), "")
   store(p, l2, align)
   return l
 
 proc decl*(p: Value, t: Type, align: uint32): Value =
   var l = load(p, t, align)
-  var l2 = buildSub(b.builder, l, constInt(t, 1.culonglong, False), "")
+  var l2 = buildSub(b.builder, l, constInt(t, 1), "")
   store(p, l2, align)
   return l
 
 proc decl*(p: Value, t: Type): Value =
   var l = load(p, t)
-  var l2 = buildSub(b.builder, l, constInt(t, 1.culonglong, False), "")
+  var l2 = buildSub(b.builder, l, constInt(t, 1.culonglong), "")
   store(p, l2)
   return l
 
@@ -1030,9 +1039,9 @@ proc getAddress*(e: Expr): Value =
     getVar(e.sval)
   of EPointerMemberAccess, EMemberAccess:
     var basep = if e.k == EMemberAccess: getAddress(e.obj) else: gen(e.obj)
-    var r = [b.i32_0, constInt(b.i32, e.idx.culonglong, False)]
+    var r = [b.i32_0, constInt(b.i32, e.idx.culonglong)]
     var ty = wrap(e.obj.ty)
-    buildInBoundsGEP2(b.builder, ty, basep, addr r[0], 2, "")
+    gep(ty, basep, r)
   of EUnary:
     case e.uop:
     of Dereference:
@@ -1050,7 +1059,7 @@ proc getAddress*(e: Expr): Value =
         if e.pop == PostfixDecrement:
           i = constNeg(i)
         var l = load(basep, wrap(e.poperand.ty))
-        var g = buildInBoundsGEP2(b.builder, ty, l, addr i, 1, "")
+        var g = gep(ty, l, i)
         store(basep, g)
       else:
         var a = e.poperand.ty.align
@@ -1065,7 +1074,7 @@ proc getAddress*(e: Expr): Value =
     var ty = wrap(e.left.ty.p)
     var v = gen(e.left) # a pointer
     var r = [gen(e.right)] # get index
-    buildInBoundsGEP2(b.builder, ty, v, addr r[0], 1, "")
+    gep(ty, v, r)
   of ArrToAddress:
     var arr = getAddress(e.voidexpr)
     buildBitCast(b.builder, arr, wrap(e.ty), "")
@@ -1104,7 +1113,7 @@ proc gen*(e: Expr): Value =
   of EVLAGetSize:
     var s = nimLLVMGetAllocaArraySize(gen(e.vla))
     var z = buildZExt(b.builder, s, b.i64, "")
-    buildMul(b.builder, z, constInt(b.i64, getsizeof(e.vla.voidexpr.ty.arrtype), False), "")
+    buildMul(b.builder, z, constInt(b.i64, getsizeof(e.vla.voidexpr.ty.arrtype)), "")
   of ArrToAddress:
     var arr = getAddress(e.voidexpr)
     buildBitCast(b.builder, arr, wrap(e.ty), "")
@@ -1112,8 +1121,8 @@ proc gen*(e: Expr): Value =
     assert e.left.ty.spec == TYPOINTER # the left must be a pointer
     var ty = wrap(e.left.ty.p)
     var v = gen(e.left) # a pointer
-    var r = [gen(e.right)] # get index
-    var gaddr = buildInBoundsGEP2(b.builder, ty, v, addr r[0], 1, "")
+    var r = gen(e.right) # get index
+    var gaddr = gep(ty, v, r)
     load(gaddr, ty) # return lvalue
   of EMemberAccess, EPointerMemberAccess:
     var base = gen(e.obj)
@@ -1150,14 +1159,14 @@ proc gen*(e: Expr): Value =
       var t = e.lhs.castval.ty.p
       let s = getsizeof(t)
       if s != 1:
-        var c = constInt(b.intPtr, s.culonglong, False)
+        var c = constInt(b.intPtr, s.culonglong)
         buildExactSDiv(b.builder, sub, c, "")
       else:
         sub
     of SAddP:
       var l = gen(e.lhs)
       var r = gen(e.rhs)
-      buildInBoundsGEP2(b.builder, wrap(e.ty.p), l, addr r, 1, "")
+      gep( wrap(e.ty.p), l, r)
     of EQ..SLE:
       buildICmp(b.builder, getICmpOp(e.bop), gen(e.lhs), gen(e.rhs), "")
     of FEQ..FLE:
@@ -1202,7 +1211,7 @@ proc gen*(e: Expr): Value =
       if e.ty.spec == TYPOINTER:
         var ty = wrap(e.ty.p)
         var l = load(basep, wrap(e.uoperand.ty))
-        var g = buildInBoundsGEP2(b.builder, ty, l, addr i, 1, "")
+        var g = gep(ty, l, i)
         store(basep, g)
         g
       else:
@@ -1224,7 +1233,7 @@ proc gen*(e: Expr): Value =
         if e.pop == PostfixDecrement:
           i = constNot(i)
         var l = load(basep, wrap(e.poperand.ty))
-        var g = buildInBoundsGEP2(b.builder, ty, l, addr i, 1, "")
+        var g = gep(ty, l, i)
         store(basep, g)
         l
       else:
