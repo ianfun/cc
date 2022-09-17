@@ -70,7 +70,7 @@ window.addEventListener('DOMContentLoaded', main);
 <div class="document" id="documentId">
   <div class="container">
     <h1 class="title">Index</h1>
-    Modules: <a href="LLVMAttribute.html">LLVMAttribute</a>, <a href="LLVMInstrinsics.html">LLVMInstrinsics</a>, <a href="LLVMbackend.html">LLVMbackend</a>, <a href="ast.html">ast</a>, <a href="builtins.html">builtins</a>, <a href="cli.html">cli</a>, <a href="config.html">config</a>, <a href="core.html">core</a>, <a href="cpp.html">cpp</a>, <a href="eval.html">eval</a>, <a href="lexer.html">lexer</a>, <a href="llvm.html">llvm</a>, <a href="llvm/llvm.html">llvm/llvm</a>, <a href="location.html">location</a>, <a href="operators.html">operators</a>, <a href="parser.html">parser</a>, <a href="stream.html">stream</a>, <a href="token.html">token</a>, <a href="types.html">types</a>.<br/><p /><h2>API symbols</h2>
+    Modules: <a href="LLVMAttribute.html">LLVMAttribute</a>, <a href="LLVMInstrinsics.html">LLVMInstrinsics</a>, <a href="LLVMbackend.html">LLVMbackend</a>, <a href="ast.html">ast</a>, <a href="builtins.html">builtins</a>, <a href="cli.html">cli</a>, <a href="config.html">config</a>, <a href="constString.html">constString</a>, <a href="core.html">core</a>, <a href="cpp.html">cpp</a>, <a href="eval.html">eval</a>, <a href="lexer.html">lexer</a>, <a href="llvm.html">llvm</a>, <a href="llvm/llvm.html">llvm/llvm</a>, <a href="location.html">location</a>, <a href="operators.html">operators</a>, <a href="parser.html">parser</a>, <a href="stream.html">stream</a>, <a href="token.html">token</a>, <a href="types.html">types</a>.<br/><p /><h2>API symbols</h2>
 <dl><dt><a name="%60%24%60" href="#%60%24%60"><span>`$`:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="ast: `$`(a: CType; level = 0): string" href="ast.html#%24%2CCType%2Cint">ast: `$`(a: CType; level = 0): string</a></li>
@@ -78,6 +78,8 @@ window.addEventListener('DOMContentLoaded', main);
           data-doc-search-tag="ast: `$`(e: Expr): string" href="ast.html#%24%2CExpr">ast: `$`(e: Expr): string</a></li>
           <li><a class="reference external"
           data-doc-search-tag="ast: `$`(a: Stmt; level = 0): string" href="ast.html#%24%2CStmt%2Cint">ast: `$`(a: Stmt; level = 0): string</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="constString: `$`(self: ConstString): string" href="constString.html#%24%2CConstString">constString: `$`(self: ConstString): string</a></li>
           <li><a class="reference external"
           data-doc-search-tag="llvm: `$`(v: TypeRef): string" href="llvm.html#%24%2CTypeRef">llvm: `$`(v: TypeRef): string</a></li>
           <li><a class="reference external"
@@ -97,6 +99,10 @@ window.addEventListener('DOMContentLoaded', main);
           <li><a class="reference external"
           data-doc-search-tag="types: `$`(a: CType; level = 0): string" href="types.html#%24%2CCType%2Cint">types: `$`(a: CType; level = 0): string</a></li>
           </ul></dd>
+<dt><a name="%60%26amp%3B%60" href="#%60%26amp%3B%60"><span>`&amp;`:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="constString: `&amp;`(s: string; c: ConstString): string" href="constString.html#%26%2Cstring%2CConstString">constString: `&amp;`(s: string; c: ConstString): string</a></li>
+          </ul></dd>
 <dt><a name="%60%26lt%3B%26lt%3B%26lt%3B%60" href="#%60%26lt%3B%26lt%3B%26lt%3B%60"><span>`&lt;&lt;&lt;`:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="stream: `&lt;&lt;&lt;`(stream: Fd; msg: cstring)" href="stream.html#%3C%3C%3C%2CFd%2Ccstring">stream: `&lt;&lt;&lt;`(stream: Fd; msg: cstring)</a></li>
@@ -114,6 +120,18 @@ window.addEventListener('DOMContentLoaded', main);
           data-doc-search-tag="stream: `&lt;&lt;`(stream: Fd; c: SomeInteger)" href="stream.html#%3C%3C%2CFd%2CSomeInteger">stream: `&lt;&lt;`(stream: Fd; c: SomeInteger)</a></li>
           <li><a class="reference external"
           data-doc-search-tag="stream: `&lt;&lt;`(stream: Fd; msg: string)" href="stream.html#%3C%3C%2CFd%2Cstring">stream: `&lt;&lt;`(stream: Fd; msg: string)</a></li>
+          </ul></dd>
+<dt><a name="%60%3D%3D%60" href="#%60%3D%3D%60"><span>`==`:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="constString: `==`(a, b: ConstString): bool" href="constString.html#%3D%3D%2CConstString%2CConstString">constString: `==`(a, b: ConstString): bool</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="constString: `==`(a: ConstString; b: string): bool" href="constString.html#%3D%3D%2CConstString%2Cstring">constString: `==`(a: ConstString; b: string): bool</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="constString: `==`(a: string; b: ConstString): bool" href="constString.html#%3D%3D%2Cstring%2CConstString">constString: `==`(a: string; b: ConstString): bool</a></li>
+          </ul></dd>
+<dt><a name="%60%5B%5D%60" href="#%60%5B%5D%60"><span>`[]`:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="constString: `[]`(self: ConstString; idx: auto): char" href="constString.html#%5B%5D%2CConstString%2Cauto">constString: `[]`(self: ConstString; idx: auto): char</a></li>
           </ul></dd>
 <dt><a name="aBIAlignmentOfType" href="#aBIAlignmentOfType"><span>aBIAlignmentOfType:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -1960,6 +1978,14 @@ window.addEventListener('DOMContentLoaded', main);
           data-doc-search-tag="llvm: constSIToFP(constantVal: ValueRef; toType: TypeRef): ValueRef" href="llvm.html#constSIToFP%2CValueRef%2CTypeRef">llvm: constSIToFP(constantVal: ValueRef; toType: TypeRef): ValueRef</a></li>
           <li><a class="reference external"
           data-doc-search-tag="llvm: constSIToFP(constantVal: ValueRef; toType: TypeRef): ValueRef" href="llvm/llvm.html#constSIToFP%2CValueRef%2CTypeRef">llvm: constSIToFP(constantVal: ValueRef; toType: TypeRef): ValueRef</a></li>
+          </ul></dd>
+<dt><a name="constStr" href="#constStr"><span>constStr:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="constString: constStr(s: cstring | string): ConstString" href="constString.html#constStr">constString: constStr(s: cstring | string): ConstString</a></li>
+          </ul></dd>
+<dt><a name="ConstString" href="#ConstString"><span>ConstString:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="constString: ConstString" href="constString.html#ConstString">constString: ConstString</a></li>
           </ul></dd>
 <dt><a name="constString" href="#constString"><span>constString:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -6496,6 +6522,10 @@ window.addEventListener('DOMContentLoaded', main);
           data-doc-search-tag="llvm: leaveScope()" href="llvm.html#leaveScope">llvm: leaveScope()</a></li>
           <li><a class="reference external"
           data-doc-search-tag="LLVMbackend: leaveScope()" href="LLVMbackend.html#leaveScope">LLVMbackend: leaveScope()</a></li>
+          </ul></dd>
+<dt><a name="len" href="#len"><span>len:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="constString: len(self: ConstString): int" href="constString.html#len%2CConstString">constString: len(self: ConstString): int</a></li>
           </ul></dd>
 <dt><a name="lifetime_end" href="#lifetime_end"><span>lifetime_end:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -12670,7 +12700,7 @@ window.addEventListener('DOMContentLoaded', main);
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-17 13:58:29 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-17 14:39:15 UTC</small>
       </div>
     </div>
   </div>

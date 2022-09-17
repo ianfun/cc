@@ -1,5 +1,6 @@
-import core, parser, stream
+import core, parser, stream, constString
 import LLVMbackend
+import std/[editdistance, heapqueue]
 
 var i = 0
 
@@ -84,38 +85,53 @@ proc setInput(s: string) =
 
 proc help()
 
+proc hash(s: string): uint64 =
+    # https://stackoverflow.com/questions/7666509/hash-function-for-string
+    # https://stackoverflow.com/questions/2624192/good-hash-function-for-strings
+    result = 5381
+    for c in s:
+        result = ((result shl 5) + result) + uint64(c)
+
+proc hash2(s: string): uint64 =
+    # https://stackoverflow.com/questions/7666509/hash-function-for-string
+    # https://stackoverflow.com/questions/2624192/good-hash-function-for-strings
+    result = 5381
+    for i in 1..<len(s):
+        result = ((result shl 5) + result) + uint64(s[i])
+
+proc h(s: string): (ConstString, uint64) = (constStr(s), hash(s))
 
 var cliOptions = [
-  ("v", 0, cast[P](showVersion), "print version info"),
-  ("version", 0, cast[P](showVersion), "print version info"),
-  ("help", 0, help, "help"),
-  ("-help", 0, help, "help"),
-  ("-list-targets", 0, listTargets, "list registered targets"),
-  ("stdin", 0, setStdin, "add stdin to files"),
-  ("jit", 0, proc () = app.runJit = true, "run `main` function in LLVM JIT"),
-  ("target", 1, cast[P](proc (s: string) = app.triple = s), "set target triple: e.g: x86_64-pc-linux-gnu, x86_64-pc-windows-msvc"),
-  ("verbose", 0, proc () = app.verboseLevel = WVerbose, "enable verbose message"),
-  ("note", 0, proc () = app.verboseLevel = WNote, "enable note message"),
-  ("warning", 0, proc () = app.verboseLevel = WWarning, "enable warning message"),
-  ("Wall", 0, proc () = app.verboseLevel = WWarning, "enable warning message"),
-  ("?", 0, help, "help"),
-  ("o", 1, cast[P](proc (s: string) = app.output = s), "set output file path"),
-  ("emit-llvm", 0, cast[P](proc () = app.mode = OutputLLVMAssembly), "output LLVM Assembly"),
-  ("emit-bitcode", 0, cast[P](proc () = app.mode = OutputBitcode), "output LLVM bitcode"),
-  ("c", 0, cast[P](proc () = app.mode = OutputObjectFile), "output object file"),
-  ("ld", 0, cast[P](proc () = app.linker = GCCLD), "use ld, The GNU linker"),
-  ("lld", 0, cast[P](proc () = app.linker = LLD), "use LLD, The LLVM linker"),
-  ("s", 0, cast[P](proc () = app.mode = OutputAssembly),  "output assembly"),
-  ("fsyntax-only", 0, cast[P](proc () = app.mode = OutputCheck), "parse input file, type checking, emit warning and messages.Do not output a file"),
-  ("no-opaque-pointers", 0, proc () = app.opaquePointerEnabled = false, "disable opaque pointer"),
-  ("O0", 0, proc () = app.optLevel = 0, "no optimization(default)"),
-  ("O1", 0, proc () = app.optLevel = 1, "Somewhere between -O0 and -O2"),
-  ("O2", 0, proc () = app.optLevel = 2, "enables most optimizations"),
-  ("O3", 0, proc () = app.optLevel = 3, "enables optimizations that take longer to perform or that may generate larger code(for example, loop unrolling)"),
-  ("O4", 0, proc () = app.optLevel = 3, " = O3"),
-  ("Os", 0, proc () = app.sizeLevel = 1, "reduce code size"),
-  ("Oz", 0, proc () = app.sizeLevel = 2, "reduce code size further"),
-  ("x", 1, cast[P](setInput), "set input langauge")
+  ("v".h, 0, cast[P](showVersion), "print version info"),
+  ("version".h, 0, cast[P](showVersion), "print version info"),
+  ("help".h, 0, help, "help"),
+  ("-help".h, 0, help, "help"),
+  ("-list-targets".h, 0, listTargets, "list registered targets"),
+  ("stdin".h, 0, setStdin, "add stdin to files"),
+  ("jit".h, 0, proc () = app.runJit = true, "run `main` function in LLVM JIT"),
+  ("target".h, 1, cast[P](proc (s: string) = app.triple = s), "set target triple: e.g: x86_64-pc-linux-gnu, x86_64-pc-windows-msvc"),
+  ("verbose".h, 0, proc () = app.verboseLevel = WVerbose, "enable verbose message"),
+  ("note".h, 0, proc () = app.verboseLevel = WNote, "enable note message"),
+  ("warning".h, 0, proc () = app.verboseLevel = WWarning, "enable warning message"),
+  ("Wall".h, 0, proc () = app.verboseLevel = WWarning, "enable warning message"),
+  ("?".h, 0, help, "help"),
+  ("o".h, 1, cast[P](proc (s: string) = app.output = s), "set output file path"),
+  ("emit-llvm".h, 0, cast[P](proc () = app.mode = OutputLLVMAssembly), "output LLVM Assembly"),
+  ("emit-bitcode".h, 0, cast[P](proc () = app.mode = OutputBitcode), "output LLVM bitcode"),
+  ("c".h, 0, cast[P](proc () = app.mode = OutputObjectFile), "output object file"),
+  ("ld".h, 0, cast[P](proc () = app.linker = GCCLD), "use ld, The GNU linker"),
+  ("lld".h, 0, cast[P](proc () = app.linker = LLD), "use LLD, The LLVM linker"),
+  ("s".h, 0, cast[P](proc () = app.mode = OutputAssembly),  "output assembly"),
+  ("fsyntax-only".h, 0, cast[P](proc () = app.mode = OutputCheck), "parse input file, type checking, emit warning and messages.Do not output a file"),
+  ("no-opaque-pointers".h, 0, proc () = app.opaquePointerEnabled = false, "disable opaque pointer"),
+  ("O0".h, 0, proc () = app.optLevel = 0, "no optimization(default)"),
+  ("O1".h, 0, proc () = app.optLevel = 1, "Somewhere between -O0 and -O2"),
+  ("O2".h, 0, proc () = app.optLevel = 2, "enables most optimizations"),
+  ("O3".h, 0, proc () = app.optLevel = 3, "enables optimizations that take longer to perform or that may generate larger code(for example, loop unrolling)"),
+  ("O4".h, 0, proc () = app.optLevel = 3, " = O3"),
+  ("Os".h, 0, proc () = app.sizeLevel = 1, "reduce code size"),
+  ("Oz".h, 0, proc () = app.sizeLevel = 2, "reduce code size further"),
+  ("x".h, 1, cast[P](setInput), "set input langauge")
 ]
 
 proc help() =
@@ -124,8 +140,8 @@ proc help() =
   cstderr <<< "Option                         Description"
   for i in cliOptions:
     cstderr << '-'
-    cstderr << i[0]
-    var l = 30 - len(i[0])
+    cstderr << i[0][0].str
+    var l = 30 - len(i[0][0].str)
     e.setLen 0
     while l > 0:
       e.add(' ')
@@ -140,28 +156,51 @@ proc addFile(s: string) =
 
 include "builtins.def"
 
+type FixName = object
+    priority: int
+    name: string
+
+proc `<`(a, b: FixName): bool = a.priority < b.priority
+
+proc fix(name: string) =
+    var fixList = initHeapQueue[FixName]()
+    for i in 0..<len(cliOptions):
+        var v = $ cliOptions[i][0][0]
+        var d = editDistance(name, v)
+        fixList.push(FixName(priority: d, name: v))
+    var msg: string
+    while len(fixList) > 0:
+        var f = fixList.pop()
+        if f.priority < 3:
+            msg.add("Perhaps you meant: '-" & f.name & "'\n")
+    if msg.len > 1:
+        cstderr << msg
+
 proc parseCLI*(): bool =
   var inputs = false
   var name: int
   while hasNext():
-    var one = get()
+    let one = get()
     if one[0] == '-':
-      var o = one[1..^1]
+      var o = hash2(one)
       var has = false
       for i in cliOptions:
-        if i[0] == o:
+        if i[0][1] == o and i[0][0] == one[1..^1]:
           has = true
           if i[1] == 1:
             if hasNext() == false:
-              cstderr <<< "command expect one argument"
-              quit 1
+              core.error()
+              cstderr << "command "
+              cstderr << one 
+              cstderr <<< " expect one argument"
             var s = get()
             cast[proc (s: string){.nimcall.}](i[2])(s)
           else:
             i[2]()
       if has == false:
         core.error()
-        cstderr <<< "unrecognized command line option '-" & o & '\''
+        cstderr <<< "unrecognized command line option '" & one & '\''
+        fix(one[1..^1])
     else:
       if inputs == false:
         inputs = true
