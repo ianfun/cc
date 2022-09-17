@@ -83,4 +83,3 @@ proc verbose*(msg: string) =
 proc getPtrDiff_t*(): CType = get(if app.pointersize == 4: TYINT32 else: TYINT64)
 
 proc getIntPtr_t*(): CType = getPtrDiff_t()
-

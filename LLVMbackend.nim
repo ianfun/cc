@@ -80,22 +80,27 @@ proc llvmGetsizeof*(ty: CType): culonglong =
 proc llvmGetOffsetof*(ty: CType, idx: int): culonglong =
   offsetOfElement(b.layout, wrap(ty), cuint(idx))
 
-proc initModule() =
-  const idents = "cc: A C Compiler(https://ianfun.github.io/cc.git)"
+proc addLLVMModule*(source_file: string) =
+  b.module = moduleCreateWithNameInContext(source_file.cstring, b.ctx)
+  setSourceFileName(b.module, cstring(source_file), source_file.len.csize_t)
+  setModuleDataLayout(b.module, b.layout)
+  setTarget(b.module, app.triple.cstring)
+
+  const idents: cstring = "cc: A C Compiler(https://ianfun.github.io/cc.git)"
   var ident = mDStringInContext(b.ctx, idents, len(idents))
   addNamedMetadataOperand(b.module, "llvm.ident", ident)
-  
-  const wchars = "short_wchar"
+
+  const wchars: cstring = "short_wchar"
   var short_wchars = [b.i32_1, mDStringInContext(b.ctx, wchars, len(wchars)), b.i32_1]
   var short_wchar = mDNodeInContext(b.ctx, addr short_wchars[0], 3)
   addNamedMetadataOperand(b.module, "llvm.module.flags", short_wchar)
 
-  const enums = "short_enum"
+  const enums: cstring = "short_enum"
   var short_enums = [b.i32_1, mDStringInContext(b.ctx, enums, len(enums)), b.i32_1]
   var short_enum = mDNodeInContext(b.ctx, addr short_enums[0], 3)
   addNamedMetadataOperand(b.module, "llvm.module.flags", short_enum)
 
-  const wcharsizes = "wchar_size"
+  const wcharsizes: cstring = "wchar_size"
   var wcharsize_arr = [b.i32_1, mDStringInContext(b.ctx, wcharsizes, len(wcharsizes)), constInt(b.i32, 4)]
   var wcharsizenode = mDNodeInContext(b.ctx, addr wcharsize_arr[0], 3)
   addNamedMetadataOperand(b.module, "llvm.module.flags", wcharsizenode)
@@ -109,16 +114,14 @@ proc gep*(ty: TypeRef, p: ValueRef, indices: ptr ValueRef, num: cuint): ValueRef
 proc gep*(ty: TypeRef, p: ValueRef, indices: var openarray[ValueRef]): ValueRef =
   gep(ty, p, addr indices[0], indices.len.cuint)
 
-proc newBackend*(module_name, source_file: string) =
-  nimLLVMinit()
+proc newBackend*() =
+  initializeCore(getGlobalPassRegistry())
   b = create(Backend)
   b.tsCtx = orcCreateNewThreadSafeContext()
   b.ctx = orcThreadSafeContextGetContext(b.tsCtx)
   b.builder = createBuilderInContext(b.ctx)
   if app.input == InputC:
     contextSetDiscardValueNames(b.ctx, True)
-  b.module = moduleCreateWithNameInContext(module_name, b.ctx)
-  setSourceFileName(b.module, source_file, source_file.len.csize_t)
   b.voidty = voidTypeInContext(b.ctx)
   b.ptrty = pointerTypeInContext(b.ctx, 0)
   b.i1 = int1TypeInContext(b.ctx)
@@ -132,23 +135,26 @@ proc newBackend*(module_name, source_file: string) =
   b.i32_0 = constInt(b.i32, 0)
   b.i1_0 = constInt(b.i1, 0)
   b.i1_1 = constInt(b.i1, 1)
-  initModule()
+  app.getSizeof = llvmGetsizeof
+  app.getoffsetof = llvmGetOffsetof
+  app.getAlignOf = llvmGetAlignOf
 
-proc initTarget*() =
-  var err: cstring
+proc initTarget*(): bool =
+  var err: cstring = nil
   if app.triple.len == 0:
     app.triple.add(getDefaultTargetTriple())
+    nimLLVMinit()
+  else:
+    nimLLVMinitAll()
   if getTargetFromTriple(app.triple.cstring, addr b.target, cast[cstringArray](addr err)) == True:
     llvm_error(err)
-    app.triple = $getDefaultTargetTriple()
-    discard getTargetFromTriple(app.triple.cstring, addr b.target, cast[cstringArray](addr err))
+    return false
   b.machine = createTargetMachine(b.target, app.triple.cstring, "", "", CodeGenLevelAggressive, RelocPIC, CodeModelDefault)
   b.layout = createTargetDataLayout(b.machine)
-  setModuleDataLayout(b.module, b.layout)
-  setTarget(b.module, app.triple.cstring)
   app.pointersize = pointerSize(b.layout)
   contextSetOpaquePointers(b.ctx, if app.opaquePointerEnabled: True else: False)
   b.intPtr = intPtrTypeInContext(b.ctx, b.layout)
+  return true
 
 proc dumpVersionInfo*() =
   var arr = [cstring("llvm"), cstring("--version")]
@@ -162,12 +168,6 @@ proc handle_asm(s: string) =
     var asmtype = functionType(b.voidty, nil, 0, False)
     var f = getInlineAsm(asmtype, cstring(s), len(s).csize_t, nil, 0, True, False, InlineAsmDialectATT, False)
     discard buildCall2(b.builder, asmtype, f, nil, 0, "") 
-
-proc setBackend*() =
-  app.getSizeof = llvmGetsizeof
-  app.getoffsetof = llvmGetOffsetof
-  app.getAlignOf = llvmGetAlignOf
-  initTarget()
 
 proc enterScope*() =
   ## not token.enterBlock
@@ -209,6 +209,7 @@ proc putTags*(name: string, t: Type) =
   b.tags[^1][name] = t
 
 proc shutdownBackend*() =
+  disposeBuilder(b.builder)
   if b != nil:
      dealloc(b)
   shutdown()
@@ -216,10 +217,6 @@ proc shutdownBackend*() =
 proc optimize*() =
   var passM = createPassManager()
   var pb = passManagerBuilderCreate()
-  # addInstructionCombiningPass(passM)
-  # addReassociatePass(passM)
-  # addGVNPass(passM)
-  # addCFGSimplificationPass(passM)
   passManagerBuilderSetSizeLevel(pb, app.sizeLevel)
   passManagerBuilderSetOptLevel(pb, app.optLevel)
   if app.inlineThreshold != 0:
@@ -244,16 +241,20 @@ proc readBitcodeToModule*(path: cstring): ModuleRef =
   var err: cstring
   if createMemoryBufferWithContentsOfFile(path, addr mem, cast[cstringArray](addr err)) == True:
     llvm_error(err)
+    return nil
   if parseBitcodeInContext(b.ctx, mem, addr result, cast[cstringArray](addr err)) == True:
     llvm_error(err)
+  disposeMemoryBuffer(mem)
 
 proc readIRToModule*(path: cstring): ModuleRef =
   var mem: MemoryBufferRef
   var err: cstring
   if createMemoryBufferWithContentsOfFile(path, addr mem, cast[cstringArray](addr err)) == True:
     llvm_error(err)
+    return nil
   if parseIRInContext(b.ctx, mem, addr result, cast[cstringArray](addr err)) == True:
     llvm_error(err)
+  disposeMemoryBuffer(mem)
 
 proc writeModuleToFile*(path: string, m: ModuleRef) =
   var err: cstring = ""

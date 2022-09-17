@@ -11,6 +11,9 @@ const
 proc unreachable*() =
   assert false, "INTERNAL ERROR: unreachable executed!"
 
+proc cc_exit*(c: auto) =
+  quit c
+
 iterator getDefines*(): (string, seq[TokenV]) =
   proc str(s: string): TokenV =
     TokenV(tok: TStringLit, tags: TVSVal, s: s)

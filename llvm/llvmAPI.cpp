@@ -10,7 +10,7 @@ llvmAPI.cpp - helper functions
 #endif
 
 #include <llvm-c/Core.h>
-#include <llvm-c/Target.h>
+#include <llvm/Support/TargetSelect.h>
 #include <llvm-c/Analysis.h>
 #include <llvm-c/TargetMachine.h>
 #include <llvm/IR/GlobalVariable.h>
@@ -52,14 +52,16 @@ void LLVMNimOptModule(LLVMModuleRef M){
 }
 void LLVMNimInit(){
 	//LLVMInitializeCore(LLVMGetGlobalPassRegistry());
-	LLVMInitializeNativeTarget();
-	LLVMInitializeNativeAsmPrinter();
-	LLVMInitializeNativeAsmParser();
+	llvm::InitializeNativeTarget();
+	llvm::InitializeNativeTargetAsmPrinter();
+	llvm::InitializeNativeTargetAsmParser();
 	//LLVMInitializeNativeDisassembler();
 }
 void LLVMNimInitAll(){
-	LLVMInitializeAllTargets();
-	LLVMInitializeAllAsmParsers();
-	LLVMInitializeAllAsmPrinters();
+	llvm::InitializeAllTargets();
+	llvm::InitializeAllTargetMCs();
+	llvm::InitializeAllAsmParsers();
+	llvm::InitializeAllAsmPrinters();
+	llvm::InitializeAllTargetInfos();
 }
 }

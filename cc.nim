@@ -11,13 +11,7 @@ else:
     {.passL: "-lLLVM-15 ./llvm/llvmAPI".}
 
 import core, cli, stream, lexer, cpp, parser, eval, LLVMbackend
-
-setLexer()
-setCpp()
-setParser()
-setEval()
-parseCLI()
-setBackend()
+from std/exitprocs import setProgramResult
 
 proc link(opath: string = app.output) =
     case app.linker:
@@ -49,6 +43,7 @@ proc c() =
     let translation_unit = runParser()
     if err():
         stderr.writeLine("compilation terminated.")
+        setProgramResult(1)
         return
     if app.mode != OutputCheck:
         gen(translation_unit)
@@ -89,29 +84,40 @@ proc bf() =
         close(s)
     c()
 
-case app.input:
-of InputC:
-    c()
-of InputBF:
-    bf()
-of InputIR, InputBC:
-    var reader = if app.input == InputBC: readBitcodeToModule else: readIRToModule
-    b.module = reader(p.pathstack[1].cstring)
-    if b.module != nil:
-        var i = 2
-        while true:
-            if i == len(p.pathstack):
-                optimize()
-                output()
-                break
-            var n = reader(p.pathstack[i].cstring)
-            if n == nil:
-                break
-            if link(b.module, n):
-                break
-            inc i
-of InputObject, InputAsm:
-    warning("use gcc instead for object and assembly file")
+setLexer()
+setCpp()
+setParser()
+setEval()
 
-closeParser()
-shutdown_backend()
+setProgramResult(1)
+if parseCLI():
+    newBackend()
+    if initTarget():
+        addLLVMModule(p.pathstack[1])        
+        case app.input:
+        of InputC:
+            c()
+        of InputBF:
+            bf()
+        of InputIR, InputBC:
+            var reader = if app.input == InputBC: readBitcodeToModule else: readIRToModule
+            b.module = reader(p.pathstack[1].cstring)
+            if b.module != nil:
+                var i = 2
+                while true:
+                    if i == len(p.pathstack):
+                        optimize()
+                        output()
+                        break
+                    var n = reader(p.pathstack[i].cstring)
+                    if n == nil:
+                        break
+                    if link(b.module, n):
+                        break
+                    inc i
+        of InputObject, InputAsm:
+            warning("use gcc instead for object and assembly file")
+
+        closeParser()
+        shutdown_backend()
+        setProgramResult(0)

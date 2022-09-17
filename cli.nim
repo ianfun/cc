@@ -131,7 +131,7 @@ proc addFile(s: string) =
 
 include "builtins.def"
 
-proc parseCLI*() =
+proc parseCLI*(): bool =
   var inputs = false
   var name: int
   while hasNext():
@@ -161,11 +161,10 @@ proc parseCLI*() =
   if p.fstack.len == 0:
     core.error()
     cstderr <<< "no input files"
-    quit 1
+    return false
   if app.output.len == 0:
     i = name - 1
     app.output = get()
-  newBackend(app.output, app.output)
   case app.mode:
   of OutputLink:
     app.output &= (when defined(windows): ".exe" else: ".out")
@@ -180,3 +179,4 @@ proc parseCLI*() =
   of OutputCheck:
     discard
   addString(builtin_predef, "built-in")
+  return true
