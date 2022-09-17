@@ -84,11 +84,13 @@ proc setInput(s: string) =
 
 proc help()
 
+
 var cliOptions = [
   ("v", 0, cast[P](showVersion), "print version info"),
   ("version", 0, cast[P](showVersion), "print version info"),
   ("help", 0, help, "help"),
   ("-help", 0, help, "help"),
+  ("-list-targets", 0, listTargets, "list registered targets"),
   ("stdin", 0, setStdin, "add stdin to files"),
   ("jit", 0, proc () = app.runJit = true, "run `main` function in LLVM JIT"),
   ("target", 1, cast[P](proc (s: string) = app.triple = s), "set target triple: e.g: x86_64-pc-linux-gnu, x86_64-pc-windows-msvc"),
@@ -117,12 +119,19 @@ var cliOptions = [
 ]
 
 proc help() =
+  var e = newStringOfCap(20)
   cstderr <<< "command line options"
+  cstderr <<< "Option                         Description"
   for i in cliOptions:
     cstderr << '-'
     cstderr << i[0]
-    cstderr << "\t\t\t\t"
-    cstderr << i[3]
+    var l = 30 - len(i[0])
+    e.setLen 0
+    while l > 0:
+      e.add(' ')
+      dec l
+    cstderr << e
+    cstderr <<< i[3]
   stderr << '\n'
   showVersion()
 

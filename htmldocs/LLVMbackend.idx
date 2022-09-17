@@ -8,6 +8,7 @@ llvmGetOffsetof	LLVMbackend.html#llvmGetOffsetof,CType,int	LLVMbackend: llvmGetO
 addLLVMModule	LLVMbackend.html#addLLVMModule,string	LLVMbackend: addLLVMModule(source_file: string)	
 newBackend	LLVMbackend.html#newBackend	LLVMbackend: newBackend()	
 initTarget	LLVMbackend.html#initTarget	LLVMbackend: initTarget(): bool	
+listTargets	LLVMbackend.html#listTargets	LLVMbackend: listTargets()	
 dumpVersionInfo	LLVMbackend.html#dumpVersionInfo	LLVMbackend: dumpVersionInfo()	
 enterScope	LLVMbackend.html#enterScope	LLVMbackend: enterScope()	
 leaveScope	LLVMbackend.html#leaveScope	LLVMbackend: leaveScope()	

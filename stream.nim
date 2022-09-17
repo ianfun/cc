@@ -42,6 +42,9 @@ proc `<<`*(stream: Fd, c: char) =
 proc `<<`*(stream: Fd, c: SomeInteger) =
     discard fputc(c.cint, stream)
 
+proc `<<`*(stream: Fd, b: bool) =
+    stream << (if b: cstring("true") else: cstring("false"))
+
 proc `<<<`*(stream: Fd, msg: string) =
     stream << msg
     stream << '\n'

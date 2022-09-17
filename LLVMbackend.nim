@@ -152,6 +152,20 @@ proc initTarget*(): bool =
   b.intPtr = intPtrTypeInContext(b.ctx, b.layout)
   return true
 
+proc listTargets*() =
+  var t = getFirstTarget()
+  while t != nil:
+    cstderr << "Name:"
+    cstderr << getTargetName(t)
+    cstderr << cstring(": ")
+    cstderr << "TargetHasTargetMachine"
+    stderr << bool(targetHasTargetMachine(t))
+    cstderr << "Has jit: "
+    stderr << bool(targetHasJIT(t))
+    cstderr << "Description"
+    cstderr <<< getTargetDescription(t)
+    t = getNextTarget(t)
+
 proc dumpVersionInfo*() =
   var arr = [cstring("llvm"), cstring("--version")]
   parseCommandLineOptions(2, cast[cstringArray](addr arr[0]), nil)
