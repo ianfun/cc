@@ -8,8 +8,16 @@ type
 const 
   INFO_USED* = 2
 
+proc builtin_unreachable() {.importc: "__builtin_unreachable", nodecl.}
+
 proc unreachable*() =
-  assert false, "INTERNAL ERROR: unreachable executed!"
+  # https://learn.microsoft.com/en-us/cpp/intrinsics/assume?view=msvc-170
+  # https://clang.llvm.org/docs/LanguageExtensions.html#builtin-assume
+  # https://stackoverflow.com/questions/63493968/reproducing-clangs-builtin-assume-for-gcc
+  when defined(debug):
+    assert false, "INTERNAL ERROR: unreachable executed!"
+  else:
+    builtin_unreachable()
 
 proc cc_exit*(c: auto) =
   quit c
