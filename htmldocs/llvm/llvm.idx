@@ -1485,3 +1485,9 @@ LLVMCatchSwitch	llvm/llvm.html#LLVMCatchSwitch	llvm: LLVMCatchSwitch
 Value	llvm/llvm.html#Value	llvm: Value	
 Type	llvm/llvm.html#Type	llvm: Type	
 Label	llvm/llvm.html#Label	llvm: Label	
+nimLLVMSetDSOLocal	llvm/llvm.html#nimLLVMSetDSOLocal,ValueRef	llvm: nimLLVMSetDSOLocal(Global: ValueRef)	
+nimLLVMOptModule	llvm/llvm.html#nimLLVMOptModule,ModuleRef	llvm: nimLLVMOptModule(m: ModuleRef)	
+nimLLVMGetAllocaArraySize	llvm/llvm.html#nimLLVMGetAllocaArraySize,ValueRef	llvm: nimLLVMGetAllocaArraySize(Alloca: ValueRef): ValueRef	
+nimLLVMGetIntrinsicForMSBuiltin	llvm/llvm.html#nimLLVMGetIntrinsicForMSBuiltin,cstring,cstring	llvm: nimLLVMGetIntrinsicForMSBuiltin(Prefix, BuiltinName: cstring): cuint	
+nimLLVMGetIntrinsicForClangBuiltin	llvm/llvm.html#nimLLVMGetIntrinsicForClangBuiltin,cstring,cstring	llvm: nimLLVMGetIntrinsicForClangBuiltin(Prefix, BuiltinName: cstring): cuint	
+nimLLVMConfigureTarget	llvm/llvm.html#nimLLVMConfigureTarget,cstring,ptr.TargetRef,ptr.TargetMachineRef,ptr.TargetDataRef	llvm: nimLLVMConfigureTarget(tripleStr: cstring; Target: ptr TargetRef;\n                       Machine: ptr TargetMachineRef; TD: ptr TargetDataRef): cstring	

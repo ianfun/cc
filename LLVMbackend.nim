@@ -8,19 +8,7 @@ import llvm/llvm
 import std/[tables, exitprocs]
 import config, core, parser, builtins, ast, operators, stream
 
-# === begin wrapper from llvmAPI.cpp ===
-
-proc nimLLVMinit*() {.importc: "LLVMNimInit".}
-
-proc nimLLVMinitAll*() {.importc: "LLVMNimInitAll".}
-
-proc nimLLVMSetDSOLocal*(Global: ValueRef) {.importc: "LLVMNimSetDSOLocal".}
-
-proc nimLLVMOptModule*(m: ModuleRef) {.importc: "LLVMNimOptModule".}
-
-proc nimLLVMGetAllocaArraySize*(Alloca: ValueRef): ValueRef {.importc: "LLVMNimGetAllocaArraySize".}
-
-# === end wrapper ===
+export llvm
 
 type
     Backend* = object
@@ -105,13 +93,28 @@ proc addLLVMModule*(source_file: string) =
   var wcharsizenode = mDNodeInContext(b.ctx, addr wcharsize_arr[0], 3)
   addNamedMetadataOperand(b.module, "llvm.module.flags", wcharsizenode)
 
-proc gep*(ty: TypeRef, p: ValueRef, indices: var ValueRef): ValueRef =
+proc setInsertPoint(loc: Label) {.inline.} =
+  positionBuilderAtEnd(b.builder, loc)
+
+proc addBlock(): Label {.inline.} =
+  appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+
+proc addBlock(name: cstring): Label {.inline.} =
+  appendBasicBlockInContext(b.ctx, b.currentfunction, name)
+
+proc condBr(cond: Value, iftrue, iffalse: Label) =
+  discard buildCondBr(b.builder, cond, iftrue, iffalse)
+
+proc br(loc: Label) {.inline.} =
+  discard buildBr(b.builder, loc)
+
+proc gep(ty: Type, p: Value, indices: var Value): Value {.inline.} =
   buildInBoundsGEP2(b.builder, ty, p, addr indices, 1, "")
 
-proc gep*(ty: TypeRef, p: ValueRef, indices: ptr ValueRef, num: cuint): ValueRef =
+proc gep(ty: Type, p: ValueRef, indices: ptr ValueRef, num: cuint): Value {.inline.} =
   buildInBoundsGEP2(b.builder, ty, p, indices, num, "")
 
-proc gep*(ty: TypeRef, p: ValueRef, indices: var openarray[ValueRef]): ValueRef =
+proc gep(ty: Type, p: ValueRef, indices: var openarray[Value]): Value {.inline.} =
   gep(ty, p, addr indices[0], indices.len.cuint)
 
 proc newBackend*() =
@@ -140,17 +143,10 @@ proc newBackend*() =
   app.getAlignOf = llvmGetAlignOf
 
 proc initTarget*(): bool =
-  var err: cstring = nil
-  if app.triple.len == 0:
-    app.triple.add(getDefaultTargetTriple())
-    nimLLVMinit()
-  else:
-    nimLLVMinitAll()
-  if getTargetFromTriple(app.triple.cstring, addr b.target, cast[cstringArray](addr err)) == True:
+  var err = nimLLVMConfigureTarget(app.triple.cstring, addr b.target, addr b.machine, addr b.layout)
+  if err != nil:
     llvm_error(err)
     return false
-  b.machine = createTargetMachine(b.target, app.triple.cstring, "", "", CodeGenLevelAggressive, RelocPIC, CodeModelDefault)
-  b.layout = createTargetDataLayout(b.machine)
   app.pointersize = pointerSize(b.layout)
   contextSetOpaquePointers(b.ctx, if app.opaquePointerEnabled: True else: False)
   b.intPtr = intPtrTypeInContext(b.ctx, b.layout)
@@ -526,20 +522,20 @@ proc getOne*(ty: CType): Value =
 proc gen_condition*(test: Expr, lhs: Expr, rhs: Expr): Value =
   ## build a `cond ? lhs : rhs` expression
   var ty = wrap(lhs.ty)
-  var iftrue = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  var iffalse = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  var ifend = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  discard buildCondBr(b.builder, gen_cond(test), iftrue, iffalse)
+  var iftrue = addBlock()
+  var iffalse = addBlock()
+  var ifend = addBlock()
+  condBr(gen_cond(test), iftrue, iffalse)
   
-  positionBuilderAtEnd(b.builder, iftrue)
+  setInsertPoint(iftrue)
   var left = gen(lhs)
-  discard buildBr(b.builder, ifend)
+  br ifend
   
-  positionBuilderAtEnd(b.builder, iffalse)
+  setInsertPoint(iffalse)
   var right =gen (rhs)
-  discard buildBr(b.builder, ifend)
+  br ifend
 
-  positionBuilderAtEnd(b.builder, ifend)
+  setInsertPoint(ifend)
   var phi = buildPhi(b.builder, ty, "")
 
   var blocks = [iftrue, iffalse]
@@ -548,51 +544,51 @@ proc gen_condition*(test: Expr, lhs: Expr, rhs: Expr): Value =
   return phi
 
 proc gen_logical*(lhs: Expr, rhs: Expr, isand = true): Value =
-  var cond2 = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  var phib = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var cond2 = addBlock()
+  var phib = addBlock()
   var a = buildAlloca(b.builder, b.i1, "")
   var left = gen_cond(lhs)
   store(a, left)
   if isand:
-    discard buildCondBr(b.builder, left, cond2, phib)
+    condBr(left, cond2, phib)
   else:
-    discard buildCondBr(b.builder, left, phib, cond2)
+    condBr(left, phib, cond2)
 
-  positionBuilderAtEnd(b.builder, cond2)
+  setInsertPoint(cond2)
   var right = gen_cond(rhs)
   store(a, right)
-  discard buildBr(b.builder, phib)
+  br phib
 
-  positionBuilderAtEnd(b.builder, phib)
+  setInsertPoint(phib)
 
   return load(a, b.i1)
 
 proc gen_if*(test: Expr, body: Stmt) =
-  var iftrue = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  var ifend = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  discard buildCondBr(b.builder, gen_cond(test), iftrue, ifend)
+  var iftrue = addBlock()
+  var ifend = addBlock()
+  condBr(gen_cond(test), iftrue, ifend)
 
-  positionBuilderAtEnd(b.builder, iftrue)
+  setInsertPoint(iftrue)
   gen(body)
-  discard buildBr(b.builder, ifend)
+  br ifend
 
-  positionBuilderAtEnd(b.builder, ifend)
+  setInsertPoint(ifend)
 
 proc gen_if*(test: Expr, body: Stmt, elsebody: Stmt) =
-  var iftrue = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  var iffalse = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  var ifend = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  discard buildCondBr(b.builder, gen_cond(test), iftrue, iffalse)
+  var iftrue = addBlock()
+  var iffalse = addBlock()
+  var ifend = addBlock()
+  condBr(gen_cond(test), iftrue, iffalse)
 
-  positionBuilderAtEnd(b.builder, iftrue)
+  setInsertPoint(iftrue)
   gen(body)
-  discard buildBr(b.builder, ifend)
+  br ifend
 
-  positionBuilderAtEnd(b.builder, iffalse)
+  setInsertPoint(iffalse)
   gen(elsebody)
-  discard buildBr(b.builder, ifend)
+  br ifend
 
-  positionBuilderAtEnd(b.builder, ifend)
+  setInsertPoint(ifend)
 
 proc gen_switch*(test: Expr, body: Stmt) =
   var old_switch = b.topSwitch
@@ -602,16 +598,16 @@ proc gen_switch*(test: Expr, body: Stmt) =
   var old_default = b.topdefaultCase
 
   b.topTest = gen(test)
-  b.topBreak = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  b.topBreak = addBlock()
   b.topSwitch = getInsertBlock(b.builder)
   b.topCase = nil
-  b.topdefaultCase = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  b.topdefaultCase = addBlock()
   gen(body)
   if b.topCase != nil:
-    discard buildBr(b.builder, b.topBreak)
-  positionBuilderAtEnd(b.builder, b.topSwitch)
-  discard buildBr(b.builder, b.topdefaultCase)
-  positionBuilderAtEnd(b.builder, b.topBreak)
+    br b.topBreak
+  setInsertPoint(b.topSwitch)
+  br b.topdefaultCase
+  setInsertPoint(b.topBreak)
 
   b.topdefaultCase = old_default
   b.topCase = old_case
@@ -620,49 +616,49 @@ proc gen_switch*(test: Expr, body: Stmt) =
   b.topSwitch = old_switch
 
 proc gen_case*(test: Expr, body: Stmt) =
-  var thiscase = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var thiscase = addBlock()
   if b.topCase != nil:
-    discard buildBr(b.builder, thiscase)
+    br thiscase
   b.topCase = thiscase
-  positionBuilderAtEnd(b.builder, b.topSwitch)
+  setInsertPoint(b.topSwitch)
   let lhs = gen(test)
   let rhs = b.topTest
   let cond = buildICmp(b.builder, IntEQ, lhs, rhs, "")
-  b.topSwitch = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  discard buildCondBr(b.builder, cond, thiscase, b.topSwitch)
-  positionBuilderAtEnd(b.builder, thiscase)
+  b.topSwitch = addBlock()
+  condBr(cond, thiscase, b.topSwitch)
+  setInsertPoint(thiscase)
   gen(body)
 
 proc gen_default*(body: Stmt) =
   if b.topCase != nil:
-    discard buildBr(b.builder, b.topdefaultCase)
+    br b.topdefaultCase
   b.topCase = b.topdefaultCase
-  positionBuilderAtEnd(b.builder, b.topdefaultCase)
+  setInsertPoint(b.topdefaultCase)
   gen(body)
 
 proc gen_while*(test: Expr, body: Stmt) =
   var old_break = b.topBreak
   var old_continue = b.topContinue
 
-  var whilecmp = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  var whilebody = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  var whileleave = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var whilecmp = addBlock()
+  var whilebody = addBlock()
+  var whileleave = addBlock()
 
   b.topBreak = whileleave
   b.topContinue = whilecmp
 
-  discard buildBr(b.builder, whilecmp)
+  br whilecmp
 
-  positionBuilderAtEnd(b.builder, whilecmp)
+  setInsertPoint(whilecmp)
   var cond = gen_cond(test)
-  discard buildCondBr(b.builder, cond, whilebody, whileleave)
+  condBr(cond, whilebody, whileleave)
 
-  positionBuilderAtEnd(b.builder, whilebody)
+  setInsertPoint(whilebody)
   gen(body)
 
-  discard buildBr(b.builder, whilecmp)
+  br whilecmp
 
-  positionBuilderAtEnd(b.builder, whileleave)
+  setInsertPoint(whileleave)
 
   b.topBreak = old_break
   b.topContinue = old_continue
@@ -674,32 +670,32 @@ proc gen_for*(test: Expr, body: Stmt, sforinit: Stmt, eforincl: Expr) =
   if sforinit != nil:
     gen(sforinit)
   enterScope()
-  var forcmp = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  var forbody = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  var forleave = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  var forincl = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var forcmp = addBlock()
+  var forbody = addBlock()
+  var forleave = addBlock()
+  var forincl = addBlock()
 
   b.topBreak = forleave
   b.topContinue = forincl
 
-  discard buildBr(b.builder, forcmp)
+  br forcmp
 
   # for.cmp
-  positionBuilderAtEnd(b.builder, forcmp)
+  setInsertPoint(forcmp)
   var cond = gen_cond(test)
-  discard buildCondBr(b.builder, cond, forbody, forleave)
+  condBr(cond, forbody, forleave)
 
   # for.body
-  positionBuilderAtEnd(b.builder, forbody)
+  setInsertPoint(forbody)
   gen(body)
-  discard buildBr(b.builder, forincl)
+  br forincl
 
   # for.incl
-  positionBuilderAtEnd(b.builder, forincl)
+  setInsertPoint(forincl)
   if eforincl != nil:
     discard gen(eforincl)
-  discard buildBr(b.builder, forcmp)
-  positionBuilderAtEnd(b.builder, forleave)
+  br forcmp
+  setInsertPoint(forleave)
   leaveScope()
 
   b.topBreak = old_break
@@ -709,21 +705,21 @@ proc gen_dowhile*(test: Expr, body: Stmt) =
   var old_break = b.topBreak
   var old_continue = b.topContinue
 
-  var dowhilecmp = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  var dowhilebody = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
-  var dowhileleave = appendBasicBlockInContext(b.ctx, b.currentfunction, "")
+  var dowhilecmp = addBlock()
+  var dowhilebody = addBlock()
+  var dowhileleave = addBlock()
 
   b.topBreak = dowhileleave
   b.topContinue = dowhilecmp
 
-  positionBuilderAtEnd(b.builder, dowhilebody)
+  setInsertPoint(dowhilebody)
   gen(body)
 
-  positionBuilderAtEnd(b.builder, dowhilecmp)
+  setInsertPoint(dowhilecmp)
   var cond = gen_cond(test)
-  discard buildCondBr(b.builder, cond, dowhilebody, dowhileleave)
+  condBr(cond, dowhilebody, dowhileleave)
 
-  positionBuilderAtEnd(b.builder, dowhileleave)
+  setInsertPoint(dowhileleave)
   b.topBreak = old_break
   b.topContinue = old_continue
 
@@ -842,8 +838,8 @@ proc gen*(s: Stmt) =
       assert s.functy.spec == TYFUNCTION
       var ty = wrap(s.functy)
       b.currentfunction = newFunction(s.functy, s.funcname)
-      var entry = appendBasicBlockInContext(b.ctx, b.currentfunction, "entry")
-      positionBuilderAtEnd(b.builder, entry)
+      var entry = addBlock("entry")
+      setInsertPoint(entry)
       var paramLen = countParamTypes(ty)
       if paramLen > 0:
         var fparamsTypes = create(Type, paramLen)
@@ -888,8 +884,8 @@ proc gen*(s: Stmt) =
   of SDeclOnly:
     discard wrap(s.decl)
   of SLabled:
-    var ib = appendBasicBlockInContext(b.ctx, b.currentfunction, cstring(s.label))
-    positionBuilderAtEnd(b.builder, ib)
+    var ib = addBlock(cstring(s.label))
+    setInsertPoint(ib)
     putLabel(s.label, ib)
     gen(s.labledstmt)
   of SGoto:
@@ -897,13 +893,14 @@ proc gen*(s: Stmt) =
     if loc == nil:
       error("cannot find position for label: " & s.location)
     else:
-      discard buildbr(b.builder, loc)
+      br loc
+      setInsertPoint(loc)
   of SSemicolon:
     discard
   of SContinue:
-    discard buildBr(b.builder, b.topContinue)
+    br b.topContinue
   of SBreak:
-    discard buildBr(b.builder, b.topBreak)
+    br b.topBreak
   of SAsm:
     handle_asm(s.asms)
   of SSwitch:

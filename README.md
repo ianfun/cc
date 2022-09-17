@@ -39,7 +39,7 @@ It's a difficult to build cc in windows(for you need LLVM headers and link them 
 First, build C++ API helper file
 
 ```bash
-$ g++ `llvm-config --cflags` `llvm-config --ldflags --libs all --system-libs` llvmAPI.cpp -c -o llvmAPI
+$ g++ `llvm-config --cxxflags` llvmAPI.cpp -c -o llvmAPI -O3
 ```
 
 Build with Nim

@@ -1,8 +1,3 @@
-nimLLVMinit	LLVMbackend.html#nimLLVMinit	LLVMbackend: nimLLVMinit()	
-nimLLVMinitAll	LLVMbackend.html#nimLLVMinitAll	LLVMbackend: nimLLVMinitAll()	
-nimLLVMSetDSOLocal	LLVMbackend.html#nimLLVMSetDSOLocal,ValueRef	LLVMbackend: nimLLVMSetDSOLocal(Global: ValueRef)	
-nimLLVMOptModule	LLVMbackend.html#nimLLVMOptModule,ModuleRef	LLVMbackend: nimLLVMOptModule(m: ModuleRef)	
-nimLLVMGetAllocaArraySize	LLVMbackend.html#nimLLVMGetAllocaArraySize,ValueRef	LLVMbackend: nimLLVMGetAllocaArraySize(Alloca: ValueRef): ValueRef	
 Backend	LLVMbackend.html#Backend	LLVMbackend: Backend	
 b	LLVMbackend.html#b	LLVMbackend: b	
 llvm_error	LLVMbackend.html#llvm_error,string	LLVMbackend: llvm_error(msg: string)	
@@ -11,9 +6,6 @@ llvmGetAlignOf	LLVMbackend.html#llvmGetAlignOf,CType	LLVMbackend: llvmGetAlignOf
 llvmGetsizeof	LLVMbackend.html#llvmGetsizeof,CType	LLVMbackend: llvmGetsizeof(ty: CType): culonglong	
 llvmGetOffsetof	LLVMbackend.html#llvmGetOffsetof,CType,int	LLVMbackend: llvmGetOffsetof(ty: CType; idx: int): culonglong	
 addLLVMModule	LLVMbackend.html#addLLVMModule,string	LLVMbackend: addLLVMModule(source_file: string)	
-gep	LLVMbackend.html#gep,TypeRef,ValueRef,ValueRef	LLVMbackend: gep(ty: TypeRef; p: ValueRef; indices: var ValueRef): ValueRef	
-gep	LLVMbackend.html#gep,TypeRef,ValueRef,ptr.ValueRef,cuint	LLVMbackend: gep(ty: TypeRef; p: ValueRef; indices: ptr ValueRef; num: cuint): ValueRef	
-gep	LLVMbackend.html#gep,TypeRef,ValueRef,openArray[ValueRef]	LLVMbackend: gep(ty: TypeRef; p: ValueRef; indices: var openArray[ValueRef]): ValueRef	
 newBackend	LLVMbackend.html#newBackend	LLVMbackend: newBackend()	
 initTarget	LLVMbackend.html#initTarget	LLVMbackend: initTarget(): bool	
 dumpVersionInfo	LLVMbackend.html#dumpVersionInfo	LLVMbackend: dumpVersionInfo()	

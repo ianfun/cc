@@ -8,7 +8,8 @@ when defined(windows):
     # unpack and install
     {.passL: "\"C:\\Program Files\\LLVM\\lib\\LLVM-C.lib\" llvm/llvmAPI".}
 else:
-    {.passL: "-lLLVM-15 ./llvm/llvmAPI".}
+    # llvm-config --ldflags --system-libs --libs all
+    {.passL: "-L/usr/lib/llvm-15/lib -lLLVM-15 ./llvm/llvmAPI".}
 
 import core, cli, stream, lexer, cpp, parser, eval, LLVMbackend
 from std/exitprocs import setProgramResult
@@ -93,7 +94,7 @@ setProgramResult(1)
 if parseCLI():
     newBackend()
     if initTarget():
-        addLLVMModule(p.pathstack[1])        
+        addLLVMModule(p.pathstack[1])
         case app.input:
         of InputC:
             c()

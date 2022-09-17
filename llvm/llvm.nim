@@ -185,3 +185,19 @@ type
   Value* = ValueRef ## LLVM Value
   Type* = TypeRef ## LLVM Type
   Label* = BasicBlockRef ## LLVM block
+
+# wrappers from llvmAPI.cpp
+
+proc nimLLVMSetDSOLocal*(Global: ValueRef) {.importc: "LLVMNimSetDSOLocal".}
+
+proc nimLLVMOptModule*(m: ModuleRef) {.importc: "LLVMNimOptModule".}
+
+proc nimLLVMGetAllocaArraySize*(Alloca: ValueRef): ValueRef {.importc: "LLVMNimGetAllocaArraySize".}
+
+proc nimLLVMGetIntrinsicForMSBuiltin*(Prefix, BuiltinName: cstring): cuint {.importc: "LLVMNimGetIntrinsicForMSBuiltin".}
+
+proc nimLLVMGetIntrinsicForClangBuiltin*(Prefix, BuiltinName: cstring): cuint {.importc: "LLVMNimGetIntrinsicForClangBuiltin".}
+
+proc nimLLVMConfigureTarget*(tripleStr: cstring, Target: ptr TargetRef, Machine: ptr TargetMachineRef, TD: ptr TargetDataRef): cstring {.importc: "LLVMNimConfigureTarget".}
+
+# end wrappers

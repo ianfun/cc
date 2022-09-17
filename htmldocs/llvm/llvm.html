@@ -3891,6 +3891,38 @@ window.addEventListener('DOMContentLoaded', main);
     title="moveBasicBlockBefore(bb: BasicBlockRef; movePos: BasicBlockRef)">moveBasicBlockBefore(bb: BasicBlockRef; movePos: BasicBlockRef)</a></li>
 
   </ul>
+  <ul class="simple nested-toc-section">nimLLVMConfigureTarget
+      <li><a class="reference" href="#nimLLVMConfigureTarget%2Ccstring%2Cptr.TargetRef%2Cptr.TargetMachineRef%2Cptr.TargetDataRef"
+    title="nimLLVMConfigureTarget(tripleStr: cstring; Target: ptr TargetRef;
+                       Machine: ptr TargetMachineRef; TD: ptr TargetDataRef): cstring">nimLLVMConfigureTarget(tripleStr: cstring; Target: ptr TargetRef;
+                       Machine: ptr TargetMachineRef; TD: ptr TargetDataRef): cstring</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">nimLLVMGetAllocaArraySize
+      <li><a class="reference" href="#nimLLVMGetAllocaArraySize%2CValueRef"
+    title="nimLLVMGetAllocaArraySize(Alloca: ValueRef): ValueRef">nimLLVMGetAllocaArraySize(Alloca: ValueRef): ValueRef</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">nimLLVMGetIntrinsicForClangBuiltin
+      <li><a class="reference" href="#nimLLVMGetIntrinsicForClangBuiltin%2Ccstring%2Ccstring"
+    title="nimLLVMGetIntrinsicForClangBuiltin(Prefix, BuiltinName: cstring): cuint">nimLLVMGetIntrinsicForClangBuiltin(Prefix, BuiltinName: cstring): cuint</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">nimLLVMGetIntrinsicForMSBuiltin
+      <li><a class="reference" href="#nimLLVMGetIntrinsicForMSBuiltin%2Ccstring%2Ccstring"
+    title="nimLLVMGetIntrinsicForMSBuiltin(Prefix, BuiltinName: cstring): cuint">nimLLVMGetIntrinsicForMSBuiltin(Prefix, BuiltinName: cstring): cuint</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">nimLLVMOptModule
+      <li><a class="reference" href="#nimLLVMOptModule%2CModuleRef"
+    title="nimLLVMOptModule(m: ModuleRef)">nimLLVMOptModule(m: ModuleRef)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">nimLLVMSetDSOLocal
+      <li><a class="reference" href="#nimLLVMSetDSOLocal%2CValueRef"
+    title="nimLLVMSetDSOLocal(Global: ValueRef)">nimLLVMSetDSOLocal(Global: ValueRef)</a></li>
+
+  </ul>
   <ul class="simple nested-toc-section">normalizeTargetTriple
       <li><a class="reference" href="#normalizeTargetTriple%2Ccstring"
     title="normalizeTargetTriple(triple: cstring): cstring">normalizeTargetTriple(triple: cstring): cstring</a></li>
@@ -16563,6 +16595,85 @@ class="link-seesrc" target="_blank">Source</a>
 
 </dd>
 </div>
+<div id="nimLLVMConfigureTarget,cstring,ptr.TargetRef,ptr.TargetMachineRef,ptr.TargetDataRef">
+<dt><pre><span class="Keyword">proc</span> <a href="#nimLLVMConfigureTarget%2Ccstring%2Cptr.TargetRef%2Cptr.TargetMachineRef%2Cptr.TargetDataRef"><span class="Identifier">nimLLVMConfigureTarget</span></a><span class="Other">(</span><span class="Identifier">tripleStr</span><span class="Other">:</span> <span class="Identifier">cstring</span><span class="Other">;</span> <span class="Identifier">Target</span><span class="Other">:</span> <span class="Keyword">ptr</span> <a href="llvm.html#TargetRef"><span class="Identifier">TargetRef</span></a><span class="Other">;</span>
+                            <span class="Identifier">Machine</span><span class="Other">:</span> <span class="Keyword">ptr</span> <a href="llvm.html#TargetMachineRef"><span class="Identifier">TargetMachineRef</span></a><span class="Other">;</span> <span class="Identifier">TD</span><span class="Other">:</span> <span class="Keyword">ptr</span> <a href="llvm.html#TargetDataRef"><span class="Identifier">TargetDataRef</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">cstring</span> {.
+    <span class="Identifier">importc</span><span class="Other">:</span> <span class="StringLit">&quot;LLVMNimConfigureTarget&quot;</span><span class="Other">,</span> <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm/llvm.nim#L201"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm/llvm.nim#L201" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="nimLLVMGetAllocaArraySize,ValueRef">
+<dt><pre><span class="Keyword">proc</span> <a href="#nimLLVMGetAllocaArraySize%2CValueRef"><span class="Identifier">nimLLVMGetAllocaArraySize</span></a><span class="Other">(</span><span class="Identifier">Alloca</span><span class="Other">:</span> <a href="llvm.html#ValueRef"><span class="Identifier">ValueRef</span></a><span class="Other">)</span><span class="Other">:</span> <a href="llvm.html#ValueRef"><span class="Identifier">ValueRef</span></a> {.
+    <span class="Identifier">importc</span><span class="Other">:</span> <span class="StringLit">&quot;LLVMNimGetAllocaArraySize&quot;</span><span class="Other">,</span> <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm/llvm.nim#L195"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm/llvm.nim#L195" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="nimLLVMGetIntrinsicForClangBuiltin,cstring,cstring">
+<dt><pre><span class="Keyword">proc</span> <a href="#nimLLVMGetIntrinsicForClangBuiltin%2Ccstring%2Ccstring"><span class="Identifier">nimLLVMGetIntrinsicForClangBuiltin</span></a><span class="Other">(</span><span class="Identifier">Prefix</span><span class="Other">,</span> <span class="Identifier">BuiltinName</span><span class="Other">:</span> <span class="Identifier">cstring</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">cuint</span> {.
+    <span class="Identifier">importc</span><span class="Other">:</span> <span class="StringLit">&quot;LLVMNimGetIntrinsicForClangBuiltin&quot;</span><span class="Other">,</span> <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm/llvm.nim#L199"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm/llvm.nim#L199" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="nimLLVMGetIntrinsicForMSBuiltin,cstring,cstring">
+<dt><pre><span class="Keyword">proc</span> <a href="#nimLLVMGetIntrinsicForMSBuiltin%2Ccstring%2Ccstring"><span class="Identifier">nimLLVMGetIntrinsicForMSBuiltin</span></a><span class="Other">(</span><span class="Identifier">Prefix</span><span class="Other">,</span> <span class="Identifier">BuiltinName</span><span class="Other">:</span> <span class="Identifier">cstring</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">cuint</span> {.
+    <span class="Identifier">importc</span><span class="Other">:</span> <span class="StringLit">&quot;LLVMNimGetIntrinsicForMSBuiltin&quot;</span><span class="Other">,</span> <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm/llvm.nim#L197"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm/llvm.nim#L197" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="nimLLVMOptModule,ModuleRef">
+<dt><pre><span class="Keyword">proc</span> <a href="#nimLLVMOptModule%2CModuleRef"><span class="Identifier">nimLLVMOptModule</span></a><span class="Other">(</span><span class="Identifier">m</span><span class="Other">:</span> <a href="llvm.html#ModuleRef"><span class="Identifier">ModuleRef</span></a><span class="Other">)</span> {.<span class="Identifier">importc</span><span class="Other">:</span> <span class="StringLit">&quot;LLVMNimOptModule&quot;</span><span class="Other">,</span> <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+                                      <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm/llvm.nim#L193"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm/llvm.nim#L193" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="nimLLVMSetDSOLocal,ValueRef">
+<dt><pre><span class="Keyword">proc</span> <a href="#nimLLVMSetDSOLocal%2CValueRef"><span class="Identifier">nimLLVMSetDSOLocal</span></a><span class="Other">(</span><span class="Identifier">Global</span><span class="Other">:</span> <a href="llvm.html#ValueRef"><span class="Identifier">ValueRef</span></a><span class="Other">)</span> {.<span class="Identifier">importc</span><span class="Other">:</span> <span class="StringLit">&quot;LLVMNimSetDSOLocal&quot;</span><span class="Other">,</span>
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/llvm/llvm.nim#L191"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/llvm/llvm.nim#L191" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
 <div id="normalizeTargetTriple,cstring">
 <dt><pre><span class="Keyword">proc</span> <a href="#normalizeTargetTriple%2Ccstring"><span class="Identifier">normalizeTargetTriple</span></a><span class="Other">(</span><span class="Identifier">triple</span><span class="Other">:</span> <span class="Identifier">cstring</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">cstring</span> {.
     <span class="Identifier">importc</span><span class="Other">:</span> <span class="StringLit">&quot;LLVMNormalizeTargetTriple&quot;</span><span class="Other">,</span> <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
@@ -19632,7 +19743,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-17 00:26:47 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-17 13:37:15 UTC</small>
       </div>
     </div>
   </div>

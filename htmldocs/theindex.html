@@ -3949,14 +3949,6 @@ window.addEventListener('DOMContentLoaded', main);
           <li><a class="reference external"
           data-doc-search-tag="LLVMbackend: gen_while(test: Expr; body: Stmt)" href="LLVMbackend.html#gen_while%2CExpr%2CStmt">LLVMbackend: gen_while(test: Expr; body: Stmt)</a></li>
           </ul></dd>
-<dt><a name="gep" href="#gep"><span>gep:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="LLVMbackend: gep(ty: TypeRef; p: ValueRef; indices: var openArray[ValueRef]): ValueRef" href="LLVMbackend.html#gep%2CTypeRef%2CValueRef%2CopenArray%5BValueRef%5D">LLVMbackend: gep(ty: TypeRef; p: ValueRef; indices: var openArray[ValueRef]): ValueRef</a></li>
-          <li><a class="reference external"
-          data-doc-search-tag="LLVMbackend: gep(ty: TypeRef; p: ValueRef; indices: ptr ValueRef; num: cuint): ValueRef" href="LLVMbackend.html#gep%2CTypeRef%2CValueRef%2Cptr.ValueRef%2Ccuint">LLVMbackend: gep(ty: TypeRef; p: ValueRef; indices: ptr ValueRef; num: cuint): ValueRef</a></li>
-          <li><a class="reference external"
-          data-doc-search-tag="LLVMbackend: gep(ty: TypeRef; p: ValueRef; indices: var ValueRef): ValueRef" href="LLVMbackend.html#gep%2CTypeRef%2CValueRef%2CValueRef">LLVMbackend: gep(ty: TypeRef; p: ValueRef; indices: var ValueRef): ValueRef</a></li>
-          </ul></dd>
 <dt><a name="get" href="#get"><span>get:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="ast: get(a: uint32): CType" href="ast.html#get%2Cuint32">ast: get(a: uint32): CType</a></li>
@@ -7515,33 +7507,43 @@ window.addEventListener('DOMContentLoaded', main);
           <li><a class="reference external"
           data-doc-search-tag="LLVMbackend: neZero(a: Expr): Expr" href="LLVMbackend.html#neZero%2CExpr">LLVMbackend: neZero(a: Expr): Expr</a></li>
           </ul></dd>
+<dt><a name="nimLLVMConfigureTarget" href="#nimLLVMConfigureTarget"><span>nimLLVMConfigureTarget:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: nimLLVMConfigureTarget(tripleStr: cstring; Target: ptr TargetRef;
+                       Machine: ptr TargetMachineRef; TD: ptr TargetDataRef): cstring" href="llvm/llvm.html#nimLLVMConfigureTarget%2Ccstring%2Cptr.TargetRef%2Cptr.TargetMachineRef%2Cptr.TargetDataRef">llvm: nimLLVMConfigureTarget(tripleStr: cstring; Target: ptr TargetRef;
+                       Machine: ptr TargetMachineRef; TD: ptr TargetDataRef): cstring</a></li>
+          </ul></dd>
 <dt><a name="nimLLVMGetAllocaArraySize" href="#nimLLVMGetAllocaArraySize"><span>nimLLVMGetAllocaArraySize:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="LLVMbackend: nimLLVMGetAllocaArraySize(Alloca: ValueRef): ValueRef" href="LLVMbackend.html#nimLLVMGetAllocaArraySize%2CValueRef">LLVMbackend: nimLLVMGetAllocaArraySize(Alloca: ValueRef): ValueRef</a></li>
+          data-doc-search-tag="llvm: nimLLVMGetAllocaArraySize(Alloca: ValueRef): ValueRef" href="llvm/llvm.html#nimLLVMGetAllocaArraySize%2CValueRef">llvm: nimLLVMGetAllocaArraySize(Alloca: ValueRef): ValueRef</a></li>
+          </ul></dd>
+<dt><a name="nimLLVMGetIntrinsicForClangBuiltin" href="#nimLLVMGetIntrinsicForClangBuiltin"><span>nimLLVMGetIntrinsicForClangBuiltin:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: nimLLVMGetIntrinsicForClangBuiltin(Prefix, BuiltinName: cstring): cuint" href="llvm/llvm.html#nimLLVMGetIntrinsicForClangBuiltin%2Ccstring%2Ccstring">llvm: nimLLVMGetIntrinsicForClangBuiltin(Prefix, BuiltinName: cstring): cuint</a></li>
+          </ul></dd>
+<dt><a name="nimLLVMGetIntrinsicForMSBuiltin" href="#nimLLVMGetIntrinsicForMSBuiltin"><span>nimLLVMGetIntrinsicForMSBuiltin:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="llvm: nimLLVMGetIntrinsicForMSBuiltin(Prefix, BuiltinName: cstring): cuint" href="llvm/llvm.html#nimLLVMGetIntrinsicForMSBuiltin%2Ccstring%2Ccstring">llvm: nimLLVMGetIntrinsicForMSBuiltin(Prefix, BuiltinName: cstring): cuint</a></li>
           </ul></dd>
 <dt><a name="nimLLVMinit" href="#nimLLVMinit"><span>nimLLVMinit:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: nimLLVMinit()" href="llvm.html#nimLLVMinit">llvm: nimLLVMinit()</a></li>
-          <li><a class="reference external"
-          data-doc-search-tag="LLVMbackend: nimLLVMinit()" href="LLVMbackend.html#nimLLVMinit">LLVMbackend: nimLLVMinit()</a></li>
           </ul></dd>
 <dt><a name="nimLLVMinitAll" href="#nimLLVMinitAll"><span>nimLLVMinitAll:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: nimLLVMinitAll()" href="llvm.html#nimLLVMinitAll">llvm: nimLLVMinitAll()</a></li>
-          <li><a class="reference external"
-          data-doc-search-tag="LLVMbackend: nimLLVMinitAll()" href="LLVMbackend.html#nimLLVMinitAll">LLVMbackend: nimLLVMinitAll()</a></li>
           </ul></dd>
 <dt><a name="nimLLVMOptModule" href="#nimLLVMOptModule"><span>nimLLVMOptModule:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: nimLLVMOptModule(m: ModuleRef)" href="llvm.html#nimLLVMOptModule%2CModuleRef">llvm: nimLLVMOptModule(m: ModuleRef)</a></li>
           <li><a class="reference external"
-          data-doc-search-tag="LLVMbackend: nimLLVMOptModule(m: ModuleRef)" href="LLVMbackend.html#nimLLVMOptModule%2CModuleRef">LLVMbackend: nimLLVMOptModule(m: ModuleRef)</a></li>
+          data-doc-search-tag="llvm: nimLLVMOptModule(m: ModuleRef)" href="llvm/llvm.html#nimLLVMOptModule%2CModuleRef">llvm: nimLLVMOptModule(m: ModuleRef)</a></li>
           </ul></dd>
 <dt><a name="nimLLVMSetDSOLocal" href="#nimLLVMSetDSOLocal"><span>nimLLVMSetDSOLocal:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: nimLLVMSetDSOLocal(Global: ValueRef)" href="llvm.html#nimLLVMSetDSOLocal%2CValueRef">llvm: nimLLVMSetDSOLocal(Global: ValueRef)</a></li>
           <li><a class="reference external"
-          data-doc-search-tag="LLVMbackend: nimLLVMSetDSOLocal(Global: ValueRef)" href="LLVMbackend.html#nimLLVMSetDSOLocal%2CValueRef">LLVMbackend: nimLLVMSetDSOLocal(Global: ValueRef)</a></li>
+          data-doc-search-tag="llvm: nimLLVMSetDSOLocal(Global: ValueRef)" href="llvm/llvm.html#nimLLVMSetDSOLocal%2CValueRef">llvm: nimLLVMSetDSOLocal(Global: ValueRef)</a></li>
           </ul></dd>
 <dt><a name="NoAlias" href="#NoAlias"><span>NoAlias:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -12662,7 +12664,7 @@ window.addEventListener('DOMContentLoaded', main);
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-17 00:26:48 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-17 13:37:15 UTC</small>
       </div>
     </div>
   </div>
