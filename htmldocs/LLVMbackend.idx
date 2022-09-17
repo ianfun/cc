@@ -10,10 +10,13 @@ llvm_error	LLVMbackend.html#llvm_error,cstring	LLVMbackend: llvm_error(msg: cstr
 llvmGetAlignOf	LLVMbackend.html#llvmGetAlignOf,CType	LLVMbackend: llvmGetAlignOf(ty: CType): culonglong	
 llvmGetsizeof	LLVMbackend.html#llvmGetsizeof,CType	LLVMbackend: llvmGetsizeof(ty: CType): culonglong	
 llvmGetOffsetof	LLVMbackend.html#llvmGetOffsetof,CType,int	LLVMbackend: llvmGetOffsetof(ty: CType; idx: int): culonglong	
-newBackend	LLVMbackend.html#newBackend,string,string	LLVMbackend: newBackend(module_name, source_file: string)	
-initTarget	LLVMbackend.html#initTarget	LLVMbackend: initTarget()	
+addLLVMModule	LLVMbackend.html#addLLVMModule,string	LLVMbackend: addLLVMModule(source_file: string)	
+gep	LLVMbackend.html#gep,TypeRef,ValueRef,ValueRef	LLVMbackend: gep(ty: TypeRef; p: ValueRef; indices: var ValueRef): ValueRef	
+gep	LLVMbackend.html#gep,TypeRef,ValueRef,ptr.ValueRef,cuint	LLVMbackend: gep(ty: TypeRef; p: ValueRef; indices: ptr ValueRef; num: cuint): ValueRef	
+gep	LLVMbackend.html#gep,TypeRef,ValueRef,openArray[ValueRef]	LLVMbackend: gep(ty: TypeRef; p: ValueRef; indices: var openArray[ValueRef]): ValueRef	
+newBackend	LLVMbackend.html#newBackend	LLVMbackend: newBackend()	
+initTarget	LLVMbackend.html#initTarget	LLVMbackend: initTarget(): bool	
 dumpVersionInfo	LLVMbackend.html#dumpVersionInfo	LLVMbackend: dumpVersionInfo()	
-setBackend	LLVMbackend.html#setBackend	LLVMbackend: setBackend()	
 enterScope	LLVMbackend.html#enterScope	LLVMbackend: enterScope()	
 leaveScope	LLVMbackend.html#leaveScope	LLVMbackend: leaveScope()	
 getVar	LLVMbackend.html#getVar,string	LLVMbackend: getVar(name: string): Value	

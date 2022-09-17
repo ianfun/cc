@@ -1414,6 +1414,7 @@ typeOfX	llvm/llvm.html#typeOfX,ValueRef	llvm: typeOfX(val: ValueRef): TypeRef
 `$`	llvm/llvm.html#$,ValueRef	llvm: `$`(v: ValueRef): string	
 `$`	llvm/llvm.html#$,TypeRef	llvm: `$`(v: TypeRef): string	
 `$`	llvm/llvm.html#$,ErrorRef	llvm: `$`(err: ErrorRef): string	
+constInt	llvm/llvm.html#constInt,TypeRef,culonglong	llvm: constInt(ty: TypeRef; a: culonglong): ValueRef	
 LLVMRet	llvm/llvm.html#LLVMRet	llvm: LLVMRet	
 LLVMBr	llvm/llvm.html#LLVMBr	llvm: LLVMBr	
 LLVMSwitch	llvm/llvm.html#LLVMSwitch	llvm: LLVMSwitch	

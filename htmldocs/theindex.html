@@ -253,6 +253,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="parser: additive_expression(): Expr" href="parser.html#additive_expression">parser: additive_expression(): Expr</a></li>
           </ul></dd>
+<dt><a name="addLLVMModule" href="#addLLVMModule"><span>addLLVMModule:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="LLVMbackend: addLLVMModule(source_file: string)" href="LLVMbackend.html#addLLVMModule%2Cstring">LLVMbackend: addLLVMModule(source_file: string)</a></li>
+          </ul></dd>
 <dt><a name="addMetadataToInst" href="#addMetadataToInst"><span>addMetadataToInst:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: addMetadataToInst(builder: BuilderRef; inst: ValueRef)" href="llvm.html#addMetadataToInst%2CBuilderRef%2CValueRef">llvm: addMetadataToInst(builder: BuilderRef; inst: ValueRef)</a></li>
@@ -1439,6 +1443,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="core: CC" href="core.html#CC">core: CC</a></li>
           </ul></dd>
+<dt><a name="cc_exit" href="#cc_exit"><span>cc_exit:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="config: cc_exit(c: auto)" href="config.html#cc_exit%2Cauto">config: cc_exit(c: auto)</a></li>
+          </ul></dd>
 <dt><a name="ceil" href="#ceil"><span>ceil:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="LLVMInstrinsics.ceil" href="llvm/llvm.html#ceil">LLVMInstrinsics.ceil</a></li>
@@ -1720,6 +1728,8 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="constInt" href="#constInt"><span>constInt:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: constInt(intTy: TypeRef; n: culonglong; signExtend: Bool): ValueRef" href="llvm.html#constInt%2CTypeRef%2Cculonglong%2CBool">llvm: constInt(intTy: TypeRef; n: culonglong; signExtend: Bool): ValueRef</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="llvm: constInt(ty: TypeRef; a: culonglong): ValueRef" href="llvm/llvm.html#constInt%2CTypeRef%2Cculonglong">llvm: constInt(ty: TypeRef; a: culonglong): ValueRef</a></li>
           <li><a class="reference external"
           data-doc-search-tag="llvm: constInt(intTy: TypeRef; n: culonglong; signExtend: Bool): ValueRef" href="llvm/llvm.html#constInt%2CTypeRef%2Cculonglong%2CBool">llvm: constInt(intTy: TypeRef; n: culonglong; signExtend: Bool): ValueRef</a></li>
           </ul></dd>
@@ -3939,6 +3949,14 @@ window.addEventListener('DOMContentLoaded', main);
           <li><a class="reference external"
           data-doc-search-tag="LLVMbackend: gen_while(test: Expr; body: Stmt)" href="LLVMbackend.html#gen_while%2CExpr%2CStmt">LLVMbackend: gen_while(test: Expr; body: Stmt)</a></li>
           </ul></dd>
+<dt><a name="gep" href="#gep"><span>gep:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="LLVMbackend: gep(ty: TypeRef; p: ValueRef; indices: var openArray[ValueRef]): ValueRef" href="LLVMbackend.html#gep%2CTypeRef%2CValueRef%2CopenArray%5BValueRef%5D">LLVMbackend: gep(ty: TypeRef; p: ValueRef; indices: var openArray[ValueRef]): ValueRef</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="LLVMbackend: gep(ty: TypeRef; p: ValueRef; indices: ptr ValueRef; num: cuint): ValueRef" href="LLVMbackend.html#gep%2CTypeRef%2CValueRef%2Cptr.ValueRef%2Ccuint">LLVMbackend: gep(ty: TypeRef; p: ValueRef; indices: ptr ValueRef; num: cuint): ValueRef</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="LLVMbackend: gep(ty: TypeRef; p: ValueRef; indices: var ValueRef): ValueRef" href="LLVMbackend.html#gep%2CTypeRef%2CValueRef%2CValueRef">LLVMbackend: gep(ty: TypeRef; p: ValueRef; indices: var ValueRef): ValueRef</a></li>
+          </ul></dd>
 <dt><a name="get" href="#get"><span>get:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="ast: get(a: uint32): CType" href="ast.html#get%2Cuint32">ast: get(a: uint32): CType</a></li>
@@ -5611,7 +5629,7 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="llvm: initTarget()" href="llvm.html#initTarget">llvm: initTarget()</a></li>
           <li><a class="reference external"
-          data-doc-search-tag="LLVMbackend: initTarget()" href="LLVMbackend.html#initTarget">LLVMbackend: initTarget()</a></li>
+          data-doc-search-tag="LLVMbackend: initTarget(): bool" href="LLVMbackend.html#initTarget">LLVMbackend: initTarget(): bool</a></li>
           </ul></dd>
 <dt><a name="init_trampoline" href="#init_trampoline"><span>init_trampoline:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -7465,7 +7483,7 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="llvm: newBackend(module_name, source_file: string)" href="llvm.html#newBackend%2Cstring%2Cstring">llvm: newBackend(module_name, source_file: string)</a></li>
           <li><a class="reference external"
-          data-doc-search-tag="LLVMbackend: newBackend(module_name, source_file: string)" href="LLVMbackend.html#newBackend%2Cstring%2Cstring">LLVMbackend: newBackend(module_name, source_file: string)</a></li>
+          data-doc-search-tag="LLVMbackend: newBackend()" href="LLVMbackend.html#newBackend">LLVMbackend: newBackend()</a></li>
           </ul></dd>
 <dt><a name="newFileStream" href="#newFileStream"><span>newFileStream:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -9301,7 +9319,7 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="parseCLI" href="#parseCLI"><span>parseCLI:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="cli: parseCLI()" href="cli.html#parseCLI">cli: parseCLI()</a></li>
+          data-doc-search-tag="cli: parseCLI(): bool" href="cli.html#parseCLI">cli: parseCLI(): bool</a></li>
           </ul></dd>
 <dt><a name="parseCommandLineOptions" href="#parseCommandLineOptions"><span>parseCommandLineOptions:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -10162,8 +10180,6 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="setBackend" href="#setBackend"><span>setBackend:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: setBackend()" href="llvm.html#setBackend">llvm: setBackend()</a></li>
-          <li><a class="reference external"
-          data-doc-search-tag="LLVMbackend: setBackend()" href="LLVMbackend.html#setBackend">LLVMbackend: setBackend()</a></li>
           </ul></dd>
 <dt><a name="setCleanup" href="#setCleanup"><span>setCleanup:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -12646,7 +12662,7 @@ window.addEventListener('DOMContentLoaded', main);
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-11 05:36:46 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-17 00:26:48 UTC</small>
       </div>
     </div>
   </div>

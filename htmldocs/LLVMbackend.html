@@ -145,7 +145,12 @@ window.addEventListener('DOMContentLoaded', main);
 <li>
   <a class="reference reference-toplevel" href="#12" id="62">Procs</a>
   <ul class="simple simple-toc-section">
-      <ul class="simple nested-toc-section">backendint
+      <ul class="simple nested-toc-section">addLLVMModule
+      <li><a class="reference" href="#addLLVMModule%2Cstring"
+    title="addLLVMModule(source_file: string)">addLLVMModule(source_file: string)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">backendint
       <li><a class="reference" href="#backendint"
     title="backendint(): Type">backendint(): Type</a></li>
 
@@ -276,6 +281,15 @@ window.addEventListener('DOMContentLoaded', main);
     title="gen_while(test: Expr; body: Stmt)">gen_while(test: Expr; body: Stmt)</a></li>
 
   </ul>
+  <ul class="simple nested-toc-section">gep
+      <li><a class="reference" href="#gep%2CTypeRef%2CValueRef%2Cptr.ValueRef%2Ccuint"
+    title="gep(ty: TypeRef; p: ValueRef; indices: ptr ValueRef; num: cuint): ValueRef">gep(ty: TypeRef; p: ValueRef; indices: ptr ValueRef; num: cuint): ValueRef</a></li>
+  <li><a class="reference" href="#gep%2CTypeRef%2CValueRef%2CopenArray%5BValueRef%5D"
+    title="gep(ty: TypeRef; p: ValueRef; indices: var openArray[ValueRef]): ValueRef">gep(ty: TypeRef; p: ValueRef; indices: var openArray[ValueRef]): ValueRef</a></li>
+  <li><a class="reference" href="#gep%2CTypeRef%2CValueRef%2CValueRef"
+    title="gep(ty: TypeRef; p: ValueRef; indices: var ValueRef): ValueRef">gep(ty: TypeRef; p: ValueRef; indices: var ValueRef): ValueRef</a></li>
+
+  </ul>
   <ul class="simple nested-toc-section">getAddress
       <li><a class="reference" href="#getAddress%2CExpr"
     title="getAddress(e: Expr): Value">getAddress(e: Expr): Value</a></li>
@@ -350,7 +364,7 @@ window.addEventListener('DOMContentLoaded', main);
   </ul>
   <ul class="simple nested-toc-section">initTarget
       <li><a class="reference" href="#initTarget"
-    title="initTarget()">initTarget()</a></li>
+    title="initTarget(): bool">initTarget(): bool</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">jit_error
@@ -400,8 +414,8 @@ window.addEventListener('DOMContentLoaded', main);
 
   </ul>
   <ul class="simple nested-toc-section">newBackend
-      <li><a class="reference" href="#newBackend%2Cstring%2Cstring"
-    title="newBackend(module_name, source_file: string)">newBackend(module_name, source_file: string)</a></li>
+      <li><a class="reference" href="#newBackend"
+    title="newBackend()">newBackend()</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">newFunction
@@ -482,11 +496,6 @@ window.addEventListener('DOMContentLoaded', main);
   <ul class="simple nested-toc-section">runjit
       <li><a class="reference" href="#runjit"
     title="runjit()">runjit()</a></li>
-
-  </ul>
-  <ul class="simple nested-toc-section">setBackend
-      <li><a class="reference" href="#setBackend"
-    title="setBackend()">setBackend()</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">shutdownBackend
@@ -626,15 +635,27 @@ class="link-seesrc" target="_blank">Source</a>
 <div class="section" id="12">
 <h1><a class="toc-backref" href="#12">Procs</a></h1>
 <dl class="item">
+<div id="addLLVMModule,string">
+<dt><pre><span class="Keyword">proc</span> <a href="#addLLVMModule%2Cstring"><span class="Identifier">addLLVMModule</span></a><span class="Other">(</span><span class="Identifier">source_file</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L83"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L83" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
 <div id="backendint">
 <dt><pre><span class="Keyword">proc</span> <a href="#backendint"><span class="Identifier">backendint</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="llvm/llvm.html#Type"><span class="Identifier">Type</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L341"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L351"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L341" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L351" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -644,9 +665,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L280"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L290"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L280" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L290" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -656,9 +677,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L992"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1002"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L992" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1002" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -668,9 +689,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L986"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L996"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L986" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L996" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -680,9 +701,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L144"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L159"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L144" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L159" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -692,9 +713,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 not token.enterBlock
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L163"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L172"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L163" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L172" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -704,9 +725,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L971"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L981"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L971" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L981" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -716,9 +737,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1100"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1110"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1100" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1110" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -728,9 +749,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L820"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L830"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L820" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L830" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -740,9 +761,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L294"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L304"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L294" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L304" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -752,9 +773,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L612"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L622"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L612" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L622" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -765,9 +786,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1270"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1280"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1270" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1280" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -777,9 +798,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 generate bool(conditional) expression
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L287"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L297"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L287" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L297" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -790,9 +811,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 build a <tt class="docutils literal"><span class="pre"><span class="Identifier">cond</span> <span class="Operator">?</span> <span class="Identifier">lhs</span> <span class="Punctuation">:</span> <span class="Identifier">rhs</span></span></tt> expression
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L516"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L526"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L516" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L526" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -802,9 +823,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L626"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L636"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L626" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L636" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -815,9 +836,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L698"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L708"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L698" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L708" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -827,9 +848,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L300"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L310"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L300" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L310" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -839,9 +860,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L318"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L328"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L318" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L328" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -852,9 +873,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L660"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L670"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L660" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L670" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -864,9 +885,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L560"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L570"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L560" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L570" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -877,9 +898,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L571"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L581"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L571" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L581" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -889,9 +910,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L303"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L313"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L303" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L313" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -902,9 +923,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L540"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L550"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L540" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L550" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -914,9 +935,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L321"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L331"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L321" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L331" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -926,9 +947,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L332"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L342"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L332" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L342" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -939,9 +960,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L587"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L597"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L587" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L597" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -951,9 +972,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L297"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L307"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L297" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L307" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -963,9 +984,48 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L633"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L643"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L633" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L643" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="gep,TypeRef,ValueRef,ptr.ValueRef,cuint">
+<dt><pre><span class="Keyword">proc</span> <a href="#gep%2CTypeRef%2CValueRef%2Cptr.ValueRef%2Ccuint"><span class="Identifier">gep</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="llvm/llvm.html#TypeRef"><span class="Identifier">TypeRef</span></a><span class="Other">;</span> <span class="Identifier">p</span><span class="Other">:</span> <a href="llvm/llvm.html#ValueRef"><span class="Identifier">ValueRef</span></a><span class="Other">;</span> <span class="Identifier">indices</span><span class="Other">:</span> <span class="Keyword">ptr</span> <a href="llvm/llvm.html#ValueRef"><span class="Identifier">ValueRef</span></a><span class="Other">;</span> <span class="Identifier">num</span><span class="Other">:</span> <span class="Identifier">cuint</span><span class="Other">)</span><span class="Other">:</span> <a href="llvm/llvm.html#ValueRef"><span class="Identifier">ValueRef</span></a> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L111"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L111" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="gep,TypeRef,ValueRef,openArray[ValueRef]">
+<dt><pre><span class="Keyword">proc</span> <a href="#gep%2CTypeRef%2CValueRef%2CopenArray%5BValueRef%5D"><span class="Identifier">gep</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="llvm/llvm.html#TypeRef"><span class="Identifier">TypeRef</span></a><span class="Other">;</span> <span class="Identifier">p</span><span class="Other">:</span> <a href="llvm/llvm.html#ValueRef"><span class="Identifier">ValueRef</span></a><span class="Other">;</span> <span class="Identifier">indices</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">openArray</span><span class="Other">[</span><a href="llvm/llvm.html#ValueRef"><span class="Identifier">ValueRef</span></a><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="llvm/llvm.html#ValueRef"><span class="Identifier">ValueRef</span></a> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L114"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L114" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="gep,TypeRef,ValueRef,ValueRef">
+<dt><pre><span class="Keyword">proc</span> <a href="#gep%2CTypeRef%2CValueRef%2CValueRef"><span class="Identifier">gep</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="llvm/llvm.html#TypeRef"><span class="Identifier">TypeRef</span></a><span class="Other">;</span> <span class="Identifier">p</span><span class="Other">:</span> <a href="llvm/llvm.html#ValueRef"><span class="Identifier">ValueRef</span></a><span class="Other">;</span> <span class="Identifier">indices</span><span class="Other">:</span> <span class="Keyword">var</span> <a href="llvm/llvm.html#ValueRef"><span class="Identifier">ValueRef</span></a><span class="Other">)</span><span class="Other">:</span> <a href="llvm/llvm.html#ValueRef"><span class="Identifier">ValueRef</span></a> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L108"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L108" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -975,9 +1035,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1026"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1036"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1026" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1036" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -987,14 +1047,26 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1014"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1024"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1014" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1024" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="getCastOp,CastOp">
 <dt><pre><span class="Keyword">proc</span> <a href="#getCastOp%2CCastOp"><span class="Identifier">getCastOp</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <a href="operators.html#CastOp"><span class="Identifier">CastOp</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">llvm</span><span class="Other">.</span><span class="Identifier">Opcode</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L777"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L777" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getFCmpOp,BinOP">
+<dt><pre><span class="Keyword">proc</span> <a href="#getFCmpOp%2CBinOP"><span class="Identifier">getFCmpOp</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <a href="operators.html#BinOP"><span class="Identifier">BinOP</span></a><span class="Other">)</span><span class="Other">:</span> <a href="llvm/llvm.html#RealPredicate"><span class="Identifier">RealPredicate</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
@@ -1005,80 +1077,20 @@ class="link-seesrc" target="_blank">Source</a>
 
 </dd>
 </div>
-<div id="getFCmpOp,BinOP">
-<dt><pre><span class="Keyword">proc</span> <a href="#getFCmpOp%2CBinOP"><span class="Identifier">getFCmpOp</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <a href="operators.html#BinOP"><span class="Identifier">BinOP</span></a><span class="Other">)</span><span class="Other">:</span> <a href="llvm/llvm.html#RealPredicate"><span class="Identifier">RealPredicate</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L757"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L757" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
 <div id="getICmpOp,BinOP">
 <dt><pre><span class="Keyword">proc</span> <a href="#getICmpOp%2CBinOP"><span class="Identifier">getICmpOp</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <a href="operators.html#BinOP"><span class="Identifier">BinOP</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">llvm</span><span class="Other">.</span><span class="Identifier">IntPredicate</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L743"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L753"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L743" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L753" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="getLabel,string">
 <dt><pre><span class="Keyword">proc</span> <a href="#getLabel%2Cstring"><span class="Identifier">getLabel</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="llvm/llvm.html#Label"><span class="Identifier">Label</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L184"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L184" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="getOne,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#getOne%2CCType"><span class="Identifier">getOne</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <a href="llvm/llvm.html#Value"><span class="Identifier">Value</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L512"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L512" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="getOp,BinOP">
-<dt><pre><span class="Keyword">proc</span> <a href="#getOp%2CBinOP"><span class="Identifier">getOp</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <a href="operators.html#BinOP"><span class="Identifier">BinOP</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">llvm</span><span class="Other">.</span><span class="Identifier">Opcode</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L721"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L721" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="getStruct,Expr">
-<dt><pre><span class="Keyword">proc</span> <a href="#getStruct%2CExpr"><span class="Identifier">getStruct</span></a><span class="Other">(</span><span class="Identifier">e</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">)</span><span class="Other">:</span> <a href="llvm/llvm.html#Value"><span class="Identifier">Value</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L998"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L998" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="getTags,string">
-<dt><pre><span class="Keyword">proc</span> <a href="#getTags%2Cstring"><span class="Identifier">getTags</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="llvm/llvm.html#Type"><span class="Identifier">Type</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
@@ -1089,15 +1101,63 @@ class="link-seesrc" target="_blank">Source</a>
 
 </dd>
 </div>
+<div id="getOne,CType">
+<dt><pre><span class="Keyword">proc</span> <a href="#getOne%2CCType"><span class="Identifier">getOne</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <a href="llvm/llvm.html#Value"><span class="Identifier">Value</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L522"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L522" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getOp,BinOP">
+<dt><pre><span class="Keyword">proc</span> <a href="#getOp%2CBinOP"><span class="Identifier">getOp</span></a><span class="Other">(</span><span class="Identifier">a</span><span class="Other">:</span> <a href="operators.html#BinOP"><span class="Identifier">BinOP</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">llvm</span><span class="Other">.</span><span class="Identifier">Opcode</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L731"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L731" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getStruct,Expr">
+<dt><pre><span class="Keyword">proc</span> <a href="#getStruct%2CExpr"><span class="Identifier">getStruct</span></a><span class="Other">(</span><span class="Identifier">e</span><span class="Other">:</span> <a href="ast.html#Expr"><span class="Identifier">Expr</span></a><span class="Other">)</span><span class="Other">:</span> <a href="llvm/llvm.html#Value"><span class="Identifier">Value</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1008"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1008" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="getTags,string">
+<dt><pre><span class="Keyword">proc</span> <a href="#getTags%2Cstring"><span class="Identifier">getTags</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="llvm/llvm.html#Type"><span class="Identifier">Type</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L202"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L202" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
 <div id="getThreadSafeModule">
 <dt><pre><span class="Keyword">proc</span> <a href="#getThreadSafeModule"><span class="Identifier">getThreadSafeModule</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="llvm/llvm.html#OrcThreadSafeModuleRef"><span class="Identifier">OrcThreadSafeModuleRef</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1290"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1300"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1290" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1300" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1107,9 +1167,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L175"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L184"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L175" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L184" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1119,9 +1179,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L509"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L519"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L509" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L519" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1131,9 +1191,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L974"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L984"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L974" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L984" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1143,21 +1203,21 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L980"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L990"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L980" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L990" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="initTarget">
-<dt><pre><span class="Keyword">proc</span> <a href="#initTarget"><span class="Identifier">initTarget</span></a><span class="Other">(</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#initTarget"><span class="Identifier">initTarget</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L128"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L142"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L128" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L142" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1167,9 +1227,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1282"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1292"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1282" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1292" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1179,9 +1239,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1278"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1288"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1278" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1288" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1191,9 +1251,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1274"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1284"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1274" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1284" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1203,9 +1263,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 not token.leaveBlock
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L169"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L178"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L169" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L178" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1215,9 +1275,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 return true when error
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L229"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L235"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L229" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L235" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1290,21 +1350,21 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L347"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L357"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L347" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L357" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
-<div id="newBackend,string,string">
-<dt><pre><span class="Keyword">proc</span> <a href="#newBackend%2Cstring%2Cstring"><span class="Identifier">newBackend</span></a><span class="Other">(</span><span class="Identifier">module_name</span><span class="Other">,</span> <span class="Identifier">source_file</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<div id="newBackend">
+<dt><pre><span class="Keyword">proc</span> <a href="#newBackend"><span class="Identifier">newBackend</span></a><span class="Other">(</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L103"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L117"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L103" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L117" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1314,9 +1374,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L798"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L808"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L798" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L808" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1326,9 +1386,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L968"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L978"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L968" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L978" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1401,9 +1461,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L207"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L217"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L207" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L217" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1414,9 +1474,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1287"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1297"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1287" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1297" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1427,26 +1487,14 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1089"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1099"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1089" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1099" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="putLabel,string,Label">
 <dt><pre><span class="Keyword">proc</span> <a href="#putLabel%2Cstring%2CLabel"><span class="Identifier">putLabel</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">label</span><span class="Other">:</span> <a href="llvm/llvm.html#Label"><span class="Identifier">Label</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L190"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L190" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="putTags,string,Type">
-<dt><pre><span class="Keyword">proc</span> <a href="#putTags%2Cstring%2CType"><span class="Identifier">putTags</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">t</span><span class="Other">:</span> <a href="llvm/llvm.html#Type"><span class="Identifier">Type</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
@@ -1457,15 +1505,27 @@ class="link-seesrc" target="_blank">Source</a>
 
 </dd>
 </div>
+<div id="putTags,string,Type">
+<dt><pre><span class="Keyword">proc</span> <a href="#putTags%2Cstring%2CType"><span class="Identifier">putTags</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">t</span><span class="Other">:</span> <a href="llvm/llvm.html#Type"><span class="Identifier">Type</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L208"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L208" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
 <div id="putVar,string,Value">
 <dt><pre><span class="Keyword">proc</span> <a href="#putVar%2Cstring%2CValue"><span class="Identifier">putVar</span></a><span class="Other">(</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">val</span><span class="Other">:</span> <a href="llvm/llvm.html#Value"><span class="Identifier">Value</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L181"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L190"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L181" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L190" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1475,170 +1535,14 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L233"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L239"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L233" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L239" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="readIRToModule,cstring">
 <dt><pre><span class="Keyword">proc</span> <a href="#readIRToModule%2Ccstring"><span class="Identifier">readIRToModule</span></a><span class="Other">(</span><span class="Identifier">path</span><span class="Other">:</span> <span class="Identifier">cstring</span><span class="Other">)</span><span class="Other">:</span> <a href="llvm/llvm.html#ModuleRef"><span class="Identifier">ModuleRef</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L241"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L241" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="runjit">
-<dt><pre><span class="Keyword">proc</span> <a href="#runjit"><span class="Identifier">runjit</span></a><span class="Other">(</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1294"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1294" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="setBackend">
-<dt><pre><span class="Keyword">proc</span> <a href="#setBackend"><span class="Identifier">setBackend</span></a><span class="Other">(</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L157"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L157" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="shutdownBackend">
-<dt><pre><span class="Keyword">proc</span> <a href="#shutdownBackend"><span class="Identifier">shutdownBackend</span></a><span class="Other">(</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L202"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L202" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="store,Value,Value,uint32">
-<dt><pre><span class="Keyword">proc</span> <a href="#store%2CValue%2CValue%2Cuint32"><span class="Identifier">store</span></a><span class="Other">(</span><span class="Identifier">p</span><span class="Other">:</span> <a href="llvm/llvm.html#Value"><span class="Identifier">Value</span></a><span class="Other">;</span> <span class="Identifier">v</span><span class="Other">:</span> <a href="llvm/llvm.html#Value"><span class="Identifier">Value</span></a><span class="Other">;</span> <span class="Identifier">align</span><span class="Other">:</span> <span class="Identifier">uint32</span> <span class="Other">=</span> <span class="DecNumber">0</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L354"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L354" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="verify">
-<dt><pre><span class="Keyword">proc</span> <a href="#verify"><span class="Identifier">verify</span></a><span class="Other">(</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L225"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L225" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="wrap,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#wrap%2CCType"><span class="Identifier">wrap</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <a href="llvm/llvm.html#Type"><span class="Identifier">Type</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-wrap a CType to LLVM Type
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L394"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L394" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="wrap2,CType">
-<dt><pre><span class="Keyword">proc</span> <a href="#wrap2%2CCType"><span class="Identifier">wrap2</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <a href="llvm/llvm.html#Type"><span class="Identifier">Type</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L359"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L359" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="writeAssemblyFile,string">
-<dt><pre><span class="Keyword">proc</span> <a href="#writeAssemblyFile%2Cstring"><span class="Identifier">writeAssemblyFile</span></a><span class="Other">(</span><span class="Identifier">path</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L277"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L277" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="writeAssemblyFile,string,ModuleRef">
-<dt><pre><span class="Keyword">proc</span> <a href="#writeAssemblyFile%2Cstring%2CModuleRef"><span class="Identifier">writeAssemblyFile</span></a><span class="Other">(</span><span class="Identifier">path</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">m</span><span class="Other">:</span> <a href="llvm/llvm.html#ModuleRef"><span class="Identifier">ModuleRef</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L272"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L272" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="writeBitcodeToFile,string">
-<dt><pre><span class="Keyword">proc</span> <a href="#writeBitcodeToFile%2Cstring"><span class="Identifier">writeBitcodeToFile</span></a><span class="Other">(</span><span class="Identifier">path</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L261"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L261" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="writeBitcodeToFile,string,ModuleRef">
-<dt><pre><span class="Keyword">proc</span> <a href="#writeBitcodeToFile%2Cstring%2CModuleRef"><span class="Identifier">writeBitcodeToFile</span></a><span class="Other">(</span><span class="Identifier">path</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">m</span><span class="Other">:</span> <a href="llvm/llvm.html#ModuleRef"><span class="Identifier">ModuleRef</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L257"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L257" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="writeModuleToFile,string">
-<dt><pre><span class="Keyword">proc</span> <a href="#writeModuleToFile%2Cstring"><span class="Identifier">writeModuleToFile</span></a><span class="Other">(</span><span class="Identifier">path</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L254"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L254" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="writeModuleToFile,string,ModuleRef">
-<dt><pre><span class="Keyword">proc</span> <a href="#writeModuleToFile%2Cstring%2CModuleRef"><span class="Identifier">writeModuleToFile</span></a><span class="Other">(</span><span class="Identifier">path</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">m</span><span class="Other">:</span> <a href="llvm/llvm.html#ModuleRef"><span class="Identifier">ModuleRef</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
@@ -1649,15 +1553,159 @@ class="link-seesrc" target="_blank">Source</a>
 
 </dd>
 </div>
+<div id="runjit">
+<dt><pre><span class="Keyword">proc</span> <a href="#runjit"><span class="Identifier">runjit</span></a><span class="Other">(</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L1304"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L1304" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="shutdownBackend">
+<dt><pre><span class="Keyword">proc</span> <a href="#shutdownBackend"><span class="Identifier">shutdownBackend</span></a><span class="Other">(</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L211"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L211" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="store,Value,Value,uint32">
+<dt><pre><span class="Keyword">proc</span> <a href="#store%2CValue%2CValue%2Cuint32"><span class="Identifier">store</span></a><span class="Other">(</span><span class="Identifier">p</span><span class="Other">:</span> <a href="llvm/llvm.html#Value"><span class="Identifier">Value</span></a><span class="Other">;</span> <span class="Identifier">v</span><span class="Other">:</span> <a href="llvm/llvm.html#Value"><span class="Identifier">Value</span></a><span class="Other">;</span> <span class="Identifier">align</span><span class="Other">:</span> <span class="Identifier">uint32</span> <span class="Other">=</span> <span class="DecNumber">0</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L364"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L364" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="verify">
+<dt><pre><span class="Keyword">proc</span> <a href="#verify"><span class="Identifier">verify</span></a><span class="Other">(</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L231"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L231" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="wrap,CType">
+<dt><pre><span class="Keyword">proc</span> <a href="#wrap%2CCType"><span class="Identifier">wrap</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <a href="llvm/llvm.html#Type"><span class="Identifier">Type</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+wrap a CType to LLVM Type
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L404"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L404" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="wrap2,CType">
+<dt><pre><span class="Keyword">proc</span> <a href="#wrap2%2CCType"><span class="Identifier">wrap2</span></a><span class="Other">(</span><span class="Identifier">ty</span><span class="Other">:</span> <a href="ast.html#CType"><span class="Identifier">CType</span></a><span class="Other">)</span><span class="Other">:</span> <a href="llvm/llvm.html#Type"><span class="Identifier">Type</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L369"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L369" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="writeAssemblyFile,string">
+<dt><pre><span class="Keyword">proc</span> <a href="#writeAssemblyFile%2Cstring"><span class="Identifier">writeAssemblyFile</span></a><span class="Other">(</span><span class="Identifier">path</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L287"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L287" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="writeAssemblyFile,string,ModuleRef">
+<dt><pre><span class="Keyword">proc</span> <a href="#writeAssemblyFile%2Cstring%2CModuleRef"><span class="Identifier">writeAssemblyFile</span></a><span class="Other">(</span><span class="Identifier">path</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">m</span><span class="Other">:</span> <a href="llvm/llvm.html#ModuleRef"><span class="Identifier">ModuleRef</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L282"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L282" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="writeBitcodeToFile,string">
+<dt><pre><span class="Keyword">proc</span> <a href="#writeBitcodeToFile%2Cstring"><span class="Identifier">writeBitcodeToFile</span></a><span class="Other">(</span><span class="Identifier">path</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L271"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L271" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="writeBitcodeToFile,string,ModuleRef">
+<dt><pre><span class="Keyword">proc</span> <a href="#writeBitcodeToFile%2Cstring%2CModuleRef"><span class="Identifier">writeBitcodeToFile</span></a><span class="Other">(</span><span class="Identifier">path</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">m</span><span class="Other">:</span> <a href="llvm/llvm.html#ModuleRef"><span class="Identifier">ModuleRef</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L267"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L267" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="writeModuleToFile,string">
+<dt><pre><span class="Keyword">proc</span> <a href="#writeModuleToFile%2Cstring"><span class="Identifier">writeModuleToFile</span></a><span class="Other">(</span><span class="Identifier">path</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L264"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L264" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="writeModuleToFile,string,ModuleRef">
+<dt><pre><span class="Keyword">proc</span> <a href="#writeModuleToFile%2Cstring%2CModuleRef"><span class="Identifier">writeModuleToFile</span></a><span class="Other">(</span><span class="Identifier">path</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">m</span><span class="Other">:</span> <a href="llvm/llvm.html#ModuleRef"><span class="Identifier">ModuleRef</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L259"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L259" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
 <div id="writeObjectFile,string">
 <dt><pre><span class="Keyword">proc</span> <a href="#writeObjectFile%2Cstring"><span class="Identifier">writeObjectFile</span></a><span class="Other">(</span><span class="Identifier">path</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L269"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L279"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L269" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L279" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1667,9 +1715,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L264"
+href="https://github.com/ianfun/cc/tree/master/LLVMbackend.nim#L274"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L264" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/ianfun/cc/edit/devel/LLVMbackend.nim#L274" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -1683,7 +1731,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-11 05:36:46 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-17 00:26:48 UTC</small>
       </div>
     </div>
   </div>
