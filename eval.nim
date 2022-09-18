@@ -1,5 +1,4 @@
 import config, ast, operators, core, stream
-from parser import constant_expression, p
 
 proc my_UNEG(a: uintmax_t): intmax_t {.importc: "myopneg", nodecl, header: "myop.h".}
 
@@ -19,13 +18,13 @@ proc setEval*() =
 var eval_error_msg*: string
 
 proc eval_error(msg: string): intmax_t =
-  p.eval_error = true
+  t.eval_error = true
   eval_error_msg = msg
   return intmax_t(0)
 
 proc write_eval_msg*() = 
   core.error()
-  cstderr <<< eval_error_msg
+  fstderr <<< eval_error_msg
 
 proc evali*(e: Expr): intmax_t =
   ## run the constant expression

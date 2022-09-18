@@ -1,6 +1,9 @@
 import config, core, parser, stream, token, eval
 import std/[unicode, math]
 
+proc warning*(msg: string) =
+    fstderr <<< msg
+
 proc nextTok*()
 
 proc setLexer*() =
@@ -14,17 +17,17 @@ proc resetLine() =
     inc p.line
 
 proc fs_read*() =
-    if p.fstack.len == 0:
+    if t.fstack.len == 0:
         p.c = '\0'
     else:
-        let s = p.fstack[^1]
+        let s = t.fstack[^1]
         p.c = s.readChar()
         inc p.col
         if p.c == '\0':
-            let fd = p.fstack.pop()
-            p.filename = p.filenamestack.pop()
-            p.path = p.pathstack.pop()
-            let loc = p.locstack.pop()
+            let fd = t.fstack.pop()
+            t.filename = t.filenamestack.pop()
+            t.path = t.pathstack.pop()
+            let loc = t.locstack.pop()
             p.line = loc.line
             p.col = loc.col
             fd.close()
@@ -629,10 +632,10 @@ proc nextTok*() =
                     ok = false
                 else:
                     ok = app.eval_const_expression(e) != 0
-                    if p.eval_error:
+                    if t.eval_error:
                         write_eval_msg()
-                p.ppstack.add(if ok: 1 else: 0)
-                p.ok = ok
+                t.ppstack.add(if ok: 1 else: 0)
+                t.ok = ok
                 skipLine()
             of "ifdef", "ifndef":
                 let ndef = p.tok.s == "ifndef"
@@ -646,30 +649,30 @@ proc nextTok*() =
                     return
                 let name = p.tok.s # no copy
                 let v = if ndef: not macro_defined(name) else: macro_defined(name)
-                p.ppstack.add(if v: 1 else: 0)
-                p.ok = v
+                t.ppstack.add(if v: 1 else: 0)
+                t.ok = v
                 skipLine()
             of "else":
-                if p.ppstack.len == 0:
+                if t.ppstack.len == 0:
                     parse_error("no matching #if")
                     return
-                if (p.ppstack[^1] and 2) != 0:
+                if (t.ppstack[^1] and 2) != 0:
                     parse_error("#else after #else")
                     return
-                p.ppstack[^1] = p.ppstack[^1] or 2
-                p.ok = not p.ok
+                t.ppstack[^1] = t.ppstack[^1] or 2
+                t.ok = not t.ok
                 skipLine()
             of "elif":
                 nextTok() # elif
                 while p.tok.tok == TSpace:
                     nextTok()
-                if p.ppstack.len == 0:
+                if t.ppstack.len == 0:
                     parse_error("no matching #if")
                     return
-                if (p.ppstack[^1] and 2) != 0:
+                if (t.ppstack[^1] and 2) != 0:
                     parse_error("#elif after #else")
                     return
-                if p.ok == false:
+                if t.ok == false:
                     var ok: bool
                     p.want_expr = true
                     let e = constant_expression()
@@ -679,20 +682,20 @@ proc nextTok*() =
                         ok = false
                     else:
                         ok = app.eval_const_expression(e) != 0
-                    p.ok = ok
+                    t.ok = ok
                 else:
-                    p.ok = false
+                    t.ok = false
                 skipLine()
             of "endif":
-                if p.ppstack.len == 0:
+                if t.ppstack.len == 0:
                     parse_error("no matching #if")
                     skipLine()
                     return
-                discard p.ppstack.pop() # p.ppstack.del(p.ppstack.len - 1)
-                if p.ppstack.len == 0:
-                    p.ok = true
+                discard t.ppstack.pop() # t.ppstack.del(t.ppstack.len - 1)
+                if t.ppstack.len == 0:
+                    t.ok = true
                 else:
-                    p.ok = (p.ppstack[^1] or 1) != 0
+                    t.ok = (t.ppstack[^1] or 1) != 0
                 skipLine()
             of "include":
                 while p.c in CSkip:
@@ -759,7 +762,7 @@ proc nextTok*() =
                         parse_error("'\"' expected")
                         return
                     eat()
-                    p.filename = f
+                    t.filename = f
                     skipLine()
             of "undef":
                 nextTok()
@@ -803,7 +806,7 @@ proc nextTok*() =
                 skipLine()
             eat()
             continue
-        if p.flags == PFNormal and p.ok == false:
+        if p.flags == PFNormal and t.ok == false:
             while p.c != '\n' and p.c != '\0':
                 eat()
             if p.c == '\n':

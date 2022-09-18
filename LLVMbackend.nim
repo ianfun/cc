@@ -59,13 +59,13 @@ type
 var b*: ptr Backend
 
 proc llvm_error*(msg: string) =
-  cstderr << "LLVM ERROR: "
-  cstderr <<< cstring(msg)
+  fstderr << "LLVM ERROR: "
+  fstderr <<< cstring(msg)
 
 proc llvm_error*(msg: cstring) =
   if msg != nil:
-    cstderr << "LLVM ERROR: "
-    cstderr <<< msg
+    fstderr << "LLVM ERROR: "
+    fstderr <<< msg
 
 proc wrap*(ty: CType): Type
 
@@ -175,20 +175,20 @@ proc listTargets*() =
   var e = newStringOfCap(10)
   newBackend()
   initTarget2()
-  cstderr <<< "  Registered Targets:"
+  fstderr <<< "  Registered Targets:"
   var t = getFirstTarget()
   while t != nil:
-    cstderr << "    "
+    fstderr << "    "
     var n = getTargetName(t)
     var l = 15 - len(n)
     e.setLen 0
     while l > 0:
       e.add(' ')
       dec l
-    cstderr << n
-    cstderr << e
-    cstderr << " - "
-    cstderr <<< getTargetDescription(t)
+    fstderr << n
+    fstderr << e
+    fstderr << " - "
+    fstderr <<< getTargetDescription(t)
     t = getNextTarget(t)
   cc_exit(1)
 
@@ -981,7 +981,7 @@ proc gen*(s: Stmt) =
             if init == nil:
               setLinkage(g, CommonLinkage)
             if (varty.tags and TYREGISTER) != 0:
-              warning("register variables is ignored in LLVM backend")
+              warningPlain("register variables is ignored in LLVM backend")
           # setLinkage(g, CommonLinkage)
           putVar(name, g)
         else:
@@ -1319,16 +1319,16 @@ proc gen_cast*(e: Expr, to: CType, op: CastOp): Value =
   buildCast(b.builder, getCastOp(op), c, wrap(to), "")
 
 proc jit_error*(msg: string) =
-  cstderr << "LLVM JIT ERROR: " 
-  cstderr <<< msg
+  fstderr << "LLVM JIT ERROR: " 
+  fstderr <<< msg
 
 proc jit_error*(msg: cstring) =
-  cstderr << "LLVM JIT ERROR: "
-  cstderr <<< msg
+  fstderr << "LLVM JIT ERROR: "
+  fstderr <<< msg
 
 proc jit_error*(err: ErrorRef) =
   var msg = getErrorMessage(err)
-  cstderr <<< msg
+  fstderr <<< msg
   disposeErrorMessage(msg)
 
 proc orc_error_report*(ctx: pointer; err: ErrorRef) {.cdecl, gcsafe.} =

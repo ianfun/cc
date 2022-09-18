@@ -31,12 +31,12 @@ proc builtin_Pragma() =
 proc getMacro*(name: string): PPMacro =
   case name:
   of "__COUNTER__":
-    result = PPMacro(tokens: @[TokenV(tok: TPPNumber, tags: TVSVal, s: $p.counter)], flags: MOBJ)
-    inc p.counter
+    result = PPMacro(tokens: @[TokenV(tok: TPPNumber, tags: TVSVal, s: $t.counter)], flags: MOBJ)
+    inc t.counter
   of "__LINE__":
     result = PPMacro(tokens: @[TokenV(tok: TPPNumber, tags: TVSVal, s: $p.line)], flags: MOBJ)
   of "__FILE__":
-    result = PPMacro(tokens: @[TokenV(tok: TStringLit, tags: TVSVal, s: p.filename)], flags: MOBJ)
+    result = PPMacro(tokens: @[TokenV(tok: TStringLit, tags: TVSVal, s: t.filename)], flags: MOBJ)
   of "__DATE__":
     let n = now()
     result = PPMacro(tokens: @[TokenV(tok: TStringLit, tags: TVSVal, s: n.format(initTimeFormat("MMM dd yyyy")))], flags: MOBJ)
@@ -52,13 +52,13 @@ proc macro_find*(name: string): PPMacro =
   p.macros.getOrDefault(name, nil)
 
 proc beginExpandMacro*(a: string) =
-  p.expansion_list.incl a
+  t.expansion_list.incl a
 
 proc endExpandMacro*(a: string) =
-  p.expansion_list.excl a
+  t.expansion_list.excl a
 
 proc isMacroInUse*(a: string): bool =
-  p.expansion_list.contains(a)
+  t.expansion_list.contains(a)
 
 proc getToken*() =
     ## CPP layer(Preprocessing)
@@ -79,15 +79,15 @@ proc getToken*() =
 
 proc paste_token(a, b: TokenV): TokenV =
     var oldp = p
-    p = Parser(filenamestack: @["##"], pathstack: @["##"], flags: PFPP, line: 1, col: 1, ok: true, c: ' ', lastc: 256)
-    p.tok = TokenV(tok: TNul, tags: TVNormal)
+    p = Parser(flags: PFPP, line: 1, col: 1, c: ' ', lastc: 256, tok: TokenV(tok: TNul, tags: TVNormal))
     result = TokenV(tok: TNul, tags: TVNormal)
     let s = stringizing(a) & stringizing(b)
-    p.fstack.add(newStringStream(s))
+    var oldlen = t.fstack.len
+    t.fstack.add(newStringStream(s))
     app.lex()
     if p.tok.tok == TSpace:
         app.lex()
-    if p.fstack.len != 0:
+    if t.fstack.len != oldlen:
         discard # more then one tokens? invalid
     elif p.tok.tok == TNul:
         discard # parse failed!

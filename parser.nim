@@ -28,37 +28,20 @@ import config, stream, core, ast, token, operators, location
 import std/[math, tables, sets, editdistance]
 from std/sequtils import count
 
+proc warning(msg: string) =
+    fstderr <<< msg
+
 type
     Parser* = ref object
-      currentfunctionRet*, currentInitTy*, currentCase*: CType
-      pfunc*: string
-      currentAlign*: uint32
-      fstack*: seq[Stream]
-      filenamestack*, pathstack*: seq[string]
-      locstack*: seq[Location]
       tok*: TokenV
       line*: int
       col*: int
       c*: char
       want_expr*: bool
       lastc*: uint16
-      filename*, path*: string
       macros*: Table[string, PPMacro]
       flags*: ParseFlags
-      ppstack*: seq[uint8]
-      ok*: bool
-      onces*, expansion_list*: HashSet[string]
-      # 6.2.3 Name spaces of identifiers
-      lables*: seq[HashSet[string]]
-      tags*: seq[TableRef[string, Info]]
-      typedefs*: seq[TableRef[string, Info]]
       tokenq*: seq[TokenV]
-      counter*: int
-      retTy*: CType # current return type
-      type_error*: bool
-      eval_error*: bool
-      parse_error*: bool
-      bad_error*: bool
 
 var p*: Parser = nil
 
@@ -74,10 +57,10 @@ else:
     const sizeofint = 8.culonglong
 
 proc type_error*(msg: string) =
-    cstderr << "\e[35m" & p.filename & ":" & $p.line & '.' & $p.col & ": type error: " & msg & "\e[0m\n"
-    if p.fstack.len > 0:
-        printSourceLine(p.fstack[^1], p.line)
-    p.type_error = true
+    fstderr << "\e[35m" & t.filename & ":" & $p.line & '.' & $p.col & ": type error: " & msg & "\e[0m\n"
+    if t.fstack.len > 0:
+        printSourceLine(t.fstack[^1], p.line)
+    t.type_error = true
 
 proc error_incomplete*(ty: CType) =
   let s = if ty.tag == TYSTRUCT:  "struct" else: (if ty.tag == TYUNION: "union" else: "enum")
@@ -87,11 +70,11 @@ proc compatible*(p, expected: CType): bool
 
 proc parse_error*(msg: string) =
     # p.tok = TokenV(tok: TNul, tags: TVNormal)
-    if p.parse_error == false and p.type_error == false:
-      cstderr << "\e[34m" & p.filename & ":" & $p.line & '.' & $p.col & ": parse error: " & msg & "\e[0m\n"
-      if p.fstack.len > 0:
-          printSourceLine(p.fstack[^1], p.line)
-      p.parse_error = true
+    if t.parse_error == false and t.type_error == false:
+      fstderr << "\e[34m" & t.filename & ":" & $p.line & '.' & $p.col & ": parse error: " & msg & "\e[0m\n"
+      if t.fstack.len > 0:
+          printSourceLine(t.fstack[^1], p.line)
+      t.parse_error = true
 
 proc setParser*(a: var Parser) =
   p = a
@@ -106,6 +89,8 @@ proc binop*(a: Expr, op: BinOP, b: Expr, ty: CType): Expr =
 proc unary*(e: Expr, op: UnaryOP, ty: CType): Expr = 
     ## construct a unary operator
     Expr(k: EUnary, uop: op, uoperand: e, ty: ty)
+
+proc leaveBlock*()
 
 proc showToken*(): string =
   case p.tok.tok:
@@ -149,10 +134,6 @@ proc ppMacroEq(a, b: PPMacro): bool =
   result = (a.flags == b.flags) and
   (if a.flags == MFUNC: (a.ivarargs == b.ivarargs) else: true) and
   tokensEq(a.tokens, b.tokens)  
-
-proc warning*(msg: string) =
-  if ord(app.verboseLevel) >= ord(WWarning):
-    cstderr << "\e[33m" & p.filename & ": " & $p.line & '.' & $p.col & ": warning: " & msg & "\e[0m\n"
 
 proc macro_define*(name: string, m: PPMacro) =
   let pr = p.macros.getOrDefault(name, nil)
@@ -274,74 +255,40 @@ proc intRank*(a: uint32): int =
     return 5
 
 proc err*(): bool =
-  p.type_error or p.parse_error or p.eval_error
+  t.type_error or t.parse_error or t.eval_error
 
 proc note*(msg: string) =
     if ord(app.verboseLevel) >= ord(WNote):
-      cstderr << "\e[32mnote: " & msg & "\e[0m\n"
+      fstderr << "\e[32mnote: " & msg & "\e[0m\n"
 
 proc error*(msg: string) =
-    if p.bad_error == false:
-      cstderr << "\e[31m" & p.filename & ":" & $p.line & '.' & $p.col & ": error: " & msg & "\e[0m\n"
-      if p.fstack.len > 0:
-          printSourceLine(p.fstack[^1], p.line)
-      p.bad_error = true
+    if t.bad_error == false:
+      fstderr << "\e[31m" & t.filename & ":" & $p.line & '.' & $p.col & ": error: " & msg & "\e[0m\n"
+      if t.fstack.len > 0:
+          printSourceLine(t.fstack[^1], p.line)
+      t.bad_error = true
 
 proc inTheExpression*(e: Expr) =
     ## emit in the expression message
     note("in the expression '" & $e & '\'')
 
-proc enterBlock*() =
-  p.typedefs.add(newTable[string, typeof(p.typedefs[0][""])]())
-  p.tags.add(newTable[string, typeof(p.tags[0][""])]())
-  p.lables.add(initHashSet[string]())
-
-proc isTopLevel(): bool =
-    p.typedefs.len == 1
-
-proc leaveBlock*() =
-  if isTopLevel() == false:
-    for (name, i) in p.typedefs[^1].pairs():
-      if not bool(i.tag and INFO_USED):
-          warning("declared but not used: '" & name & '\'')
-          note("declared at " & $i.loc)
-  discard p.typedefs.pop()
-  discard p.tags.pop()
-  discard p.lables.pop()
-
-proc reset*()
-
-proc finishParsing() =
-    leaveBlock()
-
 proc addString*(s: string, filename: string) =
-  p.fstack.add(newStringStream(s))
-  p.filenamestack.add(p.filename)
-  p.pathstack.add(p.path)
-  p.locstack.add(Location(line: p.line, col: p.col))
-  p.filename = filename
-  p.path = filename
+  t.fstack.add(newStringStream(s))
+  t.filenamestack.add(t.filename)
+  t.pathstack.add(t.path)
+  t.locstack.add(Location(line: p.line, col: p.col))
+  t.filename = filename
+  t.path = filename
   p.line = 1
   p.col = 1
 
 proc addStdin*() =
-  p.fstack.add(newStdinStream())
-  p.filenamestack.add(p.filename)
-  p.pathstack.add(p.path)
-  p.locstack.add(Location(line: p.line, col: p.col))
-  p.filename = "<stdin>"
-  p.path = "/dev/stdin"
-  p.line = 1
-  p.col = 1
-
-proc addFile*(fd: File, filename: string) =
-  let f = newFileStream(fd)
-  p.fstack.add(f)
-  p.filenamestack.add(p.filename)
-  p.pathstack.add(p.path)
-  p.locstack.add(Location(line: p.line, col: p.col))
-  p.filename = filename
-  p.path = filename
+  t.fstack.add(newStdinStream())
+  t.filenamestack.add(t.filename)
+  t.pathstack.add(t.path)
+  t.locstack.add(Location(line: p.line, col: p.col))
+  t.filename = "<stdin>"
+  t.path = "/dev/stdin"
   p.line = 1
   p.col = 1
 
@@ -349,44 +296,44 @@ proc addFile*(filename: string) =
   let f = newFileStream(filename)
   if f == nil:
     return
-  p.fstack.add(f)
-  p.filenamestack.add(p.filename)
-  p.pathstack.add(p.path)
-  p.locstack.add(Location(line: p.line, col: p.col))
-  p.filename = filename
-  p.path = filename
+  t.fstack.add(f)
+  t.filenamestack.add(t.filename)
+  t.pathstack.add(t.path)
+  t.locstack.add(Location(line: p.line, col: p.col))
+  t.filename = filename
+  t.path = filename
   p.line = 1
   p.col = 1
 
 proc closeParser*() =
-  for fd in p.fstack:
+  for fd in t.fstack:
     fd.close()
 
 proc getTag(name: string): Info =
-  for i in countdown(len(p.tags)-1, 0):
-    result = p.tags[i].getOrDefault(name, nil)
+  for i in countdown(len(t.tags)-1, 0):
+    result = t.tags[i].getOrDefault(name, nil)
     if result != nil:
       result.tag = result.tag or INFO_USED
       return result
 
 proc gettypedef*(name: string): Info =
-  for i in countdown(len(p.typedefs)-1, 0):
-    result = p.typedefs[i].getOrDefault(name, nil)
+  for i in countdown(len(t.typedefs)-1, 0):
+    result = t.typedefs[i].getOrDefault(name, nil)
     if result != nil:
       result.tag = result.tag or INFO_USED
       return result
 
 proc hasLabel*(name: string): bool =
-  for i in countdown(len(p.lables)-1, 0):
-    if name in p.lables[i]:
+  for i in countdown(len(t.lables)-1, 0):
+    if name in t.lables[i]:
         return true
   return false
 
-proc putLable*(name: string, t: int) =
+proc putLable*(name: string) =
     if hasLabel(name):
       error("duplicate label: " & name)
       return
-    p.lables[^1].incl name
+    t.lables[^1].incl name
 
 proc getstructdef*(name: string): CType =
     var r = getTag(name)
@@ -397,13 +344,13 @@ proc getstructdef*(name: string): CType =
     else:
         result = r.ty
 
-proc putstructdef*(t: CType) =
-    let o = getTag(t.sname)
+proc putstructdef*(ty: CType) =
+    let o = getTag(ty.sname)
     if o != nil:
-        error("struct " & t.sname & " aleady defined")
-        note(t.sname & "was defined at " & $o.loc)
+        error("struct " & ty.sname & " aleady defined")
+        note(ty.sname & "was defined at " & $o.loc)
     else:
-        p.tags[^1][t.sname] = Info(ty: t, loc: Location(line: p.line, col: p.col))
+        t.tags[^1][ty.sname] = Info(ty: ty, loc: Location(line: p.line, col: p.col))
 
 proc getenumdef*(name: string): CType =
     let r = getTag(name)
@@ -414,13 +361,13 @@ proc getenumdef*(name: string): CType =
     else:
         result = r.ty
 
-proc putenumdef*(t: CType) =
-    let o = getTag(t.ename)
+proc putenumdef*(ty: CType) =
+    let o = getTag(ty.ename)
     if o != nil:
-        error("enum " & t.ename & " aleady defined")
-        note(t.ename & "was defined at " & $o.loc)
+        error("enum " & ty.ename & " aleady defined")
+        note(ty.ename & "was defined at " & $o.loc)
     else:
-        p.tags[^1][t.ename] = Info(ty: t, loc: Location(line: p.line, col: p.col))
+        t.tags[^1][ty.ename] = Info(ty: ty, loc: Location(line: p.line, col: p.col))
 
 proc getuniondef*(name: string): CType =
     let r = getTag(name)
@@ -431,13 +378,13 @@ proc getuniondef*(name: string): CType =
     else:
         result = r.ty
 
-proc putuniondef*(t: CType) =
-    let o = getTag(t.sname)
+proc putuniondef*(ty: CType) =
+    let o = getTag(ty.sname)
     if o != nil:
-        error("`union` " & t.sname & " aleady defined")
-        note(t.sname & "was defined at " & $o.loc)
+        error("`union` " & ty.sname & " aleady defined")
+        note(ty.sname & "was defined at " & $o.loc)
     else:
-        p.tags[^1][t.sname] = Info(ty: t, loc: Location(line: p.line, col: p.col))
+        t.tags[^1][ty.sname] = Info(ty: ty, loc: Location(line: p.line, col: p.col))
 
 proc getsymtype*(name: string): CType =
   let o = gettypedef(name)
@@ -447,33 +394,33 @@ proc getsymtype*(name: string): CType =
     o.ty
 
 # function definition
-proc putsymtype3*(name: string, t: CType) =
-  let ty = p.typedefs[^1].getOrDefault(name, nil)
+proc putsymtype3*(name: string, yt: CType) =
+  let ty = t.typedefs[^1].getOrDefault(name, nil)
   if ty != nil:
     type_error("function " & name & " redefined")
-  p.typedefs[^1][name] = Info(ty: t, loc: Location(line: p.line, col: p.col))
+  t.typedefs[^1][name] = Info(ty: yt, loc: Location(line: p.line, col: p.col))
 
 # function declaration
-proc putsymtype2*(name: string, t: CType) =
-  let ty = p.typedefs[^1].getOrDefault(name, nil)
+proc putsymtype2*(name: string, yt: CType) =
+  let ty = t.typedefs[^1].getOrDefault(name, nil)
   if ty != nil:
-    if not compatible(t, ty.ty):
+    if not compatible(yt, ty.ty):
         type_error("conflicting types for function declaration '" & name &  "'")
-  p.typedefs[^1][name] = Info(ty: t, loc: Location(line: p.line, col: p.col))
+  t.typedefs[^1][name] = Info(ty: yt, loc: Location(line: p.line, col: p.col))
 
 # typedef, variable
-proc putsymtype*(name: string, t: CType) =
-  if t.spec == TYFUNCTION:
-    putsymtype2(name, t)
+proc putsymtype*(name: string, yt: CType) =
+  if yt.spec == TYFUNCTION:
+    putsymtype2(name, yt)
     return
-  let ty = p.typedefs[^1].getOrDefault(name, nil)
+  let ty = t.typedefs[^1].getOrDefault(name, nil)
   if ty != nil and not bool(ty.ty.tags and TYEXTERN):
     type_error(name & " redeclared")
     return
-  p.typedefs[^1][name] = Info(ty: t, loc: Location(line: p.line, col: p.col))
+  t.typedefs[^1][name] = Info(ty: yt, loc: Location(line: p.line, col: p.col))
 
 proc checkOnce*(filename: string): bool =
-    return p.onces.contains(filename)
+    return t.onces.contains(filename)
 
 proc istype(a: Token): bool =
     if a in (declaration_specifier_set + {Kstruct, Kenum, Kunion, K_Alignas}):
@@ -484,7 +431,7 @@ proc istype(a: Token): bool =
     return false
 
 proc addOnce*() =
-    p.onces.incl p.path
+    t.onces.incl t.path
 
 proc addInclude*(filename: string, isInclude: bool) =
     if checkOnce(filename) == true:
@@ -496,12 +443,12 @@ proc addInclude*(filename: string, isInclude: bool) =
         if isInclude:
             note("in the #include directive")
         return
-    p.fstack.add(s)
-    p.filenamestack.add(p.filename)
-    p.pathstack.add(p.path)
-    p.locstack.add(Location(line: p.line, col: p.col))
-    p.filename = filename
-    p.path = filename
+    t.fstack.add(s)
+    t.filenamestack.add(t.filename)
+    t.pathstack.add(t.path)
+    t.locstack.add(Location(line: p.line, col: p.col))
+    t.filename = filename
+    t.path = filename
     p.line = 1
     p.col = 1
 
@@ -1256,33 +1203,33 @@ proc declarator*(base: CType; flags=Direct): Stmt =
 
 proc initializer_list*(): Expr =
     if p.tok.tok != TLcurlyBracket:
-        if p.currentInitTy == nil:
-            # when 'excess elements in initializer-list', 'p.currentInitTy' is nil
+        if t.currentInitTy == nil:
+            # when 'excess elements in initializer-list', 't.currentInitTy' is nil
             return assignment_expression()
-        if p.currentInitTy.spec notin {TYPRIM, TYPOINTER}:
+        if t.currentInitTy.spec notin {TYPRIM, TYPOINTER}:
             type_error("expect bracket initializer")
             return nil
         var e = assignment_expression()
         if e == nil:
             expectExpression()
             return nil
-        return castto(e, p.currentInitTy)
-    if p.currentInitTy.spec == TYSTRUCT:
-        result = Expr(k: EStruct, ty: p.currentInitTy)
+        return castto(e, t.currentInitTy)
+    if t.currentInitTy.spec == TYSTRUCT:
+        result = Expr(k: EStruct, ty: t.currentInitTy)
     else:
         # array, scalar
-        result = Expr(k: EArray, ty: p.currentInitTy)
+        result = Expr(k: EArray, ty: t.currentInitTy)
     consume()
     var m: int
-    if p.currentInitTy.spec == TYARRAY:
-        if p.currentInitTy.hassize:
-            m = p.currentInitTy.arrsize.int
+    if t.currentInitTy.spec == TYARRAY:
+        if t.currentInitTy.hassize:
+            m = t.currentInitTy.arrsize.int
         else:
             result.ty.hassize = true
             result.ty.arrsize = 0
             m = -1
-    elif p.currentInitTy.spec == TYSTRUCT:
-        m = p.currentInitTy.selems.len.int
+    elif t.currentInitTy.spec == TYSTRUCT:
+        m = t.currentInitTy.selems.len.int
     else:
         # warning("braces around scalar initializer")
         m = 1
@@ -1292,16 +1239,16 @@ proc initializer_list*(): Expr =
             consume()
             break
         var ty: CType
-        if p.currentInitTy.spec == TYSTRUCT:
-            ty = if i < m: p.currentInitTy.selems[i][1] else: nil
-        elif p.currentInitTy.spec == TYARRAY:
-            ty = p.currentInitTy.arrtype
+        if t.currentInitTy.spec == TYSTRUCT:
+            ty = if i < m: t.currentInitTy.selems[i][1] else: nil
+        elif t.currentInitTy.spec == TYARRAY:
+            ty = t.currentInitTy.arrtype
         else:
-            ty = p.currentInitTy
-        var o = p.currentInitTy
-        p.currentInitTy = ty
+            ty = t.currentInitTy
+        var o = t.currentInitTy
+        t.currentInitTy = ty
         var e = initializer_list()
-        p.currentInitTy = o
+        t.currentInitTy = o
         if e == nil:
             return nil
         if m == -1:
@@ -1314,7 +1261,7 @@ proc initializer_list*(): Expr =
         if p.tok.tok == TComma:
             consume()
         inc i
-    if p.currentInitTy.spec == TYPRIM or p.currentInitTy.spec == TYPOINTER:
+    if t.currentInitTy.spec == TYPRIM or t.currentInitTy.spec == TYPOINTER:
         result = result.arr[0]
 
 proc direct_declarator_end*(base: CType, name: string): Stmt
@@ -1374,10 +1321,10 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
             if not checkInteger(e.ty):
                 type_error("size of array has non-integer type '" & $e.ty & '\'')
             ty.hassize = true
-            var o = p.eval_error
+            var o = t.eval_error
             ty.arrsize = app.eval_const_expression(e)
-            if p.eval_error:
-                p.eval_error = o
+            if t.eval_error:
+                t.eval_error = o
                 # VLA
                 ty.vla = e
                 ty.arrsize = 0
@@ -1403,16 +1350,16 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
         consume()
         if p.tok.tok == TLcurlyBracket: # function definition
             putsymtype3(name, ty)
-            p.pfunc = name
+            t.pfunc = name
             if not isTopLevel():
                 parse_error("function definition is not allowed here")
                 note("function can only declared in global scope")
             var body: Stmt
             block:
-                var oldRet = p.currentfunctionRet
-                p.currentfunctionRet = ty.ret
+                var oldRet = t.currentfunctionRet
+                t.currentfunctionRet = ty.ret
                 body = compound_statement(ty.params)
-                p.currentfunctionRet = oldRet
+                t.currentfunctionRet = oldRet
             if body == nil:
                 expect("function body")
                 return nil
@@ -1629,7 +1576,7 @@ proc parse_alignas*(): bool =
             type_error("zero alignment is not valid")
         else:
             checkAlign(a)
-            p.currentAlign = a
+            t.currentAlign = a
     else:
         let e = expression()
         if e == nil:
@@ -1640,7 +1587,7 @@ proc parse_alignas*(): bool =
             type_error("alignment " & $a &  " too small")
         else:
             checkAlign(uint32(a))
-            p.currentAlign = uint32(a)
+            t.currentAlign = uint32(a)
     if p.tok.tok != TRbracket:
         expectRB()
         return false
@@ -1792,17 +1739,17 @@ proc declaration*(): Stmt =
     if p.tok.tok == K_Static_assert:
         return static_assert()
     block:
-        p.currentAlign = 0
+        t.currentAlign = 0
         var base = declaration_specifiers()
         if base == nil:
             expect("declaration-specifiers")
             return nil
-        if p.currentAlign > 0:
+        if t.currentAlign > 0:
             var m = getAlignof(base)
-            if p.currentAlign < m:
+            if t.currentAlign < m:
                 type_error("requested alignment is less than minimum alignment of " & $m & " for type '" & $base & "'")
             else:
-                base.align = p.currentAlign
+                base.align = t.currentAlign
         if p.tok.tok == TSemicolon:
             if base.spec notin {TYSTRUCT, TYUNION, TYENUM}:
                 warning("declaration does not declare anything")
@@ -1837,10 +1784,10 @@ proc declaration*(): Stmt =
                     type_error("variable-sized object may not be initialized")
                     return nil
                 consume()
-                var old = p.currentInitTy
-                p.currentInitTy = st.var1type
+                var old = t.currentInitTy
+                t.currentInitTy = st.var1type
                 let init = initializer_list()
-                p.currentInitTy = old
+                t.currentInitTy = old
                 if init == nil:
                     expect("initializer-list")
                     return nil
@@ -1887,10 +1834,10 @@ proc cast_expression*(): Expr =
             consume()
             if p.tok.tok == TLcurlyBracket:
                 block:
-                    var old = p.currentInitTy
-                    p.currentInitTy = n
+                    var old = t.currentInitTy
+                    t.currentInitTy = n
                     result = initializer_list()
-                    p.currentInitTy = old
+                    t.currentInitTy = old
                 return result
             let e = cast_expression()
             if e == nil:
@@ -2350,8 +2297,8 @@ proc `<`(a, b: FixName): bool = a.priority < b.priority
 
 proc fixName(v: string) =
     var fixList = initHeapQueue[FixName]()
-    for i in countdown(len(p.typedefs)-1, 0):
-        for name in p.typedefs[i].keys():
+    for i in countdown(len(t.typedefs)-1, 0):
+        for name in t.typedefs[i].keys():
             var d = editDistance(name, v)
             fixList.push(FixName(priority: d, name: name))
     var msg = "\n"
@@ -2482,7 +2429,7 @@ proc primary_expression*(): Expr =
         if p.want_expr:
             result = Expr(k: EIntLit, ival: 0, ty: getIntType())
         elif p.tok.s == "__func__":
-            result = Expr(k: EString, str: p.pfunc, ty: CType(tags: TYCONST, spec: TYPOINTER, p: getCharType()))
+            result = Expr(k: EString, str: t.pfunc, ty: CType(tags: TYCONST, spec: TYPOINTER, p: getCharType()))
         else:
             let ty = getsymtype(p.tok.s)
             if ty == nil:
@@ -3001,24 +2948,35 @@ proc translation_unit*(): Stmt =
     var s: Stmt
     while p.tok.tok != TEOF:
         if p.tok.tok == KAsm:
-           s = parse_asm()
-           if p.tok.tok != TSemicolon:
-             expect("';'")
-             s = nil
-           consume()
+            s = parse_asm()
+            if p.tok.tok != TSemicolon:
+               expect("';'")
+               s = nil
+            consume()
         else:
-           s = declaration()
+            s = declaration()
         if s == nil:
-          break
+            break
         result.stmts.add(s)
+
+proc leaveBlock*() =
+    if isTopLevel() == false:
+      for (name, i) in t.typedefs[^1].pairs():
+        if not bool(i.tag and INFO_USED):
+            warning("declared but not used: '" & name & '\'')
+            note("declared at " & $i.loc)
+    discard t.typedefs.pop()
+    discard t.tags.pop()
+    discard t.lables.pop()
 
 proc runParser*(): Stmt =
     ## eat first token and parse a translation_unit
     ##
     ## never return nil, return a compound statement
     consume()
+    enterBlock()
     result = translation_unit()
-    finishParsing()
+    leaveBlock()
 
 proc compound_statement*(): Stmt =
     ## parse mant statements
@@ -3091,7 +3049,7 @@ proc statament*(): Stmt =
         if s == nil:
             expectStatement()
             return nil
-        return Stmt(k: Scase, case_expr: castto(e, p.currentCase), case_stmt: s)
+        return Stmt(k: Scase, case_expr: castto(e, t.currentCase), case_stmt: s)
     elif p.tok.tok == Kdefault:
         consume()
         if p.tok.tok != TColon:
@@ -3135,12 +3093,12 @@ proc statament*(): Stmt =
         consume()
         if p.tok.tok == TSemicolon:
             consume()
-            if bool(p.currentfunctionRet.tags and TYVOID):
+            if bool(t.currentfunctionRet.tags and TYVOID):
                 return Stmt(k: SReturn, exprbody: nil)
             warning("use default value in 'return' statement")
             note("function should return a value, but no value provided in 'return'")
             note("A return statement without an expression shall only appear in a function whose return type is void")
-            return Stmt(k: SReturn, exprbody: Expr(k: EDefault, ty: p.currentfunctionRet))
+            return Stmt(k: SReturn, exprbody: Expr(k: EDefault, ty: t.currentfunctionRet))
         let e = expression()
         if e == nil:
             expectExpression()
@@ -3149,17 +3107,17 @@ proc statament*(): Stmt =
             expect("';'")
             return nil
         consume()
-        if bool(p.currentfunctionRet.tags and TYVOID):
+        if bool(t.currentfunctionRet.tags and TYVOID):
             warning("the value of 'return' statement is ignored")
             warning("'return' a value in function return void")
             note("A return statement with an expression shall not appear in a function whose return type is void")
             return Stmt(k: SReturn, exprbody: nil)
-        if not compatible(e.ty, p.currentfunctionRet) and e.ty.spec != TYPRIM:
+        if not compatible(e.ty, t.currentfunctionRet) and e.ty.spec != TYPRIM:
             # if it is cast from int to long, int to double, ...etc, we do not emit a warning
             warning("incompatible type in 'return' statement")
-            note("expect " & $p.currentfunctionRet & ", but got " & $e.ty)
+            note("expect " & $t.currentfunctionRet & ", but got " & $e.ty)
             inTheExpression(e)
-        return Stmt(k: SReturn, exprbody: castto(e, p.currentfunctionRet))
+        return Stmt(k: SReturn, exprbody: castto(e, t.currentfunctionRet))
     elif p.tok.tok == Kif:
         consume()
         if p.tok.tok != TLbracket:
@@ -3207,13 +3165,13 @@ proc statament*(): Stmt =
         consume()
         if tok == Kswitch:
             integer_promotions(e)
-            var oldcase = p.currentCase
-            p.currentCase = e.ty
+            var oldcase = t.currentCase
+            t.currentCase = e.ty
             let s = statament()
             if s == nil:
                 expectStatement()
                 return nil
-            p.currentCase = oldcase
+            t.currentCase = oldcase
             return Stmt(k: SSwitch, test: e, body: s)
         let s = statament()
         if s == nil:
@@ -3319,7 +3277,7 @@ proc statament*(): Stmt =
                 expectStatement()
                 note("to add a empty statement, use:\n\tlabel: ;")
                 return nil
-            putLable(val, 100)
+            putLable(val)
             return Stmt(k: SLabled, label: val, labledstmt: s)
         else: # expression
             putToken()
@@ -3336,37 +3294,5 @@ proc statament*(): Stmt =
 
 proc setParser*() =
   ## create a Parser, and call `setParser proc<#setParser,Parser>`_, then call `reset proc<#reset>`_
-  var p = Parser()
+  var p = Parser(flags: PFNormal, c: ' ', line: 1, col: 1, lastc: 256)
   setParser(p)
-  reset()
-
-proc reset*() =
-  p.bad_error = false
-  p.eval_error = false
-  p.parse_error = false
-  p.type_error = false
-  p.want_expr = false
-  p.counter = 0
-  p.tok = TokenV(tok: TNul, tags: TVNormal)
-  p.col = 1
-  p.line = 1
-  p.c = ' '
-  p.lastc = 256
-  p.flags = PFNormal
-  p.ok = true
-  #p.pathstack.setLen 0
-  #p.ppstack.setLen 0
-  #p.fstack.setLen 0
-  #p.filenamestack.setLen 0
-  #p.locstack.setLen 0
-  #p.macros.clear()
-  #p.filename.setLen 0
-  #p.path.setLen 0
-  #p.onces.clear()
-  #p.lables.clear()
-  #p.expansion_list.clear()
-  #p.tags.setLen 0
-  #p.typedefs.setLen 0
-  #p.lables.setLen 0
-  #p.tokenq.setLen 0
-  enterBlock()

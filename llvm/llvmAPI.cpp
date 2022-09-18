@@ -41,10 +41,27 @@ static inline void myInitTarget(){
 	InitializeNativeTargetAsmParser();
 }
 static inline void myInitAllTargets(){
+#ifdef _SMALL
+	LLVMInitializeARMTargetInfo();
+	LLVMInitializeX86TargetInfo();
+
+	LLVMInitializeX86Target();
+	LLVMInitializeARMTarget();
+
+	LLVMInitializeX86AsmPrinter();
+	LLVMInitializeARMAsmPrinter();
+
+	LLVMInitializeX86AsmParser();
+	LLVMInitializeARMAsmParser();
+
+	LLVMInitializeX86TargetMC();
+	LLVMInitializeARMTargetMC();
+#else
 	InitializeAllTargets();
 	InitializeAllTargetMCs();
 	InitializeAllAsmParsers();
 	InitializeAllAsmPrinters();
+#endif
 }
 
 /*

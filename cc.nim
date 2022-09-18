@@ -6,10 +6,10 @@ when defined(windows):
     # download from https://github.com/llvm/llvm-project/releases
     # LLVM-15.0.0-rc3-win64.exe 
     # unpack and install
-    {.passL: "C:\\Users\\林仁傑\\source\\llvm-mingw-20220906-ucrt-x86_64\\bin\\libLLVM-15.dll llvm/llvmAPI.o".}
+    {.passL: "C:\\Users\\林仁傑\\source\\llvm-mingw-20220906-ucrt-x86_64\\bin\\libLLVM-15.dll ./llvm/llvmAPI.o".}
 else:
     # llvm-config --ldflags --system-libs --libs all
-    {.passL: "-L/usr/lib/llvm-15/lib -lLLVM-15 ./llvm/llvmAPI".}
+    {.passL: "-L/usr/lib/llvm-15/lib -lLLVM-15 ./llvm/llvmAPI -lreadline -ltinfo".}
 
 import core, token, cli, stream, lexer, cpp, parser, eval, LLVMbackend
 import std/[tables, exitprocs]
@@ -80,7 +80,7 @@ proc brainfuck(i: Stream) =
     addString(s, "<brainfuck>")
 
 proc bf() =
-    for s in p.fstack:
+    for s in t.fstack:
         brainfuck(s)
         close(s)
     c()
@@ -95,8 +95,8 @@ if parseCLI():
     newBackend()
     if initTarget():
         for (name, v) in getDefines():
-            p.macros[name] = PPMacro(tokens: v, flags: MOBJ)
-        addLLVMModule(p.pathstack[1])
+            t.macros[name] = PPMacro(tokens: v, flags: MOBJ)
+        addLLVMModule(t.pathstack[1])
         case app.input:
         of InputC:
             c()
@@ -104,15 +104,15 @@ if parseCLI():
             bf()
         of InputIR, InputBC:
             var reader = if app.input == InputBC: readBitcodeToModule else: readIRToModule
-            b.module = reader(p.pathstack[1].cstring)
+            b.module = reader(t.pathstack[1].cstring)
             if b.module != nil:
                 var i = 2
                 while true:
-                    if i == len(p.pathstack):
+                    if i == len(t.pathstack):
                         optimize()
                         output()
                         break
-                    var n = reader(p.pathstack[i].cstring)
+                    var n = reader(t.pathstack[i].cstring)
                     if n == nil:
                         break
                     if link(b.module, n):

@@ -24,9 +24,9 @@ when defined(windows):
     let status = system(cmd.cstring)
     if status != 0:
       core.error()
-      cstderr << "error: gcc returned " 
-      cstderr << status
-      cstderr << " exit status"
+      fstderr << "error: gcc returned " 
+      fstderr << status
+      fstderr << " exit status"
 else:
   import posix
   proc runLD*(input, path: string) =
@@ -54,14 +54,14 @@ proc runLLD*(input, output: string) =
   let status = system(cmd.cstring)
   if status != 0:
     core.error()
-    cstderr << "error: ld.lld returned " 
-    cstderr << $status
-    cstderr << " exit status"
+    fstderr << "error: ld.lld returned " 
+    fstderr << $status
+    fstderr << " exit status"
 
 proc showVersion() =
-  cstderr <<< "CC: C Compiler"
-  cstderr <<< "Homepage: https://github.com/ianfun/cc.git"
-  cstderr <<< "Bug report: https://github.com/ianfun/cc/issues"
+  fstderr <<< "CC: C Compiler"
+  fstderr <<< "Homepage: https://github.com/ianfun/cc.git"
+  fstderr <<< "Bug report: https://github.com/ianfun/cc/issues"
   LLVMbackend.dumpVersionInfo()
 
 proc setStdin() =
@@ -80,7 +80,7 @@ proc setInput(s: string) =
     app.input = InputBC
   else:
     core.error()
-    cstderr <<< "unrecognized input language: " & s
+    fstderr <<< "unrecognized input language: " & s
     quit 0
 
 proc help()
@@ -136,19 +136,19 @@ var cliOptions = [
 
 proc help() =
   var e = newStringOfCap(20)
-  cstderr <<< "command line options"
-  cstderr <<< "Option                         Description"
+  fstderr <<< "command line options"
+  fstderr <<< "Option                         Description"
   for i in cliOptions:
-    cstderr << '-'
-    cstderr << i[0][0].str
+    fstderr << '-'
+    fstderr << i[0][0].str
     var l = 30 - len(i[0][0].str)
     e.setLen 0
     while l > 0:
       e.add(' ')
       dec l
-    cstderr << e
-    cstderr <<< i[3]
-  stderr << '\n'
+    fstderr << e
+    fstderr <<< i[3]
+  fstderr << '\n'
   showVersion()
 
 proc addFile(s: string) =
@@ -174,7 +174,7 @@ proc fix(name: string) =
         if f.priority < 3:
             msg.add("Perhaps you meant: '-" & f.name & "'\n")
     if msg.len > 1:
-        cstderr << msg
+        fstderr << msg
 
 proc parseCLI*(): bool =
   var inputs = false
@@ -190,9 +190,9 @@ proc parseCLI*(): bool =
           if i[1] == 1:
             if hasNext() == false:
               core.error()
-              cstderr << "command "
-              cstderr << one 
-              cstderr <<< " expect one argument"
+              fstderr << "command "
+              fstderr << one 
+              fstderr <<< " expect one argument"
               cc_exit(1)
             var s = get()
             cast[proc (s: string){.nimcall.}](i[2])(s)
@@ -200,16 +200,16 @@ proc parseCLI*(): bool =
             i[2]()
       if has == false:
         core.error()
-        cstderr <<< "unrecognized command line option '" & one & '\''
+        fstderr <<< "unrecognized command line option '" & one & '\''
         fix(one[1..^1])
     else:
       if inputs == false:
         inputs = true
         name = i
       addFile(one)
-  if p.fstack.len == 0:
+  if t.fstack.len == 0:
     core.error()
-    cstderr <<< "no input files"
+    fstderr <<< "no input files"
     return false
   if app.output.len == 0:
     i = name - 1
