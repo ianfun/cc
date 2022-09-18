@@ -1,0 +1,2 @@
+free	readLine/readline.html#free,pointer	readline: free(p: pointer)	
+readline	readLine/readline.html#readline,cstring	readline: readline(prompt: cstring): cstring	

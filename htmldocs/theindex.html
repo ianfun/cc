@@ -70,7 +70,7 @@ window.addEventListener('DOMContentLoaded', main);
 <div class="document" id="documentId">
   <div class="container">
     <h1 class="title">Index</h1>
-    Modules: <a href="LLVMAttribute.html">LLVMAttribute</a>, <a href="LLVMInstrinsics.html">LLVMInstrinsics</a>, <a href="LLVMbackend.html">LLVMbackend</a>, <a href="ast.html">ast</a>, <a href="builtins.html">builtins</a>, <a href="cli.html">cli</a>, <a href="config.html">config</a>, <a href="constString.html">constString</a>, <a href="core.html">core</a>, <a href="cpp.html">cpp</a>, <a href="eval.html">eval</a>, <a href="lexer.html">lexer</a>, <a href="llvm.html">llvm</a>, <a href="llvm/llvm.html">llvm/llvm</a>, <a href="location.html">location</a>, <a href="operators.html">operators</a>, <a href="parser.html">parser</a>, <a href="stream.html">stream</a>, <a href="token.html">token</a>, <a href="types.html">types</a>.<br/><p /><h2>API symbols</h2>
+    Modules: <a href="LLVMAttribute.html">LLVMAttribute</a>, <a href="LLVMInstrinsics.html">LLVMInstrinsics</a>, <a href="LLVMbackend.html">LLVMbackend</a>, <a href="ast.html">ast</a>, <a href="builtins.html">builtins</a>, <a href="cli.html">cli</a>, <a href="config.html">config</a>, <a href="constString.html">constString</a>, <a href="core.html">core</a>, <a href="cpp.html">cpp</a>, <a href="eval.html">eval</a>, <a href="lexer.html">lexer</a>, <a href="llvm.html">llvm</a>, <a href="llvm/llvm.html">llvm/llvm</a>, <a href="location.html">location</a>, <a href="operators.html">operators</a>, <a href="parser.html">parser</a>, <a href="readLine/history.html">readLine/history</a>, <a href="readLine/readline.html">readLine/readline</a>, <a href="stream.html">stream</a>, <a href="token.html">token</a>, <a href="types.html">types</a>.<br/><p /><h2>API symbols</h2>
 <dl><dt><a name="%60%24%60" href="#%60%24%60"><span>`$`:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="ast: `$`(a: CType; level = 0): string" href="ast.html#%24%2CCType%2Cint">ast: `$`(a: CType; level = 0): string</a></li>
@@ -105,9 +105,7 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="%60%26lt%3B%26lt%3B%26lt%3B%60" href="#%60%26lt%3B%26lt%3B%26lt%3B%60"><span>`&lt;&lt;&lt;`:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="stream: `&lt;&lt;&lt;`(stream: Fd; msg: cstring)" href="stream.html#%3C%3C%3C%2CFd%2Ccstring">stream: `&lt;&lt;&lt;`(stream: Fd; msg: cstring)</a></li>
-          <li><a class="reference external"
-          data-doc-search-tag="stream: `&lt;&lt;&lt;`(stream: Fd; msg: string)" href="stream.html#%3C%3C%3C%2CFd%2Cstring">stream: `&lt;&lt;&lt;`(stream: Fd; msg: string)</a></li>
+          data-doc-search-tag="stream: `&lt;&lt;&lt;`(stream: Fd; msg: auto)" href="stream.html#%3C%3C%3C%2CFd%2Cauto">stream: `&lt;&lt;&lt;`(stream: Fd; msg: auto)</a></li>
           </ul></dd>
 <dt><a name="%60%26lt%3B%26lt%3B%60" href="#%60%26lt%3B%26lt%3B%60"><span>`&lt;&lt;`:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -213,8 +211,6 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="addFile" href="#addFile"><span>addFile:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="parser: addFile(fd: File; filename: string)" href="parser.html#addFile%2CFile%2Cstring">parser: addFile(fd: File; filename: string)</a></li>
-          <li><a class="reference external"
           data-doc-search-tag="parser: addFile(filename: string)" href="parser.html#addFile%2Cstring">parser: addFile(filename: string)</a></li>
           </ul></dd>
 <dt><a name="addFunction" href="#addFunction"><span>addFunction:</span></a></dt><dd><ul class="simple">
@@ -254,6 +250,10 @@ window.addEventListener('DOMContentLoaded', main);
           data-doc-search-tag="llvm: addHandler(catchSwitch: ValueRef; dest: BasicBlockRef)" href="llvm.html#addHandler%2CValueRef%2CBasicBlockRef">llvm: addHandler(catchSwitch: ValueRef; dest: BasicBlockRef)</a></li>
           <li><a class="reference external"
           data-doc-search-tag="llvm: addHandler(catchSwitch: ValueRef; dest: BasicBlockRef)" href="llvm/llvm.html#addHandler%2CValueRef%2CBasicBlockRef">llvm: addHandler(catchSwitch: ValueRef; dest: BasicBlockRef)</a></li>
+          </ul></dd>
+<dt><a name="add_history" href="#add_history"><span>add_history:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="history: add_history(s: cstring)" href="readLine/history.html#add_history%2Ccstring">history: add_history(s: cstring)</a></li>
           </ul></dd>
 <dt><a name="addInclude" href="#addInclude"><span>addInclude:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -2573,9 +2573,9 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="token: CSkip" href="token.html#CSkip">token: CSkip</a></li>
           </ul></dd>
-<dt><a name="cstderr" href="#cstderr"><span>cstderr:</span></a></dt><dd><ul class="simple">
+<dt><a name="cssize_t" href="#cssize_t"><span>cssize_t:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="stream: cstderr" href="stream.html#cstderr">stream: cstderr</a></li>
+          data-doc-search-tag="stream: cssize_t" href="stream.html#cssize_t">stream: cssize_t</a></li>
           </ul></dd>
 <dt><a name="ctlz" href="#ctlz"><span>ctlz:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -3047,7 +3047,7 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="enterBlock" href="#enterBlock"><span>enterBlock:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="parser: enterBlock()" href="parser.html#enterBlock">parser: enterBlock()</a></li>
+          data-doc-search-tag="core: enterBlock()" href="core.html#enterBlock">core: enterBlock()</a></li>
           </ul></dd>
 <dt><a name="enterScope" href="#enterScope"><span>enterScope:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -3587,10 +3587,6 @@ window.addEventListener('DOMContentLoaded', main);
           <li><a class="reference external"
           data-doc-search-tag="llvm: False" href="llvm/llvm.html#False">llvm: False</a></li>
           </ul></dd>
-<dt><a name="fclose" href="#fclose"><span>fclose:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="stream: fclose(stream: Fd): cint" href="stream.html#fclose%2CFd">stream: fclose(stream: Fd): cint</a></li>
-          </ul></dd>
 <dt><a name="Fd" href="#Fd"><span>Fd:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="stream: Fd" href="stream.html#Fd">stream: Fd</a></li>
@@ -3614,14 +3610,6 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="FGE" href="#FGE"><span>FGE:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="BinOP.FGE" href="operators.html#FGE">BinOP.FGE</a></li>
-          </ul></dd>
-<dt><a name="fgetc" href="#fgetc"><span>fgetc:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="stream: fgetc(stream: Fd): cint" href="stream.html#fgetc%2CFd">stream: fgetc(stream: Fd): cint</a></li>
-          </ul></dd>
-<dt><a name="fgetpos" href="#fgetpos"><span>fgetpos:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="stream: fgetpos(stream: Fd; pos: ptr fpos_t): cint" href="stream.html#fgetpos%2CFd%2Cptr.fpos_t">stream: fgetpos(stream: Fd; pos: ptr fpos_t): cint</a></li>
           </ul></dd>
 <dt><a name="FGT" href="#FGT"><span>FGT:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -3725,10 +3713,6 @@ window.addEventListener('DOMContentLoaded', main);
           <li><a class="reference external"
           data-doc-search-tag="LLVMAttribute: FnRetThunkExtern" href="LLVMAttribute.html#FnRetThunkExtern">LLVMAttribute: FnRetThunkExtern</a></li>
           </ul></dd>
-<dt><a name="fopen" href="#fopen"><span>fopen:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="stream: fopen(filename, mode: cstring): Fd" href="stream.html#fopen%2Ccstring%2Ccstring">stream: fopen(filename, mode: cstring): Fd</a></li>
-          </ul></dd>
 <dt><a name="for_Each_Value_Subclass" href="#for_Each_Value_Subclass"><span>for_Each_Value_Subclass:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: for_Each_Value_Subclass(macro: untyped): untyped" href="llvm.html#for_Each_Value_Subclass.t%2Cuntyped">llvm: for_Each_Value_Subclass(macro: untyped): untyped</a></li>
@@ -3785,31 +3769,19 @@ window.addEventListener('DOMContentLoaded', main);
           <li><a class="reference external"
           data-doc-search-tag="LLVMInstrinsics.fptrunc_round" href="LLVMInstrinsics.html#fptrunc_round">LLVMInstrinsics.fptrunc_round</a></li>
           </ul></dd>
-<dt><a name="fputc" href="#fputc"><span>fputc:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="stream: fputc(c: cint; stream: Fd): cint" href="stream.html#fputc%2Ccint%2CFd">stream: fputc(c: cint; stream: Fd): cint</a></li>
-          </ul></dd>
-<dt><a name="fputs" href="#fputs"><span>fputs:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="stream: fputs(str: cstring; stream: Fd): cint" href="stream.html#fputs%2Ccstring%2CFd">stream: fputs(str: cstring; stream: Fd): cint</a></li>
-          </ul></dd>
 <dt><a name="frameaddress" href="#frameaddress"><span>frameaddress:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="LLVMInstrinsics.frameaddress" href="llvm/llvm.html#frameaddress">LLVMInstrinsics.frameaddress</a></li>
           <li><a class="reference external"
           data-doc-search-tag="LLVMInstrinsics.frameaddress" href="LLVMInstrinsics.html#frameaddress">LLVMInstrinsics.frameaddress</a></li>
           </ul></dd>
+<dt><a name="free" href="#free"><span>free:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="readline: free(p: pointer)" href="readLine/readline.html#free%2Cpointer">readline: free(p: pointer)</a></li>
+          </ul></dd>
 <dt><a name="FRem" href="#FRem"><span>FRem:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="BinOP.FRem" href="operators.html#FRem">BinOP.FRem</a></li>
-          </ul></dd>
-<dt><a name="fseek" href="#fseek"><span>fseek:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="stream: fseek(stream: Fd; offset: clong; origin: cint): cint" href="stream.html#fseek%2CFd%2Cclong%2Ccint">stream: fseek(stream: Fd; offset: clong; origin: cint): cint</a></li>
-          </ul></dd>
-<dt><a name="fsetpos" href="#fsetpos"><span>fsetpos:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="stream: fsetpos(stream: Fd; pos: ptr fpos_t): cint" href="stream.html#fsetpos%2CFd%2Cptr.fpos_t">stream: fsetpos(stream: Fd; pos: ptr fpos_t): cint</a></li>
           </ul></dd>
 <dt><a name="fshl" href="#fshl"><span>fshl:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -3827,6 +3799,18 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="lexer: fs_read()" href="lexer.html#fs_read">lexer: fs_read()</a></li>
           </ul></dd>
+<dt><a name="fstderr" href="#fstderr"><span>fstderr:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: fstderr" href="stream.html#fstderr">stream: fstderr</a></li>
+          </ul></dd>
+<dt><a name="fstdin" href="#fstdin"><span>fstdin:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: fstdin" href="stream.html#fstdin">stream: fstdin</a></li>
+          </ul></dd>
+<dt><a name="fstdout" href="#fstdout"><span>fstdout:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: fstdout" href="stream.html#fstdout">stream: fstdout</a></li>
+          </ul></dd>
 <dt><a name="FSub" href="#FSub"><span>FSub:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="BinOP.FSub" href="operators.html#FSub">BinOP.FSub</a></li>
@@ -3834,10 +3818,6 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="FTag" href="#FTag"><span>FTag:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="token: FTag" href="token.html#FTag">token: FTag</a></li>
-          </ul></dd>
-<dt><a name="ftell" href="#ftell"><span>ftell:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="stream: ftell(stream: Fd): clong" href="stream.html#ftell%2CFd">stream: ftell(stream: Fd): clong</a></li>
           </ul></dd>
 <dt><a name="Function" href="#Function"><span>Function:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -6181,6 +6161,10 @@ window.addEventListener('DOMContentLoaded', main);
           <li><a class="reference external"
           data-doc-search-tag="llvm: isThreadLocal(globalVar: ValueRef): Bool" href="llvm/llvm.html#isThreadLocal%2CValueRef">llvm: isThreadLocal(globalVar: ValueRef): Bool</a></li>
           </ul></dd>
+<dt><a name="isTopLevel" href="#isTopLevel"><span>isTopLevel:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="core: isTopLevel(): bool" href="core.html#isTopLevel">core: isTopLevel(): bool</a></li>
+          </ul></dd>
 <dt><a name="isTypeAttribute" href="#isTypeAttribute"><span>isTypeAttribute:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: isTypeAttribute(a: AttributeRef): Bool" href="llvm.html#isTypeAttribute%2CAttributeRef">llvm: isTypeAttribute(a: AttributeRef): Bool</a></li>
@@ -7551,8 +7535,6 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="newFileStream" href="#newFileStream"><span>newFileStream:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="stream: newFileStream(fd: File): Stream" href="stream.html#newFileStream%2CFile">stream: newFileStream(fd: File): Stream</a></li>
-          <li><a class="reference external"
           data-doc-search-tag="stream: newFileStream(path: string): Stream" href="stream.html#newFileStream%2Cstring">stream: newFileStream(path: string): Stream</a></li>
           </ul></dd>
 <dt><a name="newFunction" href="#newFunction"><span>newFunction:</span></a></dt><dd><ul class="simple">
@@ -7988,6 +7970,10 @@ window.addEventListener('DOMContentLoaded', main);
           data-doc-search-tag="llvm: offsetOfElement(td: TargetDataRef; structTy: TypeRef; element: cuint): culonglong" href="llvm.html#offsetOfElement%2CTargetDataRef%2CTypeRef%2Ccuint">llvm: offsetOfElement(td: TargetDataRef; structTy: TypeRef; element: cuint): culonglong</a></li>
           <li><a class="reference external"
           data-doc-search-tag="llvm: offsetOfElement(td: TargetDataRef; structTy: TypeRef; element: cuint): culonglong" href="llvm/llvm.html#offsetOfElement%2CTargetDataRef%2CTypeRef%2Ccuint">llvm: offsetOfElement(td: TargetDataRef; structTy: TypeRef; element: cuint): culonglong</a></li>
+          </ul></dd>
+<dt><a name="off_t" href="#off_t"><span>off_t:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: off_t" href="stream.html#off_t">stream: off_t</a></li>
           </ul></dd>
 <dt><a name="OpaqueAttributeRef" href="#OpaqueAttributeRef"><span>OpaqueAttributeRef:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -9339,6 +9325,10 @@ window.addEventListener('DOMContentLoaded', main);
                                 f: OrcGenericIRModuleOperationFunction;
                                 ctx: pointer): ErrorRef</a></li>
           </ul></dd>
+<dt><a name="O_RDONLY" href="#O_RDONLY"><span>O_RDONLY:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: O_RDONLY" href="stream.html#O_RDONLY">stream: O_RDONLY</a></li>
+          </ul></dd>
 <dt><a name="OSType" href="#OSType"><span>OSType:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="llvm: OSType" href="llvm/llvm.html#OSType">llvm: OSType</a></li>
@@ -9855,7 +9845,7 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="putenumdef" href="#putenumdef"><span>putenumdef:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="parser: putenumdef(t: CType)" href="parser.html#putenumdef%2CCType">parser: putenumdef(t: CType)</a></li>
+          data-doc-search-tag="parser: putenumdef(ty: CType)" href="parser.html#putenumdef%2CCType">parser: putenumdef(ty: CType)</a></li>
           </ul></dd>
 <dt><a name="putLabel" href="#putLabel"><span>putLabel:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -9865,23 +9855,23 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="putLable" href="#putLable"><span>putLable:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="parser: putLable(name: string; t: int)" href="parser.html#putLable%2Cstring%2Cint">parser: putLable(name: string; t: int)</a></li>
+          data-doc-search-tag="parser: putLable(name: string)" href="parser.html#putLable%2Cstring">parser: putLable(name: string)</a></li>
           </ul></dd>
 <dt><a name="putstructdef" href="#putstructdef"><span>putstructdef:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="parser: putstructdef(t: CType)" href="parser.html#putstructdef%2CCType">parser: putstructdef(t: CType)</a></li>
+          data-doc-search-tag="parser: putstructdef(ty: CType)" href="parser.html#putstructdef%2CCType">parser: putstructdef(ty: CType)</a></li>
           </ul></dd>
 <dt><a name="putsymtype" href="#putsymtype"><span>putsymtype:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="parser: putsymtype(name: string; t: CType)" href="parser.html#putsymtype%2Cstring%2CCType">parser: putsymtype(name: string; t: CType)</a></li>
+          data-doc-search-tag="parser: putsymtype(name: string; yt: CType)" href="parser.html#putsymtype%2Cstring%2CCType">parser: putsymtype(name: string; yt: CType)</a></li>
           </ul></dd>
 <dt><a name="putsymtype2" href="#putsymtype2"><span>putsymtype2:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="parser: putsymtype2(name: string; t: CType)" href="parser.html#putsymtype2%2Cstring%2CCType">parser: putsymtype2(name: string; t: CType)</a></li>
+          data-doc-search-tag="parser: putsymtype2(name: string; yt: CType)" href="parser.html#putsymtype2%2Cstring%2CCType">parser: putsymtype2(name: string; yt: CType)</a></li>
           </ul></dd>
 <dt><a name="putsymtype3" href="#putsymtype3"><span>putsymtype3:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="parser: putsymtype3(name: string; t: CType)" href="parser.html#putsymtype3%2Cstring%2CCType">parser: putsymtype3(name: string; t: CType)</a></li>
+          data-doc-search-tag="parser: putsymtype3(name: string; yt: CType)" href="parser.html#putsymtype3%2Cstring%2CCType">parser: putsymtype3(name: string; yt: CType)</a></li>
           </ul></dd>
 <dt><a name="putTags" href="#putTags"><span>putTags:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -9895,7 +9885,7 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="putuniondef" href="#putuniondef"><span>putuniondef:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="parser: putuniondef(t: CType)" href="parser.html#putuniondef%2CCType">parser: putuniondef(t: CType)</a></li>
+          data-doc-search-tag="parser: putuniondef(ty: CType)" href="parser.html#putuniondef%2CCType">parser: putuniondef(ty: CType)</a></li>
           </ul></dd>
 <dt><a name="putVar" href="#putVar"><span>putVar:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -9928,6 +9918,10 @@ window.addEventListener('DOMContentLoaded', main);
           data-doc-search-tag="llvm: readIRToModule(path: cstring): ModuleRef" href="llvm.html#readIRToModule%2Ccstring">llvm: readIRToModule(path: cstring): ModuleRef</a></li>
           <li><a class="reference external"
           data-doc-search-tag="LLVMbackend: readIRToModule(path: cstring): ModuleRef" href="LLVMbackend.html#readIRToModule%2Ccstring">LLVMbackend: readIRToModule(path: cstring): ModuleRef</a></li>
+          </ul></dd>
+<dt><a name="readline" href="#readline"><span>readline:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="readline: readline(prompt: cstring): cstring" href="readLine/readline.html#readline%2Ccstring">readline: readline(prompt: cstring): cstring</a></li>
           </ul></dd>
 <dt><a name="ReadNone" href="#ReadNone"><span>ReadNone:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -10026,10 +10020,6 @@ window.addEventListener('DOMContentLoaded', main);
           data-doc-search-tag="llvm: replaceAllUsesWith(oldVal: ValueRef; newVal: ValueRef)" href="llvm.html#replaceAllUsesWith%2CValueRef%2CValueRef">llvm: replaceAllUsesWith(oldVal: ValueRef; newVal: ValueRef)</a></li>
           <li><a class="reference external"
           data-doc-search-tag="llvm: replaceAllUsesWith(oldVal: ValueRef; newVal: ValueRef)" href="llvm/llvm.html#replaceAllUsesWith%2CValueRef%2CValueRef">llvm: replaceAllUsesWith(oldVal: ValueRef; newVal: ValueRef)</a></li>
-          </ul></dd>
-<dt><a name="reset" href="#reset"><span>reset:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="parser: reset()" href="parser.html#reset">parser: reset()</a></li>
           </ul></dd>
 <dt><a name="returnaddress" href="#returnaddress"><span>returnaddress:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -10927,6 +10917,10 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="stream: Stream" href="stream.html#Stream">stream: Stream</a></li>
           </ul></dd>
+<dt><a name="STREAM_BUFFER_SIZE" href="#STREAM_BUFFER_SIZE"><span>STREAM_BUFFER_SIZE:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: STREAM_BUFFER_SIZE" href="stream.html#STREAM_BUFFER_SIZE">stream: STREAM_BUFFER_SIZE</a></li>
+          </ul></dd>
 <dt><a name="StreamType" href="#StreamType"><span>StreamType:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="stream: StreamType" href="stream.html#StreamType">stream: StreamType</a></li>
@@ -11040,6 +11034,10 @@ window.addEventListener('DOMContentLoaded', main);
           data-doc-search-tag="llvm: SwiftSelf" href="llvm/llvm.html#SwiftSelf">llvm: SwiftSelf</a></li>
           <li><a class="reference external"
           data-doc-search-tag="LLVMAttribute: SwiftSelf" href="LLVMAttribute.html#SwiftSelf">LLVMAttribute: SwiftSelf</a></li>
+          </ul></dd>
+<dt><a name="t" href="#t"><span>t:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="core: t" href="core.html#t">core: t</a></li>
           </ul></dd>
 <dt><a name="T255" href="#T255"><span>T255:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -11368,6 +11366,10 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="TQuestionMark" href="#TQuestionMark"><span>TQuestionMark:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="Token.TQuestionMark" href="token.html#TQuestionMark">Token.TQuestionMark</a></li>
+          </ul></dd>
+<dt><a name="TranslationUnit" href="#TranslationUnit"><span>TranslationUnit:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="core: TranslationUnit" href="core.html#TranslationUnit">core: TranslationUnit</a></li>
           </ul></dd>
 <dt><a name="translation_unit" href="#translation_unit"><span>translation_unit:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -12565,7 +12567,7 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="warning" href="#warning"><span>warning:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="parser: warning(msg: string)" href="parser.html#warning%2Cstring">parser: warning(msg: string)</a></li>
+          data-doc-search-tag="lexer: warning(msg: string)" href="lexer.html#warning%2Cstring">lexer: warning(msg: string)</a></li>
           </ul></dd>
 <dt><a name="warningPlain" href="#warningPlain"><span>warningPlain:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -12762,7 +12764,7 @@ window.addEventListener('DOMContentLoaded', main);
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-18 03:55:07 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-18 09:05:20 UTC</small>
       </div>
     </div>
   </div>

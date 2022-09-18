@@ -30,3 +30,7 @@ error	core.html#error	core: error()
 verbose	core.html#verbose,string	core: verbose(msg: string)	
 getPtrDiff_t	core.html#getPtrDiff_t	core: getPtrDiff_t(): CType	
 getIntPtr_t	core.html#getIntPtr_t	core: getIntPtr_t(): CType	
+TranslationUnit	core.html#TranslationUnit	core: TranslationUnit	
+t	core.html#t	core: t	
+enterBlock	core.html#enterBlock	core: enterBlock()	
+isTopLevel	core.html#isTopLevel	core: isTopLevel(): bool	

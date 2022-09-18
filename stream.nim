@@ -6,8 +6,13 @@
 ##  2: stderr
 ##
 ## BUFSIZ is 8192 in linux, 512 in windows!
+##
+## cc use GNU readline linary to read line from stdin.
+##
+## define `CC_NO_RAEADLINE` to use `stdin.readline` insteand of GNU readline
 
-import readLine/[readLine, history]
+when not defined(CC_NO_RAEADLINE):
+    import readLine/[readLine, history]
 
 const
   STREAM_BUFFER_SIZE* = 8192 ## 8 KB
@@ -166,13 +171,20 @@ proc readChar*(s: Stream): char {.raises: [].} =
         inc s.i
     of StdinStream:
         if s.i >= len(s.s):
-            var line = readLine(STDIN_PROMPT)
-            if line == nil:
-                return '\0'
-            s.s = $line
-            add_history(line)
-            free(line)
-            s.s.add('\n')
+            when defined(CC_NO_RAEADLINE):
+                fstdout << STDIN_PROMPT
+                try:
+                    s.s = stdin.readLine()
+                except EOFError, IOError:
+                    return '\0'
+            else:
+                var line = readLine(STDIN_PROMPT)
+                if line == nil:
+                    return '\0'
+                s.s = $line
+                add_history(line)
+                free(line)
+                s.s.add('\n')
             s.i = 0
         result = s.s[s.i]
         inc s.i

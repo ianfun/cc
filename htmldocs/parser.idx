@@ -10,7 +10,6 @@ getParser	parser.html#getParser	parser: getParser(): var Parser
 binop	parser.html#binop,Expr,BinOP,Expr,CType	parser: binop(a: Expr; op: BinOP; b: Expr; ty: CType): Expr	
 unary	parser.html#unary,Expr,UnaryOP,CType	parser: unary(e: Expr; op: UnaryOP; ty: CType): Expr	
 showToken	parser.html#showToken	parser: showToken(): string	
-warning	parser.html#warning,string	parser: warning(msg: string)	
 macro_define	parser.html#macro_define,string,PPMacro	parser: macro_define(name: string; m: PPMacro)	
 macro_defined	parser.html#macro_defined,string	parser: macro_defined(name: string): bool	
 macro_undef	parser.html#macro_undef,string	parser: macro_undef(name: string)	
@@ -31,26 +30,23 @@ err	parser.html#err	parser: err(): bool
 note	parser.html#note,string	parser: note(msg: string)	
 error	parser.html#error,string	parser: error(msg: string)	
 inTheExpression	parser.html#inTheExpression,Expr	parser: inTheExpression(e: Expr)	
-enterBlock	parser.html#enterBlock	parser: enterBlock()	
-leaveBlock	parser.html#leaveBlock	parser: leaveBlock()	
 addString	parser.html#addString,string,string	parser: addString(s: string; filename: string)	
 addStdin	parser.html#addStdin	parser: addStdin()	
-addFile	parser.html#addFile,File,string	parser: addFile(fd: File; filename: string)	
 addFile	parser.html#addFile,string	parser: addFile(filename: string)	
 closeParser	parser.html#closeParser	parser: closeParser()	
 gettypedef	parser.html#gettypedef,string	parser: gettypedef(name: string): Info	
 hasLabel	parser.html#hasLabel,string	parser: hasLabel(name: string): bool	
-putLable	parser.html#putLable,string,int	parser: putLable(name: string; t: int)	
+putLable	parser.html#putLable,string	parser: putLable(name: string)	
 getstructdef	parser.html#getstructdef,string	parser: getstructdef(name: string): CType	
-putstructdef	parser.html#putstructdef,CType	parser: putstructdef(t: CType)	
+putstructdef	parser.html#putstructdef,CType	parser: putstructdef(ty: CType)	
 getenumdef	parser.html#getenumdef,string	parser: getenumdef(name: string): CType	
-putenumdef	parser.html#putenumdef,CType	parser: putenumdef(t: CType)	
+putenumdef	parser.html#putenumdef,CType	parser: putenumdef(ty: CType)	
 getuniondef	parser.html#getuniondef,string	parser: getuniondef(name: string): CType	
-putuniondef	parser.html#putuniondef,CType	parser: putuniondef(t: CType)	
+putuniondef	parser.html#putuniondef,CType	parser: putuniondef(ty: CType)	
 getsymtype	parser.html#getsymtype,string	parser: getsymtype(name: string): CType	
-putsymtype3	parser.html#putsymtype3,string,CType	parser: putsymtype3(name: string; t: CType)	
-putsymtype2	parser.html#putsymtype2,string,CType	parser: putsymtype2(name: string; t: CType)	
-putsymtype	parser.html#putsymtype,string,CType	parser: putsymtype(name: string; t: CType)	
+putsymtype3	parser.html#putsymtype3,string,CType	parser: putsymtype3(name: string; yt: CType)	
+putsymtype2	parser.html#putsymtype2,string,CType	parser: putsymtype2(name: string; yt: CType)	
+putsymtype	parser.html#putsymtype,string,CType	parser: putsymtype(name: string; yt: CType)	
 checkOnce	parser.html#checkOnce,string	parser: checkOnce(filename: string): bool	
 addOnce	parser.html#addOnce	parser: addOnce()	
 addInclude	parser.html#addInclude,string,bool	parser: addInclude(filename: string; isInclude: bool)	
@@ -135,9 +131,9 @@ conditional_expression	parser.html#conditional_expression,Expr	parser: condition
 conditional_expression	parser.html#conditional_expression	parser: conditional_expression(): Expr	
 assignment_expression	parser.html#assignment_expression	parser: assignment_expression(): Expr	
 translation_unit	parser.html#translation_unit	parser: translation_unit(): Stmt	
+leaveBlock	parser.html#leaveBlock	parser: leaveBlock()	
 runParser	parser.html#runParser	parser: runParser(): Stmt	
 compound_statement	parser.html#compound_statement	parser: compound_statement(): Stmt	
 compound_statement	parser.html#compound_statement,seq[]	parser: compound_statement(params: seq[(string, CType)]): Stmt	
 statament	parser.html#statament	parser: statament(): Stmt	
 setParser	parser.html#setParser	parser: setParser()	
-reset	parser.html#reset	parser: reset()	

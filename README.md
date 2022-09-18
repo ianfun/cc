@@ -184,6 +184,12 @@ for example, `LLVMpointerTypeInContext()`, `LLVMBuildLoad2()`, `LLVMConstInBound
 
 However, you can disable opaque Pointer in command line options.(use `LLVMContextSetOpaquePointers()` to disable)
 
+## GNU Readline
+
+cc use GNU Readline library by default for reading from stdin
+
+define `CC_NO_RAEADLINE` to disable use GNU readlines
+
 ## JIT
 
 cc use LLVM JIT, by default, `main(argc, argv)` cc will call this function as program startup .

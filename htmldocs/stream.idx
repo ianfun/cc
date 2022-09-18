@@ -1,35 +1,30 @@
+STREAM_BUFFER_SIZE	stream.html#STREAM_BUFFER_SIZE	stream: STREAM_BUFFER_SIZE	
 Fd	stream.html#Fd	stream: Fd	
+cssize_t	stream.html#cssize_t	stream: cssize_t	
+off_t	stream.html#off_t	stream: off_t	
+O_RDONLY	stream.html#O_RDONLY	stream: O_RDONLY	
+fstdin	stream.html#fstdin	stream: fstdin	
+fstdout	stream.html#fstdout	stream: fstdout	
+fstderr	stream.html#fstderr	stream: fstderr	
 FileStream	stream.html#FileStream	StreamType.FileStream	
 StringStream	stream.html#StringStream	StreamType.StringStream	
 StdinStream	stream.html#StdinStream	StreamType.StdinStream	
 StreamType	stream.html#StreamType	stream: StreamType	
 Stream	stream.html#Stream	stream: Stream	
 fpos_t	stream.html#fpos_t	stream: fpos_t	
-fputs	stream.html#fputs,cstring,Fd	stream: fputs(str: cstring; stream: Fd): cint	
-fputc	stream.html#fputc,cint,Fd	stream: fputc(c: cint; stream: Fd): cint	
-fgetc	stream.html#fgetc,Fd	stream: fgetc(stream: Fd): cint	
-fclose	stream.html#fclose,Fd	stream: fclose(stream: Fd): cint	
-fopen	stream.html#fopen,cstring,cstring	stream: fopen(filename, mode: cstring): Fd	
-fgetpos	stream.html#fgetpos,Fd,ptr.fpos_t	stream: fgetpos(stream: Fd; pos: ptr fpos_t): cint	
-fsetpos	stream.html#fsetpos,Fd,ptr.fpos_t	stream: fsetpos(stream: Fd; pos: ptr fpos_t): cint	
-fseek	stream.html#fseek,Fd,clong,cint	stream: fseek(stream: Fd; offset: clong; origin: cint): cint	
-ftell	stream.html#ftell,Fd	stream: ftell(stream: Fd): clong	
 `&lt;&lt;`	stream.html#<<,Fd,string	stream: `&lt;&lt;`(stream: Fd; msg: string)	
 `&lt;&lt;`	stream.html#<<,Fd,cstring	stream: `&lt;&lt;`(stream: Fd; msg: cstring)	
 `&lt;&lt;`	stream.html#<<,Fd,char	stream: `&lt;&lt;`(stream: Fd; c: char)	
 `&lt;&lt;`	stream.html#<<,Fd,SomeInteger	stream: `&lt;&lt;`(stream: Fd; c: SomeInteger)	
 `&lt;&lt;`	stream.html#<<,Fd,bool	stream: `&lt;&lt;`(stream: Fd; b: bool)	
-`&lt;&lt;&lt;`	stream.html#<<<,Fd,string	stream: `&lt;&lt;&lt;`(stream: Fd; msg: string)	
-`&lt;&lt;&lt;`	stream.html#<<<,Fd,cstring	stream: `&lt;&lt;&lt;`(stream: Fd; msg: cstring)	
+`&lt;&lt;&lt;`	stream.html#<<<,Fd,auto	stream: `&lt;&lt;&lt;`(stream: Fd; msg: auto)	
 EOF	stream.html#EOF	stream: EOF	
 SEEK_CUR	stream.html#SEEK_CUR	stream: SEEK_CUR	
 SEEK_END	stream.html#SEEK_END	stream: SEEK_END	
 SEEK_SET	stream.html#SEEK_SET	stream: SEEK_SET	
-cstderr	stream.html#cstderr	stream: cstderr	
 printSourceLine	stream.html#printSourceLine,Stream,int	stream: printSourceLine(s: Stream; line: int)	
 newStringStream	stream.html#newStringStream,string	stream: newStringStream(s: string): Stream	
 newFileStream	stream.html#newFileStream,string	stream: newFileStream(path: string): Stream	
-newFileStream	stream.html#newFileStream,File	stream: newFileStream(fd: File): Stream	
 newStdinStream	stream.html#newStdinStream	stream: newStdinStream(): Stream	
 putc	stream.html#putc,Stream,cint	stream: putc(s: Stream; c: cint)	
 readChar	stream.html#readChar,Stream	stream: readChar(s: Stream): char	

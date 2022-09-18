@@ -1,3 +1,4 @@
+warning	lexer.html#warning,string	lexer: warning(msg: string)	
 setLexer	lexer.html#setLexer	lexer: setLexer()	
 isalnum	lexer.html#isalnum,char	lexer: isalnum(c: char): bool	
 fs_read	lexer.html#fs_read	lexer: fs_read()	
