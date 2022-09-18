@@ -6,9 +6,15 @@
 
 import llvm/llvm
 import std/[tables, exitprocs]
-import config, core, parser, builtins, ast, operators, stream
+import config, token, core, parser, builtins, ast, operators, stream
 
 export llvm
+
+const
+ FNone* = 0'u32
+ FMinGW* = 1'u32
+ F32Bit* = 2'u32
+ F64Bit* = 4'u32
 
 type
     Backend* = object
@@ -27,6 +33,12 @@ type
       tsCtx*: OrcThreadSafeContextRef
       ctx*: ContextRef
       layout*: TargetDataRef
+      triple*: tripleRef
+      archName*: cstring
+      arch*: ArchType
+      os*: OSType
+      env*: EnvironmentType
+      f*: uint32 ## some flags
       ## jump labels
       topBreak*: Label
       topTest*: Value
@@ -142,29 +154,43 @@ proc newBackend*() =
   app.getoffsetof = llvmGetOffsetof
   app.getAlignOf = llvmGetAlignOf
 
-proc initTarget*(): bool =
-  var err = nimLLVMConfigureTarget(app.triple.cstring, addr b.target, addr b.machine, addr b.layout)
-  if err != nil:
+proc initTarget2() =
+  discard nimLLVMConfigureTarget(nil, nil, nil, nil, nil, nil, True)
+
+proc initTarget*(all = false): bool =
+  var err = nimLLVMConfigureTarget(app.triple.cstring, addr b.target, addr b.machine, addr b.layout, addr b.triple, addr b.f, Bool(all))
+  if err != nil or b.triple == nil:
     llvm_error(err)
     return false
   app.pointersize = pointerSize(b.layout)
   contextSetOpaquePointers(b.ctx, if app.opaquePointerEnabled: True else: False)
   b.intPtr = intPtrTypeInContext(b.ctx, b.layout)
+  b.arch = nimGetArch(b.triple)
+  b.archName = nimGetArchName(b.triple)
+  b.os = nimGetOS(b.triple)
+  b.env = nimGetEnv(b.triple)
   return true
 
 proc listTargets*() =
+  var e = newStringOfCap(10)
+  newBackend()
+  initTarget2()
+  cstderr <<< "  Registered Targets:"
   var t = getFirstTarget()
   while t != nil:
-    cstderr << "Name:"
-    cstderr << getTargetName(t)
-    cstderr << cstring(": ")
-    cstderr << "TargetHasTargetMachine"
-    stderr << bool(targetHasTargetMachine(t))
-    cstderr << "Has jit: "
-    stderr << bool(targetHasJIT(t))
-    cstderr << "Description"
+    cstderr << "    "
+    var n = getTargetName(t)
+    var l = 15 - len(n)
+    e.setLen 0
+    while l > 0:
+      e.add(' ')
+      dec l
+    cstderr << n
+    cstderr << e
+    cstderr << " - "
     cstderr <<< getTargetDescription(t)
     t = getNextTarget(t)
+  cc_exit(1)
 
 proc dumpVersionInfo*() =
   var arr = [cstring("llvm"), cstring("--version")]
@@ -1386,3 +1412,342 @@ proc runjit*() =
     if err != nil:
       jit_error(err)
       return
+
+proc str(s: string): seq[TokenV] =
+  @[TokenV(tok: TStringLit, tags: TVSVal, s: s)]
+proc str2(s: string): TokenV =
+  TokenV(tok: TStringLit, tags: TVSVal, s: s)
+proc num(s: string): seq[TokenV] =
+  @[TokenV(tok: TPPNumber, tags: TVSVal, s: s)]
+proc space(): TokenV = 
+  TokenV(tok: TSpace, tags: TVNormal)
+
+var
+  one = num("1")
+  empty: seq[TokenV] 
+
+iterator getDefines*(): (string, seq[TokenV]) =
+  # (windows) gcc -dM -E - <NUL:
+  # (bash) gcc -dM -E - </dev/null
+  yield ("__STDC__", one)
+  yield ("__STDC_VERSION__", num("201710L"))
+  yield ("__STDC_HOSTED__", one)
+#  yield ("__STDC_NO_THREADS__", @[one])
+#  yield ("__STDC_NO_ATOMICS__", @[one])
+  yield ("__STDC_UTF_16__", one)
+  yield ("__STDC_UTF_32__", one)
+  yield ("__SIZE_TYPE__", str("size_t"))
+  yield ("__INT8_TYPE__", str("__int8"))
+  yield ("__INT16_TYPE__", str("__int16"))
+  yield ("__INT32_TYPE__", str("__int32"))
+  yield ("__INT64_TYPE__", str("__int64"))
+  yield ("__INT_FAST8_TYPE__", str("__int8"))
+  yield ("__INT_FAST16_TYPE__", str("__int16"))
+  yield ("__INT_FAST32_TYPE__", str("__int32"))
+  yield ("__INT_FAST64_TYPE__", str("__int64"))
+  yield ("__UINT_FAST8_TYPE__", @[str2("unsigned"), space(), str2("__int8")])
+  yield ("__UINT_FAST16_TYPE__", @[str2("unsigned"), space(), str2("__int16")])
+  yield ("__UINT_FAST32_TYPE__", @[str2("unsigned"), space(), str2("__int32")])
+  yield ("__UINT_FAST64_TYPE__", @[str2("unsigned"), space(), str2("__int64")])
+  yield ("__INTPTR_TYPE__", @[str2("long"), space(), str2("long"), space(), str2("int")])
+  yield ("__UINTPTR_TYPE__", @[str2("unsigned"), space(), str2("long"), space(), str2("long"), space(), str2("int")])
+  yield ("__CHAR_BIT__", num("8"))
+  # https://stackoverflow.com/questions/142508/how-do-i-check-os-with-a-preprocessor-directive
+
+  if bool(b.f and FMinGW):
+    if bool(b.f and F64Bit):
+      yield ("__MINGW64__", one)
+    yield ("__MINGW32__", one)
+
+  case b.os:
+  of IOS:
+    yield ("__APPLE__", empty)
+  of Darwin:
+    yield ("__APPLE__", empty)
+  of MacOSX:
+    yield ("__APPLE__", empty)
+    yield ("__MACH__", empty)
+  of FreeBSD:
+    yield ("__FreeBSD__", empty)
+  of Solaris:
+    yield ("__sun", empty)
+  of Linux:
+    yield ("__linux__", one)
+    yield ("__linux", one)
+    yield ("linux", empty)
+    yield ("__unix__", one)
+    yield ("__unix", one)
+    yield ("unix", empty)
+  of Win32:
+    yield ("_WIN32", one)
+    yield ("WIN32", one)
+    if bool(b.f and F64Bit):
+      yield ("_WIN64", one)
+      yield ("WIN32", one)
+  of NetBSD:
+    yield ("__NetBSD__", empty)
+    yield ("__unix__", one)
+    yield ("__unix", one)
+  of OpenBSD:
+    yield ("__OpenBSD__", empty)
+    yield ("__unix__", one)
+    yield ("__unix", one)
+  of DragonFly:
+    discard
+  of Fuchsia:
+    discard
+  of KFreeBSD:
+    discard
+  of Lv2:
+    discard
+  of ZOS:
+    discard
+  of Haiku:
+    discard
+  of Minix:
+    discard
+  of RTEMS:
+    discard
+  of NaCl:
+    discard
+  of AIX:
+    discard
+  of CUDA:
+    discard
+  of NVCL:
+    discard
+  of AMDHSA:
+    discard
+  of PS4:
+    discard
+  of PS5:
+    discard
+  of ELFIAMCU:
+    discard
+  of TvOS:
+    discard
+  of WatchOS:
+    discard
+  of DriverKit:
+    discard
+  of Mesa3D:
+    discard
+  of Contiki:
+    discard
+  of AMDPAL:
+    discard
+  of HermitCore:
+    discard
+  of Hurd:
+    discard
+  of WASI:
+    discard
+  of Emscripten:
+    discard
+  of ShaderModel:
+    discard
+  of UnknownOS:
+    discard
+  of Ananas:
+    discard
+  of CloudABI:
+    discard
+
+  case b.env:
+  of UnknownEnvironment:
+    discard
+  of GNU:
+    discard
+  of GNUABIN32:
+    discard
+  of GNUABI64:
+    discard
+  of GNUEABI:
+    discard
+  of GNUEABIHF:
+    discard
+  of GNUX32:
+    discard
+  of GNUILP32:
+    discard
+  of CODE16:
+    discard
+  of EABI:
+    discard
+  of EABIHF:
+    discard
+  of Android:
+    yield ("__ANDROID__", empty)
+  of Musl:
+    discard
+  of MuslEABI:
+    discard
+  of MuslEABIHF:
+    discard
+  of MuslX32:
+    discard
+  of MSVC:
+    discard
+  of Itanium:
+    discard
+  of Cygnus:
+    yield ("__CYGWIN__", empty)
+  of CoreCLR:
+    discard
+  of Simulator:
+    discard
+  of MacABI:
+    discard
+  of Pixel:
+    discard
+  of Vertex:
+    discard
+  of Geometry:
+    discard
+  of Hull:
+    discard
+  of Domain:
+    discard
+  of Compute:
+    discard
+  of Library:
+    discard
+  of RayGeneration:
+    discard
+  of Intersection:
+    discard
+  of AnyHit:
+    discard
+  of ClosestHit:
+    discard
+  of Miss:
+    discard
+  of Callable:
+    discard
+  of Mesh:
+    discard
+  of Amplification:
+    discard
+
+  case b.arch:
+  of UnknownArch:
+    discard
+  of arm:
+    discard
+  of armeb:
+    discard         
+  of aarch64:
+    discard       
+  of aarch64_be:
+    discard    
+  of aarch64_32:
+    discard    
+  of arc:
+    discard           
+  of avr:
+    discard           
+  of bpfel:
+    discard         
+  of bpfeb:
+    discard         
+  of csky:
+    discard          
+  of dxil:
+    discard          
+  of hexagon:
+    discard       
+  of loongarch32:
+    discard   
+  of loongarch64:
+    discard   
+  of m68k:
+    discard          
+  of mips:
+    discard          
+  of mipsel:
+    discard        
+  of mips64:
+    discard        
+  of mips64el:
+    discard      
+  of msp430:
+    discard        
+  of ppc:
+    discard           
+  of ppcle:
+    discard         
+  of ppc64:
+    discard         
+  of ppc64le:
+    discard       
+  of r600:
+    discard          
+  of amdgcn:
+    discard        
+  of riscv32:
+    discard       
+  of riscv64:
+    discard       
+  of sparc:
+    discard         
+  of sparcv9:
+    discard       
+  of sparcel:
+    discard       
+  of systemz:
+    discard       
+  of tce:
+    discard           
+  of tcele:
+    discard         
+  of thumb:
+    discard         
+  of thumbeb:
+    discard       
+  of x86:
+    discard           
+  of x86_64:
+    discard        
+  of xcore:
+    discard         
+  of nvptx:
+    discard         
+  of nvptx64:
+    discard       
+  of le32:
+    discard          
+  of le64:
+    discard          
+  of amdil:
+    discard         
+  of amdil64:
+    discard       
+  of hsail:
+    discard         
+  of hsail64:
+    discard       
+  of spir:
+    discard          
+  of spir64:
+    discard        
+  of spirv32:
+    discard       
+  of spirv64:
+    discard       
+  of kalimba:
+    discard       
+  of shave:
+    discard         
+  of lanai:
+    discard         
+  of wasm32:
+    discard        
+  of wasm64:
+    discard        
+  of renderscript32:
+      discard
+  of renderscript64:
+      discard
+  of ve:
+    discard
+

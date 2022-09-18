@@ -110,7 +110,7 @@ proc unary*(e: Expr, op: UnaryOP, ty: CType): Expr =
 proc showToken*(): string =
   case p.tok.tok:
   of TNumberLit: "number " & $p.tok.i
-  of TPPNumber: "number" & p.tok.s
+  of TPPNumber: "number " & p.tok.s
   of TCharLit: "char " & show(char(p.tok.i))
   of TIdentifier, CPPIdent: "identifier " & p.tok.s
   of TSpace: "space"
@@ -309,38 +309,7 @@ proc leaveBlock*() =
   discard p.tags.pop()
   discard p.lables.pop()
 
-proc reset*() =
-  p.bad_error = false
-  p.eval_error = false
-  p.parse_error = false
-  p.type_error = false
-  p.want_expr = false
-  p.counter = 0
-  p.tok = TokenV(tok: TNul, tags: TVNormal)
-  p.col = 1
-  p.line = 1
-  p.c = ' '
-  p.lastc = 256
-  p.flags = PFNormal
-  p.ok = true
-  #p.pathstack.setLen 0
-  #p.ppstack.setLen 0
-  #p.fstack.setLen 0
-  #p.filenamestack.setLen 0
-  #p.locstack.setLen 0
-  #p.macros.clear()
-  #p.filename.setLen 0
-  #p.path.setLen 0
-  #p.onces.clear()
-  #p.lables.clear()
-  #p.expansion_list.clear()
-  #p.tags.setLen 0
-  #p.typedefs.setLen 0
-  #p.lables.setLen 0
-  #p.tokenq.setLen 0
-  enterBlock()
-  for (name, v) in getDefines():
-    p.macros[name] = PPMacro(tokens: v, flags: MOBJ)
+proc reset*()
 
 proc finishParsing() =
     leaveBlock()
@@ -3370,3 +3339,34 @@ proc setParser*() =
   var p = Parser()
   setParser(p)
   reset()
+
+proc reset*() =
+  p.bad_error = false
+  p.eval_error = false
+  p.parse_error = false
+  p.type_error = false
+  p.want_expr = false
+  p.counter = 0
+  p.tok = TokenV(tok: TNul, tags: TVNormal)
+  p.col = 1
+  p.line = 1
+  p.c = ' '
+  p.lastc = 256
+  p.flags = PFNormal
+  p.ok = true
+  #p.pathstack.setLen 0
+  #p.ppstack.setLen 0
+  #p.fstack.setLen 0
+  #p.filenamestack.setLen 0
+  #p.locstack.setLen 0
+  #p.macros.clear()
+  #p.filename.setLen 0
+  #p.path.setLen 0
+  #p.onces.clear()
+  #p.lables.clear()
+  #p.expansion_list.clear()
+  #p.tags.setLen 0
+  #p.typedefs.setLen 0
+  #p.lables.setLen 0
+  #p.tokenq.setLen 0
+  enterBlock()

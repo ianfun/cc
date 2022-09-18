@@ -75,8 +75,9 @@ const
   False*: Bool = 0
   True*: Bool = 1
 
+include triple
 include LLVMInstrinsics
-include LLVMAttribute
+include Attribute
 include FFI/LLVM/Types
 include FFI/LLVM/Support
 include FFI/LLVM/Error
@@ -198,6 +199,14 @@ proc nimLLVMGetIntrinsicForMSBuiltin*(Prefix, BuiltinName: cstring): cuint {.imp
 
 proc nimLLVMGetIntrinsicForClangBuiltin*(Prefix, BuiltinName: cstring): cuint {.importc: "LLVMNimGetIntrinsicForClangBuiltin".}
 
-proc nimLLVMConfigureTarget*(tripleStr: cstring, Target: ptr TargetRef, Machine: ptr TargetMachineRef, TD: ptr TargetDataRef): cstring {.importc: "LLVMNimConfigureTarget".}
+proc nimLLVMConfigureTarget*(tripleStr: cstring, Target: ptr TargetRef, Machine: ptr TargetMachineRef, TD: ptr TargetDataRef, theTriple: ptr tripleRef, f: ptr uint32, all: Bool): cstring {.importc: "LLVMNimConfigureTarget".}
+
+proc nimGetArch*(t: tripleRef): ArchType {.importc: "LLVMNimGetArch".}
+
+proc nimGetOS*(t: tripleRef): OSType {.importc: "LLVMNimGetOS".}
+
+proc nimGetEnv*(t: tripleRef): EnvironmentType {.importc: "LLVMNimGetEnv".}
+
+proc nimGetArchName*(t: tripleRef): cstring {.importc: "LLVMNimGetArchName".}
 
 # end wrappers

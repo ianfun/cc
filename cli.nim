@@ -1,4 +1,4 @@
-import core, parser, stream, constString
+import config, core, parser, stream, constString
 import LLVMbackend
 import std/[editdistance, heapqueue]
 
@@ -106,7 +106,7 @@ var cliOptions = [
   ("version".h, 0, cast[P](showVersion), "print version info"),
   ("help".h, 0, help, "help"),
   ("-help".h, 0, help, "help"),
-  ("-list-targets".h, 0, listTargets, "list registered targets"),
+  ("print-targets".h, 0, listTargets, "print registered targets"),
   ("stdin".h, 0, setStdin, "add stdin to files"),
   ("jit".h, 0, proc () = app.runJit = true, "run `main` function in LLVM JIT"),
   ("target".h, 1, cast[P](proc (s: string) = app.triple = s), "set target triple: e.g: x86_64-pc-linux-gnu, x86_64-pc-windows-msvc"),
@@ -193,6 +193,7 @@ proc parseCLI*(): bool =
               cstderr << "command "
               cstderr << one 
               cstderr <<< " expect one argument"
+              cc_exit(1)
             var s = get()
             cast[proc (s: string){.nimcall.}](i[2])(s)
           else:

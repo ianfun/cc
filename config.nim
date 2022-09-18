@@ -1,5 +1,3 @@
-import token
-
 type
   intmax_t* = int64
   uintmax_t* = uint64
@@ -21,55 +19,6 @@ proc unreachable*() =
 
 proc cc_exit*(c: auto) =
   quit c
-
-iterator getDefines*(): (string, seq[TokenV]) =
-  proc str(s: string): TokenV =
-    TokenV(tok: TStringLit, tags: TVSVal, s: s)
-  proc num(s: string): TokenV =
-    TokenV(tok: TPPNumber, tags: TVSVal, s: s)
-  proc space(): TokenV = 
-    TokenV(tok: TSpace, tags: TVNormal)
-  proc empty(): seq[TokenV] =
-    discard
-  yield ("__STDC__", @[num("1")])
-  yield ("__STDC_VERSION__", @[num("201710L")])
-  yield ("__STDC_HOSTED__", @[num("1")])
-#  yield ("__STDC_NO_THREADS__", @[num("1")])
-#  yield ("__STDC_NO_ATOMICS__", @[num("1")])
-  yield ("__STDC_UTF_16__", @[num("1")])
-  yield ("__STDC_UTF_32__", @[num("1")])
-  yield ("__SIZE_TYPE__", @[str("size_t")])
-  yield ("__INT8_TYPE__", @[str("__int8")])
-  yield ("__INT16_TYPE__", @[str("__int16")])
-  yield ("__INT32_TYPE__", @[str("__int32")])
-  yield ("__INT64_TYPE__", @[str("__int64")])
-  yield ("__INT_FAST8_TYPE__", @[str("__int8")])
-  yield ("__INT_FAST16_TYPE__", @[str("__int16")])
-  yield ("__INT_FAST32_TYPE__", @[str("__int32")])
-  yield ("__INT_FAST64_TYPE__", @[str("__int64")])
-  yield ("__UINT_FAST8_TYPE__", @[str("unsigned"), space(), str("__int8")])
-  yield ("__UINT_FAST16_TYPE__", @[str("unsigned"), space(), str("__int16")])
-  yield ("__UINT_FAST32_TYPE__", @[str("unsigned"), space(), str("__int32")])
-  yield ("__UINT_FAST64_TYPE__", @[str("unsigned"), space(), str("__int64")])
-  yield ("__INTPTR_TYPE__", @[str("long"), space(), str("long"), space(), str("int")])
-  yield ("__UINTPTR_TYPE__", @[str("unsigned"), space(),str("long"), space(), str("long"), space(), str("int")])
-  yield ("__CHAR_BIT__", @[num("8")])
-  case hostOS:
-  of "windows":
-    yield ("_WIN32", empty())
-    yield ("WIN32", empty())
-    if sizeof(cstring) == 8:
-      yield ("WIN64", empty())
-      yield ("_WIN64", empty())
-  of "macosx":
-    yield ("__APPLE__", empty())
-  of "linux":
-    yield ("__linux__", empty())
-    yield ("__linux", empty())
-  of "netbsd":
-    yield ("__NetBSD__", empty())
-  of "freebsd":
-    yield ("__FreeBSD__", empty())
 
 proc unsafe_utf8_codepoint*(s: cstring): (Codepoint, int) =
     if 0xf0 == (0xf8 and s[0].Codepoint): # 4 byte

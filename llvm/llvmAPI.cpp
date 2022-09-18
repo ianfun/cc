@@ -10,6 +10,7 @@ llvmAPI.cpp - helper functions
 #endif
 
 #include <string>
+#include <cstdint>
 
 #include <llvm-c/Core.h>
 #include <llvm-c/TargetMachine.h>
@@ -27,8 +28,15 @@ llvmAPI.cpp - helper functions
 
 using namespace llvm;
 
+
+constexpr const uint32_t 
+  FNone = 0,
+  FMinGW = 1,
+  F32Bit = 2,
+  F64Bit = 4;
+
 static inline void myInitTarget(){
-	InitializeNativeTarget();
+	InitializeNativeTarget(); // initialize Target, MC and Info
 	InitializeNativeTargetAsmPrinter();
 	InitializeNativeTargetAsmParser();
 }
@@ -37,7 +45,6 @@ static inline void myInitAllTargets(){
 	InitializeAllTargetMCs();
 	InitializeAllAsmParsers();
 	InitializeAllAsmPrinters();
-	InitializeAllTargetInfos();
 }
 
 /*
@@ -70,7 +77,33 @@ static void opt(Function *f){
 	}
 }
 extern "C" {
-char* LLVMNimConfigureTarget(const char* tripleStr, LLVMTargetRef *Target, LLVMTargetMachineRef *Machine, LLVMTargetDataRef *TD){
+int LLVMNimGetArch(Triple* t){
+	return static_cast<int>(t->getArch());
+}
+int LLVMNimGetOS(Triple* t){
+	return static_cast<int>(t->getOS());
+}
+int LLVMNimGetEnv(Triple* t){
+	return static_cast<int>(t->getEnvironment());
+}
+LLVMBool LLVMNimisArch32Bit(Triple* t){
+	return static_cast<LLVMBool>(t->isArch32Bit());
+}
+LLVMBool LLVMNimisArch64Bit(Triple* t){
+	return static_cast<LLVMBool>(t->isArch64Bit());
+}
+const char* LLVMNimGetArchName(Triple* t){
+	/*
+	  the lifetime of triple arch name is store in Triple's std::string, so we can return it
+	*/
+	return t->getArchName().begin();
+}
+char* LLVMNimConfigureTarget(const char* tripleStr, LLVMTargetRef *Target, LLVMTargetMachineRef *Machine, LLVMTargetDataRef *TD, Triple** theTriple, uint32_t* f, LLVMBool all){
+	if (all)
+	{
+		myInitAllTargets();
+		return NULL;
+	}
 	std::string Error;
 	std::string triple = tripleStr;
 	if (triple.empty()){
@@ -86,7 +119,19 @@ char* LLVMNimConfigureTarget(const char* tripleStr, LLVMTargetRef *Target, LLVMT
 	}
 	auto CPU = "generic";
 	auto Features = "";
-
+	*theTriple = new Triple(Twine(triple));
+	*f = FNone;
+	if ((*theTriple)->isArch64Bit())
+	{
+		*f |= F64Bit;
+	}
+	else if ((*theTriple)->isArch32Bit())
+	{
+		*f |= F32Bit;
+	}
+	if ((*theTriple)->isOSCygMing()){
+		*f |= FMinGW;
+	}
 	TargetOptions opt;
 	// TODO: opt
 	auto TargetMachine = T->createTargetMachine(triple, CPU, Features, opt, Reloc::PIC_, None, CodeGenOpt::Aggressive);

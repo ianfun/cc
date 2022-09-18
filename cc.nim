@@ -6,13 +6,13 @@ when defined(windows):
     # download from https://github.com/llvm/llvm-project/releases
     # LLVM-15.0.0-rc3-win64.exe 
     # unpack and install
-    {.passL: "\"C:\\Program Files\\LLVM\\lib\\LLVM-C.lib\" llvm/llvmAPI".}
+    {.passL: "C:\\Users\\林仁傑\\source\\llvm-mingw-20220906-ucrt-x86_64\\bin\\libLLVM-15.dll llvm/llvmAPI.o".}
 else:
     # llvm-config --ldflags --system-libs --libs all
     {.passL: "-L/usr/lib/llvm-15/lib -lLLVM-15 ./llvm/llvmAPI".}
 
-import core, cli, stream, lexer, cpp, parser, eval, LLVMbackend
-from std/exitprocs import setProgramResult
+import core, token, cli, stream, lexer, cpp, parser, eval, LLVMbackend
+import std/[tables, exitprocs]
 
 proc link(opath: string = app.output) =
     case app.linker:
@@ -94,6 +94,8 @@ setProgramResult(1)
 if parseCLI():
     newBackend()
     if initTarget():
+        for (name, v) in getDefines():
+            p.macros[name] = PPMacro(tokens: v, flags: MOBJ)
         addLLVMModule(p.pathstack[1])
         case app.input:
         of InputC:
