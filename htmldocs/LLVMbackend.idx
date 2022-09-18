@@ -1,3 +1,7 @@
+FNone	LLVMbackend.html#FNone	LLVMbackend: FNone	
+FMinGW	LLVMbackend.html#FMinGW	LLVMbackend: FMinGW	
+F32Bit	LLVMbackend.html#F32Bit	LLVMbackend: F32Bit	
+F64Bit	LLVMbackend.html#F64Bit	LLVMbackend: F64Bit	
 Backend	LLVMbackend.html#Backend	LLVMbackend: Backend	
 b	LLVMbackend.html#b	LLVMbackend: b	
 llvm_error	LLVMbackend.html#llvm_error,string	LLVMbackend: llvm_error(msg: string)	
@@ -7,7 +11,7 @@ llvmGetsizeof	LLVMbackend.html#llvmGetsizeof,CType	LLVMbackend: llvmGetsizeof(ty
 llvmGetOffsetof	LLVMbackend.html#llvmGetOffsetof,CType,int	LLVMbackend: llvmGetOffsetof(ty: CType; idx: int): culonglong	
 addLLVMModule	LLVMbackend.html#addLLVMModule,string	LLVMbackend: addLLVMModule(source_file: string)	
 newBackend	LLVMbackend.html#newBackend	LLVMbackend: newBackend()	
-initTarget	LLVMbackend.html#initTarget	LLVMbackend: initTarget(): bool	
+initTarget	LLVMbackend.html#initTarget	LLVMbackend: initTarget(all = false): bool	
 listTargets	LLVMbackend.html#listTargets	LLVMbackend: listTargets()	
 dumpVersionInfo	LLVMbackend.html#dumpVersionInfo	LLVMbackend: dumpVersionInfo()	
 enterScope	LLVMbackend.html#enterScope	LLVMbackend: enterScope()	
@@ -82,3 +86,4 @@ jit_error	LLVMbackend.html#jit_error,ErrorRef	LLVMbackend: jit_error(err: ErrorR
 orc_error_report	LLVMbackend.html#orc_error_report,pointer,ErrorRef	LLVMbackend: orc_error_report(ctx: pointer; err: ErrorRef)	
 getThreadSafeModule	LLVMbackend.html#getThreadSafeModule	LLVMbackend: getThreadSafeModule(): OrcThreadSafeModuleRef	
 runjit	LLVMbackend.html#runjit	LLVMbackend: runjit()	
+getDefines	LLVMbackend.html#getDefines.i	LLVMbackend: getDefines(): (string, seq[TokenV])	

@@ -33,7 +33,6 @@ error	parser.html#error,string	parser: error(msg: string)
 inTheExpression	parser.html#inTheExpression,Expr	parser: inTheExpression(e: Expr)	
 enterBlock	parser.html#enterBlock	parser: enterBlock()	
 leaveBlock	parser.html#leaveBlock	parser: leaveBlock()	
-reset	parser.html#reset	parser: reset()	
 addString	parser.html#addString,string,string	parser: addString(s: string; filename: string)	
 addStdin	parser.html#addStdin	parser: addStdin()	
 addFile	parser.html#addFile,File,string	parser: addFile(fd: File; filename: string)	
@@ -141,3 +140,4 @@ compound_statement	parser.html#compound_statement	parser: compound_statement(): 
 compound_statement	parser.html#compound_statement,seq[]	parser: compound_statement(params: seq[(string, CType)]): Stmt	
 statament	parser.html#statament	parser: statament(): Stmt	
 setParser	parser.html#setParser	parser: setParser()	
+reset	parser.html#reset	parser: reset()	

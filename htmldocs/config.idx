@@ -4,7 +4,6 @@ Codepoint	config.html#Codepoint	config: Codepoint
 INFO_USED	config.html#INFO_USED	config: INFO_USED	
 unreachable	config.html#unreachable	config: unreachable()	
 cc_exit	config.html#cc_exit,auto	config: cc_exit(c: auto)	
-getDefines	config.html#getDefines.i	config: getDefines(): (string, seq[TokenV])	
 unsafe_utf8_codepoint	config.html#unsafe_utf8_codepoint,cstring	config: unsafe_utf8_codepoint(s: cstring): (Codepoint, int)	
 writeUTF8toUTF32	config.html#writeUTF8toUTF32,string	config: writeUTF8toUTF32(s: string): seq[Codepoint]	
 writeUTF8toUTF16	config.html#writeUTF8toUTF16,string	config: writeUTF8toUTF16(s: string): seq[uint16]	

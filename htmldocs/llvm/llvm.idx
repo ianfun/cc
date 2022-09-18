@@ -48,6 +48,13 @@ PassManagerBuilderRef	llvm/llvm.html#PassManagerBuilderRef	llvm: PassManagerBuil
 VerifierFailureAction	llvm/llvm.html#VerifierFailureAction	llvm: VerifierFailureAction	
 False	llvm/llvm.html#False	llvm: False	
 True	llvm/llvm.html#True	llvm: True	
+tripleRef	llvm/llvm.html#tripleRef	llvm: tripleRef	
+OSType	llvm/llvm.html#OSType	llvm: OSType	
+LastOSType	llvm/llvm.html#LastOSType	llvm: LastOSType	
+EnvironmentType	llvm/llvm.html#EnvironmentType	llvm: EnvironmentType	
+LastEnvironmentType	llvm/llvm.html#LastEnvironmentType	llvm: LastEnvironmentType	
+ArchType	llvm/llvm.html#ArchType	llvm: ArchType	
+LastArchType	llvm/llvm.html#LastArchType	llvm: LastArchType	
 abs	llvm/llvm.html#abs	LLVMInstrinsics.abs	
 addressofreturnaddress	llvm/llvm.html#addressofreturnaddress	LLVMInstrinsics.addressofreturnaddress	
 adjust_trampoline	llvm/llvm.html#adjust_trampoline	LLVMInstrinsics.adjust_trampoline	
@@ -1490,4 +1497,8 @@ nimLLVMOptModule	llvm/llvm.html#nimLLVMOptModule,ModuleRef	llvm: nimLLVMOptModul
 nimLLVMGetAllocaArraySize	llvm/llvm.html#nimLLVMGetAllocaArraySize,ValueRef	llvm: nimLLVMGetAllocaArraySize(Alloca: ValueRef): ValueRef	
 nimLLVMGetIntrinsicForMSBuiltin	llvm/llvm.html#nimLLVMGetIntrinsicForMSBuiltin,cstring,cstring	llvm: nimLLVMGetIntrinsicForMSBuiltin(Prefix, BuiltinName: cstring): cuint	
 nimLLVMGetIntrinsicForClangBuiltin	llvm/llvm.html#nimLLVMGetIntrinsicForClangBuiltin,cstring,cstring	llvm: nimLLVMGetIntrinsicForClangBuiltin(Prefix, BuiltinName: cstring): cuint	
-nimLLVMConfigureTarget	llvm/llvm.html#nimLLVMConfigureTarget,cstring,ptr.TargetRef,ptr.TargetMachineRef,ptr.TargetDataRef	llvm: nimLLVMConfigureTarget(tripleStr: cstring; Target: ptr TargetRef;\n                       Machine: ptr TargetMachineRef; TD: ptr TargetDataRef): cstring	
+nimLLVMConfigureTarget	llvm/llvm.html#nimLLVMConfigureTarget,cstring,ptr.TargetRef,ptr.TargetMachineRef,ptr.TargetDataRef,ptr.tripleRef,ptr.uint32,Bool	llvm: nimLLVMConfigureTarget(tripleStr: cstring; Target: ptr TargetRef;\n                       Machine: ptr TargetMachineRef; TD: ptr TargetDataRef;\n                       theTriple: ptr tripleRef; f: ptr uint32; all: Bool): cstring	
+nimGetArch	llvm/llvm.html#nimGetArch,tripleRef	llvm: nimGetArch(t: tripleRef): ArchType	
+nimGetOS	llvm/llvm.html#nimGetOS,tripleRef	llvm: nimGetOS(t: tripleRef): OSType	
+nimGetEnv	llvm/llvm.html#nimGetEnv,tripleRef	llvm: nimGetEnv(t: tripleRef): EnvironmentType	
+nimGetArchName	llvm/llvm.html#nimGetArchName,tripleRef	llvm: nimGetArchName(t: tripleRef): cstring	
