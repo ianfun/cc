@@ -92,6 +92,39 @@ proc unary*(e: Expr, op: UnaryOP, ty: CType): Expr =
 
 proc leaveBlock*()
 
+proc enterBlock*() =
+  t.typedefs.add(newTable[string, Info]())
+  t.tags.add(newTable[string, Info]())
+
+#[ 
+proc visit1*(s: Stmt) =
+  case s.k:
+  of SFunction:
+    visit1(s.funcbody)
+  of SSemicolon, SAsm, SVarDecl, SDeclOnly, SVarDecl1, SExpr, SReturn, SBreak, SContinue:
+    discard
+  of SCompound:
+    for i in s.stmts:
+      visit1(i)
+  of SDefault:
+    visit1(s.default_stmt)
+  of Scase:
+    visit1(s.case_stmt)
+  of SGoto:
+    if s.location notin t.lables[^1]:
+      type_error("bad goto: undefined label: " & s.location)
+  of SLabled:
+    visit1(s.labledstmt)
+  of SIf:
+    visit1(s.ifbody)
+    if s.elsebody != nil:
+      visit1(s.elsebody)
+  of SDoWhile, SWhile, SSwitch:
+    visit1(s.body)
+  of SFor:
+    visit1(s.forbody)
+]#
+
 proc showToken*(): string =
   case p.tok.tok:
   of TNumberLit: "number " & $p.tok.i
@@ -323,18 +356,6 @@ proc gettypedef*(name: string): Info =
       result.tag = result.tag or INFO_USED
       return result
 
-proc hasLabel*(name: string): bool =
-  for i in countdown(len(t.lables)-1, 0):
-    if name in t.lables[i]:
-        return true
-  return false
-
-proc putLable*(name: string) =
-    if hasLabel(name):
-      error("duplicate label: " & name)
-      return
-    t.lables[^1].incl name
-
 proc getstructdef*(name: string): CType =
     var r = getTag(name)
     if r == nil:
@@ -344,8 +365,32 @@ proc getstructdef*(name: string): CType =
     else:
         result = r.ty
 
+proc getLabel*(name: string) =
+    let p = t.lables[^1].getOrDefault(name, LBL_UNDEFINED)
+    case p:
+    of LBL_UNDEFINED:
+        t.lables[^1][name] = LBL_FORWARD
+    of LBL_FORWARD:
+        discard
+    of LBL_DECLARED:
+        t.lables[^1][name] = LBL_OK
+    else:
+        unreachable()
+
+proc putLable*(name: string) =
+    let p = t.lables[^1].getOrDefault(name, LBL_UNDEFINED)
+    case p:
+    of LBL_UNDEFINED:
+        t.lables[^1][name] = LBL_DECLARED
+    of LBL_FORWARD:
+        t.lables[^1][name] = LBL_OK
+    of LBL_DECLARED:
+        type_error("duplicate label: " & name)
+    else:
+        unreachable()
+
 proc putstructdef*(ty: CType) =
-    let o = getTag(ty.sname)
+    let o = t.tags[^1].getOrDefault(ty.sname)
     if o != nil:
         error("struct " & ty.sname & " aleady defined")
         note(ty.sname & "was defined at " & $o.loc)
@@ -362,7 +407,7 @@ proc getenumdef*(name: string): CType =
         result = r.ty
 
 proc putenumdef*(ty: CType) =
-    let o = getTag(ty.ename)
+    let o = t.tags[^1].getOrDefault(ty.ename)
     if o != nil:
         error("enum " & ty.ename & " aleady defined")
         note(ty.ename & "was defined at " & $o.loc)
@@ -379,7 +424,7 @@ proc getuniondef*(name: string): CType =
         result = r.ty
 
 proc putuniondef*(ty: CType) =
-    let o = getTag(ty.sname)
+    let o = t.tags[^1].getOrDefault(ty.sname)
     if o != nil:
         error("`union` " & ty.sname & " aleady defined")
         note(ty.sname & "was defined at " & $o.loc)
@@ -922,7 +967,7 @@ proc statament*(): Stmt
 
 proc compound_statement*(): Stmt
 
-proc compound_statement*(params: seq[(string, CType)]): Stmt
+proc compound_statement*(params: seq[(string, CType)], lables: var HashSet[string]): Stmt
 
 proc postfix*(e: Expr, op: PostfixOP, ty: CType): Expr = 
     ## construct a postfix operator
@@ -1355,10 +1400,11 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
                 parse_error("function definition is not allowed here")
                 note("function can only declared in global scope")
             var body: Stmt
+            var labels = initHashSet[string]()
             block:
                 var oldRet = t.currentfunctionRet
                 t.currentfunctionRet = ty.ret
-                body = compound_statement(ty.params)
+                body = compound_statement(ty.params, labels)
                 t.currentfunctionRet = oldRet
             if body == nil:
                 expect("function body")
@@ -1380,7 +1426,7 @@ proc direct_declarator_end*(base: CType, name: string): Stmt =
                 body.stmts &= Stmt(k: SReturn, exprbody: if bool(ty.ret.tags and TYVOID): nil else: 
                     (if name == "main": Expr(k: EDefault, ty: ty.ret) else: Expr(k: EUndef, ty: ty.ret))
                 )
-            return Stmt(funcname: name, k: SFunction, functy: ty, funcbody: body)
+            return Stmt(k: SFunction, funcname: name, functy: ty, funcbody: body, labels: labels)
         return direct_declarator_end(ty, name)
     else:
         return Stmt(k: SVarDecl1, var1name: name, var1type: base)
@@ -2967,7 +3013,6 @@ proc leaveBlock*() =
             note("declared at " & $i.loc)
     discard t.typedefs.pop()
     discard t.tags.pop()
-    discard t.lables.pop()
 
 proc runParser*(): Stmt =
     ## eat first token and parse a translation_unit
@@ -2997,10 +3042,11 @@ proc compound_statement*(): Stmt =
     consume()
     return result
 
-proc compound_statement*(params: seq[(string, CType)]): Stmt =
+proc compound_statement*(params: seq[(string, CType)], lables: var HashSet[string]): Stmt =
     result = Stmt(k: SCompound)
     consume()
     enterBlock()
+    t.lables.add(newTable[string, uint8]())
     for (name, vty) in params:
         if vty == nil:
             break
@@ -3017,6 +3063,15 @@ proc compound_statement*(params: seq[(string, CType)]): Stmt =
             leaveBlock()
             return nil
         result.stmts.add(s)
+    for (name, t) in t.lables[^1].pairs():
+        if t == LBL_FORWARD:
+            type_error("use of undeclared label '" & name & "'")
+        elif t == LBL_DECLARED:
+            warning("un-used label: '" & name & '\'')
+        else:
+            assert t == LBL_OK
+            lables.incl name
+    discard t.lables.pop()
     leaveBlock()
     consume()
     return result
@@ -3067,13 +3122,12 @@ proc statament*(): Stmt =
             note("the syntax is:\n\tgoto label;")
             return nil
         var location = p.tok.s
-        if not hasLabel(location):
-            type_error("undeclared label " & location)
         consume()
         if p.tok.tok != TSemicolon:
             parse_error("expect ';'")
             return nil
         consume()
+        getLabel(location)
         return Stmt(k: SGoto, location: location)
     elif p.tok.tok == Kcontinue:
         consume()

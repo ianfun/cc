@@ -1,5 +1,44 @@
-import config, stream, ast, token, location
+import ast, config, stream, token, location
 import std/[os, tables, sets]
+
+type
+  TranslationUnit* = object
+    currentfunctionRet*, currentInitTy*, currentCase*: CType
+    pfunc*: string
+    currentAlign*: uint32
+    fstack*: seq[Stream]
+    filenamestack*, pathstack*: seq[string]
+    locstack*: seq[Location]
+    want_expr*: bool
+    filename*, path*: string
+    macros*: Table[string, PPMacro]
+    ppstack*: seq[uint8]
+    ok*: bool
+    onces*, expansion_list*: HashSet[string]
+    lables*: seq[TableRef[string, uint8]]
+    tags*: seq[TableRef[string, Info]]
+    typedefs*: seq[TableRef[string, Info]]
+    counter*: int
+    retTy*: CType
+    type_error*: bool
+    eval_error*: bool
+    parse_error*: bool
+    bad_error*: bool
+
+const
+  LBL_UNDEFINED* = 0'u8
+  LBL_FORWARD* = 1'u8
+  LBL_DECLARED* = 2'u8
+  LBL_OK* = 4'u8
+
+var t* = TranslationUnit(ok: true,
+  bad_error: false, eval_error: false, parse_error: false, want_expr: false, counter: 0,
+  filename: "<built-in>", path: "<built-in>"
+  )
+
+
+proc isTopLevel*(): bool =
+    t.typedefs.len == 1
 
 var options* = commandLineParams()
 var appFileName* = getAppFilename()
@@ -84,39 +123,3 @@ proc getPtrDiff_t*(): CType = get(if app.pointersize == 4: TYINT32 else: TYINT64
 
 proc getIntPtr_t*(): CType = getPtrDiff_t()
 
-type
-  TranslationUnit* = object
-    currentfunctionRet*, currentInitTy*, currentCase*: CType
-    pfunc*: string
-    currentAlign*: uint32
-    fstack*: seq[Stream]
-    filenamestack*, pathstack*: seq[string]
-    locstack*: seq[Location]
-    want_expr*: bool
-    filename*, path*: string
-    macros*: Table[string, PPMacro]
-    ppstack*: seq[uint8]
-    ok*: bool
-    onces*, expansion_list*: HashSet[string]
-    lables*: seq[HashSet[string]]
-    tags*: seq[TableRef[string, Info]]
-    typedefs*: seq[TableRef[string, Info]]
-    counter*: int
-    retTy*: CType
-    type_error*: bool
-    eval_error*: bool
-    parse_error*: bool
-    bad_error*: bool
-
-var t* = TranslationUnit(ok: true,
-  bad_error: false, eval_error: false, parse_error: false, want_expr: false, counter: 0,
-  filename: "<built-in>", path: "<built-in>"
-  )
-
-proc enterBlock*() =
-  t.typedefs.add(newTable[string, typeof(t.typedefs[0][""])]())
-  t.tags.add(newTable[string, typeof(t.tags[0][""])]())
-  t.lables.add(initHashSet[string]())
-
-proc isTopLevel*(): bool =
-    t.typedefs.len == 1

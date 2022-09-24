@@ -1,7 +1,7 @@
 ## ast.nim - C's abstract syntax tree
 
 import config, operators
-import std/[macrocache, strutils]
+import std/[macrocache, strutils, sets]
 
 type
     CTypeSpec* = enum
@@ -55,6 +55,7 @@ type
         funcname*: string
         functy*: CType
         funcbody*: Stmt
+        labels*: HashSet[string]
       of SAsm:
         asms*: string
       of SCompound:

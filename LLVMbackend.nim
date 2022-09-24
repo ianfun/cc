@@ -5,7 +5,7 @@
 ## `runjit()` will run module.
 
 import llvm/llvm
-import std/[tables, exitprocs]
+import std/[tables, exitprocs, sets]
 import config, token, core, parser, builtins, ast, operators, stream
 
 export llvm
@@ -203,18 +203,15 @@ proc handle_asm(s: string) =
   else:
     var asmtype = functionType(b.voidty, nil, 0, False)
     var f = getInlineAsm(asmtype, cstring(s), len(s).csize_t, nil, 0, True, False, InlineAsmDialectATT, False)
-    discard buildCall2(b.builder, asmtype, f, nil, 0, "") 
+    discard buildCall2(b.builder, asmtype, f, nil, 0, "")
 
-proc enterScope*() =
-  ## not token.enterBlock
-  b.labels.add(newTable[string, Label]())
+proc enterScope() =
   b.tags.add(newTable[string, Type]())
   b.vars.add(newTable[string, Value]())
 
-proc leaveScope*() =
+proc leaveScope() =
   ## not token.leaveBlock
   discard b.tags.pop()
-  discard b.labels.pop()
   discard b.vars.pop()
 
 proc getVar*(name: string): Value =
@@ -225,15 +222,6 @@ proc getVar*(name: string): Value =
 
 proc putVar*(name: string, val: Value) =
   b.vars[^1][name] = val
-
-proc getLabel*(name: string): Label =
-  for i in countdown(len(b.labels)-1, 0):
-    result = b.labels[i].getOrDefault(name, nil)
-    if result != nil:
-      return result
-
-proc putLabel*(name: string, label: Label) =
-  b.labels[^1][name] = label
 
 proc getTags*(name: string): Type =
   for i in countdown(len(b.tags)-1, 0):
@@ -880,6 +868,10 @@ proc gen*(s: Stmt) =
       b.currentfunction = newFunction(s.functy, s.funcname)
       var entry = addBlock("entry")
       setInsertPoint(entry)
+      b.labels.add(newTable[string, Label]())
+      for L in s.labels:
+        var j = addBlock(cstring(L))
+        b.labels[^1][L] = j
       var paramLen = countParamTypes(ty)
       if paramLen > 0:
         var fparamsTypes = create(Type, paramLen)
@@ -897,6 +889,7 @@ proc gen*(s: Stmt) =
       for i in s.funcbody.stmts:
         gen(i)
       leaveScope()
+      discard b.labels.pop()
       b.currentfunction = nil
   of SReturn:
       if s.exprbody != nil:
@@ -924,17 +917,17 @@ proc gen*(s: Stmt) =
   of SDeclOnly:
     discard wrap(s.decl)
   of SLabled:
-    var ib = addBlock(cstring(s.label))
+    var ib = b.labels[^1].getOrDefault(s.label, nil)
+    assert ib != nil
+    if getBasicBlockTerminator(getInsertBlock(b.builder)) == nil:
+      br ib
     setInsertPoint(ib)
-    putLabel(s.label, ib)
     gen(s.labledstmt)
   of SGoto:
-    let loc = getLabel(s.location)
-    if loc == nil:
-      error("cannot find position for label: " & s.location)
-    else:
-      br loc
-      setInsertPoint(loc)
+    let loc = b.labels[^1].getOrDefault(s.location, nil)
+    assert loc != nil
+    br loc
+    setInsertPoint(loc)
   of SSemicolon:
     discard
   of SContinue:
