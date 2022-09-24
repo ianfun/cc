@@ -1,8 +1,0 @@
-* union
-* bitfield
-* __attribute__ 
-* __declspec
-* pragmas
-* LLVMSetVolatile ...
-* `indirectbr` / Labels as Values <https://gcc.gnu.org/onlinedocs/gcc/Labels-as-Values.html> <http://blog.llvm.org/2010/01/address-of-label-and-indirect-branches.html>
-* many builtin functions...

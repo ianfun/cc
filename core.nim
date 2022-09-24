@@ -2,24 +2,24 @@ import ast, config, stream, token, location
 import std/[os, tables, sets]
 
 type
-  TranslationUnit* = object
+  TranslationUnitContext* = object ## A *translation unit* is many input files, including `#include <xxx>`
     currentfunctionRet*, currentInitTy*, currentCase*: CType
-    pfunc*: string
+    pfunc*: string ## current function name: `__func__`
+    retTy*: CType ## current function return type
     currentAlign*: uint32
-    fstack*: seq[Stream]
+    fstack*: seq[Stream] ## input files
     filenamestack*, pathstack*: seq[string]
-    locstack*: seq[Location]
-    want_expr*: bool
+    locstack*: seq[Location] 
     filename*, path*: string
-    macros*: Table[string, PPMacro]
-    ppstack*: seq[uint8]
-    ok*: bool
-    onces*, expansion_list*: HashSet[string]
-    lables*: seq[TableRef[string, uint8]]
-    tags*: seq[TableRef[string, Info]]
-    typedefs*: seq[TableRef[string, Info]]
-    counter*: int
-    retTy*: CType
+    macros*: Table[string, PPMacro] ## preprocessor: defined macros
+    ppstack*: seq[uint8] ## preprocessor: preprocessor condition stack
+    ok*: bool ## preprocessor: preprocessor condition is false: `#if 0`
+    onces*: HashSet[string] ## preprocessor: `#pragma once`
+    expansion_list*: HashSet[string] ## preprocessor: current expanding macros
+    lables*: seq[TableRef[string, uint8]] ## labels: function scope
+    tags*: seq[TableRef[string, Info]] ## struct/union/enum: block scope
+    typedefs*: seq[TableRef[string, Info]] ## typedefs, variables: block scope
+    counter*: int ## preprocessor: __COUNTER__
     type_error*: bool
     eval_error*: bool
     parse_error*: bool
@@ -31,10 +31,10 @@ const
   LBL_DECLARED* = 2'u8
   LBL_OK* = 4'u8
 
-var t* = TranslationUnit(ok: true,
-  bad_error: false, eval_error: false, parse_error: false, want_expr: false, counter: 0,
-  filename: "<built-in>", path: "<built-in>"
-  )
+var t* = TranslationUnitContext(
+  ok: true, bad_error: false, eval_error: false, parse_error: false, 
+  counter: 0, filename: "<built-in>", path: "<built-in>"
+)
 
 
 proc isTopLevel*(): bool =
