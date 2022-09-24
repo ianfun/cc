@@ -1,6 +1,6 @@
 ## ast.nim - C's abstract syntax tree
 
-import config, operators
+import core, operators
 import std/[macrocache, strutils, sets]
 
 type
@@ -555,3 +555,38 @@ proc getVoidType*(): CType = get(TYVOID)
 
 proc getPointerType*(base: CType): CType = CType(tags: TYINVALID, spec: TYPOINTER, p: base)
 
+proc compatible*(p, expected: CType): bool =
+    ## https://en.cppreference.com/w/c/language/type
+    if p.spec != expected.spec:
+        return false
+    else:
+        case p.spec:
+        of TYPRIM:
+            return (p.tags and prim) == (expected.tags and prim)
+        of TYFUNCTION:
+            if not compatible(p.ret, expected.ret):
+                return false
+            for i in 0..<len(p.params):
+                if p.params[i][1] == nil:                    
+                    break
+                if expected.params[i][1] == nil:
+                    break
+                if not compatible(p.params[i][1], expected.params[i][1]):
+                    return false
+            return true
+        of TYSTRUCT, TYENUM, TYUNION:
+            return cast[pointer](p) == cast[pointer](expected)
+        of TYPOINTER:
+            const mask = TYRESTRICT or TYCONST or TYVOLATILE
+            return bool(p.p.tags and TYVOID) or bool(expected.p.tags and TYVOID) or (((p.tags and mask) == (expected.tags and mask)) and compatible(p.p, expected.p))
+        of TYINCOMPLETE:
+            return p.tag == expected.tag and p.name == expected.name
+        of TYBITFIELD:
+            unreachable()
+        of TYARRAY:
+            return compatible(p.arrtype, expected.arrtype)
+
+when TYINT == TYINT32:
+    const sizeofint* = 4.culonglong
+else:
+    const sizeofint* = 8.culonglong

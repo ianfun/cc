@@ -24,6 +24,8 @@ type
     off_t *{.importc: "off_t ", nodecl, header: "unistd.h".} = clonglong
     BinaryBuffer = pointer | cstring | ptr
 
+proc perror*(str: cstring) {.importc: "perror", header: "stdio.h".}
+
 proc read(fd: Fd, buf: BinaryBuffer, count: csize_t): cssize_t {.importc: "read", header: "unistd.h".}
 
 proc write(fd: Fd, buf: BinaryBuffer, count: csize_t): cssize_t {.importc: "write", header: "unistd.h".}

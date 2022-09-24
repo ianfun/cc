@@ -1,56 +1,86 @@
-import ast, config, stream, token, location
-import std/[os, tables, sets]
+import std/[exitprocs]
 
 type
-  TranslationUnitContext* = object ## A *translation unit* is many input files, including `#include <xxx>`
-    currentfunctionRet*, currentInitTy*, currentCase*: CType
-    pfunc*: string ## current function name: `__func__`
-    retTy*: CType ## current function return type
-    currentAlign*: uint32
-    fstack*: seq[Stream] ## input files
-    filenamestack*, pathstack*: seq[string]
-    locstack*: seq[Location] 
-    filename*, path*: string
-    macros*: Table[string, PPMacro] ## preprocessor: defined macros
-    ppstack*: seq[uint8] ## preprocessor: preprocessor condition stack
-    ok*: bool ## preprocessor: preprocessor condition is false: `#if 0`
-    onces*: HashSet[string] ## preprocessor: `#pragma once`
-    expansion_list*: HashSet[string] ## preprocessor: current expanding macros
-    lables*: seq[TableRef[string, uint8]] ## labels: function scope
-    tags*: seq[TableRef[string, Info]] ## struct/union/enum: block scope
-    typedefs*: seq[TableRef[string, Info]] ## typedefs, variables: block scope
-    counter*: int ## preprocessor: __COUNTER__
-    type_error*: bool
-    eval_error*: bool
-    parse_error*: bool
-    bad_error*: bool
+  intmax_t* = int64
+  uintmax_t* = uint64
+  Codepoint* = uint32
 
-const
-  LBL_UNDEFINED* = 0'u8
-  LBL_FORWARD* = 1'u8
-  LBL_DECLARED* = 2'u8
-  LBL_OK* = 4'u8
+proc builtin_unreachable() {.importc: "__builtin_unreachable", nodecl.}
 
-var t* = TranslationUnitContext(
-  ok: true, bad_error: false, eval_error: false, parse_error: false, 
-  counter: 0, filename: "<built-in>", path: "<built-in>"
-)
+proc unreachable*() =
+  # https://learn.microsoft.com/en-us/cpp/intrinsics/assume?view=msvc-170
+  # https://clang.llvm.org/docs/LanguageExtensions.html#builtin-assume
+  # https://stackoverflow.com/questions/63493968/reproducing-clangs-builtin-assume-for-gcc
+  when defined(debug):
+    assert false, "INTERNAL ERROR: unreachable executed!"
+  else:
+    builtin_unreachable()
 
+proc set_exit_code*(code: auto) =
+  exitprocs.setProgramResult(code)
 
-proc isTopLevel*(): bool =
-    t.typedefs.len == 1
+proc cc_exit*(c: auto) =
+  quit c
 
-var options* = commandLineParams()
-var appFileName* = getAppFilename()
+proc unsafe_utf8_codepoint*(s: cstring): (Codepoint, int) =
+    if 0xf0 == (0xf8 and s[0].Codepoint): # 4 byte
+      (
+        ((0x07 and s[0].Codepoint) shl 18) or 
+        ((0x3f and s[1].Codepoint) shl 12) or
+        ((0x3f and s[2].Codepoint) shl 6) or
+         (0x3f and s[3].Codepoint),
+      4)
+    elif 0xe0 == (0xf0 and s[0].Codepoint): # 3 byte
+      ( 
+        ((0x0f and s[0].Codepoint) shl 12) or 
+        ((0x3f and s[1].Codepoint) shl 6) or 
+         (0x3f and s[2].Codepoint),
+      3)
+    elif 0xc0 == (0xe0 and s[0].Codepoint): # 2 byte
+      (
+        ((0x1f and s[0].Codepoint) shl 6) or 
+         (0x3f and s[1].Codepoint),
+      2)
+    else: # 1 byte
+      (s[0].Codepoint, 1)
+
+proc writeUTF8toUTF32*(s: string): seq[Codepoint] =
+  # TODO: reserve 3 more bytes to prevent bad utf8 terminate access overflow
+  var i = 0
+  while true:
+    if i >= len(s):
+      break
+    let (codepoint, length) = unsafe_utf8_codepoint(cast[cstring](cast[int](cstring(s)) + i))
+    result.add(codepoint)
+    i += length
+
+proc writeUTF8toUTF16*(s: string): seq[uint16] =
+  let u32 = writeUTF8toUTF32(s)
+  result = newSeqOfCap[uint16](len(u32) div 2)
+  for codepoint in u32:
+    var c = codepoint
+    if c <= 0xFFFF:
+      result.add(uint16(c))
+    else:
+      c -= 0x10000
+      result.add(uint16(0xD800 + (c shr 10)))
+      result.add(uint16(0xDC00 + (c and 0x3FF)))
+
+proc show*(c: char): string =
+  let n = int(c)
+  if n >= 33 and n <= 126:
+    result = "'"
+    result.add(c)
+    result.add('\'')
+  else:
+    result = "<"
+    result.addInt(n)
+    result.add('>')
 
 type 
-  VerboseLevel* = enum
-    WError, WWarning, WNote, WVerbose
-  Linker* = enum LLD, GCCLD
-
-proc perror*(str: cstring) {.importc: "perror", header: "stdio.h".}
-
-type
+    VerboseLevel* = enum
+      VError, VWarning, VNote, VVerbose
+    Linker* = enum LLD, GCCLD
     Input* = enum
       InputC, InputIR, InputBC, InputObject, InputBF, InputAsm
     Output* = enum
@@ -72,32 +102,14 @@ type
       linker*: Linker
       triple*: string
       ## input files
-      inputs*: seq[string]
 
-      ## backend
       pointersize*: culonglong
-      getSizeof*: proc (ty: CType): culonglong
-      getoffsetof*: proc (ty: CType, idx: int): culonglong
-      getAlignOf*: proc (ty: CType): culonglong
-
-      ## lexer
-      lex*: proc ()
-
-      ## C preprocessor
-      cpp*: proc ()
-
-      ## constant evaluator
-      eval_const_expression*: proc (e: Expr): intmax_t
-
-      ## pragma handler
-      pragma*: proc (tokens: seq[TokenV])
-      pragmas*: proc (p: string)
 
 var app* = CC(
     optLevel: 0.cuint, 
     sizeLevel: 0.cuint, 
     inlineThreshold: 0, 
-    verboseLevel: WNote,
+    verboseLevel: VNote,
     opaquePointerEnabled: true,
     mode: OutputLink,
     input: InputC,
@@ -106,20 +118,4 @@ var app* = CC(
     runJit: false,
     linker: GCCLD
 )
-
-proc warningPlain*(msg: string) =
-  if ord(app.verboseLevel) >= ord(WWarning):
-    fstderr << "cc: \e[33m" & "warning: " & msg & "\e[0m"
-
-proc error*() =
-  fstderr << "cc: \e[31merror\e[0m: "
-
-proc verbose*(msg: string) =
-  if ord(app.verboseLevel) >= ord(WVerbose):
-    fstderr << "cc: "
-    fstderr << msg
-
-proc getPtrDiff_t*(): CType = get(if app.pointersize == 4: TYINT32 else: TYINT64)
-
-proc getIntPtr_t*(): CType = getPtrDiff_t()
 

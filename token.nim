@@ -80,7 +80,7 @@ type
         fn*: proc ()
       of MOBJ:
         discard
-    ParseFlags* = enum
+    PPFlags* = enum
       PFNormal=1, PFPP=2
     TokenVTags* = enum
       TVNormal, TVSVal, TVIVal, TVFval, TVStr
@@ -150,3 +150,85 @@ const declaration_specifier_set* =
     storage_class_specifier_set +
     type_qualifier_set +
     function_specifier_set ## declaration specfiers
+
+const hexs*: cstring = "0123456789ABCDEF"
+
+proc isprint*(a: cint): cint {.importc: "isprint", nodecl, header: "ctype.h".}
+
+proc reverse(a: var string) =
+    var l = len(a) - 1
+    for i in 0 ..< (len(a) div 2):
+        let c = a[i]
+        a[i] = a[l - i]
+        a[l - i] = c
+
+proc hex(a: uint): string =
+    var c = a
+    while true:
+        result &= hexs[a mod 16]
+        c = c shr 4
+        if c == 0:
+            break
+    reverse(result)
+
+proc stringizing*(a: char): string =
+    return '\'' & (
+        case a:
+        of '\a':
+            "\\a"
+        of '\b':
+            "\\b"
+        of '\f':
+            "\\f"
+        of '\n':
+            "\\n"
+        of '\r':
+            "\\r"
+        of '\t':
+            "\\t"
+        of '\v':
+            "\\v"
+        of '\e':
+            "\\e"
+        else:
+            if isprint(cint(a)) != 0:
+                $a
+            else:
+                "\\x" & hex(uint(a))
+    ) & '\''
+
+proc stringizing*(a: string): string =
+    result.add('"')
+    for v in a:
+        result.add(stringizing(v))
+    result.add('"')
+
+proc stringizing*(a: TokenV): string =
+    case a.tok:
+        of PPPlaceholder:
+            discard
+        of TEllipsis:
+            result.add("...")
+        of TEllipsis2:
+            result.add("..")
+        of TSpace:
+            result.add(' ')
+        of TIdentifier, CPPIdent, TPPNumber:
+            result.add(a.s)
+        of TStringLit:
+            result.add(stringizing(a.s))
+        of PPSharp:
+            result.add('#')
+        of PPSharpSharp:
+            result.add("##")
+        of TCharLit:
+            result.add(stringizing(char(a.i)))
+        else:
+            if uint(a.tok) < 255:
+                result.add(char(a.tok))
+            else:
+                result.add($a.tok)
+
+proc stringizing*(a: seq[TokenV]): string =
+    for t in a:
+        result.add(stringizing(t))
