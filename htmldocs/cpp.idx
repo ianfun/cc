@@ -1,7 +1,0 @@
-setCpp	cpp.html#setCpp	cpp: setCpp()	
-getMacro	cpp.html#getMacro,string	cpp: getMacro(name: string): PPMacro	
-macro_find	cpp.html#macro_find,string	cpp: macro_find(name: string): PPMacro	
-beginExpandMacro	cpp.html#beginExpandMacro,string	cpp: beginExpandMacro(a: string)	
-endExpandMacro	cpp.html#endExpandMacro,string	cpp: endExpandMacro(a: string)	
-isMacroInUse	cpp.html#isMacroInUse,string	cpp: isMacroInUse(a: string): bool	
-getToken	cpp.html#getToken	cpp: getToken()	

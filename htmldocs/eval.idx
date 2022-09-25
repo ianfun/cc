@@ -1,4 +1,0 @@
-setEval	eval.html#setEval	eval: setEval()	
-eval_error_msg	eval.html#eval_error_msg	eval: eval_error_msg	
-write_eval_msg	eval.html#write_eval_msg	eval: write_eval_msg()	
-evali	eval.html#evali,Expr	eval: evali(e: Expr): intmax_t	

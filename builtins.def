@@ -1,5 +1,0 @@
-const builtin_predef = """
-#define __builtin_LINE() __LINE__
-#define __builtin_FILE() __FILE__
-#define __builtin_FUNCTION() __func__
-"""

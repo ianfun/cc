@@ -1,2 +1,0 @@
-my_p_add	builtins.html#my_p_add,cstring,auto	builtins: my_p_add(a: cstring; b: auto): cstring	
-is_builtin_name	builtins.html#is_builtin_name,string	builtins: is_builtin_name(name: string): bool	

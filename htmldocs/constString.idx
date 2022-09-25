@@ -1,9 +1,0 @@
-ConstString	constString.html#ConstString	constString: ConstString	
-constStr	constString.html#constStr	constString: constStr(s: cstring | string): ConstString	
-`$`	constString.html#$,ConstString	constString: `$`(self: ConstString): string	
-`&amp;`	constString.html#&,string,ConstString	constString: `&amp;`(s: string; c: ConstString): string	
-`[]`	constString.html#[],ConstString,auto	constString: `[]`(self: ConstString; idx: auto): char	
-len	constString.html#len,ConstString	constString: len(self: ConstString): int	
-`==`	constString.html#==,ConstString,string	constString: `==`(a: ConstString; b: string): bool	
-`==`	constString.html#==,string,ConstString	constString: `==`(a: string; b: ConstString): bool	
-`==`	constString.html#==,ConstString,ConstString	constString: `==`(a, b: ConstString): bool	
