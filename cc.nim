@@ -16,7 +16,7 @@
 
 # llvm-config --ldflags --system-libs --libs all
 when defined(windows):
-    {.passL: "./llvm/llvmAPI.o libLLVM-15.dll".}
+    {.passL: "./llvm/llvmAPI.o libLLVM-15.dll -lreadline -ltinfo".}
 else:    
     {.passL: "-L/usr/lib/llvm-15/lib -lLLVM-15 ./llvm/llvmAPI -lreadline -ltinfo".}
 
@@ -1741,7 +1741,11 @@ proc resetLine() =
     t.l.col = 1
     inc t.l.line
 
-proc fs_read() =
+proc stream_read() =
+    if t.l.lastc <= 0xFF:
+        t.l.c = char(t.l.lastc)
+        t.l.lastc = 256
+        return
     if t.fstack.len == 0:
         t.l.c = '\0'
     else:
@@ -1756,27 +1760,25 @@ proc fs_read() =
             t.l.line = loc.line
             t.l.col = loc.col
             fd.close()
-            fs_read() # tail call
-        if t.l.c == '\n':
+            stream_read()
+        elif t.l.c == '\n':
           resetLine()
         elif t.l.c == '\r':
           resetLine()
-          t.l.c = s.readChar()
-          if t.l.c != '\n':
-            putc(s, cint(t.l.c))
+          t.l.c = '\n'
+          let c = s.readChar()
+          if c != '\n':
+            t.l.lastc = uint16(c)
 
-proc lowleveleat() =
-    fs_read()
-
-proc do_eat() =
-    lowleveleat()
+proc eat() =
+    stream_read()
     if t.l.c == '/':
-        lowleveleat()
+        stream_read()
         if t.l.c == '*':
             while true:
-                lowleveleat()
+                stream_read()
                 if t.l.c == '*':
-                    lowleveleat()
+                    stream_read()
                     if t.l.c == '/':
                         t.l.c = ' ' # make a space: GNU CPP do it
                         break
@@ -1785,7 +1787,7 @@ proc do_eat() =
                     return
         elif t.l.c == '/':
             while true:
-                lowleveleat()
+                stream_read()
                 if t.l.c == '\n' or t.l.c == '\0':
                     break
         else:
@@ -1793,21 +1795,12 @@ proc do_eat() =
             t.l.c = '/'
     elif t.l.c == '\\':
         let c = t.l.c
-        lowleveleat()
+        stream_read()
         if t.l.c == '\n':
-            do_eat()
+            eat()
         else:
             t.l.lastc = uint16(t.l.c)
             t.l.c = c
-
-proc eat() =
-    ## skip any C/C++ style comments
-    ## https://gcc.gnu.org/onlinedocs/gcc-12.1.0/cpp/Initial-processing.html
-    if t.l.lastc <= 255:
-        t.l.c = char(t.l.lastc)
-        t.l.lastc = 256
-        return
-    do_eat()
 
 proc readHexChar(): Codepoint =
     var n = Codepoint(0)
@@ -2864,7 +2857,6 @@ proc builtin_Pragma() =
           if t.l.tok.tok != TRbracket:
               expectRB()
           else:
-              echo "pragma: ", pra
               getToken()
 
 proc getMacro(name: string): PPMacro =
@@ -4110,6 +4102,7 @@ proc newFunction(varty: CType, name: string): Value =
     addAttribute(result, OptimizeForSize)
     if bool(varty.ret.tags and TYSTATIC):
       setLinkage(result, InternalLinkage)
+      setFunctionCallConv(result, FastCallConv.cuint)
     if bool(varty.ret.tags and TYNORETURN):
       addAttribute(result, NoReturn)
     if bool(varty.ret.tags and TYINLINE):
