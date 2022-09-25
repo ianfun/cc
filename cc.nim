@@ -1,16 +1,4 @@
-## C's Lexer, preprocessor(CPP) and recursive descent parser
-##
-## based on ISO C grammar for details
-##
-## see 
-##
-##  <https://gcc.gnu.org/onlinedocs/cpp>
-##
-##  <https://gcc.gnu.org/onlinedocs/gcc-10.4.0/cpp/> 
-##
-## for details
-## 
-## the main export function is runParser
+## cc - A C Compiler
 ##
 ## translation-unit:
 ##
@@ -23,14 +11,13 @@
 ## #define myopnot(a) (!(a))
 ## #define myopneg(a) (-(a))
 ## ```
+##
+## note: should call `SetConsoleTextAttribute` in Windows?
 
+# llvm-config --ldflags --system-libs --libs all
 when defined(windows):
-    # download from https://github.com/llvm/llvm-project/releases
-    # LLVM-15.0.0-rc3-win64.exe 
-    # unpack and install
-    {.passL: "C:\\Users\\林仁傑\\source\\llvm-mingw-20220906-ucrt-x86_64\\bin\\libLLVM-15.dll ./llvm/llvmAPI.o".}
-else:
-    # llvm-config --ldflags --system-libs --libs all
+    {.passL: "./llvm/llvmAPI.o libLLVM-15.dll".}
+else:    
     {.passL: "-L/usr/lib/llvm-15/lib -lLLVM-15 ./llvm/llvmAPI -lreadline -ltinfo".}
 
 import std/[math, sets, tables, editdistance, heapqueue, sequtils, os, times, unicode, macrocache, strutils, exitprocs]
@@ -64,9 +51,9 @@ type
       linker: Linker
       triple: string
       ## input files
-
       pointersize: culonglong
       isAttyStderr: bool
+      strbuf: string
 
 const
   STREAM_BUFFER_SIZE* = 8192 ## 8 KB
@@ -112,7 +99,8 @@ var app = CC(
     triple: "",
     runJit: false,
     linker: GCCLD,
-    isAttyStderr: bool(isatty(fstderr))
+    isAttyStderr: bool(isatty(fstderr)),
+    strbuf: newStringOfCap(150)
 )
 
 type
@@ -147,7 +135,6 @@ proc `<<`(stream: Fd, c: char) =
     discard write(stream, addr a, 1)
 
 let 
-  EOF {.importc: "EOF", nodecl.} : cint
   SEEK_CUR {.importc: "SEEK_CUR", nodecl.}: cint
   SEEK_END {.importc: "SEEK_END", nodecl.}: cint
   SEEK_SET {.importc: "SEEK_SET", nodecl.}: cint
@@ -215,7 +202,7 @@ proc putc(s: Stream, c: cint) {.raises: [].} =
 
 proc readChar(s: Stream): char {.raises: [].} =
     ## try to read from stream, if any error happens, return '\0'(EOF)
-    if s.lastc == EOF:
+    if s.lastc <= 0xFF:
         result = char(s.lastc)
         s.lastc = 256
         return
@@ -240,7 +227,7 @@ proc readChar(s: Stream): char {.raises: [].} =
     of StdinStream:
         if s.i >= len(s.s):
             when defined(CC_NO_RAEADLINE):
-                fstdout << STDIN_PROMPT
+                fstderr << STDIN_PROMPT
                 try:
                     s.s = stdin.readLine()
                 except EOFError, IOError:
@@ -1300,7 +1287,7 @@ type
     loc: Location
     ty: CType
   MessageType = enum
-    MRaw, MRawLine, MNote, MWarning, MVerbose, MError, MTypeError, MEvalError, MParseError, Mperror
+    MFlush, MRaw, MRawLine, MNote, MWarning, MVerbose, MError, MTypeError, MEvalError, MParseError, Mperror
   MessageWriter = proc (s: StringRef, t: MessageType) {.locks: 0, cdecl.}
   Preprocessor {.final.} = object ## The C Preprocessor
     counter: uint ## `__COUNTER__`
@@ -1467,56 +1454,58 @@ proc write(s: StringRef, ty: MessageType) {.inline.} =
 proc write(s: cstring | string, ty: MessageType) {.inline.} =
     t.w(StringRef(str: s, len: len(s)), ty)
 
-var gStrbuf = newStringOfCap(50)
-
 proc consoleColoredWritter(s: StringRef, ty: MessageType) {.locks: 0, cdecl.} =
     if ty == MRaw or ty == MVerbose:
-        fstderr << s
+        app.strbuf.setLen 0
+        app.strbuf.add(s.str)
+        fstderr << app.strbuf
+        return
+    elif ty == MFlush:
+        fstderr << app.strbuf
         return
     elif ty == Mperror:
-        fstderr << "cc: "
+        app.strbuf.add("cc: ")
         perror(s.str)
         return
     elif ty == MRawLine:
-        gStrbuf.setLen 0
-        gStrbuf.add(s.str)
-        gStrbuf.add('\n')
-        fstderr << gStrbuf
+        app.strbuf.setLen 0
+        app.strbuf.add(s.str)
+        app.strbuf.add('\n')
+        fstderr << app.strbuf
         return
-    gStrbuf.setLen 0
-    gStrbuf.add("cc: ")
+    app.strbuf.setLen 0
+    app.strbuf.add("cc: ")
     if app.isAttyStderr:
         if ty == MError:
-            gStrbuf.add("\e[31m")
+            app.strbuf.add("\e[31m")
         elif ty == MNote:
-            gStrbuf.add("\e[32m")
+            app.strbuf.add("\e[32m")
         elif ty == MWarning:
-            gStrbuf.add("\e[33m")
+            app.strbuf.add("\e[33m")
         elif ty == MParseError:
-            gStrbuf.add("\e[34m")
+            app.strbuf.add("\e[34m")
         elif ty == MParseError:
-            gStrbuf.add("\e[35m")
+            app.strbuf.add("\e[35m")
         elif ty == MEvalError:
-            gStrbuf.add("\e[36m")
+            app.strbuf.add("\e[36m")
     if ty == MNote:
-        gStrbuf.add("note")
+        app.strbuf.add("note")
     elif ty == MWarning:
-        gStrbuf.add("warning")
+        app.strbuf.add("warning")
     elif ty == MError:
-        gStrbuf.add("error")
+        app.strbuf.add("error")
     elif ty == MEvalError:
-        gStrbuf.add("eval error")
+        app.strbuf.add("eval error")
     elif ty == MTypeError:
-        gStrbuf.add("type error")
+        app.strbuf.add("type error")
     elif ty == MParseError:
-        gStrbuf.add("parse error")
+        app.strbuf.add("parse error")
     if app.isAttyStderr:
-        gStrbuf.add("\e[0m")
-    gStrbuf.add(": ")
-    for i in 0 ..< s.len:
-        gStrbuf.add(s[i])
-    gStrbuf.add('\n')
-    fstderr << gStrbuf
+        app.strbuf.add("\e[0m")
+    app.strbuf.add(": ")
+    app.strbuf.add(s.str)
+    app.strbuf.add('\n')
+    fstderr << app.strbuf
 
 proc showToken(): string =
   case t.l.tok.tok:
@@ -1578,6 +1567,9 @@ template parse_error(msg: untyped) =
 template warning(msg: untyped) =
     if ord(app.verboseLevel) >= ord(VWarning):
         write(msg, MWarning)
+
+template flush() =
+    write(app.strbuf, MFlush)
 
 template expect(msg: untyped) =
     ## emit `expect ...` error message
@@ -3213,24 +3205,24 @@ proc initTarget2() =
   discard nimLLVMConfigureTarget(nil, nil, nil, nil, nil, nil, True)
 
 proc listTargets() =
-  var e = newStringOfCap(10)
   newBackend()
   initTarget2()
-  raw_message_line "  Registered Targets:"
+  # app.strbuf.setLen 0
+  app.strbuf.add("  Registered Targets:\n")
   var t = getFirstTarget()
   while t != nil:
-    fstderr << "    "
+    app.strbuf.add("    ")
     var n = getTargetName(t)
     var l = 15 - len(n)
-    e.setLen 0
+    app.strbuf.add(n)
     while l > 0:
-      e.add(' ')
+      app.strbuf.add(' ')
       dec l
-    fstderr << n
-    fstderr << e
-    fstderr << " - "
-    raw_message_line getTargetDescription(t)
+    app.strbuf.add(" - ")
+    app.strbuf.add(getTargetDescription(t))
+    app.strbuf.add('\n')
     t = getNextTarget(t)
+  flush()
   cc_exit(1)
 
 var cliOptions = [
@@ -3267,20 +3259,19 @@ var cliOptions = [
 ]
 
 proc help() =
-  var e = newStringOfCap(20)
-  raw_message_line "command line options"
-  raw_message_line "Option                         Description"
+  # app.strbuf.setLen 0
+  app.strbuf.add("command line options\nOption                         Description\n")
   for i in cliOptions:
-    fstderr << '-'
-    fstderr << i[0][0].str
+    app.strbuf.add('-')
+    app.strbuf.add(i[0][0].str)
     var l = 30 - len(i[0][0].str)
-    e.setLen 0
     while l > 0:
-      e.add(' ')
+      app.strbuf.add(' ')
       dec l
-    raw_message e
-    raw_message_line i[3]
-  raw_message_line("")
+    app.strbuf.add(i[3])
+    app.strbuf.add('\n')
+  app.strbuf.add('\n')
+  flush()
   showVersion()
 
 type FixName = object

@@ -16,4 +16,8 @@ llvm/llvm
 llvm/llvm-c
 llvm/polly
 llvm/llvm-config.h
-./foo
+foo
+build
+make.bat
+*.dll
+*.so

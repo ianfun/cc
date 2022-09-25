@@ -1,6 +1,13 @@
 /*
 llvmAPI.cpp - helper functions
+
+Compile in Windows: 
+$ clang++ -I<llvm-include-path> -std=c++14 -fno-exceptions -fno-rtti -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS llvmAPI.cpp -c -o llvmAPI -O3
+Compile in Linux: 
+$ g++ `llvm-config --cxxflags` llvmAPI.cpp -c -o llvmAPI -O3
+
 */
+
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
 #endif
