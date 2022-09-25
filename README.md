@@ -61,8 +61,8 @@ use git to clone the source
 First, build C++ API helper file
 
 ```bash
-$ g++ `llvm-config --cxxflags` llvmAPI.cpp -c -o llvmAPI -O3 # Linux
-$ clang++ -I<llvm-include-path> -std=c++14 -fno-exceptions -fno-rtti -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS llvmAPI.cpp -c -o llvmAPI -O3 # Windows
+$ g++ `llvm-config --cxxflags` llvmAPI.cpp -c -o llvmAPI.o -O3 # Linux
+$ clang++ -I<llvm-include-path> -std=c++14 -fno-exceptions -fno-rtti -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS llvmAPI.cpp -c -o llvmAPI.o -O3 # Windows
 ```
 
 Build with Nim

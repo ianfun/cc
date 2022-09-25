@@ -15,16 +15,59 @@
 ## note: should call `SetConsoleTextAttribute` in Windows?
 
 # llvm-config --ldflags --system-libs --libs all
+
 when defined(windows):
-    {.passL: "./llvm/llvmAPI.o libLLVM-15.dll -lreadline -ltinfo".}
-else:    
-    {.passL: "-L/usr/lib/llvm-15/lib -lLLVM-15 ./llvm/llvmAPI -lreadline -ltinfo".}
+    when defined(CC_NO_RAEADLINE):
+        {.passL: "./llvm/llvmAPI.o libLLVM-15.dll".}
+    else:
+        {.passL: "./llvm/llvmAPI.o libLLVM-15.dll -lreadline -ltinfo".}
+else:
+    when defined(CC_NO_RAEADLINE):
+        {.passL: "-L/usr/lib/llvm-15/lib -lLLVM-15 ./llvm/llvmAPI.o".}
+    else:
+        {.passL: "-L/usr/lib/llvm-15/lib -lLLVM-15 ./llvm/llvmAPI.o -lreadline -ltinfo".}
 
 import std/[math, sets, tables, editdistance, heapqueue, sequtils, os, times, unicode, macrocache, strutils, exitprocs]
 import llvm/llvm
 
 when not defined(CC_NO_RAEADLINE):
     import readline/[readline, history]
+
+type
+  intmax_t = int64
+  uintmax_t = uint64
+  Codepoint = uint32
+
+when defined(windows):
+    import winlean
+    type CONSOLE_SCREEN_BUFFER_INFO {.importc, nodecl.} = object
+        wAttributes: DWORD
+    let 
+      FOREGROUND_BLUE {.importc, nodecl.}: DWORD
+      FOREGROUND_GREEN {.importc, nodecl.}: DWORD
+      FOREGROUND_RED {.importc, nodecl.}: DWORD
+      FOREGROUND_INTENSITY {.importc, nodecl.}: DWORD
+      BACKGROUND_BLUE {.importc, nodecl.}: DWORD
+      BACKGROUND_GREEN {.importc, nodecl.}: DWORD
+      BACKGROUND_RED {.importc, nodecl.}: DWORD
+      BACKGROUND_INTENSITY {.importc, nodecl.}: DWORD
+      COMMON_LVB_LEADING_BYTE {.importc, nodecl.}: DWORD
+      COMMON_LVB_TRAILING_BYTE {.importc, nodecl.}: DWORD
+      COMMON_LVB_GRID_HORIZONTAL {.importc, nodecl.}: DWORD
+      COMMON_LVB_GRID_LVERTICAL {.importc, nodecl.}: DWORD
+      COMMON_LVB_GRID_RVERTICAL {.importc, nodecl.}: DWORD
+      COMMON_LVB_REVERSE_VIDEO {.importc, nodecl.}: DWORD
+      COMMON_LVB_UNDERSCORE {.importc, nodecl.}: DWORD
+      STD_ERROR_HANDLE {.importc, nodecl.}: DWORD
+
+    proc GetStdHandle(nStdHandle: DWORD): HANDLE {.importc, nodecl, header: "windows.h".}
+
+    proc SetConsoleTextAttribute(hConsoleOutput: HANDLE, dwAttributes: DWORD): WINBOOL {.importc, nodecl, header: "windows.h".}
+
+    proc GetConsoleScreenBufferInfo(hConsoleOutput: HANDLE, lpConsoleScreenBufferInfo: ptr CONSOLE_SCREEN_BUFFER_INFO): WINBOOL {.importc, nodecl, header: "windows.h".}
+
+else:
+    proc isatty(fd: cint): cint {.importc: "isatty", header: "<unistd.h>".}
 
 type 
     VerboseLevel = enum
@@ -53,7 +96,12 @@ type
       ## input files
       pointersize: culonglong
       isAttyStderr: bool
+      ## create debug output
+      g: bool
       strbuf: string
+      when defined(windows):
+        hStderr: HANDLE
+        hStderrInfo: CONSOLE_SCREEN_BUFFER_INFO
 
 const
   STREAM_BUFFER_SIZE* = 8192 ## 8 KB
@@ -77,11 +125,6 @@ proc close(fd: cint): cint {.importc: "close", nodecl, header: "unistd.h".}
 
 proc lseek(fd: Fd, offset: off_t , whence: int): off_t {.importc: "lseek", nodecl, header: "unistd.h".}
 
-when defined(posix):
-    proc isatty(fd: Fd): cint {.importc: "isatty", header: "<unistd.h>".}
-else:
-    proc isatty(fd: Fd): cint {.importc: "_isatty", header: "<io.h>".}
-
 let O_RDONLY = cint(0)
 
 const
@@ -99,9 +142,16 @@ var app = CC(
     triple: "",
     runJit: false,
     linker: GCCLD,
-    isAttyStderr: bool(isatty(fstderr)),
-    strbuf: newStringOfCap(150)
+    strbuf: newStringOfCap(150),
+    g: false
 )
+
+when defined(windows):
+    var hStderrInfo: CONSOLE_SCREEN_BUFFER_INFO
+    app.hStderr = GetStdHandle(STD_ERROR_HANDLE)
+    app.isAttyStderr = GetConsoleScreenBufferInfo(app.hStderr, addr hStderrInfo) != 0
+else:
+    app.isAttyStderr = bool(isatty(fstderr))
 
 type
     StringRef = object
@@ -110,7 +160,6 @@ type
     StreamType = enum
       FileStream, StringStream, StdinStream
     Stream = ref object
-      lastc: cint
       case k: StreamType
       of FileStream:
         buf: pointer
@@ -186,63 +235,18 @@ proc printSourceLine(s: Stream, line: int) {.raises: [].} =
             discard lseek(s.fd, old, SEEK_SET)
 
 proc newStringStream(s: string): Stream {.raises: [].} =
-    result = Stream(k: StringStream, s: s, i: 0, lastc: 256)
+    result = Stream(k: StringStream, s: s, i: 0)
 
 proc newFileStream(path: string): Stream {.raises: [].} =
     let fd = open(path, O_RDONLY)
     if fd < 0:
         return nil
-    result = Stream(k: FileStream, fd: fd, lastc: 256, buf: alloc(STREAM_BUFFER_SIZE))
+    result = Stream(k: FileStream, fd: fd, buf: alloc(STREAM_BUFFER_SIZE))
 
 proc newStdinStream(): Stream {.raises: [].} =
-    result = Stream(k: StdinStream, lastc: 256)
+    result = Stream(k: StdinStream)
 
-proc putc(s: Stream, c: cint) {.raises: [].} =
-    s.lastc = c
-
-proc readChar(s: Stream): char {.raises: [].} =
-    ## try to read from stream, if any error happens, return '\0'(EOF)
-    if s.lastc <= 0xFF:
-        result = char(s.lastc)
-        s.lastc = 256
-        return
-    case s.k:
-    of FileStream:
-        if s.pos == 0:
-            let status = read(s.fd, s.buf, STREAM_BUFFER_SIZE)
-            if status <= 0:
-                return '\0'
-            s.pos = uint(status)
-            s.p = 0
-        let str = cast[cstring](s.buf)
-        let c = str[s.p]
-        inc s.p
-        dec s.pos
-        return c
-    of StringStream:
-        if s.i >= len(s.s):
-            return '\0'
-        result = s.s[s.i]
-        inc s.i
-    of StdinStream:
-        if s.i >= len(s.s):
-            when defined(CC_NO_RAEADLINE):
-                fstderr << STDIN_PROMPT
-                try:
-                    s.s = stdin.readLine()
-                except EOFError, IOError:
-                    return '\0'
-            else:
-                var line = readLine(STDIN_PROMPT)
-                if line == nil:
-                    return '\0'
-                s.s = $line
-                add_history(line)
-                free(line)
-                s.s.add('\n')
-            s.i = 0
-        result = s.s[s.i]
-        inc s.i
+proc readChar(s: Stream): char {.raises: [].}
 
 proc close(s: Stream) {.raises: [].} =
     case s.k:
@@ -357,7 +361,7 @@ type
         f: float
         ftag: FTag
       of TVIVal:
-        i: int
+        i: uintmax_t
         itag: ITag
       of TVStr:
         str: string
@@ -486,11 +490,6 @@ proc stringizing(a: seq[TokenV]): string =
     for t in a:
         result.add(stringizing(t))
 
-type
-  intmax_t = int64
-  uintmax_t = uint64
-  Codepoint = uint32
-
 proc builtin_unreachable() {.importc: "__builtin_unreachable", nodecl.}
 
 proc unreachable() =
@@ -553,15 +552,7 @@ proc writeUTF8toUTF16(s: string): seq[uint16] =
       result.add(uint16(0xDC00 + (c and 0x3FF)))
 
 proc show(c: char): string =
-  let n = int(c)
-  if n >= 33 and n <= 126:
-    result = "'"
-    result.add(c)
-    result.add('\'')
-  else:
-    result = "<"
-    result.addInt(n)
-    result.add('>')
+  return repr(c)
 
 type
     PostfixOP = enum
@@ -633,7 +624,6 @@ type
         packed: bool
       of TYENUM:
         ename: string
-        eelems: seq[(string, intmax_t)]
       of TYBITFIELD:
         bittype: CType
         bitsize: intmax_t
@@ -721,7 +711,7 @@ type
         pop: PostfixOP
         poperand: Expr
       of EIntLit:
-        ival: int
+        ival: uintmax_t
       of EFloatLit:
         fval: float
       of EString:
@@ -1102,7 +1092,7 @@ proc `$`(a: CType, level=0): string =
       if s.len > 0:
         result.add(s)
   of TYENUM:
-    result.add("enum " & a.ename & ' ' & joinShow4(a.eelems, level + 1))
+    result.add("enum " & a.ename)
   of TYFUNCTION:
     result.add($a.ret & a.fname & " (" & joinShow2(a.params) & ')')
   of TYSTRUCT:
@@ -1280,15 +1270,15 @@ proc `==`(a, b: StringRef): bool =
 
 type
   Location = object
-    line: int
-    col: int
+    line: uint32
+    col: uint32
   Info = ref object
     tag: uint32
     loc: Location
     ty: CType
   MessageType = enum
     MFlush, MRaw, MRawLine, MNote, MWarning, MVerbose, MError, MTypeError, MEvalError, MParseError, Mperror
-  MessageWriter = proc (s: StringRef, t: MessageType) {.locks: 0, cdecl.}
+  MessageWriter = proc (s: StringRef, t: MessageType) {.raises: [], locks: 0, cdecl.}
   Preprocessor {.final.} = object ## The C Preprocessor
     counter: uint ## `__COUNTER__`
     onces: HashSet[string] ## `#pragma once`
@@ -1306,13 +1296,14 @@ type
     retTy: CType ## current function return type
     currentAlign: uint32 ## current align(bytes)
     type_error: bool ## type error
-    lables: seq[TableRef[string, uint8]] ## labels
-    tags: seq[TableRef[string, Info]] ## struct/union/enums
-    typedefs: seq[TableRef[string, Info]] ## typedef, variables
+    lables: seq[Table[string, uint8]] ## labels
+    tags: seq[Table[string, Info]] ## struct/union/enums
+    typedefs: seq[Table[string, Info]] ## typedef, variables
+    enums: seq[Table[string, intmax_t]] ## enum constants
   Lexer {.final.} = object
     tok: TokenV
-    line: int ## current line
-    col: int ## current column
+    line: uint32 ## current line
+    col: uint32 ## current column
     c: char ## current char
     lastc: uint16
   Parser {.final.} = object ## Parser can parse a translation unit.A translation unit is many input files, including `#include <xxx>`
@@ -1329,15 +1320,17 @@ type
     bad_error: bool ## other error
   Backend = object
     ## jump labels
-    labels: seq[TableRef[string, Label]]
+    labels: seq[Table[string, Label]]
     ## struct/union
-    tags: seq[TableRef[string, Type]]
-    ## variable and enum constants
-    vars: seq[TableRef[string, Value]]
+    tags: seq[Table[string, Type]]
+    ## variables
+    vars: seq[Table[string, Value]]
     ## module
     m: ModuleRef
     module: ModuleRef
     builder: BuilderRef
+    di: DIBuilderRef
+    lexBlocks: seq[DIScope]
     machine: TargetMachineRef
     currentfunction: Value
     tsCtx: OrcThreadSafeContextRef
@@ -1422,7 +1415,7 @@ proc specifier_qualifier_list(): CType
 proc constant_expression(): Expr =
     conditional_expression()
 
-proc consoleColoredWritter(s: StringRef, ty: MessageType) {.locks: 0, cdecl.}
+proc consoleColoredWritter(s: StringRef, ty: MessageType) {.raises: [], locks: 0, cdecl.}
 
 var t = Parser(
         pp: Preprocessor(
@@ -1454,7 +1447,7 @@ proc write(s: StringRef, ty: MessageType) {.inline.} =
 proc write(s: cstring | string, ty: MessageType) {.inline.} =
     t.w(StringRef(str: s, len: len(s)), ty)
 
-proc consoleColoredWritter(s: StringRef, ty: MessageType) {.locks: 0, cdecl.} =
+proc consoleColoredWritter(s: StringRef, ty: MessageType) {.raises: [], locks: 0, cdecl.} =
     if ty == MRaw or ty == MVerbose:
         app.strbuf.setLen 0
         app.strbuf.add(s.str)
@@ -1474,20 +1467,47 @@ proc consoleColoredWritter(s: StringRef, ty: MessageType) {.locks: 0, cdecl.} =
         fstderr << app.strbuf
         return
     app.strbuf.setLen 0
-    app.strbuf.add("cc: ")
+    when defined(windows):
+        fstderr << "cc: "
+    else:
+        app.strbuf.add("cc: ")
     if app.isAttyStderr:
         if ty == MError:
-            app.strbuf.add("\e[31m")
+            # red
+            when defined(windows):
+                discard SetConsoleTextAttribute(app.hStderr, FOREGROUND_RED)
+            else:
+                app.strbuf.add("\e[31m")
         elif ty == MNote:
-            app.strbuf.add("\e[32m")
+            # green
+            when defined(windows):
+                discard SetConsoleTextAttribute(app.hStderr, FOREGROUND_GREEN)
+            else:
+                app.strbuf.add("\e[32m")
         elif ty == MWarning:
-            app.strbuf.add("\e[33m")
+            # purple
+            when defined(windows):
+                discard SetConsoleTextAttribute(app.hStderr, FOREGROUND_BLUE or FOREGROUND_RED)
+            else:
+                app.strbuf.add("\e[35m")
         elif ty == MParseError:
-            app.strbuf.add("\e[34m")
-        elif ty == MParseError:
-            app.strbuf.add("\e[35m")
+            # blue
+            when defined(windows):
+                discard SetConsoleTextAttribute(app.hStderr, FOREGROUND_BLUE)
+            else:
+                app.strbuf.add("\e[34m")
+        elif ty == MTypeError:
+            # yellow
+            when defined(windows):
+                discard SetConsoleTextAttribute(app.hStderr, FOREGROUND_GREEN or FOREGROUND_RED)
+            else:
+                app.strbuf.add("\e[33m")
         elif ty == MEvalError:
-            app.strbuf.add("\e[36m")
+            # blue
+            when defined(windows):
+                discard SetConsoleTextAttribute(app.hStderr, FOREGROUND_BLUE or FOREGROUND_GREEN or FOREGROUND_INTENSITY)
+            else:
+                app.strbuf.add("\e[36m")
     if ty == MNote:
         app.strbuf.add("note")
     elif ty == MWarning:
@@ -1500,12 +1520,21 @@ proc consoleColoredWritter(s: StringRef, ty: MessageType) {.locks: 0, cdecl.} =
         app.strbuf.add("type error")
     elif ty == MParseError:
         app.strbuf.add("parse error")
-    if app.isAttyStderr:
+    when defined(windows):
+        fstderr << app.strbuf    
+        if app.isAttyStderr:
+            discard SetConsoleTextAttribute(app.hStderr, hStderrInfo.wAttributes)
+        app.strbuf.setLen 0
+        app.strbuf.add(": ")
+        app.strbuf.add(s.str)
+        app.strbuf.add('\n')
+        fstderr << app.strbuf
+    else:
         app.strbuf.add("\e[0m")
-    app.strbuf.add(": ")
-    app.strbuf.add(s.str)
-    app.strbuf.add('\n')
-    fstderr << app.strbuf
+        app.strbuf.add(": ")
+        app.strbuf.add(s.str)
+        app.strbuf.add('\n')
+        fstderr << app.strbuf
 
 proc showToken(): string =
   case t.l.tok.tok:
@@ -1533,7 +1562,7 @@ proc make_tok(op: Token) {.inline.} =
     t.l.tok = TokenV(tok: op, tags: TVNormal)
 
 proc make_ch_lit(ch: char) {.inline.} =
-    t.l.tok.i = ch.int
+    t.l.tok.i = uintmax_t(ch)
 
 template error(msg: untyped) =
     write(msg, MError)
@@ -1627,6 +1656,49 @@ proc setStdin() =
   t.l.line = 1
   t.l.col = 1
   app.output = "stdin"
+
+proc readChar(s: Stream): char {.raises: [].} =
+    ## try to read from stream, if any error happens, return '\0'(EOF)
+    case s.k:
+    of FileStream:
+        if s.pos == 0:
+            let status = read(s.fd, s.buf, STREAM_BUFFER_SIZE)
+            if status <= 0:
+                return '\0'
+            s.pos = uint(status)
+            s.p = 0
+        let str = cast[cstring](s.buf)
+        let c = str[s.p]
+        inc s.p
+        dec s.pos
+        if c == '\0':
+            warning("null character(s) ignored")
+            return readChar(s)
+        return c
+    of StringStream:
+        if s.i >= len(s.s):
+            return '\0'
+        result = s.s[s.i]
+        inc s.i
+    of StdinStream:
+        if s.i >= len(s.s):
+            when defined(CC_NO_RAEADLINE):
+                fstderr << STDIN_PROMPT
+                try:
+                    s.s = stdin.readLine()
+                except EOFError, IOError:
+                    return '\0'
+            else:
+                var line = readLine(STDIN_PROMPT)
+                if line == nil:
+                    return '\0'
+                s.s = $line
+                add_history(line)
+                free(line)
+                s.s.add('\n')
+            s.i = 0
+        result = s.s[s.i]
+        inc s.i
 
 proc my_UNEG(a: uintmax_t): intmax_t {.importc: "myopneg", nodecl, header: "myop.h".}
 
@@ -1722,7 +1794,7 @@ proc evali(e: Expr): intmax_t =
     else:
       eval_error2("cannot eval constant-expression: bad unary operator: " & $e)
   of EIntLit:
-    e.ival
+    intmax_t(e.ival)
   of EFloatLit:
     return eval_error2("floating constant in constant-expression")
   of ECondition:
@@ -1963,27 +2035,27 @@ proc readIdentLit() =
         t.l.tok.s.add(t.l.c)
         eat()
 
-proc decimaltoInt(s: string): int =
+proc decimaltoInt(s: string): uintmax_t =
     for c in s:
-        result = (result * 10) + (int(c) - '0'.int)
+        result = (result * 10) + (uintmax_t(c) - '0'.uintmax_t)
 
-proc decimal16toInt(s: string): int =
+proc decimal16toInt(s: string): uintmax_t =
     for c in s:
         if c in {'0'..'9'}:
-            result = (result shl 4) or (int(c) - '0'.int)
+            result = (result shl 4) or (uintmax_t(c) - '0'.uintmax_t)
         elif c in {'a'..'f'}:
-            result = (result shl 4) or (int(c) - 'a'.int + 10)
+            result = (result shl 4) or (uintmax_t(c) - 'a'.uintmax_t + 10)
         else:
-            result = (result shl 4) or (int(c) - 'A'.int + 10)
+            result = (result shl 4) or (uintmax_t(c) - 'A'.uintmax_t + 10)
 
-proc decimal2toInt(s: string): int =
+proc decimal2toInt(s: string): uintmax_t =
     for c in s:
         if c == '1':
             result = (result shl 1) or 1
         else:
             result = result shl 1
 
-proc pow10(a: int): int =
+proc pow10(a: uintmax_t): uintmax_t =
     result = 1
     for i in 0..<a:
         result = 10
@@ -2084,11 +2156,11 @@ proc readNumberLit() =
             return
           while true:
             if t.l.c in {'0'..'9'}:
-              t.l.tok.i = (t.l.tok.i shl 4) or (int(t.l.c) - '0'.int)
+              t.l.tok.i = (t.l.tok.i shl 4) or (uintmax_t(t.l.c) - uintmax_t('0'))
             elif t.l.c in {'a'..'f'}:
-              t.l.tok.i = (t.l.tok.i shl 4) or (int(t.l.c) - 'a'.int + 10)
+              t.l.tok.i = (t.l.tok.i shl 4) or (uintmax_t(t.l.c) -  uintmax_t('a') + 10)
             elif t.l.c in {'A'..'F'}:
-              t.l.tok.i = (t.l.tok.i shl 4) or (int(t.l.c) - 'A'.int + 10)
+              t.l.tok.i = (t.l.tok.i shl 4) or (uintmax_t(t.l.c) - uintmax_t('A') + 10)
             elif t.l.c in {'L', 'l', 'U', 'u'}:
               while t.l.c in {'L', 'l', 'U', 'u'}:
                 eat()
@@ -2123,7 +2195,7 @@ proc readNumberLit() =
           return # zero
     else: # decimal
       while true:
-        t.l.tok.i = (10 * t.l.tok.i) + (int(t.l.c) - '0'.int)
+        t.l.tok.i = (10 * t.l.tok.i) + (uintmax_t(t.l.c) - uintmax_t('0'))
         eat()
         if t.l.c == '.':
             eat()
@@ -2517,7 +2589,10 @@ proc nextTok() =
                     if t.l.c in {'0'..'9'}:
                         continue
                     break
-                t.l.line = decimaltoInt(s)
+                var i = decimaltoInt(s)
+                if i > high(uint32):
+                    warning("overflow in line number")
+                t.l.line = cast[uint32](i)
                 while t.l.c in CSkip:
                     eat()
                 if t.l.c == '\0' or t.l.c == '\n':
@@ -2836,8 +2911,8 @@ proc nextTok() =
                 make_tok(TNot)
             return
         else:
-          warning("invalid token: " & show(t.l.c))
-
+            discard
+        warning("stray " & show(t.l.c) & " in program")
         eat()
 
 
@@ -2853,6 +2928,7 @@ proc builtin_Pragma() =
           note("the syntax is:\n\t_Pragma(<string>)")
       else:
           var pra = t.l.tok.s
+          discard pra
           getToken()
           if t.l.tok.tok != TRbracket:
               expectRB()
@@ -3219,6 +3295,7 @@ proc listTargets() =
 
 var cliOptions = [
   ("v".h, 0, cast[P](showVersion), "print version info"),
+  ("g".h, 0, proc () = app.g = true, "create debug information in output"),
   ("version".h, 0, cast[P](showVersion), "print version info"),
   ("help".h, 0, help, "help"),
   ("-help".h, 0, help, "help"),
@@ -3415,6 +3492,17 @@ proc getAlignof(ty: CType): culonglong =
 proc getAlignof(e: Expr): culonglong =
     getAlignof(e.ty)
 
+proc emitDebugLocation(e: Expr) =
+    var line = 0
+    var col = 0
+    var loc = dIBuilderCreateDebugLocation(b.ctx, line.cuint, col.cuint, b.lexBlocks[^1], nil)
+    setCurrentDebugLocation2(b.builder, loc)
+
+proc emitDebugLocation(s: Stmt) =
+    var line = 0
+    var col = 0
+    var loc = dIBuilderCreateDebugLocation(b.ctx, line.cuint, col.cuint, b.lexBlocks[^1], nil)
+    setCurrentDebugLocation2(b.builder, loc)
 
 proc addLLVMModule(source_file: string) =
   b.module = moduleCreateWithNameInContext(source_file.cstring, b.ctx)
@@ -3441,6 +3529,32 @@ proc addLLVMModule(source_file: string) =
   var wcharsizenode = mDNodeInContext(b.ctx, addr wcharsize_arr[0], 3)
   addNamedMetadataOperand(b.module, "llvm.module.flags", wcharsizenode)
 
+  if app.g:
+    b.di = createDIBuilderDisallowUnresolved(b.module)
+    var file = dIBuilderCreateFile(b.di, source_file.cstring, source_file.len.csize_t, nil, 0)
+    const producer = "cc"
+    b.lexBlocks.add(dIBuilderCreateCompileUnit(
+        b.di,
+        DWARFSourceLanguageC,
+        file,
+        cstring(producer),
+        len(producer),
+        False,
+        "",
+        0,
+        0,
+        nil,
+        0,
+        DWARFEmissionFull,
+        0,
+        False,
+        0,
+        nil,
+        0,
+        nil,
+        0
+    ))
+
 proc setInsertPoint(loc: Label) {.inline.} =
   positionBuilderAtEnd(b.builder, loc)
 
@@ -3459,10 +3573,10 @@ proc br(loc: Label) {.inline.} =
 proc gep(ty: Type, p: Value, indices: var Value): Value {.inline.} =
   buildInBoundsGEP2(b.builder, ty, p, addr indices, 1, "")
 
-proc gep(ty: Type, p: ValueRef, indices: ptr ValueRef, num: cuint): Value {.inline.} =
+proc gep(ty: Type, p: Value, indices: ptr Value, num: cuint): Value {.inline.} =
   buildInBoundsGEP2(b.builder, ty, p, indices, num, "")
 
-proc gep(ty: Type, p: ValueRef, indices: var openarray[Value]): Value {.inline.} =
+proc gep(ty: Type, p: Value, indices: var openarray[Value]): Value {.inline.} =
   gep(ty, p, addr indices[0], indices.len.cuint)
 
 proc initTarget(all = false): bool =
@@ -3489,11 +3603,10 @@ proc handle_asm(s: string) =
     discard buildCall2(b.builder, asmtype, f, nil, 0, "")
 
 proc enterScope() =
-  b.tags.add(newTable[string, Type]())
-  b.vars.add(newTable[string, Value]())
+  b.tags.add(initTable[string, Type]())
+  b.vars.add(initTable[string, Value]())
 
 proc leaveScope() =
-  ## not token.leaveBlock
   discard b.tags.pop()
   discard b.vars.pop()
 
@@ -3515,10 +3628,6 @@ proc getTags(name: string): Type =
 proc putTags(name: string, t: Type) =
   b.tags[^1][name] = t
 
-proc shutdownBackend() =
-  disposeBuilder(b.builder)
-  shutdown()
-
 proc optimize() =
   var passM = createPassManager()
   var pb = passManagerBuilderCreate()
@@ -3532,10 +3641,6 @@ proc optimize() =
 
   passManagerBuilderDispose(pb)
   disposePassManager(passM)
-
-proc verify() =
-  var err: cstring
-  discard verifyModule(b.module, PrintMessageAction, cast[cstringArray](addr err))
 
 proc link(dest, src: ModuleRef): bool =
   ## return true when error
@@ -3781,13 +3886,6 @@ proc wrap(ty: CType): Type =
     result = backendint()
     if ty.ename.len != 0:
         putTags(ty.ename, result)
-    for (name, v) in ty.eelems:
-        var init = constInt(result, v.culonglong)
-        var g = addGlobal(b.module, result, name.cstring)
-        setInitializer(g, init)
-        setLinkage(g, PrivateLinkage)
-        setGlobalConstant(g, True)
-        putVar(name, g)
     return result
   of TYINCOMPLETE:
     case ty.tag:
@@ -4102,7 +4200,6 @@ proc newFunction(varty: CType, name: string): Value =
     addAttribute(result, OptimizeForSize)
     if bool(varty.ret.tags and TYSTATIC):
       setLinkage(result, InternalLinkage)
-      setFunctionCallConv(result, FastCallConv.cuint)
     if bool(varty.ret.tags and TYNORETURN):
       addAttribute(result, NoReturn)
     if bool(varty.ret.tags and TYINLINE):
@@ -4115,6 +4212,8 @@ proc newFunction(varty: CType, name: string): Value =
       #setValueName2(pa, cstring(varty.params[i][0]), varty.params[i][0].len.csize_t)
 
 proc gen(s: Stmt) =
+  if app.g:
+    emitDebugLocation(s)
   case s.k:
   of SCompound:
     # TODO: Block
@@ -4131,7 +4230,7 @@ proc gen(s: Stmt) =
       b.currentfunction = newFunction(s.functy, s.funcname)
       var entry = addBlock("entry")
       setInsertPoint(entry)
-      b.labels.add(newTable[string, Label]())
+      b.labels.add(initTable[string, Label]())
       for L in s.labels:
         var j = addBlock(cstring(L))
         b.labels[^1][L] = j
@@ -4308,7 +4407,8 @@ proc getArray(e: Expr): Value =
     dealloc(inits)
 
 proc getAddress(e: Expr): Value =
-  # return address
+  if app.g:
+      emitDebugLocation(e)
   case e.k:
   of EVar:
     getVar(e.sval)
@@ -4371,6 +4471,8 @@ proc getAddress(e: Expr): Value =
     nil
 
 proc gen(e: Expr): Value =
+  if app.g:
+    emitDebugLocation(e)
   case e.k:
   of EUndef:
     getUndef(wrap(e.ty))
@@ -4991,11 +5093,20 @@ proc unary(e: Expr, op: UnaryOP, ty: CType): Expr =
     ## construct a unary operator
     Expr(k: EUnary, uop: op, uoperand: e, ty: ty)
 
-proc leaveBlock()
-
 proc enterBlock() =
-  t.sema.typedefs.add(newTable[string, Info]())
-  t.sema.tags.add(newTable[string, Info]())
+  t.sema.typedefs.add(initTable[string, Info]())
+  t.sema.tags.add(initTable[string, Info]())
+  t.sema.enums.add(initTable[string, intmax_t]())
+
+proc leaveBlock() =
+    if isTopLevel() == false:
+      for (name, i) in t.sema.typedefs[^1].pairs():
+        if not bool(i.tag and INFO_USED):
+            warning("declared but not used: '" & name & '\'')
+            note("declared at " & $i.loc)
+    discard t.sema.typedefs.pop()
+    discard t.sema.tags.pop()
+    discard t.sema.enums.pop()
 
 proc isFloating(ty: CType): bool =
     bool(ty.tags and (TYFLOAT or TYDOUBLE))
@@ -5050,10 +5161,6 @@ proc err(): bool =
 proc inTheExpression(e: Expr) =
     ## emit in the expression message
     note("in the expression '" & $e & '\'')
-
-proc closeParser() =
-  for fd in t.fstack:
-    fd.close()
 
 proc getTag(name: string): Info =
   for i in countdown(len(t.sema.tags)-1, 0):
@@ -5140,19 +5247,32 @@ proc putuniondef(ty: CType) =
     let o = t.sema.tags[^1].getOrDefault(ty.sname)
     if o != nil:
         error("`union` " & ty.sname & " aleady defined")
-        note(ty.sname & "was defined at " & $o.loc)
+        note(ty.sname & " was defined at " & $o.loc)
     else:
         t.sema.tags[^1][ty.sname] = Info(ty: ty, loc: Location(line: t.l.line, col: t.l.col))
 
 proc getsymtype(name: string): CType =
-  let o = gettypedef(name)
-  if o == nil:
-    nil
-  else:
-    o.ty
+  for i in countdown(len(t.sema.typedefs)-1, 0):
+    var info = t.sema.typedefs[i].getOrDefault(name, nil)
+    if info != nil:
+      info.tag = info.tag or INFO_USED
+      return info.ty
+    if t.sema.enums[i].hasKey(name):
+        return tycache.iintty
+  return nil
+
+proc putenum(name: string, val: intmax_t) =
+    if t.sema.enums[^1].contains(name) or t.sema.typedefs[^1].contains(name):
+        type_error('\'' & name & "' redeclared")
+    t.sema.enums[^1][name] = val
+
+proc noEnum(name: string) =
+    if t.sema.enums[^1].hasKey(name):
+        type_error(name & " redeclared")
 
 # function definition
 proc putsymtype3(name: string, yt: CType) =
+  noEnum(name)
   let ty = t.sema.typedefs[^1].getOrDefault(name, nil)
   if ty != nil:
     type_error("function " & name & " redefined")
@@ -5160,6 +5280,7 @@ proc putsymtype3(name: string, yt: CType) =
 
 # function declaration
 proc putsymtype2(name: string, yt: CType) =
+  noEnum(name)
   let ty = t.sema.typedefs[^1].getOrDefault(name, nil)
   if ty != nil:
     if not compatible(yt, ty.ty):
@@ -5168,6 +5289,7 @@ proc putsymtype2(name: string, yt: CType) =
 
 # typedef, variable
 proc putsymtype(name: string, yt: CType) =
+  noEnum(name)
   if yt.spec == TYFUNCTION:
     putsymtype2(name, yt)
     return
@@ -6079,8 +6201,7 @@ proc enum_decl(): CType =
             c = eval_const_expression(e)
             if err():
                 return nil
-        result.eelems.add((s, c))
-        putsymtype(s, tycache.iintty)
+        putenum(s, c)
         inc c
         if t.l.tok.tok == TComma:
             consume()
@@ -6295,9 +6416,7 @@ proc assignable(e: Expr): bool =
     return false
 
 proc declaration(): Stmt =
-    ## parse variable declaration or function definition
-    ## 
-    ## this is different from ISO C grammar
+    ## parse declaration or function definition
     if t.l.tok.tok == K_Static_assert:
         return static_assert()
     block:
@@ -6325,6 +6444,7 @@ proc declaration(): Stmt =
             let st = declarator(base)
             if st == nil:
                 expect("declarator")
+                note("maybe you missing ';' after declarator")
                 return nil
             if st.k == SFunction:
                 # function has not lvalue
@@ -6438,9 +6558,9 @@ proc getsizeof2(e: Expr): Expr =
         if e.voidexpr.ty.vla != nil:
             Expr(ty: tycache.isize_tty, k: EVLAGetSize, vla: e)
         else:
-            Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[int](getsizeof(e.voidexpr.ty)))
+            Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[uintmax_t](getsizeof(e.voidexpr.ty)))
     else:
-        Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[int](getsizeof(e)))
+        Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[uintmax_t](getsizeof(e)))
 
 proc unary_expression(): Expr =
     let tok = t.l.tok.tok
@@ -6538,7 +6658,7 @@ proc unary_expression(): Expr =
                     expectRB()
                     return nil
                 consume()
-                return Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[int](getsizeof(ty[0])))
+                return Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[uintmax_t](getsizeof(ty[0])))
             let e = unary_expression()
             if e == nil:
                 expectExpression()
@@ -6567,13 +6687,13 @@ proc unary_expression(): Expr =
                 return nil
             if ty[1] == true:
                 type_error("invalid application of '_Alignof' to a function type")
-            result = Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[int](getAlignof(ty[0])))
+            result = Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[uintmax_t](getAlignof(ty[0])))
         else:
             let e = constant_expression()
             if e == nil:
                 expectExpression()
                 return nil
-            result = Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[int](getAlignof(e)))
+            result = Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[uintmax_t](getAlignof(e)))
         if t.l.tok.tok != TRbracket:
             expectRB()
             return nil
@@ -6582,7 +6702,7 @@ proc unary_expression(): Expr =
     else:
         return postfix_expression()
 
-proc read_pp_float(s: string, o: var float, c: int, base: int, init = 0.0): int =
+proc read_pp_float(s: string, o: var float, c: int, base: uintmax_t, init = 0.0): int =
     var f = init
     var i = c
     if len(s) == c:
@@ -6594,18 +6714,18 @@ proc read_pp_float(s: string, o: var float, c: int, base: int, init = 0.0): int 
         if base == 16:
             e /= 16.0
             if c in {'0'..'9'}:
-                f += float(int(c) - '0'.int) * e
+                f += float(uintmax_t(c) - '0'.uintmax_t) * e
             elif c in {'a'..'f'}:
-                f += float(int(c) - 'a'.int + 10) * e
+                f += float(uintmax_t(c) - 'a'.uintmax_t + 10) * e
             elif c in {'A'..'F'}:
-                f += float(int(c) - 'A'.int + 10) * e
+                f += float(uintmax_t(c) - 'A'.uintmax_t + 10) * e
             else:
                 break
         else:
             if c notin {'0'..'9'}:
                 break
             e /= 10.0
-            f += float(int(c) - '0'.int) * e
+            f += float(uintmax_t(c) - '0'.uintmax_t) * e
         inc i
         if i == len(s):
             o = f
@@ -6669,8 +6789,8 @@ proc read_pp_float(s: string, o: var float, c: int, base: int, init = 0.0): int 
 #    7: unsigned long long
 #    8: unsigned int
 
-proc read_pp_number(s: string, f: var float, n: var int): int =
-    var base = 10
+proc read_pp_number(s: string, f: var float, n: var uintmax_t): int =
+    var base = uintmax_t(10)
     var i = 0
     if len(s) == 0:
         return 0
@@ -6687,7 +6807,7 @@ proc read_pp_number(s: string, f: var float, n: var int): int =
             i = 2
         of '0' .. '7':
             i = 2
-            var num = int(s[1]) - int('0')
+            var num = uintmax_t(s[1]) - uintmax_t('0')
             while true:
                 if i == len(s):
                     n = num
@@ -6695,7 +6815,7 @@ proc read_pp_number(s: string, f: var float, n: var int): int =
                 if s[i] notin {'0'..'7'}:
                     parse_error("bad octal literal")
                     return 0
-                num = (num shl 3) or (int(s[i]) - int('0'))
+                num = (num shl 3) or (uintmax_t(s[i]) - uintmax_t('0'))
                 inc i
         of '.':
             return read_pp_float(s, f, c=2, base=10)
@@ -6906,7 +7026,7 @@ proc primary_expression(): Expr =
             var a: seq[Expr]
             let ty = tycache.ushortty
             for i in writeUTF8toUTF16(s):
-                a.add(Expr(k: EIntLit, ival: cast[int](i), ty: ty))
+                a.add(Expr(k: EIntLit, ival: cast[uintmax_t](i), ty: ty))
             return Expr(
                 k: ArrToAddress, voidexpr: Expr(k: EArray, ty: ty, arr: a), 
                 ty: getPointerType(ty)
@@ -6915,7 +7035,7 @@ proc primary_expression(): Expr =
             var a: seq[Expr]
             let ty = tycache.u32
             for i in writeUTF8toUTF32(s):
-                a.add(Expr(k: EIntLit, ival: cast[int](i), ty: ty))
+                a.add(Expr(k: EIntLit, ival: uintmax_t(i), ty: ty))
             return Expr(
                 k: ArrToAddress, voidexpr: Expr(k: EArray, ty: ty, arr: a), 
                 ty: getPointerType(ty)
@@ -6924,7 +7044,7 @@ proc primary_expression(): Expr =
             unreachable()
     of TPPNumber:
         var f: float
-        var n: int
+        var n: uintmax_t
         let ok = read_pp_number(t.l.tok.s, f, n)
         case ok:
         of 0:
@@ -6961,7 +7081,17 @@ proc primary_expression(): Expr =
         elif t.l.tok.s == "__func__":
             result = Expr(k: EString, str: t.sema.pfunc, ty: CType(tags: TYCONST, spec: TYPOINTER, p: tycache.icharty))
         else:
-            let ty = getsymtype(t.l.tok.s)
+            var ty: CType = nil
+            for i in countdown(len(t.sema.typedefs)-1, 0):
+                var info = t.sema.typedefs[i].getOrDefault(t.l.tok.s, nil)
+                if info != nil:
+                  info.tag = info.tag or INFO_USED
+                  ty = info.ty
+                  break
+                if t.sema.enums[i].hasKey(t.l.tok.s):
+                  var i = t.sema.enums[i][t.l.tok.s]
+                  consume()
+                  return Expr(k: EIntLit, ival: uintmax_t(i), ty: tycache.iintty)
             if ty == nil:
                 type_error("Variable not in scope: " & t.l.tok.s)
                 if t.l.tok.s.len > 2:
@@ -7489,14 +7619,7 @@ proc translation_unit(): Stmt =
             break
         result.stmts.add(s)
 
-proc leaveBlock() =
-    if isTopLevel() == false:
-      for (name, i) in t.sema.typedefs[^1].pairs():
-        if not bool(i.tag and INFO_USED):
-            warning("declared but not used: '" & name & '\'')
-            note("declared at " & $i.loc)
-    discard t.sema.typedefs.pop()
-    discard t.sema.tags.pop()
+
 
 proc runParser(): Stmt =
     ## eat first token and parse a translation_unit
@@ -7530,7 +7653,7 @@ proc compound_statement(params: seq[(string, CType)], lables: var HashSet[string
     result = Stmt(k: SCompound)
     consume()
     enterBlock()
-    t.sema.lables.add(newTable[string, uint8]())
+    t.sema.lables.add(initTable[string, uint8]())
     for (name, vty) in params:
         if vty == nil:
             break
@@ -7581,7 +7704,7 @@ proc statament(): Stmt =
             expect("constant-expression")
             return nil
         if t.l.tok.tok != TColon:
-            parse_error("':' expected")
+            expect("':'")
             return nil
         consume()
         let s = statament()
@@ -7592,7 +7715,7 @@ proc statament(): Stmt =
     elif t.l.tok.tok == Kdefault:
         consume()
         if t.l.tok.tok != TColon:
-            parse_error("':' expected")
+            expect("':'")
             return nil
         consume()
         let s = statament()
@@ -7608,7 +7731,7 @@ proc statament(): Stmt =
         var location = t.l.tok.s
         consume()
         if t.l.tok.tok != TSemicolon:
-            parse_error("expect ';'")
+            expect("';'")
             return nil
         consume()
         getLabel(location)
@@ -7616,7 +7739,7 @@ proc statament(): Stmt =
     elif t.l.tok.tok == Kcontinue:
         consume()
         if t.l.tok.tok != TSemicolon:
-            parse_error("expect ';'")
+            expect("';'")
             return nil
         consume()
         return Stmt(k: SContinue)
@@ -7667,7 +7790,7 @@ proc statament(): Stmt =
             expectExpression()
             return nil
         if not checkScalar(e.ty):
-            type_error("expect scalar")
+            type_error("expect scalar types")
         if t.l.tok.tok != TRbracket:
             expectRB()
             return nil
@@ -7865,15 +7988,17 @@ proc c() =
         return
     if app.mode != OutputCheck:
         gen(translation_unit)
-        nimLLVMOptModule(b.module)
         optimize()
         if app.runJit:
             runJit()
             if app.mode != OutputLink:
-                stderr.write("cc: warning: jit cannot combine with other output flags\njit will not write output\n")
+                warning("jit cannot combine with other output flags\njit will not write output\n")
         else:
-            verify()
             output()
+            if app.g:
+                dIBuilderFinalize(b.di)
+                disposeDIBuilder(b.di)
+            disposeBuilder(b.builder)
 
 proc brainfuck(i: Stream) =
     var s = "int getchar(void);int putchar(int);int main(){charptr=malloc(1024);"
@@ -7908,7 +8033,7 @@ if parseCLI():
     if initTarget(): 
         for (name, v) in getDefines():
             t.pp.macros[name] = PPMacro(tokens: v, flags: MOBJ)
-        addLLVMModule(t.pathstack[^1])
+        addLLVMModule(t.path)
         case app.input:
         of InputC:
             c()
@@ -7933,7 +8058,6 @@ if parseCLI():
         of InputObject, InputAsm:
             warning("use gcc instead for object and assembly file")
 
-        closeParser()
-        shutdown_backend()
+        llvm.shutdown()
         set_exit_code(0)
 

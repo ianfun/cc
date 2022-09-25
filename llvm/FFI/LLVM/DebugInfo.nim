@@ -420,7 +420,6 @@ proc dIBuilderCreateExpression*(builder: DIBuilderRef; `addr`: ptr uint64T;
 
 proc dIBuilderCreateConstantValueExpression*(builder: DIBuilderRef; value: uint64T): MetadataRef {.
     importc: "LLVMDIBuilderCreateConstantValueExpression".}
-         specified)
 
 proc dIBuilderCreateGlobalVariableExpression*(builder: DIBuilderRef;
     scope: MetadataRef; name: cstring; nameLen: csize_t; linkage: cstring;

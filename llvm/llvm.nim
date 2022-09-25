@@ -92,6 +92,7 @@ include FFI/LLVM/TargetMachine
 include FFI/LLVM/Transforms/PassManagerBuilder
 include FFI/LLVM/Orc
 include FFI/LLVM/LLJIT
+include FFI/LLVM/DebugInfo
 
 proc typeOfX*(val: ValueRef): TypeRef {.importc: "LLVMTypeOf".}
 
@@ -186,6 +187,7 @@ type
   Value* = ValueRef ## LLVM Value
   Type* = TypeRef ## LLVM Type
   Label* = BasicBlockRef ## LLVM block
+  DIScope* = MetadataRef ## LLVM DIScope
 
 # wrappers from llvmAPI.cpp
 
