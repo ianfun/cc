@@ -37,7 +37,7 @@ import std/[math, sets, tables, editdistance, heapqueue, sequtils, os, times, un
 import llvm/llvm
 
 when not defined(CC_NO_RAEADLINE):
-    import readLine/[readLine, history]
+    import readline/[readline, history]
 
 type 
     VerboseLevel = enum
