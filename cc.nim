@@ -34,6 +34,10 @@ when not defined(CC_NO_RAEADLINE):
     import readline/[readline, history]
 
 type
+  Location = object
+    fd: uint32
+    line: uint32
+    col: uint32
   intmax_t = int64
   uintmax_t = uint64
   Codepoint = uint32
@@ -645,6 +649,7 @@ type
       SVarDecl, SDefault, SCase, SFunction, SVarDecl1
     StmtList = seq[Stmt] # compound_stmt, { body }
     Stmt = ref object
+      loc: Location
       case k: StmtKind
       of SFunction:
         funcname: string
@@ -696,6 +701,7 @@ type
       EPointerMemberAccess, EMemberAccess, ArrToAddress
     Expr = ref object
       ty: CType
+      loc: Location
       case k: ExprKind
       of EVoid, ArrToAddress:
         voidexpr: Expr 
@@ -1269,9 +1275,6 @@ proc `==`(a, b: StringRef): bool =
     return true
 
 type
-  Location = object
-    line: uint32
-    col: uint32
   Info = ref object
     tag: uint32
     loc: Location
@@ -1290,16 +1293,18 @@ type
     eval_error: bool ## error during evalate constant expressions
     eval_error_msg: string ## eval error message
     flags: PPFlags ## preprocessor flags
+  BScope {.final.} = object
+    tags: Table[string, Info] ## struct/union/enums
+    typedefs: Table[string, Info] ## typedef, variables
+    enums: Table[string, intmax_t] ## enum constants
   Sema {.final.} = object ## Semantics processor
+    scopes: seq[BScope] # block scope
     currentfunctionRet, currentInitTy, currentCase: CType
     pfunc: string ## current function name: `__func__`
     retTy: CType ## current function return type
     currentAlign: uint32 ## current align(bytes)
     type_error: bool ## type error
-    lables: seq[Table[string, uint8]] ## labels
-    tags: seq[Table[string, Info]] ## struct/union/enums
-    typedefs: seq[Table[string, Info]] ## typedef, variables
-    enums: seq[Table[string, intmax_t]] ## enum constants
+    lables: seq[Table[string, uint8]] ## lable scope
   Lexer {.final.} = object
     tok: TokenV
     line: uint32 ## current line
@@ -1318,7 +1323,16 @@ type
     filename, path: string
     parse_error: bool ## parse error
     bad_error: bool ## other error
+  BasicTypeIndex = enum
+    DIvoidty, DIi1, DIi8, DIi16, DIi32, DIi64, DIffloat, DIfdouble, DIintPtr, DIptr
+  BasicType = object
+    ty: Type
+    align: byte
+    sizeBits: byte
+    sizeBytes: byte
+    di: DIType
   Backend = object
+    types: array[BasicTypeIndex, BasicType]
     ## jump labels
     labels: seq[Table[string, Label]]
     ## struct/union
@@ -1350,14 +1364,26 @@ type
     topContinue: Label
     target: TargetRef
     topCase: Label
-    ## LLVM Types
-    i1, i8, i16, i32, i64, ffloat, fdouble, voidty, ptrty: Type
-    ## intptr
-    intPtr: Type
     ## `i32 1/0` constant
     i32_1, i32_0: Value
     ## LLVM false/true constant
     i1_0, i1_1: Value
+
+
+var b = Backend()
+
+proc getBasicTypeIndex(a: uint32): BasicTypeIndex =
+    if (a and TYBOOL) != 0: DIi1
+    elif (a and (TYINT8 or TYUINT8)) != 0: DIi8
+    elif (a and (TYINT16 or TYUINT16)) != 0: DIi16
+    elif (a and (TYINT32 or TYUINT32)) != 0: DIi32
+    elif (a and (TYINT64 or TYUINT64)) != 0: DIi64
+    elif (a and TYFLOAT) != 0: DIffloat
+    elif (a and TYDOUBLE) != 0: DIfdouble
+    elif (a and TYVOID) != 0: DIvoidty
+    else:
+      unreachable()
+      DIi1
 
 proc `$`(loc: Location): string =
   $loc.line & ':' & $loc.col
@@ -3154,9 +3180,6 @@ proc checkMacro() =
     else:
         t.l.tok.tok = TIdentifier
 
-
-var b = Backend()
-
 var i = 0
 var options = commandLineParams()
 var appFileName = getAppFilename()
@@ -3168,34 +3191,13 @@ proc get(): string =
   result = options[i]
   inc i
 
-type P = proc () {.nimcall.}
-
 proc system(command: cstring): cint {.importc: "system", header: "stdio.h".}
-# we use gcc to invoke linker instead of ld commandm which require a lot of commands
-# /usr/bin/ld -z relro --hash-style=gnu --build-id --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o a.out /usr/bin/../lib/gcc/x86_64-linux-gnu/10/../../../x86_64-linux-gnu/crt1.o /usr/bin/../lib/gcc/x86_64-linux-gnu/10/../../../x86_64-linux-gnu/crti.o /usr/bin/../lib/gcc/x86_64-linux-gnu/10/crtbegin.o -L/usr/bin/../lib/gcc/x86_64-linux-gnu/10 -L/usr/bin/../lib/gcc/x86_64-linux-gnu/10/../../../x86_64-linux-gnu -L/usr/bin/../lib/gcc/x86_64-linux-gnu/10/../../../../lib64 -L/lib/x86_64-linux-gnu -L/lib/../lib64 -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib64 -L/usr/lib/x86_64-linux-gnu/../../lib64 -L/usr/bin/../lib/gcc/x86_64-linux-gnu/10/../../.. -L/usr/lib/llvm-10/bin/../lib -L/lib -L/usr/lib /tmp/t-ef1090.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/bin/../lib/gcc/x86_64-linux-gnu/10/crtend.o /usr/bin/../lib/gcc/x86_64-linux-gnu/10/../../../x86_64-linux-gnu/crtn.o
-when defined(windows):
-  # windows has `_execlp()`, but windows has no `fork()`
-  # CreateProcess is ok, but `system()` is easy
-  proc runLD(input, path: string) =
-    var cmd = "gcc \"" & $input & "\" -o \"" & $path & '"'
-    let status = system(cmd.cstring)
-    if status != 0:
-      myperror("gcc returned " & $status & " exit status")
-else:
-  import posix
-  proc runLD(input, path: string) =
-    var pid = fork()
-    if pid < 0:
-      myperror("fork")
-    else:
-      if pid == 0:
-        discard execlp("gcc", "gcc", input.cstring, "-o", path.cstring, nil)
-        myperror("execlp")
-      else:
-        var status: cint = 0
-        discard waitpid(pid, status, 0)
-        if status != 0:
-            error("gcc returned " & $status & " exit status")
+
+proc runLD(input, path: string) =
+  var cmd = "gcc \"" & $input & "\" -o \"" & $path & '"'
+  let status = system(cmd.cstring)
+  if status != 0:
+    myperror("gcc returned " & $status & " exit status")
 
 proc runLLD(input, output: string) =
   var cmd = "ld.lld --hash-style=gnu --no-add-needed  --build-id --eh-frame-hdr -dynamic-linker /lib/x86_64-linux-gnu/libc.so.6 /usr/lib64/ld-linux-x86-64.so.2 "
@@ -3248,32 +3250,45 @@ proc hash2(s: string): uint64 =
 
 proc h(s: string): (StringRef, uint64) = (constStr(s), hash1(s))
 
-proc newBackend() =
-  initializeCore(getGlobalPassRegistry())
+proc initBackend() =
+  # you must initTarget before you call this
   b.tsCtx = orcCreateNewThreadSafeContext()
   b.ctx = orcThreadSafeContextGetContext(b.tsCtx)
   b.builder = createBuilderInContext(b.ctx)
-  if app.input == InputC:
+  b.types[DIintPtr].ty = intPtrTypeInContext(b.ctx, b.layout)
+  b.arch = nimGetArch(b.triple)
+  b.archName = nimGetArchName(b.triple)
+  b.os = nimGetOS(b.triple)
+  b.env = nimGetEnv(b.triple)
+
+  if app.input == InputC and not app.g:
     contextSetDiscardValueNames(b.ctx, True)
-  b.voidty = voidTypeInContext(b.ctx)
-  b.ptrty = pointerTypeInContext(b.ctx, 0)
-  b.i1 = int1TypeInContext(b.ctx)
-  b.i8 = int8TypeInContext(b.ctx)
-  b.i16 = int16TypeInContext(b.ctx)
-  b.i32 = int32TypeInContext(b.ctx)
-  b.i64 = int64TypeInContext(b.ctx)
-  b.ffloat = floatTypeInContext(b.ctx)
-  b.fdouble = doubleTypeInContext(b.ctx)
-  b.i32_1 = constInt(b.i32, 1)
-  b.i32_0 = constInt(b.i32, 0)
-  b.i1_0 = constInt(b.i1, 0)
-  b.i1_1 = constInt(b.i1, 1)
+
+  b.types[DIvoidty].ty = voidTypeInContext(b.ctx)
+  b.types[DIptr].ty = pointerTypeInContext(b.ctx, 0)
+  b.types[DIi1].ty = int1TypeInContext(b.ctx)
+  b.types[DIi8].ty = int8TypeInContext(b.ctx)
+  b.types[DIi16].ty = int16TypeInContext(b.ctx)
+  b.types[DIi32].ty = int32TypeInContext(b.ctx)
+  b.types[DIi64].ty = int64TypeInContext(b.ctx)
+  b.types[DIffloat].ty = floatTypeInContext(b.ctx)
+  b.types[DIfdouble].ty = doubleTypeInContext(b.ctx)
+
+  for i in succ(DIvoidty) ..< high(BasicTypeIndex):
+    let ty = b.types[i].ty
+    b.types[i].sizeBits = uint8(sizeOfTypeInBits(b.layout, ty))
+    b.types[i].sizeBytes = uint8(storeSizeOfType(b.layout, ty))
+    b.types[i].align = uint8(aBIAlignmentOfType(b.layout, ty))
+
+  b.i32_1 = constInt(b.types[DIi32].ty, 1)
+  b.i32_0 = constInt(b.types[DIi32].ty, 0)
+  b.i1_0 = constInt(b.types[DIi1].ty, 0)
+  b.i1_1 = constInt(b.types[DIi1].ty, 1)
 
 proc initTarget2() =
   discard nimLLVMConfigureTarget(nil, nil, nil, nil, nil, nil, True)
 
 proc listTargets() =
-  newBackend()
   initTarget2()
   # app.strbuf.setLen 0
   app.strbuf.add("  Registered Targets:\n")
@@ -3292,6 +3307,76 @@ proc listTargets() =
     t = getNextTarget(t)
   flush()
   cc_exit(1)
+
+type P = proc () {.nimcall.}
+
+type
+  FileType = enum
+    FileTypeNone, SourceC, SourceIR, SourceBC, SourceLinking
+
+proc getFileType(path: string): FileType =
+    var i = path.len
+    var s = path.cstring
+    while true:
+        if i == 0:
+            return FileTypeNone
+        dec i
+        if s[i] == '.':
+            inc i
+            if i == len(path):
+                return FileTypeNone
+            case s[i]:
+            of 'C':
+                if s[i + 1] == '\0':
+                    # C file
+                    return SourceC
+                return FileTypeNone
+            of 'S':
+                if s[i + 1] == '\0':
+                    # Assembly
+                    return SourceLinking
+                return FileTypeNone
+            of 'l':
+                if s[i + 1] == 'l' and s[i + 2] == '\0':
+                    # LLVM IR
+                    return SourceIR
+                if s[i + 1] == 'i' and s[i + 2] == 'b' and s[i + 3] == '\0':
+                    # MSVC: libary
+                    return SourceLinking
+                return FileTypeNone
+            of 'b':
+                if s[i + 1] == 'l' and s[i + 2] == '\0':
+                    # LLVM BitCode
+                    return SourceBC
+                return FileTypeNone
+            of 'a':
+                if s[i + 1] == '\0':
+                    # libary
+                    return SourceLinking
+                return FileTypeNone        
+            of 'o':
+                if s[i + 1] == '\0':
+                    # object
+                    return SourceLinking
+                if s[i + 1] == 'b' and s[i + 2] == 'j' and s[i + 3] == '\0':
+                    # MSVC: object file
+                    return SourceLinking
+                return FileTypeNone
+            of 'd':
+                if s[i + 1] == 'l' and s[i + 2] == 'l' and s[i + 3] == '\0':
+                    # windows dynamic libary
+                    return SourceLinking
+                return FileTypeNone
+            of 's':
+                if s[i + 1] == '\0':
+                    # assembly file
+                    return SourceLinking
+                if s[i + 1] == 'o' and s[i + 2] == '\0':
+                    # linux dynamic libary
+                    return SourceLinking
+                return FileTypeNone
+            else:
+                return FileTypeNone
 
 var cliOptions = [
   ("v".h, 0, cast[P](showVersion), "print version info"),
@@ -3439,6 +3524,8 @@ proc wrap(ty: CType): Type
 
 proc wrap2(ty: CType): Type
 
+proc wrap3(ty: CType): DIType
+
 proc llvmGetAlignof(ty: CType): culonglong =
   aBIAlignmentOfType(b.layout, wrap2(ty))
 
@@ -3525,35 +3612,51 @@ proc addLLVMModule(source_file: string) =
   addNamedMetadataOperand(b.module, "llvm.module.flags", short_enum)
 
   const wcharsizes: cstring = "wchar_size"
-  var wcharsize_arr = [b.i32_1, mDStringInContext(b.ctx, wcharsizes, len(wcharsizes)), constInt(b.i32, 4)]
+  var wcharsize_arr = [b.i32_1, mDStringInContext(b.ctx, wcharsizes, len(wcharsizes)), constInt(b.types[DIi32].ty, 4)]
   var wcharsizenode = mDNodeInContext(b.ctx, addr wcharsize_arr[0], 3)
   addNamedMetadataOperand(b.module, "llvm.module.flags", wcharsizenode)
 
   if app.g:
-    b.di = createDIBuilderDisallowUnresolved(b.module)
+    b.di = createDIBuilder(b.module)
     var file = dIBuilderCreateFile(b.di, source_file.cstring, source_file.len.csize_t, nil, 0)
-    const producer = "cc"
     b.lexBlocks.add(dIBuilderCreateCompileUnit(
         b.di,
-        DWARFSourceLanguageC,
+        DWARFSourceLanguageC99,
         file,
-        cstring(producer),
-        len(producer),
-        False,
-        "",
-        0,
-        0,
-        nil,
-        0,
-        DWARFEmissionFull,
-        0,
-        False,
-        0,
-        nil,
-        0,
-        nil,
-        0
+        "cc",
+        2,
+        isOptimized=False,
+        flags="",
+        flagsLen=0,
+        runtimeVer=0,
+        splitName=nil,
+        splitNameLen=0,
+        kind=DWARFEmissionFull,
+        dWOId=0,
+        splitDebugInlining=False,
+        debugInfoForProfiling=False,
+        sysRoot=nil,
+        sysRootLen=0,
+        sdk=nil,
+        sDKLen=0
     ))
+    proc dbgType(v: BasicTypeIndex, name: string, encoding: cuint) =
+        b.types[v].di = dIBuilderCreateBasicType(b.di, name, len(name).csize_t, b.types[v].sizeBits, encoding, DIFlagZero)
+
+    b.types[DIptr].di = dIBuilderCreatePointerType(b.di, nil, b.types[DIintPtr].sizeBits, b.types[DIintPtr].align, 0, "void*", 5)
+    # void is always nil in DIType!
+    dbgType(DIi1, "_Bool", DW_ATE_boolean)
+    dbgType(DIi8, "char", DW_ATE_unsigned)
+    dbgType(DIintPtr, "intptr_t", DW_ATE_signed)
+    dbgType(DIi16, "short", DW_ATE_unsigned)
+    dbgType(DIi32, "int", DW_ATE_unsigned)
+    dbgType(DIi64, "long long int", DW_ATE_unsigned)
+    dbgType(DIffloat, "float", DW_ATE_decimal_float)
+    dbgType(DIfdouble, "double", DW_ATE_decimal_float)
+    const dwarf_version = "Dwarf Version"
+    addModuleFlag(b.module, 7, dwarf_version, dwarf_version.len.csize_t, valueAsMetadata(constInt(b.types[DIi32].ty, 5)))
+    const debug_info = "Debug Info Version"
+    addModuleFlag(b.module, 2, debug_info, debug_info.len.csize_t, valueAsMetadata(constInt(b.types[DIi32].ty, debugMetadataVersion())))
 
 proc setInsertPoint(loc: Label) {.inline.} =
   positionBuilderAtEnd(b.builder, loc)
@@ -3570,6 +3673,9 @@ proc condBr(cond: Value, iftrue, iffalse: Label) =
 proc br(loc: Label) {.inline.} =
   discard buildBr(b.builder, loc)
 
+proc getTerminator(): Value =
+    getBasicBlockTerminator(getInsertBlock(b.builder))
+
 proc gep(ty: Type, p: Value, indices: var Value): Value {.inline.} =
   buildInBoundsGEP2(b.builder, ty, p, addr indices, 1, "")
 
@@ -3585,12 +3691,6 @@ proc initTarget(all = false): bool =
     llvm_error(err)
     return false
   app.pointersize = pointerSize(b.layout)
-  contextSetOpaquePointers(b.ctx, if app.opaquePointerEnabled: True else: False)
-  b.intPtr = intPtrTypeInContext(b.ctx, b.layout)
-  b.arch = nimGetArch(b.triple)
-  b.archName = nimGetArchName(b.triple)
-  b.os = nimGetOS(b.triple)
-  b.env = nimGetEnv(b.triple)
   return true
 
 proc handle_asm(s: string) =
@@ -3598,7 +3698,7 @@ proc handle_asm(s: string) =
     # module level asm
     appendModuleInlineAsm(b.module, cstring(s), len(s).csize_t)
   else:
-    var asmtype = functionType(b.voidty, nil, 0, False)
+    var asmtype = functionType(b.types[DIvoidty].ty, nil, 0, False)
     var f = getInlineAsm(asmtype, cstring(s), len(s).csize_t, nil, 0, True, False, InlineAsmDialectATT, False)
     discard buildCall2(b.builder, asmtype, f, nil, 0, "")
 
@@ -3709,22 +3809,10 @@ proc gen_cond(a: Expr): Value =
     buildIsNotNull(b.builder, gen(a), "")
 
 proc gen_int(i: culonglong, tags: uint32): Value =
-    if (tags and TYBOOL) != 0:
-        if i > 0: b.i1_1 else: b.i1_0
-    elif (tags and (TYINT8 or TYUINT8)) != 0:
-        constInt(b.i8, i)
-    elif (tags and (TYINT16 or TYUINT16)) != 0:
-        constInt(b.i16, i)
-    elif (tags and (TYINT32 or TYUINT32)) != 0:
-        constInt(b.i32, i)
-    elif (tags and (TYINT64 or TYUINT64)) != 0:
-        constInt(b.i64, i)
-    else:
-        unreachable()
-        nil
+    return constInt(b.types[getBasicTypeIndex(tags)].ty, i)
 
 proc gen_float(f: float, tag: uint32): Value =
-  constReal(if (tag and TYFLOAT) != 0: b.ffloat else: b.fdouble, f)
+  constReal(if (tag and TYFLOAT) != 0: b.types[DIffloat].ty else: b.types[DIfdouble].ty, f)
 
 proc gen_str(val: string, ty: var Type): Value =
   var gstr = constStringInContext(b.ctx, cstring(val), len(val).cuint, False)
@@ -3747,10 +3835,10 @@ proc gen_str_ptr(val: string): Value =
     gep(ty, s, indices)
 
 proc backendint(): Type =
-    if TYINT == TYINT32:
-      b.i32
+    when TYINT == TYINT32:
+      b.types[DIi32].ty
     else:
-      b.i64
+      b.types[DIi64].ty
 
 proc load(p: Value, t: Type, align: uint32 = 0): Value =
   assert p != nil
@@ -3767,21 +3855,9 @@ proc store(p: Value, v: Value, align: uint32 = 0) =
 proc wrap2(ty: CType): Type =
   case ty.spec:
   of TYPRIM:
-    return (
-      if (ty.tags and (TYBOOL)) != 0: b.i1
-      elif (ty.tags and (TYINT8 or TYUINT8)) != 0: b.i8
-      elif (ty.tags and (TYINT16 or TYUINT16)) != 0: b.i16
-      elif (ty.tags and (TYINT32 or TYUINT32)) != 0: b.i32
-      elif (ty.tags and (TYINT64 or TYUINT64)) != 0: b.i64
-      elif (ty.tags and TYFLOAT) != 0: b.ffloat
-      elif (ty.tags and TYDOUBLE) != 0: b.fdouble
-      elif (ty.tags and TYVOID) != 0: b.voidty
-      else:
-        unreachable()
-        nil
-      )
+    return b.types[getBasicTypeIndex(ty.tags)].ty
   of TYPOINTER:
-    return pointerTypeInContext(b.ctx, 0)
+    return b.types[DIptr].ty
   of TYSTRUCT, TYUNION:
     let l = len(ty.selems)
     var buf = create(Type, l or 1)
@@ -3799,30 +3875,35 @@ proc wrap2(ty: CType): Type =
   else:
     unreachable()
 
+proc wrap3(ty: CType): DIType = 
+  case ty.spec:
+  of TYPRIM:
+    return b.types[getBasicTypeIndex(ty.tags)].di
+  of TYPOINTER:
+    return b.types[DIptr].di
+  of TYSTRUCT, TYUNION:
+    return nil
+  of TYARRAY:
+    return nil
+  of TYENUM:
+    return b.types[DIi32].di
+  else:
+    unreachable()
+
 proc wrap(ty: CType): Type =
   ## wrap a CType to LLVM Type
   case ty.spec:
   of TYPRIM:
-    return (
-      if (ty.tags and TYBOOL) != 0: b.i1
-      elif (ty.tags and (TYINT8 or TYUINT8)) != 0: b.i8
-      elif (ty.tags and (TYINT16 or TYUINT16)) != 0: b.i16
-      elif (ty.tags and (TYINT32 or TYUINT32)) != 0: b.i32
-      elif (ty.tags and (TYINT64 or TYUINT64)) != 0: b.i64
-      elif (ty.tags and TYFLOAT) != 0: b.ffloat
-      elif (ty.tags and TYDOUBLE) != 0: b.fdouble
-      elif (ty.tags and TYVOID) != 0: b.voidty
-      else:
-        unreachable()
-        nil
-      )
+    return b.types[getBasicTypeIndex(ty.tags)].ty
   of TYPOINTER:
     if app.opaquePointerEnabled:
-      return b.ptrty
+      return b.types[DIptr].ty
     else:
       # `return pointerType(voidTypeInContext(b.ctx), 0)`
       # clang use `i8` for `void` and `char`
-      return pointerType(b.i8, 0)
+      if bool(ty.p.tags and TYVOID):
+        return pointerType(b.types[DIi8].ty, 0)
+      return pointerType(wrap(ty.p), 0)
   of TYSTRUCT, TYUNION:
     if len(ty.sname) > 0:
       # try to find old definition or declaration
@@ -3914,13 +3995,13 @@ proc gen_condition(test: Expr, lhs: Expr, rhs: Expr): Value =
   var iffalse = addBlock()
   var ifend = addBlock()
   condBr(gen_cond(test), iftrue, iffalse)
-  
+
   setInsertPoint(iftrue)
   var left = gen(lhs)
   br ifend
   
   setInsertPoint(iffalse)
-  var right =gen (rhs)
+  var right =gen(rhs)
   br ifend
 
   setInsertPoint(ifend)
@@ -3934,7 +4015,7 @@ proc gen_condition(test: Expr, lhs: Expr, rhs: Expr): Value =
 proc gen_logical(lhs: Expr, rhs: Expr, isand = true): Value =
   var cond2 = addBlock()
   var phib = addBlock()
-  var a = buildAlloca(b.builder, b.i1, "")
+  var a = buildAlloca(b.builder, b.types[DIi1].ty, "")
   var left = gen_cond(lhs)
   store(a, left)
   if isand:
@@ -3949,7 +4030,7 @@ proc gen_logical(lhs: Expr, rhs: Expr, isand = true): Value =
 
   setInsertPoint(phib)
 
-  return load(a, b.i1)
+  return load(a, b.types[DIi1].ty)
 
 proc gen_if(test: Expr, body: Stmt) =
   var iftrue = addBlock()
@@ -3958,7 +4039,8 @@ proc gen_if(test: Expr, body: Stmt) =
 
   setInsertPoint(iftrue)
   gen(body)
-  br ifend
+  if getTerminator() == nil:
+    br ifend
 
   setInsertPoint(ifend)
 
@@ -3970,11 +4052,13 @@ proc gen_if(test: Expr, body: Stmt, elsebody: Stmt) =
 
   setInsertPoint(iftrue)
   gen(body)
-  br ifend
+  if getTerminator() == nil:
+      br ifend
 
   setInsertPoint(iffalse)
   gen(elsebody)
-  br ifend
+  if getTerminator() == nil:
+    br ifend
 
   setInsertPoint(ifend)
 
@@ -4035,7 +4119,8 @@ proc gen_while(test: Expr, body: Stmt) =
   b.topBreak = whileleave
   b.topContinue = whilecmp
 
-  br whilecmp
+  if getTerminator() == nil:
+      br whilecmp
 
   setInsertPoint(whilecmp)
   var cond = gen_cond(test)
@@ -4044,7 +4129,8 @@ proc gen_while(test: Expr, body: Stmt) =
   setInsertPoint(whilebody)
   gen(body)
 
-  br whilecmp
+  if getTerminator() == nil:
+      br whilecmp
 
   setInsertPoint(whileleave)
 
@@ -4052,64 +4138,71 @@ proc gen_while(test: Expr, body: Stmt) =
   b.topContinue = old_continue
 
 proc gen_for(test: Expr, body: Stmt, sforinit: Stmt, eforincl: Expr) =
-  var old_break = b.topBreak
-  var old_continue = b.topContinue
+    var old_break = b.topBreak
+    var old_continue = b.topContinue
+  
+    if sforinit != nil:
+        gen(sforinit)
+    enterScope()
+    var forcmp = addBlock()
+    var forbody = addBlock()
+    var forleave = addBlock()
+    var forincl = addBlock()
+  
+    b.topBreak = forleave
+    b.topContinue = forincl
+  
+    if getTerminator() == nil:
+        br forcmp
+  
+    # for.cmp
+    setInsertPoint(forcmp)
+    if test != nil:
+        var cond = gen_cond(test)
+        condBr(cond, forbody, forleave)
+    else:
+        br forbody
 
-  if sforinit != nil:
-    gen(sforinit)
-  enterScope()
-  var forcmp = addBlock()
-  var forbody = addBlock()
-  var forleave = addBlock()
-  var forincl = addBlock()
+    # for.body
+    setInsertPoint(forbody)
+    gen(body)
+    br forincl
 
-  b.topBreak = forleave
-  b.topContinue = forincl
-
-  br forcmp
-
-  # for.cmp
-  setInsertPoint(forcmp)
-  var cond = gen_cond(test)
-  condBr(cond, forbody, forleave)
-
-  # for.body
-  setInsertPoint(forbody)
-  gen(body)
-  br forincl
-
-  # for.incl
-  setInsertPoint(forincl)
-  if eforincl != nil:
-    discard gen(eforincl)
-  br forcmp
-  setInsertPoint(forleave)
-  leaveScope()
-
-  b.topBreak = old_break
-  b.topContinue = old_continue
+    # for.incl
+    setInsertPoint(forincl)
+    if eforincl != nil:
+        discard gen(eforincl)
+  
+    if getTerminator() == nil:
+        br forcmp
+    setInsertPoint(forleave)
+    leaveScope()
+  
+    b.topBreak = old_break
+    b.topContinue = old_continue
 
 proc gen_dowhile(test: Expr, body: Stmt) =
-  var old_break = b.topBreak
-  var old_continue = b.topContinue
-
-  var dowhilecmp = addBlock()
-  var dowhilebody = addBlock()
-  var dowhileleave = addBlock()
-
-  b.topBreak = dowhileleave
-  b.topContinue = dowhilecmp
-
-  setInsertPoint(dowhilebody)
-  gen(body)
-
-  setInsertPoint(dowhilecmp)
-  var cond = gen_cond(test)
-  condBr(cond, dowhilebody, dowhileleave)
-
-  setInsertPoint(dowhileleave)
-  b.topBreak = old_break
-  b.topContinue = old_continue
+    var old_break = b.topBreak
+    var old_continue = b.topContinue
+  
+    var dowhilecmp = addBlock()
+    var dowhilebody = addBlock()
+    var dowhileleave = addBlock()
+  
+    b.topBreak = dowhileleave
+    b.topContinue = dowhilecmp
+  
+    setInsertPoint(dowhilebody)
+    gen(body)
+  
+    setInsertPoint(dowhilecmp)
+    var cond = gen_cond(test)
+    if getTerminator() == nil:
+        condBr(cond, dowhilebody, dowhileleave)
+  
+    setInsertPoint(dowhileleave)
+    b.topBreak = old_break
+    b.topContinue = old_continue
 
 # the compiler may generate a table(array), so require `O(1)` time indexing
 proc getOp(a: BinOP): llvm.Opcode =
@@ -4192,24 +4285,24 @@ proc addAttribute(f: Value, attrID: cuint) =
 proc newFunction(varty: CType, name: string): Value =
     result = b.vars[0].getOrDefault(name, nil)
     if result != nil:
-      return result
+        return result
     var fty = wrap(varty)
     result = addFunction(b.module, name.cstring, fty)
     nimLLVMSetDSOLocal(result)
     addAttribute(result, NoUnwind)
     addAttribute(result, OptimizeForSize)
     if bool(varty.ret.tags and TYSTATIC):
-      setLinkage(result, InternalLinkage)
+        setLinkage(result, InternalLinkage)
     if bool(varty.ret.tags and TYNORETURN):
-      addAttribute(result, NoReturn)
+        addAttribute(result, NoReturn)
     if bool(varty.ret.tags and TYINLINE):
-      addAttribute(result, InlineHint)
+        addAttribute(result, InlineHint)
     b.vars[0][name] = result
-    #for i in 0 ..< len(varty.params):
-    #  if varty.params[i][1] == nil:
-    #    break
-      #var pa = getParam(result, i.cuint)
-      #setValueName2(pa, cstring(varty.params[i][0]), varty.params[i][0].len.csize_t)
+    if app.g:
+        for i in 0 ..< len(varty.params):
+            if varty.params[i][1] == nil:
+                break
+            setValueName2(getParam(result, i.cuint), cstring(varty.params[i][0]), varty.params[i][0].len.csize_t)
 
 proc gen(s: Stmt) =
   if app.g:
@@ -4281,21 +4374,24 @@ proc gen(s: Stmt) =
   of SLabled:
     var ib = b.labels[^1].getOrDefault(s.label, nil)
     assert ib != nil
-    if getBasicBlockTerminator(getInsertBlock(b.builder)) == nil:
+    if getTerminator() == nil:
       br ib
     setInsertPoint(ib)
     gen(s.labledstmt)
   of SGoto:
     let loc = b.labels[^1].getOrDefault(s.location, nil)
     assert loc != nil
-    br loc
+    if getTerminator() == nil:
+        br loc
     setInsertPoint(loc)
   of SSemicolon:
     discard
   of SContinue:
-    br b.topContinue
+    if getTerminator() == nil:
+        br b.topContinue
   of SBreak:
-    br b.topBreak
+    if getTerminator() == nil:
+        br b.topBreak
   of SAsm:
     handle_asm(s.asms)
   of SSwitch:
@@ -4348,9 +4444,9 @@ proc gen(s: Stmt) =
             ty = wrap(varty)
           var val: Value
           if vla != nil:
-            val = buildArrayAlloca(b.builder, ty, vla, "")
+            val = buildArrayAlloca(b.builder, ty, vla, cstring(name))
           else:
-            val = buildAlloca(b.builder, ty, "")
+            val = buildAlloca(b.builder, ty, cstring(name))
           if align != 0:
             setAlignment(val, align)
             if init != nil:
@@ -4414,7 +4510,7 @@ proc getAddress(e: Expr): Value =
     getVar(e.sval)
   of EPointerMemberAccess, EMemberAccess:
     var basep = if e.k == EMemberAccess: getAddress(e.obj) else: gen(e.obj)
-    var r = [b.i32_0, constInt(b.i32, e.idx.culonglong)]
+    var r = [b.i32_0, constInt(b.types[DIi32].ty, e.idx.culonglong)]
     var ty = wrap(e.obj.ty)
     gep(ty, basep, r)
   of EUnary:
@@ -4478,8 +4574,8 @@ proc gen(e: Expr): Value =
     getUndef(wrap(e.ty))
   of EVLAGetSize:
     var s = nimLLVMGetAllocaArraySize(gen(e.vla))
-    var z = buildZExt(b.builder, s, b.i64, "")
-    buildMul(b.builder, z, constInt(b.i64, getsizeof(e.vla.voidexpr.ty.arrtype)), "")
+    var z = buildZExt(b.builder, s, b.types[DIi64].ty, "")
+    buildMul(b.builder, z, constInt(b.types[DIi64].ty, getsizeof(e.vla.voidexpr.ty.arrtype)), "")
   of ArrToAddress:
     var arr = getAddress(e.voidexpr)
     buildBitCast(b.builder, arr, wrap(e.ty), "")
@@ -4525,7 +4621,7 @@ proc gen(e: Expr): Value =
       var t = e.lhs.castval.ty.p
       let s = getsizeof(t)
       if s != 1:
-        var c = constInt(b.intPtr, s.culonglong)
+        var c = constInt(b.types[DIintPtr].ty, s.culonglong)
         buildExactSDiv(b.builder, sub, c, "")
       else:
         sub
@@ -5080,7 +5176,7 @@ const
   LBL_OK = 4'u8
 
 proc isTopLevel(): bool =
-    t.sema.typedefs.len == 1
+    t.sema.scopes.len == 1
 
 const 
   INFO_USED = 2
@@ -5094,19 +5190,19 @@ proc unary(e: Expr, op: UnaryOP, ty: CType): Expr =
     Expr(k: EUnary, uop: op, uoperand: e, ty: ty)
 
 proc enterBlock() =
-  t.sema.typedefs.add(initTable[string, Info]())
-  t.sema.tags.add(initTable[string, Info]())
-  t.sema.enums.add(initTable[string, intmax_t]())
+  t.sema.scopes.add(BScope(
+    typedefs: initTable[string, Info](),
+    tags: initTable[string, Info](),
+    enums: initTable[string, intmax_t]()
+  ))
 
 proc leaveBlock() =
     if isTopLevel() == false:
-      for (name, i) in t.sema.typedefs[^1].pairs():
+      for (name, i) in t.sema.scopes[^1].typedefs.pairs():
         if not bool(i.tag and INFO_USED):
             warning("declared but not used: '" & name & '\'')
             note("declared at " & $i.loc)
-    discard t.sema.typedefs.pop()
-    discard t.sema.tags.pop()
-    discard t.sema.enums.pop()
+    discard t.sema.scopes.pop()
 
 proc isFloating(ty: CType): bool =
     bool(ty.tags and (TYFLOAT or TYDOUBLE))
@@ -5163,15 +5259,15 @@ proc inTheExpression(e: Expr) =
     note("in the expression '" & $e & '\'')
 
 proc getTag(name: string): Info =
-  for i in countdown(len(t.sema.tags)-1, 0):
-    result = t.sema.tags[i].getOrDefault(name, nil)
+  for i in countdown(len(t.sema.scopes)-1, 0):
+    result = t.sema.scopes[i].tags.getOrDefault(name, nil)
     if result != nil:
       result.tag = result.tag or INFO_USED
       return result
 
 proc gettypedef(name: string): Info =
-  for i in countdown(len(t.sema.typedefs)-1, 0):
-    result = t.sema.typedefs[i].getOrDefault(name, nil)
+  for i in countdown(len(t.sema.scopes)-1, 0):
+    result = t.sema.scopes[i].typedefs.getOrDefault(name, nil)
     if result != nil:
       result.tag = result.tag or INFO_USED
       return result
@@ -5210,12 +5306,12 @@ proc putLable(name: string) =
         unreachable()
 
 proc putstructdef(ty: CType) =
-    let o = t.sema.tags[^1].getOrDefault(ty.sname)
+    let o = t.sema.scopes[^1].tags.getOrDefault(ty.sname)
     if o != nil:
         error("struct " & ty.sname & " aleady defined")
         note(ty.sname & "was defined at " & $o.loc)
     else:
-        t.sema.tags[^1][ty.sname] = Info(ty: ty, loc: Location(line: t.l.line, col: t.l.col))
+        t.sema.scopes[^1].tags[ty.sname] = Info(ty: ty, loc: Location(line: t.l.line, col: t.l.col))
 
 proc getenumdef(name: string): CType =
     let r = getTag(name)
@@ -5227,12 +5323,12 @@ proc getenumdef(name: string): CType =
         result = r.ty
 
 proc putenumdef(ty: CType) =
-    let o = t.sema.tags[^1].getOrDefault(ty.ename)
+    let o = t.sema.scopes[^1].tags.getOrDefault(ty.ename)
     if o != nil:
         error("enum " & ty.ename & " aleady defined")
         note(ty.ename & "was defined at " & $o.loc)
     else:
-        t.sema.tags[^1][ty.ename] = Info(ty: ty, loc: Location(line: t.l.line, col: t.l.col))
+        t.sema.scopes[^1].tags[ty.ename] = Info(ty: ty, loc: Location(line: t.l.line, col: t.l.col))
 
 proc getuniondef(name: string): CType =
     let r = getTag(name)
@@ -5244,48 +5340,48 @@ proc getuniondef(name: string): CType =
         result = r.ty
 
 proc putuniondef(ty: CType) =
-    let o = t.sema.tags[^1].getOrDefault(ty.sname)
+    let o = t.sema.scopes[^1].tags.getOrDefault(ty.sname)
     if o != nil:
         error("`union` " & ty.sname & " aleady defined")
         note(ty.sname & " was defined at " & $o.loc)
     else:
-        t.sema.tags[^1][ty.sname] = Info(ty: ty, loc: Location(line: t.l.line, col: t.l.col))
+        t.sema.scopes[^1].tags[ty.sname] = Info(ty: ty, loc: Location(line: t.l.line, col: t.l.col))
 
 proc getsymtype(name: string): CType =
-  for i in countdown(len(t.sema.typedefs)-1, 0):
-    var info = t.sema.typedefs[i].getOrDefault(name, nil)
+  for i in countdown(len(t.sema.scopes)-1, 0):
+    var info = t.sema.scopes[i].typedefs.getOrDefault(name, nil)
     if info != nil:
       info.tag = info.tag or INFO_USED
       return info.ty
-    if t.sema.enums[i].hasKey(name):
+    if t.sema.scopes[i].enums.hasKey(name):
         return tycache.iintty
   return nil
 
 proc putenum(name: string, val: intmax_t) =
-    if t.sema.enums[^1].contains(name) or t.sema.typedefs[^1].contains(name):
+    if t.sema.scopes[^1].enums.contains(name) or t.sema.scopes[^1].typedefs.contains(name):
         type_error('\'' & name & "' redeclared")
-    t.sema.enums[^1][name] = val
+    t.sema.scopes[^1].enums[name] = val
 
 proc noEnum(name: string) =
-    if t.sema.enums[^1].hasKey(name):
+    if t.sema.scopes[^1].enums.hasKey(name):
         type_error(name & " redeclared")
 
 # function definition
 proc putsymtype3(name: string, yt: CType) =
   noEnum(name)
-  let ty = t.sema.typedefs[^1].getOrDefault(name, nil)
+  let ty = t.sema.scopes[^1].typedefs.getOrDefault(name, nil)
   if ty != nil:
     type_error("function " & name & " redefined")
-  t.sema.typedefs[^1][name] = Info(ty: yt, loc: Location(line: t.l.line, col: t.l.col))
+  t.sema.scopes[^1].typedefs[name] = Info(ty: yt, loc: Location(line: t.l.line, col: t.l.col))
 
 # function declaration
 proc putsymtype2(name: string, yt: CType) =
   noEnum(name)
-  let ty = t.sema.typedefs[^1].getOrDefault(name, nil)
+  let ty = t.sema.scopes[^1].typedefs.getOrDefault(name, nil)
   if ty != nil:
     if not compatible(yt, ty.ty):
         type_error("conflicting types for function declaration '" & name &  "'")
-  t.sema.typedefs[^1][name] = Info(ty: yt, loc: Location(line: t.l.line, col: t.l.col))
+  t.sema.scopes[^1].typedefs[name] = Info(ty: yt, loc: Location(line: t.l.line, col: t.l.col))
 
 # typedef, variable
 proc putsymtype(name: string, yt: CType) =
@@ -5293,11 +5389,11 @@ proc putsymtype(name: string, yt: CType) =
   if yt.spec == TYFUNCTION:
     putsymtype2(name, yt)
     return
-  let ty = t.sema.typedefs[^1].getOrDefault(name, nil)
+  let ty = t.sema.scopes[^1].typedefs.getOrDefault(name, nil)
   if ty != nil and not bool(ty.ty.tags and TYEXTERN):
     type_error(name & " redeclared")
     return
-  t.sema.typedefs[^1][name] = Info(ty: yt, loc: Location(line: t.l.line, col: t.l.col))
+  t.sema.scopes[^1].typedefs[name] = Info(ty: yt, loc: Location(line: t.l.line, col: t.l.col))
 
 proc istype(a: Token): bool =
     if a in (declaration_specifier_set + {Kstruct, Kenum, Kunion, K_Alignas}):
@@ -6946,8 +7042,8 @@ proc read_pp_number(s: string, f: var float, n: var uintmax_t): int =
 
 proc fixName(v: string) =
     var fixList = initHeapQueue[FixName]()
-    for i in countdown(len(t.sema.typedefs)-1, 0):
-        for name in t.sema.typedefs[i].keys():
+    for i in countdown(len(t.sema.scopes)-1, 0):
+        for name in t.sema.scopes[i].typedefs.keys():
             var d = editDistance(name, v)
             fixList.push(FixName(priority: d, name: name))
     var msg = "\n"
@@ -7082,14 +7178,14 @@ proc primary_expression(): Expr =
             result = Expr(k: EString, str: t.sema.pfunc, ty: CType(tags: TYCONST, spec: TYPOINTER, p: tycache.icharty))
         else:
             var ty: CType = nil
-            for i in countdown(len(t.sema.typedefs)-1, 0):
-                var info = t.sema.typedefs[i].getOrDefault(t.l.tok.s, nil)
+            for i in countdown(len(t.sema.scopes)-1, 0):
+                var info = t.sema.scopes[i].typedefs.getOrDefault(t.l.tok.s, nil)
                 if info != nil:
                   info.tag = info.tag or INFO_USED
                   ty = info.ty
                   break
-                if t.sema.enums[i].hasKey(t.l.tok.s):
-                  var i = t.sema.enums[i][t.l.tok.s]
+                if t.sema.scopes[i].enums.hasKey(t.l.tok.s):
+                  var i = t.sema.scopes[i].enums[t.l.tok.s]
                   consume()
                   return Expr(k: EIntLit, ival: uintmax_t(i), ty: tycache.iintty)
             if ty == nil:
@@ -8027,10 +8123,11 @@ proc bf() =
         close(s)
     c()
 
+
 set_exit_code(1)
 if parseCLI():
-    newBackend()
     if initTarget(): 
+        initBackend()
         for (name, v) in getDefines():
             t.pp.macros[name] = PPMacro(tokens: v, flags: MOBJ)
         addLLVMModule(t.path)
@@ -8057,7 +8154,6 @@ if parseCLI():
                     inc i
         of InputObject, InputAsm:
             warning("use gcc instead for object and assembly file")
-
         llvm.shutdown()
         set_exit_code(0)
 

@@ -134,14 +134,7 @@ type
     DSError, DSWarning, DSRemark, DSNote
   InlineAsmDialect* {.size: sizeof(cint).} = enum
     InlineAsmDialectATT, InlineAsmDialectIntel
-  ModuleFlagBehavior* {.size: sizeof(cint).} = enum
-    ModuleFlagBehaviorError,
-    ModuleFlagBehaviorWarning,
-    ModuleFlagBehaviorRequire,
-    ModuleFlagBehaviorOverride, 
-    ModuleFlagBehaviorAppend, 
-    ModuleFlagBehaviorAppendUnique
-
+  ModuleFlagBehavior* = cuint
 
 const
   AttributeReturnIndex* = 0 

@@ -88,6 +88,8 @@ static LLVMTargetRef wrap(const Target * P) {
 }
 
 static void opt(Function *f){
+	// this is needed for some basic block may have mutiple terminators(and you may see llvm says `error: label expected to be numbered 'xx'`)
+	// remove all code after first terminator
 	for(Function::iterator bb = f->begin();bb != f->end();++bb){
 		bool next = false;
 		for(BasicBlock::iterator Inst = bb->begin();Inst != bb->end();){

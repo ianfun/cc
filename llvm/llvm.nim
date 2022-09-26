@@ -78,6 +78,7 @@ const
 include triple
 include LLVMInstrinsics
 include Attribute
+include DWARF
 include FFI/LLVM/Types
 include FFI/LLVM/Support
 include FFI/LLVM/Error
@@ -188,6 +189,7 @@ type
   Type* = TypeRef ## LLVM Type
   Label* = BasicBlockRef ## LLVM block
   DIScope* = MetadataRef ## LLVM DIScope
+  DIType* = MetadataRef ## Debug Type
 
 # wrappers from llvmAPI.cpp
 
