@@ -89,6 +89,7 @@ type
       input: Input
       mode: Output
       runJit: bool
+      dir: string
       optLevel: cuint ## 0 = -O0, 1 = -O1, 2 = -O2, 3 = -O3
       sizeLevel: cuint ## 0 = none, 1 = -Os, 2 = -Oz
       inlineThreshold: cuint
@@ -147,7 +148,8 @@ var app = CC(
     runJit: false,
     linker: GCCLD,
     strbuf: newStringOfCap(150),
-    g: false
+    g: false,
+    dir: getCurrentDir()
 )
 
 when defined(windows):
@@ -176,12 +178,6 @@ type
 
 proc `<<`(stream: Fd, msg: string) =
     discard write(stream, cstring(msg), msg.len.csize_t)
-
-proc `<<`(stream: Fd, msg: cstring) =
-    discard write(stream, msg, msg.len.csize_t)
-
-proc `<<`(stream: Fd, msg: StringRef) =
-    discard write(stream, msg.str, msg.len.csize_t)
 
 proc `<<`(stream: Fd, c: char) =
     var a = c
@@ -1041,20 +1037,6 @@ proc joinShow2[A, B](a: seq[(A, B)]): string =
         result.add(", ")
     result.add($a[^1][1] & ' ' & $a[^1][0])
 
-proc joinShow4(a: seq[(string, intmax_t)], level=1): string =
-    var padding = "  ".repeat(level)
-    result = "{\n"
-    for (s, val) in a:
-        result.add(padding & '\t')
-        result.add(s)
-        result.add('=')
-        result.add($val)
-        result.add(',')
-        result.add('\n')
-    if level > 2:
-      result.add("  ".repeat(level - 2))
-    result.add("}")
-
 proc joinShow3(a: seq[(string, CType)], level=1): string =
     var padding = "  ".repeat(level)
     result = "{\n"
@@ -1368,6 +1350,8 @@ type
     i32_1, i32_0: Value
     ## LLVM false/true constant
     i1_0, i1_1: Value
+    ## true when gen expression statement
+    expr_stmt: bool
 
 
 var b = Backend()
@@ -1466,6 +1450,9 @@ var t = Parser(
         parse_error: false,
         bad_error: false
     )
+
+proc getLoc(): Location {.inline.} =
+    Location(line: t.l.line, col: t.l.col, fd: 0)
 
 proc write(s: StringRef, ty: MessageType) {.inline.} =
     t.w(s, ty)
@@ -3489,22 +3476,32 @@ proc parseCLI(): bool =
   if t.fstack.len == 0:
     error("no input files")
     return false
-  if app.output.len == 0:
-    i = name - 1
-    app.output = get()
-  case app.mode:
-  of OutputLink:
-    app.output &= (when defined(windows): ".exe" else: ".out")
-  of OutputLLVMAssembly:
-    app.output &= ".ll"
-  of OutputBitcode:
-    app.output &= ".bc"
-  of OutputObjectFile:
-    app.output &= ".o"
-  of OutputAssembly:
-    app.output &= ".s"
-  of OutputCheck:
-    discard
+  if app.mode == OutputLink:
+    if app.output.len == 0:
+        when defined(windows):
+            app.output = "a.exe"
+        else:
+            app.output = "a.out"
+    else:
+        when defined(windows):
+            if '.' notin app.output:
+                # if the output has no extension, add .exe
+                app.output.add(".exe")
+  else:
+    if app.output.len == 0:
+        i = name - 1
+        app.output.add(get())
+        case app.mode:
+        of OutputLLVMAssembly:
+            app.output.add(".ll")
+        of OutputBitcode:
+            app.output.add(".bc")
+        of OutputObjectFile:
+            app.output.add(".o")
+        of OutputAssembly:
+            app.output.add(".s")
+        else:
+            discard
   return true
 
 const
@@ -3525,6 +3522,30 @@ proc wrap(ty: CType): Type
 proc wrap2(ty: CType): Type
 
 proc wrap3(ty: CType): DIType
+
+proc getLexScope(): DIScope =
+    b.lexBlocks[^1]
+
+proc getFile(): DIScope =
+    b.lexBlocks[0]
+
+proc createDebugFuctionType(ty: CType): DIType =
+    let l = len(ty.params)
+    var buf = create(DIType, l + 1)
+    var arr = cast[ptr UncheckedArray[DIType]](buf)
+    var ivarargs = false
+    var i = 1.cuint
+    arr[0] = wrap3(ty.ret)
+    var m = len(ty.params).cuint
+    while true:
+      if i == m:
+        break
+      if ty.params[i-1][1] == nil:
+        ivarargs = true
+        break
+      arr[i] = wrap3(ty.params[i-1][1])
+      inc i
+    dIBuilderCreateSubroutineType(b.di, getLexScope(), buf, i, DIFlagZero)
 
 proc llvmGetAlignof(ty: CType): culonglong =
   aBIAlignmentOfType(b.layout, wrap2(ty))
@@ -3579,16 +3600,11 @@ proc getAlignof(ty: CType): culonglong =
 proc getAlignof(e: Expr): culonglong =
     getAlignof(e.ty)
 
-proc emitDebugLocation(e: Expr) =
-    var line = 0
-    var col = 0
-    var loc = dIBuilderCreateDebugLocation(b.ctx, line.cuint, col.cuint, b.lexBlocks[^1], nil)
-    setCurrentDebugLocation2(b.builder, loc)
+proc emitDebugLocation() =
+    setCurrentDebugLocation2(b.builder, nil)
 
-proc emitDebugLocation(s: Stmt) =
-    var line = 0
-    var col = 0
-    var loc = dIBuilderCreateDebugLocation(b.ctx, line.cuint, col.cuint, b.lexBlocks[^1], nil)
+proc emitDebugLocation(e: Expr | Stmt) =
+    var loc = dIBuilderCreateDebugLocation(b.ctx, e.loc.line.cuint, e.loc.col.cuint, b.lexBlocks[^1], nil)
     setCurrentDebugLocation2(b.builder, loc)
 
 proc addLLVMModule(source_file: string) =
@@ -3618,7 +3634,7 @@ proc addLLVMModule(source_file: string) =
 
   if app.g:
     b.di = createDIBuilder(b.module)
-    var file = dIBuilderCreateFile(b.di, source_file.cstring, source_file.len.csize_t, nil, 0)
+    var file = dIBuilderCreateFile(b.di, source_file.cstring, source_file.len.csize_t, app.dir.cstring, app.dir.len.csize_t)
     b.lexBlocks.add(dIBuilderCreateCompileUnit(
         b.di,
         DWARFSourceLanguageC99,
@@ -3880,11 +3896,17 @@ proc wrap3(ty: CType): DIType =
   of TYPRIM:
     return b.types[getBasicTypeIndex(ty.tags)].di
   of TYPOINTER:
-    return b.types[DIptr].di
+    if bool(ty.tags and TYVOID):
+        return b.types[DIptr].di
+    var p = wrap3(ty.p)
+    var s = $ty
+    return dIBuilderCreatePointerType(b.di, p, b.types[DIintPtr].sizeBits, b.types[DIintPtr].align, 0, cstring(s), s.len.csize_t)
   of TYSTRUCT, TYUNION:
     return nil
   of TYARRAY:
     return nil
+  of TYFUNCTION:
+    return createDebugFuctionType(ty)
   of TYENUM:
     return b.types[DIi32].di
   else:
@@ -3949,10 +3971,7 @@ proc wrap(ty: CType): Type =
       if ty.params[i][1] == nil:
         ivarargs = true
         break
-      if ty.params[i][1].spec == TYBITFIELD:
-        arr[i] = wrap(ty.params[i][1].bittype)
-      else:
-        arr[i] = wrap(ty.params[i][1])
+      arr[i] = wrap(ty.params[i][1])
       inc i
     result = functionType(wrap(ty.ret), buf, i, if ivarargs: True else: False)
     dealloc(buf)  
@@ -4304,6 +4323,9 @@ proc newFunction(varty: CType, name: string): Value =
                 break
             setValueName2(getParam(result, i.cuint), cstring(varty.params[i][0]), varty.params[i][0].len.csize_t)
 
+proc getLinkageName(): (cstring, uint) =
+    return (nil, 0.uint)
+
 proc gen(s: Stmt) =
   if app.g:
     emitDebugLocation(s)
@@ -4315,12 +4337,20 @@ proc gen(s: Stmt) =
       gen(i)
     leaveScope()
   of SExpr:
+      b.expr_stmt = true
       discard gen(s.exprbody)
   of SFunction:
       enterScope()
       assert s.functy.spec == TYFUNCTION
       var ty = wrap(s.functy)
       b.currentfunction = newFunction(s.functy, s.funcname)
+      if app.g:
+        var l = getLinkageName()
+        var sp = dIBuilderCreateFunction(b.di, getLexScope(), s.funcname.cstring, s.funcname.len.csize_t, l[0], l[1], getFile(), 
+            s.loc.line, createDebugFuctionType(s.functy), False, True, 0, DIFlagZero, False)
+        setSubprogram(b.currentfunction, sp)
+        b.lexBlocks.add(sp)
+        emitDebugLocation()
       var entry = addBlock("entry")
       setInsertPoint(entry)
       b.labels.add(initTable[string, Label]())
@@ -4344,6 +4374,8 @@ proc gen(s: Stmt) =
       for i in s.funcbody.stmts:
         gen(i)
       leaveScope()
+      if app.g:
+        discard b.lexBlocks.pop()
       discard b.labels.pop()
       b.currentfunction = nil
   of SReturn:
@@ -4569,6 +4601,8 @@ proc getAddress(e: Expr): Value =
 proc gen(e: Expr): Value =
   if app.g:
     emitDebugLocation(e)
+  var expr_stmt = b.expr_stmt
+  b.expr_stmt = false
   case e.k:
   of EUndef:
     getUndef(wrap(e.ty))
@@ -4601,7 +4635,10 @@ proc gen(e: Expr): Value =
       var v = gen(e.rhs)
       let basep = getAddress(e.lhs)
       store(basep, v, e.lhs.ty.align)
-      load(basep, wrap(e.ty), e.lhs.ty.align)
+      if expr_stmt:
+        nil
+      else:
+        load(basep, wrap(e.ty), e.lhs.ty.align)
     of SAdd:
       var l = gen(e.lhs)
       var r = gen(e.rhs)
@@ -4654,8 +4691,9 @@ proc gen(e: Expr): Value =
   of EFloatLit:
     gen_float(e.fval, e.ty.tags)
   of EVoid:
+    b.expr_stmt = true
     discard gen(e.voidexpr)
-    return nil
+    nil
   of EUnary:
     case e.uop:
     of Pos: gen(e.uoperand)
@@ -4669,7 +4707,6 @@ proc gen(e: Expr): Value =
       if e.uop == PrefixDecrement:
         i = constNeg(i)
       let basep = getAddress(e.uoperand)
-      assert basep != nil
       if e.ty.spec == TYPOINTER:
         var ty = wrap(e.ty.p)
         var l = load(basep, wrap(e.uoperand.ty))
@@ -4682,7 +4719,10 @@ proc gen(e: Expr): Value =
         i = constIntCast(i, ty, False)
         var l2 = buildAdd(b.builder, l, i, "")
         store(basep, l2)
-        load(basep, ty)
+        if expr_stmt:
+          nil
+        else:
+          load(basep, ty)
     of Dereference: load(gen(e.uoperand), wrap(e.ty))
     of LogicalNot: buildisNull(b.builder, gen(e.uoperand), "")
   of EPostFix:
@@ -5183,11 +5223,11 @@ const
 
 proc binop(a: Expr, op: BinOP, b: Expr, ty: CType): Expr = 
     ## construct a binary operator
-    Expr(k: EBin, lhs: a, rhs: b, bop: op, ty: ty)
+    Expr(k: EBin, lhs: a, rhs: b, bop: op, ty: ty, loc: a.loc)
 
 proc unary(e: Expr, op: UnaryOP, ty: CType): Expr = 
     ## construct a unary operator
-    Expr(k: EUnary, uop: op, uoperand: e, ty: ty)
+    Expr(k: EUnary, uop: op, uoperand: e, ty: ty, loc: e.loc)
 
 proc enterBlock() =
   t.sema.scopes.add(BScope(
@@ -5347,16 +5387,6 @@ proc putuniondef(ty: CType) =
     else:
         t.sema.scopes[^1].tags[ty.sname] = Info(ty: ty, loc: Location(line: t.l.line, col: t.l.col))
 
-proc getsymtype(name: string): CType =
-  for i in countdown(len(t.sema.scopes)-1, 0):
-    var info = t.sema.scopes[i].typedefs.getOrDefault(name, nil)
-    if info != nil:
-      info.tag = info.tag or INFO_USED
-      return info.ty
-    if t.sema.scopes[i].enums.hasKey(name):
-        return tycache.iintty
-  return nil
-
 proc putenum(name: string, val: intmax_t) =
     if t.sema.scopes[^1].enums.contains(name) or t.sema.scopes[^1].typedefs.contains(name):
         type_error('\'' & name & "' redeclared")
@@ -5409,14 +5439,14 @@ proc intcast(e: Expr, to: CType): Expr =
        bool(e.ty.tags and (TYINT8 or TYINT16 or TYINT32 or TYINT64 or 
         TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64 or TYBOOL)):
         if to.tags == e.ty.tags:
-            return Expr(k: ECast, castop: CastOp.BitCast, castval: e, ty: to)
+            return Expr(k: ECast, castop: CastOp.BitCast, castval: e, ty: to, loc: e.loc)
         if intRank(to.tags) > intRank(e.ty.tags):
             if isSigned(to) and not bool(e.ty.tags and TYBOOL):
-                return Expr(k: ECast, castop: CastOp.SExt, castval: e, ty: to)
+                return Expr(k: ECast, castop: CastOp.SExt, castval: e, ty: to, loc: e.loc)
             else:
-                return Expr(k: ECast, castop: CastOp.ZExt, castval: e, ty: to)
+                return Expr(k: ECast, castop: CastOp.ZExt, castval: e, ty: to, loc: e.loc)
         else:
-            return Expr(k: ECast, castop: CastOp.Trunc, castval: e, ty: to)
+            return Expr(k: ECast, castop: CastOp.Trunc, castval: e, ty: to, loc: e.loc)
     type_error("cannot cast " & $e & " to " & $to)
     note("expression " & $e & " has type " & $e.ty)
     return nil
@@ -5454,15 +5484,15 @@ proc castto(e: Expr, to: CType): Expr =
         return e
     if e.ty.spec == TYENUM:
         # cast enum to int
-        return castto(Expr(k: ECast, castop: BitCast, castval: e, ty: tycache.iintty), to)
+        return castto(Expr(k: ECast, castop: BitCast, castval: e, ty: tycache.iintty, loc: e.loc), to)
     if to.spec == TYENUM:
         # cast xxx to int, then cast(bitcast) to enum
-        return Expr(k: ECast, castop: BitCast, castval: castto(e, tycache.iintty), ty: to)
+        return Expr(k: ECast, castop: BitCast, castval: castto(e, tycache.iintty), ty: to, loc: e.loc)
     if checkScalar(e.ty) == false or checkScalar(to) == false:
         type_error("cast uoperand shall have scalar type")
         return nil
     if bool(to.tags and TYBOOL):
-        return binop(e, NE, Expr(k: EDefault, ty: e.ty), tycache.b)
+        return binop(e, NE, Expr(k: EDefault, ty: e.ty, loc: e.loc), tycache.b)
     if bool(to.tags and (TYFLOAT or TYDOUBLE)) and e.ty.spec == TYPOINTER:
         type_error("A floating type shall not be converted to any pointer type")
         return nil
@@ -5470,29 +5500,29 @@ proc castto(e: Expr, to: CType): Expr =
         type_error("A floating type shall not be converted to any pointer type")
         return nil
     if e.ty.spec == TYPOINTER and to.spec == TYPOINTER:
-        return Expr(k: ECast, castop: BitCast, castval: e, ty: to)
+        return Expr(k: ECast, castop: BitCast, castval: e, ty: to, loc: e.loc)
     if bool(e.ty.tags and TYDOUBLE) and bool(to.tags and TYFLOAT):
-        return Expr(k: ECast, castop: FPTrunc, castval: e, ty: to)
+        return Expr(k: ECast, castop: FPTrunc, castval: e, ty: to, loc: e.loc)
     if bool(e.ty.tags and TYFLOAT) and bool(to.tags and TYDOUBLE):
-        return Expr(k: ECast, castop: FPExt, castval: e, ty: to)
+        return Expr(k: ECast, castop: FPExt, castval: e, ty: to, loc: e.loc)
     if bool(e.ty.tags and (TYINT8 or TYINT16 or TYINT32 or TYINT64 or 
         TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64 or TYBOOL)):
         if to.spec == TYPOINTER:
-            return Expr(k: ECast, castop: IntToPtr, castval: e, ty: to)
+            return Expr(k: ECast, castop: IntToPtr, castval: e, ty: to, loc: e.loc)
         if bool(to.tags and (TYFLOAT or TYDOUBLE)):
             if isSigned(e.ty):
-                return Expr(k: ECast, castop: SIToFP, castval: e, ty: to)
+                return Expr(k: ECast, castop: SIToFP, castval: e, ty: to, loc: e.loc)
             else:
-                return Expr(k: ECast, castop: UIToFP, castval: e, ty: to)
+                return Expr(k: ECast, castop: UIToFP, castval: e, ty: to, loc: e.loc)
     elif bool(to.tags and (TYINT8 or TYINT16 or TYINT32 or TYINT64 or 
         TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64)):
         if e.ty.spec == TYPOINTER:
-            return Expr(k: ECast, castop: PtrToInt, castval: e, ty: to)
+            return Expr(k: ECast, castop: PtrToInt, castval: e, ty: to, loc: e.loc)
         if bool(e.ty.tags and (TYFLOAT or TYDOUBLE)):
             if isSigned(to):
-                return Expr(k: ECast, castop: FPToSI, castval: e, ty: to)
+                return Expr(k: ECast, castop: FPToSI, castval: e, ty: to, loc: e.loc)
             else:
-                return Expr(k: ECast, castop: FPToUI, castval: e, ty: to)
+                return Expr(k: ECast, castop: FPToUI, castval: e, ty: to, loc: e.loc)
     return intcast(e, to)
 
 proc to(e: var Expr, tag: uint32) =
@@ -5620,9 +5650,9 @@ proc make_sub(result, r: var Expr) =
                     type_error("incompatible type when substract two pointers")
                     return
                 result = binop(
-                    Expr(k: ECast, castop: PtrToInt, castval: result, ty: tycache.iptrdiff_tty),
+                    Expr(k: ECast, castop: PtrToInt, castval: result, ty: tycache.iptrdiff_tty, loc: result.loc),
                     PtrDiff,
-                    Expr(k: ECast, castop: PtrToInt, castval: r, ty: tycache.iptrdiff_tty),
+                    Expr(k: ECast, castop: PtrToInt, castval: r, ty: tycache.iptrdiff_tty, loc: result.loc),
                     tycache.iintptrty
                 )
                 return
@@ -5669,7 +5699,7 @@ proc make_rem(result, r: var Expr) =
     result = binop(result, if isFloating(r.ty): FRem else: (if isSigned(r.ty): SRem else: URem)  ,r, r.ty)
 
 proc boolToInt(e: Expr): Expr =
-    Expr(k: ECast, castop: CastOp.ZExt, castval: e, ty: tycache.iintty)
+    Expr(k: ECast, castop: CastOp.ZExt, castval: e, ty: tycache.iintty, loc: e.loc)
 
 type 
     DeclaratorFlags = enum 
@@ -5705,7 +5735,7 @@ proc compound_statement(params: seq[(string, CType)], lables: var HashSet[string
 
 proc postfix(e: Expr, op: PostfixOP, ty: CType): Expr = 
     ## construct a postfix operator
-    Expr(k: EPostFix, pop: op, poperand: e, ty: ty)
+    Expr(k: EPostFix, pop: op, poperand: e, ty: ty, loc: e.loc)
 
 proc consume() =
     ## eat token from lexer and c preprocesser
@@ -5998,6 +6028,7 @@ proc initializer_list(): Expr =
     else:
         # array, scalar
         result = Expr(k: EArray, ty: t.sema.currentInitTy)
+    result.loc = getLoc()
     consume()
     var m: int
     if t.sema.currentInitTy.spec == TYARRAY:
@@ -6073,6 +6104,7 @@ proc direct_declarator(base: CType; flags=Direct): Stmt =
         return nil
 
 proc direct_declarator_end(base: CType, name: string): Stmt =
+    var loc = getLoc()
     case t.l.tok.tok:
     of TLSquareBrackets: # int arr[5], int arr[], int arr[static 5], int arr[static const 5], int arr[const static 5], int arr2[static const restrict 5]
         consume() # eat ]
@@ -6158,12 +6190,12 @@ proc direct_declarator_end(base: CType, name: string): Stmt =
                         warning("no 'return' statement in a function should return a value")
                         note("in the function definition: '" & name & '\'')
                 body.stmts &= Stmt(k: SReturn, exprbody: if bool(ty.ret.tags and TYVOID): nil else: 
-                    (if name == "main": Expr(k: EDefault, ty: ty.ret) else: Expr(k: EUndef, ty: ty.ret))
+                    (if name == "main": Expr(k: EDefault, ty: ty.ret, loc: getLoc()) else: Expr(k: EUndef, ty: ty.ret, loc: getLoc()))
                 )
-            return Stmt(k: SFunction, funcname: name, functy: ty, funcbody: body, labels: labels)
+            return Stmt(k: SFunction, funcname: name, functy: ty, funcbody: body, labels: labels, loc: loc)
         return direct_declarator_end(ty, name)
     else:
-        return Stmt(k: SVarDecl1, var1name: name, var1type: base)
+        return Stmt(k: SVarDecl1, var1name: name, var1type: base, loc: loc)
 
 proc struct_declarator(base: CType): (string, CType) =
     if t.l.tok.tok == TColon:
@@ -6621,6 +6653,7 @@ proc cast_expression(): Expr =
             if e == nil:
                 return nil
             if (n.tags and TYVOID) != 0:
+                # TODO: add void tag!
                 return Expr(k: EVoid, voidexpr: e, ty: tycache.v)
             return castto(e, n)
         putToken()
@@ -6649,14 +6682,14 @@ proc type_name(): (CType, bool) =
         else:
             (st.var1type, false)
 
-proc getsizeof2(e: Expr): Expr =
+proc getsizeof2(e: Expr, loc: Location): Expr =
     if e.k == ArrToAddress:
         if e.voidexpr.ty.vla != nil:
-            Expr(ty: tycache.isize_tty, k: EVLAGetSize, vla: e)
+            Expr(ty: tycache.isize_tty, k: EVLAGetSize, vla: e, loc: loc)
         else:
-            Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[uintmax_t](getsizeof(e.voidexpr.ty)))
+            Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[uintmax_t](getsizeof(e.voidexpr.ty)), loc: loc)
     else:
-        Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[uintmax_t](getsizeof(e)))
+        Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[uintmax_t](getsizeof(e)), loc: loc)
 
 proc unary_expression(): Expr =
     let tok = t.l.tok.tok
@@ -6740,6 +6773,7 @@ proc unary_expression(): Expr =
             return nil
         return unary(e, if tok == TAddAdd: PrefixIncrement else: PrefixDecrement, e.ty)
     of Ksizeof:
+        var loc = getLoc()
         consume()
         if t.l.tok.tok == TLbracket:
             consume()
@@ -6754,7 +6788,7 @@ proc unary_expression(): Expr =
                     expectRB()
                     return nil
                 consume()
-                return Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[uintmax_t](getsizeof(ty[0])))
+                return Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[uintmax_t](getsizeof(ty[0])), loc: getLoc())
             let e = unary_expression()
             if e == nil:
                 expectExpression()
@@ -6763,14 +6797,15 @@ proc unary_expression(): Expr =
                 expectRB()
                 return nil
             consume()
-            return getsizeof2(e)
+            return getsizeof2(e, loc)
         else:
             let e = unary_expression()
             if e == nil:
                 expectExpression()
                 return nil
-            return getsizeof2(e)
+            return getsizeof2(e, loc)
     of K_Alignof:
+        var loc = getLoc()
         consume()
         if t.l.tok.tok != TLbracket:
             expect("(")
@@ -6783,13 +6818,13 @@ proc unary_expression(): Expr =
                 return nil
             if ty[1] == true:
                 type_error("invalid application of '_Alignof' to a function type")
-            result = Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[uintmax_t](getAlignof(ty[0])))
+            result = Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[uintmax_t](getAlignof(ty[0])), loc: loc)
         else:
             let e = constant_expression()
             if e == nil:
                 expectExpression()
                 return nil
-            result = Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[uintmax_t](getAlignof(e)))
+            result = Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[uintmax_t](getAlignof(e)), loc: loc)
         if t.l.tok.tok != TRbracket:
             expectRB()
             return nil
@@ -7065,7 +7100,7 @@ proc primary_expression(): Expr =
         case t.l.tok.itag:
         of Iint:
             # Iint: 'c'
-            ty = tycache.icharty
+            ty = tycache.iintty
         of Ilong:
             # Ilong: u'c'
             ty = tycache.u16
@@ -7077,7 +7112,7 @@ proc primary_expression(): Expr =
             ty = tycache.iwcharty
         else:
             unreachable()
-        result = Expr(k: EIntLit, ival: t.l.tok.i, ty: ty)
+        result = Expr(k: EIntLit, ival: t.l.tok.i, ty: ty, loc: getLoc())
         consume()
     of TNumberLit:
         var ty: CType = nil
@@ -7094,12 +7129,13 @@ proc primary_expression(): Expr =
             ty = tycache.ulonglongty
         of Iuint:
             ty = tycache.uintty
-        result = Expr(k: EIntLit, ival: t.l.tok.i, ty: ty)
+        result = Expr(k: EIntLit, ival: t.l.tok.i, ty: ty, loc: getLoc())
         consume()
     of TFloatLit:
-        result = Expr(k: EFloatLit, fval: t.l.tok.f, ty: if t.l.tok.ftag == Ffloat: tycache.ffloatty else: tycache.fdoublety)
+        result = Expr(k: EFloatLit, fval: t.l.tok.f, ty: if t.l.tok.ftag == Ffloat: tycache.ffloatty else: tycache.fdoublety, loc: getLoc())
         consume()
     of TStringLit:
+        var loc = getLoc()
         var s: string
         var enc = t.l.tok.enc
         while true:
@@ -7110,72 +7146,68 @@ proc primary_expression(): Expr =
             if t.l.tok.enc != enc:
                 type_error("unsupported non-standard concatenation of string literals")
                 note("concatenation UTF-" & $enc & " and UTF-" & $t.l.tok.enc)
-                return
+                return nil
         case enc:
         of 8:
             let ty = tycache.i8
-            return Expr(
+            result = Expr(
                 k: ArrToAddress, voidexpr: Expr(k: EString, ty: ty, str: s), 
-                ty: getPointerType(ty)
+                ty: getPointerType(ty), loc: getLoc()
             )
         of 16:
             var a: seq[Expr]
             let ty = tycache.ushortty
             for i in writeUTF8toUTF16(s):
                 a.add(Expr(k: EIntLit, ival: cast[uintmax_t](i), ty: ty))
-            return Expr(
+            result = Expr(
                 k: ArrToAddress, voidexpr: Expr(k: EArray, ty: ty, arr: a), 
-                ty: getPointerType(ty)
+                ty: getPointerType(ty), loc: getLoc()
             )
         of 32:
             var a: seq[Expr]
             let ty = tycache.u32
             for i in writeUTF8toUTF32(s):
                 a.add(Expr(k: EIntLit, ival: uintmax_t(i), ty: ty))
-            return Expr(
+            result = Expr(
                 k: ArrToAddress, voidexpr: Expr(k: EArray, ty: ty, arr: a), 
-                ty: getPointerType(ty)
+                ty: getPointerType(ty), loc: getLoc()
             )
         else:
             unreachable()
+        result.loc = loc
     of TPPNumber:
         var f: float
         var n: uintmax_t
         let ok = read_pp_number(t.l.tok.s, f, n)
         case ok:
         of 0:
-            result = nil
+            return nil
         of 1:
             result = Expr(ty: tycache.iintty, k: EIntLit, ival: n)
-            consume()
         of 2, 3:
             result = Expr(ty: if ok == 2: tycache.fdoublety else: tycache.ffloatty, k: EFloatLit, fval: f)
-            consume()
         of 4:
             result = Expr(ty: tycache.ilongty, k: EIntLit, ival: n)
-            consume()
         of 5:
             result = Expr(ty: tycache.ulongty, k: EIntLit, ival: n)
-            consume() 
         of 6:
             result = Expr(ty: tycache.ilonglongty, k: EIntLit, ival: n)
-            consume()
         of 7:
             result = Expr(ty: tycache.ulonglongty, k: EIntLit, ival: n)
-            consume()
         of 8:
             result = Expr(ty: tycache.uintty, k: EIntLit, ival: n)
-            consume()
         else:
             unreachable()
+        result.loc = getLoc()
+        consume()
     of CPPident:
-        result = Expr(k: EIntLit, ival: 0, ty: tycache.iintty)  
+        result = Expr(k: EIntLit, ival: 0, ty: tycache.iintty) # no location!
         consume()
     of TIdentifier:
         if t.pp.want_expr:
-            result = Expr(k: EIntLit, ival: 0, ty: tycache.iintty)
+            result = Expr(k: EIntLit, ival: 0, ty: tycache.iintty) # no location!
         elif t.l.tok.s == "__func__":
-            result = Expr(k: EString, str: t.sema.pfunc, ty: CType(tags: TYCONST, spec: TYPOINTER, p: tycache.icharty))
+            result = Expr(k: EString, str: t.sema.pfunc, ty: CType(tags: TYCONST, spec: TYPOINTER, p: tycache.icharty), loc: getLoc())
         else:
             var ty: CType = nil
             for i in countdown(len(t.sema.scopes)-1, 0):
@@ -7208,8 +7240,10 @@ proc primary_expression(): Expr =
                 )
             else:
                 result = Expr(k: EVar, sval: t.l.tok.s, ty: ty)
-            consume()
+        result.loc = getLoc()
+        consume()
     of TLbracket:
+        var loc = getLoc()
         consume()
         result = expression()
         if result == nil:
@@ -7219,6 +7253,7 @@ proc primary_expression(): Expr =
             expectRB()
             return nil
         consume()
+        result.loc = loc
     of K_Generic:
         consume()
         if t.l.tok.tok != TLbracket:
@@ -7321,8 +7356,8 @@ proc postfix_expression(): Expr =
                 var ty = e.ty.selems[i][1]
                 ty.tags = ty.tags or TYLVALUE
                 if isarrow:
-                    return Expr(k: EPointerMemberAccess, obj: e, idx: i, ty: ty)
-                return Expr(k: EMemberAccess, obj: e, idx: i, ty: ty)
+                    return Expr(k: EPointerMemberAccess, obj: e, idx: i, ty: ty, loc: e.loc)
+                return Expr(k: EMemberAccess, obj: e, idx: i, ty: ty, loc: e.loc)
         type_error("struct/union " & $e.ty.sname & " has no member " & t.l.tok.s)
         return nil
     of TLbracket: # function call
@@ -7381,7 +7416,7 @@ proc postfix_expression(): Expr =
             var a = castto(args[i], params[i][1])
             args[i] = a
             inc i
-        return Expr(k: ECall, callfunc: f, callargs: args, ty: ty.ret)
+        return Expr(k: ECall, callfunc: f, callargs: args, ty: ty.ret, loc: e.loc)
     of TLSquareBrackets: # array subscript
         if e.ty.spec != TYPOINTER:
             type_error("array subscript is not a pointer")
@@ -7399,7 +7434,7 @@ proc postfix_expression(): Expr =
         consume()
         var ty = e.ty.p
         ty.tags = ty.tags or TYLVALUE
-        return Expr(k: ESubscript, left: e, right: rhs, ty: ty)
+        return Expr(k: ESubscript, left: e, right: rhs, ty: ty, loc: e.loc)
     else:
         return e
 
@@ -7626,7 +7661,7 @@ proc conditional_expression(start: Expr): Expr =
         note("the left is " & $lhs.ty)
         note("the right is " & $rhs.ty)
     conv(lhs, rhs)
-    return Expr(k: ECondition, cond: start, cleft: lhs, cright: rhs, ty: lhs.ty)
+    return Expr(k: ECondition, cond: start, cleft: lhs, cright: rhs, ty: lhs.ty, loc: start.loc)
 
 proc conditional_expression(): Expr =
     let e = logical_OR_expression()
@@ -7728,7 +7763,7 @@ proc runParser(): Stmt =
 
 proc compound_statement(): Stmt =
     ## parse mant statements
-    result = Stmt(k: SCompound)
+    result = Stmt(k: SCompound, loc: getLoc())
     consume()
     enterBlock()
     while t.l.tok.tok != TRcurlyBracket:
@@ -7746,7 +7781,7 @@ proc compound_statement(): Stmt =
     return result
 
 proc compound_statement(params: seq[(string, CType)], lables: var HashSet[string]): Stmt =
-    result = Stmt(k: SCompound)
+    result = Stmt(k: SCompound, loc: getLoc())
     consume()
     enterBlock()
     t.sema.lables.add(initTable[string, uint8]())
@@ -7781,6 +7816,7 @@ proc compound_statement(params: seq[(string, CType)], lables: var HashSet[string
 
 proc statament(): Stmt =
     ## parse a statement
+    var loc = getLoc()
     if t.l.tok.tok == KAsm:
         result = parse_asm()
         if t.l.tok.tok != TSemicolon:
@@ -7790,7 +7826,7 @@ proc statament(): Stmt =
         return result
     if t.l.tok.tok == TSemicolon:
         consume()
-        return Stmt(k: SSemicolon)
+        return Stmt(k: SSemicolon, loc: loc)
     elif t.l.tok.tok == TLcurlyBracket:
         return compound_statement()
     elif t.l.tok.tok == Kcase:
@@ -7807,7 +7843,7 @@ proc statament(): Stmt =
         if s == nil:
             expectStatement()
             return nil
-        return Stmt(k: Scase, case_expr: castto(e, t.sema.currentCase), case_stmt: s)
+        return Stmt(k: Scase, case_expr: castto(e, t.sema.currentCase), case_stmt: s, loc: loc)
     elif t.l.tok.tok == Kdefault:
         consume()
         if t.l.tok.tok != TColon:
@@ -7817,7 +7853,7 @@ proc statament(): Stmt =
         let s = statament()
         if s == nil:
             return nil
-        return Stmt(k: SDefault, default_stmt: s)
+        return Stmt(k: SDefault, default_stmt: s, loc: loc)
     elif t.l.tok.tok == Kgoto:
         consume()
         if t.l.tok.tok != TIdentifier:
@@ -7831,31 +7867,31 @@ proc statament(): Stmt =
             return nil
         consume()
         getLabel(location)
-        return Stmt(k: SGoto, location: location)
+        return Stmt(k: SGoto, location: location, loc: loc)
     elif t.l.tok.tok == Kcontinue:
         consume()
         if t.l.tok.tok != TSemicolon:
             expect("';'")
             return nil
         consume()
-        return Stmt(k: SContinue)
+        return Stmt(k: SContinue, loc: loc)
     elif t.l.tok.tok == Kbreak:
         consume()
         if t.l.tok.tok != TSemicolon:
             expect("';'")
             return nil
         consume()
-        return Stmt(k: SBreak)
+        return Stmt(k: SBreak, loc: loc)
     elif t.l.tok.tok == Kreturn:
         consume()
         if t.l.tok.tok == TSemicolon:
             consume()
             if bool(t.sema.currentfunctionRet.tags and TYVOID):
-                return Stmt(k: SReturn, exprbody: nil)
+                return Stmt(k: SReturn, exprbody: nil, loc: loc)
             warning("use default value in 'return' statement")
             note("function should return a value, but no value provided in 'return'")
             note("A return statement without an expression shall only appear in a function whose return type is void")
-            return Stmt(k: SReturn, exprbody: Expr(k: EDefault, ty: t.sema.currentfunctionRet))
+            return Stmt(k: SReturn, exprbody: Expr(k: EDefault, ty: t.sema.currentfunctionRet), loc: loc)
         let e = expression()
         if e == nil:
             expectExpression()
@@ -7868,13 +7904,13 @@ proc statament(): Stmt =
             warning("the value of 'return' statement is ignored")
             warning("'return' a value in function return void")
             note("A return statement with an expression shall not appear in a function whose return type is void")
-            return Stmt(k: SReturn, exprbody: nil)
+            return Stmt(k: SReturn, exprbody: nil, loc: loc)
         if not compatible(e.ty, t.sema.currentfunctionRet) and e.ty.spec != TYPRIM:
             # if it is cast from int to long, int to double, ...etc, we do not emit a warning
             warning("incompatible type in 'return' statement")
             note("expect " & $t.sema.currentfunctionRet & ", but got " & $e.ty)
             inTheExpression(e)
-        return Stmt(k: SReturn, exprbody: castto(e, t.sema.currentfunctionRet))
+        return Stmt(k: SReturn, exprbody: castto(e, t.sema.currentfunctionRet), loc: loc)
     elif t.l.tok.tok == Kif:
         consume()
         if t.l.tok.tok != TLbracket:
@@ -7902,7 +7938,7 @@ proc statament(): Stmt =
             if elsebody == nil:
                 expectStatement()
                 return nil
-        return Stmt(k: SIf, iftest: e, ifbody: s, elsebody: elsebody)
+        return Stmt(k: SIf, iftest: e, ifbody: s, elsebody: elsebody, loc: loc)
     elif t.l.tok.tok == Kwhile or t.l.tok.tok == Kswitch:
         let tok = t.l.tok.tok
         consume()
@@ -7929,12 +7965,12 @@ proc statament(): Stmt =
                 expectStatement()
                 return nil
             t.sema.currentCase = oldcase
-            return Stmt(k: SSwitch, test: e, body: s)
+            return Stmt(k: SSwitch, test: e, body: s, loc: loc)
         let s = statament()
         if s == nil:
             expectStatement()
             return nil
-        return Stmt(k: SWhile, test: e, body: s)
+        return Stmt(k: SWhile, test: e, body: s, loc: loc)
     elif t.l.tok.tok == Kfor:
         # this are valid in C
         # for(int a;;)                                                                                                                                          
@@ -7960,7 +7996,7 @@ proc statament(): Stmt =
                 if ex == nil:
                     expectExpression()
                     return nil
-                init = Stmt(k: SExpr, exprbody: ex)
+                init = Stmt(k: SExpr, exprbody: ex, loc: loc)
                 if t.l.tok.tok != TSemicolon:
                     expect("';'")
                     return nil
@@ -7994,7 +8030,7 @@ proc statament(): Stmt =
             expectStatement()
             return nil
         leaveBlock()
-        return Stmt(k: SFor, forinit: init, forcond: cond, forbody: s, forincl: forincl)
+        return Stmt(k: SFor, forinit: init, forcond: cond, forbody: s, forincl: forincl, loc: loc)
     elif t.l.tok.tok == Kdo:
         consume()
         let s = statament()
@@ -8023,7 +8059,7 @@ proc statament(): Stmt =
             expect("';'")
             return nil
         consume()
-        return Stmt(k: SDoWhile, test: e, body: s)
+        return Stmt(k: SDoWhile, test: e, body: s, loc: loc)
     elif t.l.tok.tok == TIdentifier:
         var val = t.l.tok.s
         consume()
@@ -8035,7 +8071,7 @@ proc statament(): Stmt =
                 note("to add a empty statement, use:\n\tlabel: ;")
                 return nil
             putLable(val)
-            return Stmt(k: SLabled, label: val, labledstmt: s)
+            return Stmt(k: SLabled, label: val, labledstmt: s, loc: loc)
         else: # expression
             putToken()
             t.l.tok = TokenV(tok: TIdentifier, tags: TVSVal, s: val)
@@ -8047,7 +8083,7 @@ proc statament(): Stmt =
         expect("';'")
         return nil
     consume()
-    return Stmt(k: SExpr, exprbody: e)
+    return Stmt(k: SExpr, exprbody: e, loc: loc)
 
 
 proc link(opath: string = app.output) =
