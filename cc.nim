@@ -16,13 +16,15 @@
 
 # llvm-config --ldflags --system-libs --libs all
 
+include "config.nim"
+
 when defined(windows):
-    when defined(CC_NO_RAEADLINE):
+    when CC_NO_RAEADLINE:
         {.passL: "./llvm/llvmAPI.o libLLVM-15.dll".}
     else:
         {.passL: "./llvm/llvmAPI.o libLLVM-15.dll -lreadline -ltinfo".}
 else:
-    when defined(CC_NO_RAEADLINE):
+    when CC_NO_RAEADLINE:
         {.passL: "-L/usr/lib/llvm-15/lib -lLLVM-15 ./llvm/llvmAPI.o".}
     else:
         {.passL: "-L/usr/lib/llvm-15/lib -lLLVM-15 ./llvm/llvmAPI.o -lreadline -ltinfo".}
@@ -30,7 +32,7 @@ else:
 import std/[math, sets, tables, editdistance, heapqueue, sequtils, os, times, unicode, macrocache, strutils, exitprocs]
 import llvm/llvm
 
-when not defined(CC_NO_RAEADLINE):
+when not CC_NO_RAEADLINE:
     import readline/[readline, history]
 
 type
@@ -42,7 +44,7 @@ type
   uintmax_t = uint64
   Codepoint = uint32
 
-when defined(windows):
+when USE_SetConsoleTextAttribute:
     import winlean
     type CONSOLE_SCREEN_BUFFER_INFO {.importc, nodecl.} = object
         wAttributes: DWORD
@@ -107,10 +109,6 @@ type
       when defined(windows):
         hStderr: HANDLE
         hStderrInfo: CONSOLE_SCREEN_BUFFER_INFO
-
-const
-  STREAM_BUFFER_SIZE* = 8192 ## 8 KB
-  STDIN_PROMPT: cstring = ">>> "
 
 type
     Fd* = cint
@@ -624,15 +622,15 @@ type
         packed: bool
       of TYENUM:
         ename: string
+        enumerators: seq[(string, uintmax_t)] # only valid when app.g is true
       of TYBITFIELD:
         bittype: CType
-        bitsize: intmax_t
+        bitsize: uintmax_t
       of TYFUNCTION:
-        fname: string
         ret: CType
         params: seq[(string, CType)]
       of TYARRAY:
-        arrsize: intmax_t
+        arrsize: uintmax_t
         arrtype: CType
         hassize: bool
         vla: Expr
@@ -718,6 +716,7 @@ type
         fval: float
       of EString:
         str: string
+        is_constant: bool
       of EVar:
         sval: string
       of EArray, EStruct:
@@ -994,9 +993,9 @@ const ## basic types
 const ## type alias
   TYCHAR = TYINT8
   TYSHORT = TYINT16
-  TYWCHAR = TYSHORT ## wchar type: may be 2 or 4 bytes ...
+  TYWCHAR = when CC_WCHAR32: TYINT32 else: TYINT16
   TYINT = TYINT32
-  TYLONG = TYINT64 ## 32 bit in MSVC, 64 bit in GCC/JVM
+  TYLONG = when CC_LONG64: TYINT64 else: TYINT32
   TYLONGLONG = TYINT64
   TYUCHAR = TYUINT8
   TYUSHORT = TYUINT16
@@ -1012,11 +1011,13 @@ const
     TYBOOL
   unsigned = TYUINT8 or TYUINT16 or TYUINT32 or TYUINT64
 
-proc addTag(a: uint32, dst: var string) =
-# if bool(a and TYAUTO): dst.add("auto ")
+proc addTag2(a: uint32, dst: var string) =
   if bool(a and TYCONST): dst.add("const ")
-  if bool(a and TYRESTRICT): dst.add("restrict ")
   if bool(a and TYVOLATILE): dst.add("volatile ")
+  if bool(a and TYRESTRICT): dst.add("restrict ")
+
+proc addTag(a: uint32, dst: var string) =
+  addTag2(a, dst)
   if bool(a and TYATOMIC): dst.add("_Atomic ")
   if bool(a and TYINLINE): dst.add("inline ")
   if bool(a and TYSTATIC): dst.add("static ")
@@ -1037,29 +1038,19 @@ proc joinShow2[A, B](a: seq[(A, B)]): string =
         result.add(", ")
     result.add($a[^1][1] & ' ' & $a[^1][0])
 
-proc joinShow3(a: seq[(string, CType)], level=1): string =
-    var padding = "  ".repeat(level)
-    result = "{\n"
-    for (s, ty) in a:
-        result.add(padding & '\t')
-        result.add(`$`(ty, level=level + 1))
-        result.add(' ')
-        result.add(s)
-        result.add(';')
-        result.add('\n')
-    if level > 2:
-      result.add("  ".repeat(level - 2))
-    result.add("}")
-
 proc `$`(a: CType, level=0): string =
   if a == nil:
     return "<nil>"
   result = ""
   case a.spec:
   of TYINCOMPLETE:
-    let s = if a.tag == TYSTRUCT:  "struct" else: (if a.tag == TYUNION: "union" else: "enum")
-    return s & ' ' & a.name & " <incomplete-type>"
-  of TYPRIM: # format style: const int
+    if a.tag == TYSTRUCT:
+        return "struct " & a.sname
+    if a.tag == TYUNION:
+        return "union " & a.sname
+    if a.tag == TYENUM:
+        return "enum " & a.ename
+  of TYPRIM:
       addTag(a.tags, result)
       let s = (
         if bool(a.tags and TYVOID): "void"
@@ -1080,29 +1071,31 @@ proc `$`(a: CType, level=0): string =
       if s.len > 0:
         result.add(s)
   of TYENUM:
+    addTag(a.tags, result)
     result.add("enum " & a.ename)
   of TYFUNCTION:
-    result.add($a.ret & a.fname & " (" & joinShow2(a.params) & ')')
+    result.add($a.ret & " (*)(" & joinShow2(a.params) & ')')
   of TYSTRUCT:
-    result.add("struct " & a.sname & ' ' & joinShow3(a.selems, level + 1))
+    addTag(a.tags, result)
+    result.add("struct " & a.sname)
   of TYUNION:
-    result.add("union " & a.sname & ' ' & joinShow3(a.selems, level + 1))
+    addTag(a.tags, result)
+    result.add("union " & a.sname)
   of TYBITFIELD:
     result.add($a.bittype & " : " &  $a.bitsize)
-  of TYPOINTER: # format style: (int const)
+  of TYPOINTER:
     result.add('(')
-    result.add($a.p & '*')
-    addTag(a.tags, result)
-    result.add(')')
+    addTag2(a.tags, result)
+    result.add($a.p)
+    result.add("*)")
   of TYARRAY:
-    result.add($a.arrtype & " [" & (if a.arrsize < 0: "" else: $a.arrsize) & "]")
-
+    result.add($a.arrtype & " [" & (if a.vla != nil: $a.vla else: (if a.hassize: $a.arrsize else: "")) & "]")
 
 proc make_primitive(tag: uint32): CType =
   CType(tags: tag, spec: TYPRIM)
 
 type TypeCache = object
-    b, v, i8, u8, i16, u16, i32, u32, i64, u64, ffloatty, fdoublety: CType
+    b, v, i8, u8, i16, u16, i32, u32, i64, u64, ffloatty, fdoublety, strty: CType
 
 var tycache = TypeCache(
   b: make_primitive(TYBOOL),
@@ -1116,7 +1109,8 @@ var tycache = TypeCache(
   i64: make_primitive(TYINT64),
   u64: make_primitive(TYUINT64),
   ffloatty: make_primitive(TYFLOAT),
-  fdoublety: make_primitive(TYDOUBLE)
+  fdoublety: make_primitive(TYDOUBLE),
+  strty: CType(spec: TYPOINTER, tags: TYINVALID, p: make_primitive(TYINT8))
 )
 
 proc iintty(self: TypeCache): CType =
@@ -1132,22 +1126,22 @@ proc uintty(self: TypeCache): CType =
         self.u64
 
 proc ilongty(self: TypeCache): CType =
-    when TYLONG == TYINT32:
-        self.i32
-    else:
+    when CC_LONG64:
         self.i64
+    else:
+        self.i32
 
 proc icharty(self: TypeCache): CType =
     self.i8
 
 proc ulongty(self: TypeCache): CType =
-    when TYULONG == TYUINT32:
-        self.u32
-    else:
+    when CC_LONG64:
         self.u64
+    else:
+        self.u32
 
 proc iwcharty(self: TypeCache): CType =
-    when TYWCHAR == TYINT32:
+    when CC_WCHAR32:
         self.i32
     else:
         self.i16
@@ -1278,7 +1272,7 @@ type
   BScope {.final.} = object
     tags: Table[string, Info] ## struct/union/enums
     typedefs: Table[string, Info] ## typedef, variables
-    enums: Table[string, intmax_t] ## enum constants
+    enums: Table[string, uintmax_t] ## enum constants
   Sema {.final.} = object ## Semantics processor
     scopes: seq[BScope] # block scope
     currentfunctionRet, currentInitTy, currentCase: CType
@@ -1309,18 +1303,18 @@ type
     DIvoidty, DIi1, DIi8, DIi16, DIi32, DIi64, DIffloat, DIfdouble, DIintPtr, DIptr
   BasicType = object
     ty: Type
-    align: byte
-    sizeBits: byte
-    sizeBytes: byte
     di: DIType
   Backend = object
     types: array[BasicTypeIndex, BasicType]
+    ## other signed types
+    di8, di16, di32, di64: DIType
     ## jump labels
     labels: seq[Table[string, Label]]
     ## struct/union
     tags: seq[Table[string, Type]]
     ## variables
     vars: seq[Table[string, Value]]
+    dtags: seq[Table[string, DIType]]
     ## module
     m: ModuleRef
     module: ModuleRef
@@ -1425,6 +1419,8 @@ proc specifier_qualifier_list(): CType
 proc constant_expression(): Expr =
     conditional_expression()
 
+proc warn_if_bad_cast(e: Expr, ty: CType, msg: string): bool
+
 proc consoleColoredWritter(s: StringRef, ty: MessageType) {.raises: [], locks: 0, cdecl.}
 
 var t = Parser(
@@ -1480,44 +1476,44 @@ proc consoleColoredWritter(s: StringRef, ty: MessageType) {.raises: [], locks: 0
         fstderr << app.strbuf
         return
     app.strbuf.setLen 0
-    when defined(windows):
+    when USE_SetConsoleTextAttribute:
         fstderr << "cc: "
     else:
         app.strbuf.add("cc: ")
     if app.isAttyStderr:
         if ty == MError:
             # red
-            when defined(windows):
+            when USE_SetConsoleTextAttribute:
                 discard SetConsoleTextAttribute(app.hStderr, FOREGROUND_RED)
             else:
                 app.strbuf.add("\e[31m")
         elif ty == MNote:
             # green
-            when defined(windows):
+            when USE_SetConsoleTextAttribute:
                 discard SetConsoleTextAttribute(app.hStderr, FOREGROUND_GREEN)
             else:
                 app.strbuf.add("\e[32m")
         elif ty == MWarning:
             # purple
-            when defined(windows):
+            when USE_SetConsoleTextAttribute:
                 discard SetConsoleTextAttribute(app.hStderr, FOREGROUND_BLUE or FOREGROUND_RED)
             else:
                 app.strbuf.add("\e[35m")
         elif ty == MParseError:
             # blue
-            when defined(windows):
+            when USE_SetConsoleTextAttribute:
                 discard SetConsoleTextAttribute(app.hStderr, FOREGROUND_BLUE)
             else:
                 app.strbuf.add("\e[34m")
         elif ty == MTypeError:
             # yellow
-            when defined(windows):
+            when USE_SetConsoleTextAttribute:
                 discard SetConsoleTextAttribute(app.hStderr, FOREGROUND_GREEN or FOREGROUND_RED)
             else:
                 app.strbuf.add("\e[33m")
         elif ty == MEvalError:
             # blue
-            when defined(windows):
+            when USE_SetConsoleTextAttribute:
                 discard SetConsoleTextAttribute(app.hStderr, FOREGROUND_BLUE or FOREGROUND_GREEN or FOREGROUND_INTENSITY)
             else:
                 app.strbuf.add("\e[36m")
@@ -1533,7 +1529,7 @@ proc consoleColoredWritter(s: StringRef, ty: MessageType) {.raises: [], locks: 0
         app.strbuf.add("type error")
     elif ty == MParseError:
         app.strbuf.add("parse error")
-    when defined(windows):
+    when USE_SetConsoleTextAttribute:
         fstderr << app.strbuf    
         if app.isAttyStderr:
             discard SetConsoleTextAttribute(app.hStderr, hStderrInfo.wAttributes)
@@ -1551,25 +1547,24 @@ proc consoleColoredWritter(s: StringRef, ty: MessageType) {.raises: [], locks: 0
 
 proc showToken(): string =
   case t.l.tok.tok:
-  of TNumberLit: "number " & $t.l.tok.i
-  of TPPNumber: "number " & t.l.tok.s
-  of TCharLit: "char " & show(char(t.l.tok.i))
-  of TIdentifier, CPPIdent: "identifier " & t.l.tok.s
-  of TSpace: "space"
+  of TNumberLit: '\'' & $t.l.tok.i & '\''
+  of TPPNumber: '\'' & t.l.tok.s & '\''
+  of TCharLit: show(char(t.l.tok.i))
+  of TIdentifier, CPPIdent: '\'' & t.l.tok.s & '\''
+  of TSpace: "'space'"
   of PPSharp: "'#'"
-  of PPPlaceholder: "<placeholder>"
   of PPSharpSharp: "'##'"
-  of TFloatLit: "float " & $t.l.tok.f
+  of TFloatLit: '\'' & $t.l.tok.f & '\''
   of TEllipsis2: "'..'"
   of TEllipsis: "'...'"
-  of TStringLit: "string \"" & t.l.tok.s & '"'
+  of TStringLit: '"' & t.l.tok.s & '"'
   of TEOF: "<EOF>"
   of TNul: "<null>"
   else:
     if t.l.tok.tok < T255:
-      "char " & show(chr(int(t.l.tok.tok)))
+       show(char(int(t.l.tok.tok)))
     else:
-      "keyword " & $t.l.tok.tok
+      "'keyword " & $t.l.tok.tok & '\''
 
 proc make_tok(op: Token) {.inline.} =
     t.l.tok = TokenV(tok: op, tags: TVNormal)
@@ -1695,7 +1690,7 @@ proc readChar(s: Stream): char {.raises: [].} =
         inc s.i
     of StdinStream:
         if s.i >= len(s.s):
-            when defined(CC_NO_RAEADLINE):
+            when CC_NO_RAEADLINE:
                 fstderr << STDIN_PROMPT
                 try:
                     s.s = stdin.readLine()
@@ -1713,107 +1708,125 @@ proc readChar(s: Stream): char {.raises: [].} =
         result = s.s[s.i]
         inc s.i
 
-proc my_UNEG(a: uintmax_t): intmax_t {.importc: "myopneg", nodecl, header: "myop.h".}
+proc my_UNEG(a: uintmax_t): uintmax_t {.importc: "myopneg", nodecl, header: "myop.h".}
 
-proc my_SNEG(a: intmax_t): intmax_t {.importc: "myopneg", nodecl, header: "myop.h".}
+proc my_SNEG(a: intmax_t): uintmax_t {.importc: "myopneg", nodecl, header: "myop.h".}
 
-proc `&&`(a, b: intmax_t): intmax_t {.importc: "myopand", nodecl, header: "myop.h".}
+proc `&&`(a, b: uintmax_t): uintmax_t {.importc: "myopand", nodecl, header: "myop.h".}
 
-proc `||`(a, b: intmax_t): intmax_t {.importc: "myopor", nodecl, header: "myop.h".}
+proc `||`(a, b: uintmax_t): uintmax_t {.importc: "myopor", nodecl, header: "myop.h".}
 
-proc `!`(a: intmax_t): intmax_t {.importc: "myopnot", nodecl, header: "myop.h".}
+proc `!`(a: uintmax_t): uintmax_t {.importc: "myopnot", nodecl, header: "myop.h".}
 
-proc evali(e: Expr): intmax_t
-
-proc eval_const_expression(e: Expr): intmax_t = evali(e)
-
-proc eval_error2(msg: string): intmax_t =
+proc eval_error2(msg: string): uintmax_t =
   t.pp.eval_error = true
   t.pp.eval_error_msg = msg
-  return intmax_t(0)
+  return 0
 
 proc write_eval_msg() = 
-    eval_error(t.pp.eval_error_msg)
+    eval_error("error when evaluating constant-expression: " & t.pp.eval_error_msg)
 
-proc evali(e: Expr): intmax_t =
+proc evali(e: Expr): uintmax_t
+
+proc casti(e: Expr): uintmax_t =
+    if bool(e.ty.tags and TYBOOL):
+        return evali(e.castval) and 1
+    if bool(e.ty.tags and (TYINT8 or TYUINT8)):
+        return evali(e.castval) and high(uint8)
+    if bool(e.ty.tags and (TYINT16 or TYUINT16)):
+        return evali(e.castval) and high(uint16)
+    if bool(e.ty.tags and (TYINT32 or TYUINT32)):
+        return evali(e.castval) and high(uint32)
+    else:
+        return evali(e.castval)
+
+proc evali(e: Expr): uintmax_t =
   ## run the constant expression
   ##
   ## if error, setting eval_error
   case e.k:
   of EBin:
-      case e.bop:
-      of SAdd, UAdd:
-        evali(e.lhs) + evali(e.rhs)
-      of SSub, USub:
-        evali(e.lhs) - evali(e.rhs)
-      of SMul, UMul:
-        evali(e.lhs) * evali(e.rhs)
-      of UDiv:
-        cast[intmax_t](cast[uintmax_t](evali(e.lhs)) div cast[uintmax_t](evali(e.rhs)))
-      of SDiv:
-        evali(e.lhs) div evali(e.rhs)
-      of URem:
-        cast[intmax_t](cast[uintmax_t](evali(e.lhs)) mod cast[uintmax_t](evali(e.rhs)))
-      of Shr:
-        cast[intmax_t](cast[uintmax_t](evali(e.lhs)) shr cast[uintmax_t](evali(e.rhs)))
-      of AShr:
-        # https://stackoverflow.com/questions/53746160/how-to-implement-arithmetic-right-shift-in-c
-        # https://stackoverflow.com/questions/7622/are-the-shift-operators-arithmetic-or-logical-in-c
-        evali(e.lhs) shr evali(e.rhs)
-      of EQ:
-        if evali(e.lhs) == evali(e.rhs): 1 else: 0
-      of NE:
-        if evali(e.lhs) != evali(e.rhs): 1 else: 0
-      of SGE:
-        if evali(e.lhs) >= evali(e.rhs): 1 else: 0
-      of SGT:
-        if evali(e.lhs) > evali(e.rhs): 1 else: 0
-      of SLE:
-        if evali(e.lhs) <= evali(e.rhs): 1 else: 0
-      of SLT:
-        if evali(e.lhs) < evali(e.rhs): 1 else: 0
-      of UGE:
-        if cast[uintmax_t](evali(e.lhs)) >= cast[uintmax_t](evali(e.rhs)): 1 else: 0
-      of UGT:
-        if cast[uintmax_t](evali(e.lhs)) > cast[uintmax_t](evali(e.rhs)): 1 else: 0
-      of ULE:
-        if cast[uintmax_t](evali(e.lhs)) <= cast[uintmax_t](evali(e.rhs)): 1 else: 0
-      of ULT:
-        if cast[uintmax_t](evali(e.lhs)) < cast[uintmax_t](evali(e.rhs)): 1 else: 0
-      of And:
-        evali(e.lhs) and evali(e.rhs)
-      of Xor:
-        evali(e.lhs) xor evali(e.rhs)
-      of Or:
-        evali(e.lhs) or evali(e.rhs)
-      of LogicalAnd:
-        evali(e.lhs) && evali(e.rhs)
-      of LogicalOr:
-        evali(e.lhs) || evali(e.rhs)
-      else:
-        eval_error2("cannot eval constant-expression: " & $e)
+    case e.bop:
+    of SAdd, UAdd:
+      evali(e.lhs) + evali(e.rhs)
+    of SSub, USub:
+      evali(e.lhs) - evali(e.rhs)
+    of SMul, UMul:
+      evali(e.lhs) * evali(e.rhs)
+    of UDiv:
+      evali(e.lhs) div evali(e.rhs)
+    of SDiv:
+      uintmax_t(intmax_t(evali(e.lhs)) div intmax_t(evali(e.rhs)))
+    of URem:
+      evali(e.lhs) mod evali(e.rhs)
+    of SRem:
+      uintmax_t(intmax_t(evali(e.lhs)) mod intmax_t(evali(e.rhs)))
+    of Shr:
+      evali(e.lhs) shr evali(e.rhs)
+    of AShr:
+      uintmax_t(ashr(intmax_t(evali(e.lhs)), evali(e.rhs)))
+    of EQ:
+      if evali(e.lhs) == evali(e.rhs): 1 else: 0
+    of NE:
+      if evali(e.lhs) != evali(e.rhs): 1 else: 0
+    of UGE:
+      if evali(e.lhs) >= evali(e.rhs): 1 else: 0
+    of UGT:
+      if evali(e.lhs) > evali(e.rhs): 1 else: 0
+    of ULE:
+      if evali(e.lhs) <= evali(e.rhs): 1 else: 0
+    of ULT:
+      if evali(e.lhs) < evali(e.rhs): 1 else: 0
+    of SGE:
+      if intmax_t(evali(e.lhs)) >= intmax_t(evali(e.rhs)): 1 else: 0
+    of SGT:
+      if intmax_t(evali(e.lhs)) > intmax_t(evali(e.rhs)): 1 else: 0
+    of SLE:
+      if intmax_t(evali(e.lhs)) <= intmax_t(evali(e.rhs)): 1 else: 0
+    of SLT:
+      if intmax_t(evali(e.lhs)) < intmax_t(evali(e.rhs)): 1 else: 0
+    of And:
+      evali(e.lhs) and evali(e.rhs)
+    of Xor:
+      evali(e.lhs) xor evali(e.rhs)
+    of Or:
+      evali(e.lhs) or evali(e.rhs)
+    of LogicalAnd:
+      evali(e.lhs) && evali(e.rhs)
+    of LogicalOr:
+      evali(e.lhs) || evali(e.rhs)
+    else:
+      eval_error2($e)
   of EUnary:
     case e.uop:
     of Pos:
-      evali(e.uoperand)
+        evali(e.uoperand)
     of UNeg:
-      cast[intmax_t](my_UNEG(cast[uintmax_t](evali(e.uoperand))))
+      my_UNEG(evali(e.uoperand))
     of SNeg:
-      my_SNEG(evali(e.uoperand))
+        my_SNEG(intmax_t(evali(e.uoperand)))
     of LogicalNot:
-      ! evali(e.uoperand)
+        ! evali(e.uoperand)
     of Not:
-      not evali(e.uoperand)
+        not evali(e.uoperand)
     else:
-      eval_error2("cannot eval constant-expression: bad unary operator: " & $e)
+        eval_error2($e)
+  of ECast:
+    case e.castop:
+    of ZExt, SExt:
+        evali(e.castval)
+    of Trunc:
+        casti(e)
+    else:
+        eval_error2("cannot cast to " & $e.ty)
   of EIntLit:
-    intmax_t(e.ival)
+    e.ival
   of EFloatLit:
-    return eval_error2("floating constant in constant-expression")
+    eval_error2("floating constant in constant-expression")
   of ECondition:
     if evali(e.cond) != 0: evali(e.cleft) else: evali(e.cright)
   else:
-    eval_error2("cannot eval constant-expression: " & $e)
+    eval_error2($e)
 
 proc getToken()
 
@@ -2490,7 +2503,7 @@ proc nextTok() =
                     parse_error("expect constant_expression")
                     ok = false
                 else:
-                    ok = eval_const_expression(e) != 0
+                    ok = evali(e) != 0
                     if t.pp.eval_error:
                         write_eval_msg()
                 t.pp.ppstack.add(if ok: 1 else: 0)
@@ -2540,7 +2553,7 @@ proc nextTok() =
                         parse_error("expect constant_expression")
                         ok = false
                     else:
-                        ok = eval_const_expression(e) != 0
+                        ok = evali(e) != 0
                     t.pp.ok = ok
                 else:
                     t.pp.ok = false
@@ -3167,16 +3180,15 @@ proc checkMacro() =
     else:
         t.l.tok.tok = TIdentifier
 
-var i = 0
-var options = commandLineParams()
-var appFileName = getAppFilename()
+var cli_idx = 0
+let options = commandLineParams()
 
 proc hasNext(): bool =
-  return i < len(options)
+  return cli_idx < len(options)
 
 proc get(): string =
-  result = options[i]
-  inc i
+  result = options[cli_idx]
+  inc cli_idx
 
 proc system(command: cstring): cint {.importc: "system", header: "stdio.h".}
 
@@ -3260,12 +3272,6 @@ proc initBackend() =
   b.types[DIi64].ty = int64TypeInContext(b.ctx)
   b.types[DIffloat].ty = floatTypeInContext(b.ctx)
   b.types[DIfdouble].ty = doubleTypeInContext(b.ctx)
-
-  for i in succ(DIvoidty) ..< high(BasicTypeIndex):
-    let ty = b.types[i].ty
-    b.types[i].sizeBits = uint8(sizeOfTypeInBits(b.layout, ty))
-    b.types[i].sizeBytes = uint8(storeSizeOfType(b.layout, ty))
-    b.types[i].align = uint8(aBIAlignmentOfType(b.layout, ty))
 
   b.i32_1 = constInt(b.types[DIi32].ty, 1)
   b.i32_0 = constInt(b.types[DIi32].ty, 0)
@@ -3471,7 +3477,7 @@ proc parseCLI(): bool =
     else:
       if inputs == false:
         inputs = true
-        name = i
+        name = cli_idx
       addFile(one)
   if t.fstack.len == 0:
     error("no input files")
@@ -3489,7 +3495,7 @@ proc parseCLI(): bool =
                 app.output.add(".exe")
   else:
     if app.output.len == 0:
-        i = name - 1
+        cli_idx = name - 1
         app.output.add(get())
         case app.mode:
         of OutputLLVMAssembly:
@@ -3553,9 +3559,6 @@ proc llvmGetAlignof(ty: CType): culonglong =
 proc llvmGetsizeof(ty: CType): culonglong =
   storeSizeOfType(b.layout, wrap2(ty))
 
-proc llvmGetOffsetof(ty: CType, idx: int): culonglong =
-  offsetOfElement(b.layout, wrap(ty), cuint(idx))
-
 proc getsizeof(ty: CType): culonglong =
     if ty.spec == TYINCOMPLETE:
         error_incomplete(ty)
@@ -3603,8 +3606,11 @@ proc getAlignof(e: Expr): culonglong =
 proc emitDebugLocation() =
     setCurrentDebugLocation2(b.builder, nil)
 
+proc wrap(loc: Location): DIScope =
+    dIBuilderCreateDebugLocation(b.ctx, loc.line.cuint, loc.col.cuint, getLexScope(), nil)
+
 proc emitDebugLocation(e: Expr | Stmt) =
-    var loc = dIBuilderCreateDebugLocation(b.ctx, e.loc.line.cuint, e.loc.col.cuint, b.lexBlocks[^1], nil)
+    var loc = wrap(e.loc)
     setCurrentDebugLocation2(b.builder, loc)
 
 proc addLLVMModule(source_file: string) =
@@ -3613,8 +3619,7 @@ proc addLLVMModule(source_file: string) =
   setModuleDataLayout(b.module, b.layout)
   setTarget(b.module, app.triple.cstring)
 
-  const idents: cstring = "cc: A C Compiler(https://ianfun.github.io/cc.git)"
-  var ident = mDStringInContext(b.ctx, idents, len(idents))
+  var ident = mDStringInContext(b.ctx, cstring(cc_version_full), len(cc_version_full))
   addNamedMetadataOperand(b.module, "llvm.ident", ident)
 
   const wchars: cstring = "short_wchar"
@@ -3639,8 +3644,8 @@ proc addLLVMModule(source_file: string) =
         b.di,
         DWARFSourceLanguageC99,
         file,
-        "cc",
-        2,
+        cstring(cc_version_full),
+        cc_version_full.len.csize_t,
         isOptimized=False,
         flags="",
         flagsLen=0,
@@ -3657,20 +3662,26 @@ proc addLLVMModule(source_file: string) =
         sDKLen=0
     ))
     proc dbgType(v: BasicTypeIndex, name: string, encoding: cuint) =
-        b.types[v].di = dIBuilderCreateBasicType(b.di, name, len(name).csize_t, b.types[v].sizeBits, encoding, DIFlagZero)
+        b.types[v].di = dIBuilderCreateBasicType(b.di, name, len(name).csize_t, sizeOfTypeInBits(b.layout, b.types[v].ty), encoding, DIFlagZero)
 
-    b.types[DIptr].di = dIBuilderCreatePointerType(b.di, nil, b.types[DIintPtr].sizeBits, b.types[DIintPtr].align, 0, "void*", 5)
+    proc dbgType2(name: string, encoding: cuint, sizeBits: uint64): DIType =
+        dIBuilderCreateBasicType(b.di, name, len(name).csize_t, sizeBits, encoding, DIFlagZero)
+
+    b.types[DIptr].di = dIBuilderCreatePointerType(b.di, nil, sizeOfTypeInBits(b.layout, b.types[DIintPtr].ty), 0, 0, "void*", 5)
     # void is always nil in DIType!
     dbgType(DIi1, "_Bool", DW_ATE_boolean)
-    dbgType(DIi8, "char", DW_ATE_unsigned)
-    dbgType(DIintPtr, "intptr_t", DW_ATE_signed)
-    dbgType(DIi16, "short", DW_ATE_unsigned)
-    dbgType(DIi32, "int", DW_ATE_unsigned)
-    dbgType(DIi64, "long long int", DW_ATE_unsigned)
+    dbgType(DIi8, "unsiged char", DW_ATE_unsigned)
+    dbgType(DIi16, "unsigned short", DW_ATE_unsigned)
+    dbgType(DIi32, "unsigned", DW_ATE_unsigned)
+    dbgType(DIi64, "unsigned long long", DW_ATE_unsigned)
     dbgType(DIffloat, "float", DW_ATE_decimal_float)
     dbgType(DIfdouble, "double", DW_ATE_decimal_float)
+    b.di8 = dbgType2("char", DW_ATE_signed_char, sizeOfTypeInBits(b.layout, b.types[DIi8].ty))
+    b.di16 = dbgType2("short", DW_ATE_signed, sizeOfTypeInBits(b.layout, b.types[DIi16].ty))
+    b.di32 = dbgType2("int", DW_ATE_signed, sizeOfTypeInBits(b.layout, b.types[DIi32].ty))
+    b.di64 = dbgType2("long long", DW_ATE_signed, sizeOfTypeInBits(b.layout, b.types[DIi64].ty))
     const dwarf_version = "Dwarf Version"
-    addModuleFlag(b.module, 7, dwarf_version, dwarf_version.len.csize_t, valueAsMetadata(constInt(b.types[DIi32].ty, 5)))
+    addModuleFlag(b.module, 7, dwarf_version, dwarf_version.len.csize_t, valueAsMetadata(constInt(b.types[DIi32].ty, DWARF_VERSION)))
     const debug_info = "Debug Info Version"
     addModuleFlag(b.module, 2, debug_info, debug_info.len.csize_t, valueAsMetadata(constInt(b.types[DIi32].ty, debugMetadataVersion())))
 
@@ -3721,10 +3732,14 @@ proc handle_asm(s: string) =
 proc enterScope() =
   b.tags.add(initTable[string, Type]())
   b.vars.add(initTable[string, Value]())
+  if app.g:
+      b.dtags.add(initTable[string, DIType]())
 
 proc leaveScope() =
   discard b.tags.pop()
   discard b.vars.pop()
+  if app.g:
+    discard b.dtags.pop()
 
 proc getVar(name: string): Value =
   for i in countdown(len(b.vars)-1, 0):
@@ -3735,6 +3750,12 @@ proc getVar(name: string): Value =
 proc putVar(name: string, val: Value) =
   b.vars[^1][name] = val
 
+proc getDIEnum(name: string): DIType =
+  for i in countdown(len(b.tags)-1, 0):
+    result = b.dtags[i].getOrDefault(name, nil)
+    if result != nil:
+      return result
+
 proc getTags(name: string): Type =
   for i in countdown(len(b.tags)-1, 0):
     result = b.tags[i].getOrDefault(name, nil)
@@ -3743,6 +3764,9 @@ proc getTags(name: string): Type =
 
 proc putTags(name: string, t: Type) =
   b.tags[^1][name] = t
+
+proc putDIEnum(name: string, t: DIType) =
+    b.dtags[^1][name] = t
 
 proc optimize() =
   var passM = createPassManager()
@@ -3830,7 +3854,7 @@ proc gen_int(i: culonglong, tags: uint32): Value =
 proc gen_float(f: float, tag: uint32): Value =
   constReal(if (tag and TYFLOAT) != 0: b.types[DIffloat].ty else: b.types[DIfdouble].ty, f)
 
-proc gen_str(val: string, ty: var Type): Value =
+proc gen_str(val: string, ty: var Type, is_constant: bool): Value =
   var gstr = constStringInContext(b.ctx, cstring(val), len(val).cuint, False)
   ty = typeOfX(gstr)
   result = addGlobal(b.module, ty, ".str")
@@ -3840,21 +3864,17 @@ proc gen_str(val: string, ty: var Type): Value =
   setInitializer(result, gstr)
   setAlignment(result, 1)
   setUnnamedAddr(result, 1)
+  if is_constant:
+    setGlobalConstant(result, True)
 
-proc gen_str_ptr(val: string): Value =
+proc gen_str_ptr(val: string, is_constant: bool): Value =
   var ty: Type
-  var s = gen_str(val, ty)
+  var s = gen_str(val, ty, is_constant)
   if app.opaquePointerEnabled:
     s
   else:
     var indices = [b.i32_0, b.i32_0]
     gep(ty, s, indices)
-
-proc backendint(): Type =
-    when TYINT == TYINT32:
-      b.types[DIi32].ty
-    else:
-      b.types[DIi64].ty
 
 proc load(p: Value, t: Type, align: uint32 = 0): Value =
   assert p != nil
@@ -3887,30 +3907,114 @@ proc wrap2(ty: CType): Type =
   of TYARRAY:
     return arrayType(wrap(ty.arrtype), cuint(ty.arrsize))
   of TYENUM:
-    return backendint()
+    return b.types[DIi32].ty
   else:
     unreachable()
 
-proc wrap3(ty: CType): DIType = 
+proc createEnum(ty: CType): DIType =
+    var buf = create(DIType, ty.enumerators.len or 1)
+    var arr = cast[ptr UncheckedArray[DIType]](buf)
+    for i in 0 ..< ty.enumerators.len:
+        let (name, val) = ty.enumerators[i]
+        arr[i] = dIBuilderCreateEnumerator(
+            b.di, 
+            cstring(name), name.len.csize_t, 
+            val.int64, isUnsigned=False
+        )
+    result = dIBuilderCreateEnumerationType(
+        b.di, 
+        getLexScope(), 
+        cstring(ty.ename), ty.ename.len.csize_t, 
+        getFile(), lineNumber=0,
+        sizeInBits=sizeOfTypeInBits(b.layout, b.types[DIi32].ty), alignInBits=0, 
+        elements=buf, numElements=ty.enumerators.len.cuint, 
+        classTy=b.di32)
+    dealloc(buf)
+
+proc wrap3Noqualified(ty: CType): DIType =
   case ty.spec:
   of TYPRIM:
+    if bool(ty.tags and TYINT8):
+        return b.di8
+    if bool(ty.tags and TYINT16):
+        return b.di16
+    if bool(ty.tags and TYINT32):
+        return b.di32
+    if bool(ty.tags and TYINT64):
+        return b.di64
     return b.types[getBasicTypeIndex(ty.tags)].di
   of TYPOINTER:
     if bool(ty.tags and TYVOID):
         return b.types[DIptr].di
     var p = wrap3(ty.p)
     var s = $ty
-    return dIBuilderCreatePointerType(b.di, p, b.types[DIintPtr].sizeBits, b.types[DIintPtr].align, 0, cstring(s), s.len.csize_t)
+    return dIBuilderCreatePointerType(b.di, p, sizeOfTypeInBits(b.layout, b.types[DIptr].ty), 0, 0, cstring(s), s.len.csize_t)
   of TYSTRUCT, TYUNION:
-    return nil
+    if len(ty.sname) > 0:
+        result = getDIEnum(ty.sname)
+        if result != nil:
+            return result
+    var t = wrap2(ty)
+    let l = len(ty.selems)
+    var buf = create(DIType, l or 1)
+    var arr = cast[ptr UncheckedArray[DIType]](buf)
+    for i in 0 ..< l:
+        var m = wrap3(ty.selems[i][1])
+        arr[i] = dIBuilderCreateMemberType(
+            b.di, getLexScope(), 
+            cstring(ty.selems[i][0]), ty.selems[i][0].len.csize_t,
+            getFile(), lineNo=0, sizeInBits=getsizeof(ty.selems[i][1]),
+            alignInBits=0, offsetInBits=offsetOfElement(b.layout, t, i.cuint) * 8,
+            flags=DIFlagZero, ty=m
+        )
+    result = dIBuilderCreateStructType(
+        b.di, getLexScope(), 
+        cstring(ty.sname), ty.sname.len.csize_t,
+        getFile(), lineNumber=0,
+        sizeInBits=sizeOfTypeInBits(b.layout, t), alignInBits=preferredAlignmentOfType(b.layout, t) * 8, flags=DIFlagZero,
+        derivedFrom=nil,
+        elements=buf,
+        numElements=l.cuint,
+        runTimeLang=0,
+        vTableHolder=nil,
+        uniqueId=nil,
+        uniqueIdLen=0,
+        )
+    dealloc(buf)
+    if ty.sname.len > 0:
+        putDIEnum(ty.sname, result)
   of TYARRAY:
-    return nil
+    var size = getsizeof(ty)
+    var subscripts: MetadataRef = nil
+    if ty.hassize:
+        subscripts = dIBuilderGetOrCreateSubrange(b.di, 0, size.int64)
+    else:
+        subscripts = nimdIBuilderGetOrCreateSubrange(b.di, nil)
+    return dIBuilderCreateArrayType(b.di, size, getAlignof(ty).uint32, wrap3(ty.arrtype), addr subscripts, 1)
   of TYFUNCTION:
     return createDebugFuctionType(ty)
   of TYENUM:
-    return b.types[DIi32].di
+    if ty.ename.len != 0:
+      result = getDIEnum(ty.ename)
+      if result != nil:
+        return result
+    result = createEnum(ty)
+    if ty.ename.len != 0:
+        putDIEnum(ty.ename, result)
+    return result
   else:
     unreachable()
+
+proc wrap3(ty: CType): DIType = 
+    result = wrap3Noqualified(ty)
+    if result != nil:
+        if bool(ty.tags and TYCONST):
+            result = dIBuilderCreateQualifiedType(b.di, DW_TAG_const_type, result)
+        if bool(ty.tags and TYVOLATILE):
+            result = dIBuilderCreateQualifiedType(b.di, DW_TAG_volatile_type, result)
+        if bool(ty.tags and TYRESTRICT):
+            result = dIBuilderCreateQualifiedType(b.di, DW_TAG_restrict_type, result)
+
 
 proc wrap(ty: CType): Type =
   ## wrap a CType to LLVM Type
@@ -3983,7 +4087,7 @@ proc wrap(ty: CType): Type =
       result = getTags(ty.ename)
       if result != nil:
         return result
-    result = backendint()
+    result = b.types[DIi32].ty
     if ty.ename.len != 0:
         putTags(ty.ename, result)
     return result
@@ -4000,7 +4104,7 @@ proc wrap(ty: CType): Type =
         return result
       return structCreateNamed(b.ctx, cstring(ty.sname))
     of TYENUM:
-      return backendint()
+      return b.types[DIi32].ty
     else:
       unreachable()
   of TYBITFIELD:
@@ -4190,6 +4294,7 @@ proc gen_for(test: Expr, body: Stmt, sforinit: Stmt, eforincl: Expr) =
     # for.incl
     setInsertPoint(forincl)
     if eforincl != nil:
+        b.expr_stmt = true
         discard gen(eforincl)
   
     if getTerminator() == nil:
@@ -4323,7 +4428,13 @@ proc newFunction(varty: CType, name: string): Value =
                 break
             setValueName2(getParam(result, i.cuint), cstring(varty.params[i][0]), varty.params[i][0].len.csize_t)
 
-proc getLinkageName(): (cstring, uint) =
+proc getLinkageName(tags: uint32): (cstring, uint) =
+    if bool(tags and TYSTATIC):
+        return (cstring("static"), 6.uint)
+    if bool(tags and TYEXTERN):
+        return (cstring("extern"), 6.uint)
+    if bool(tags and TYTHREAD_LOCAL):
+        return (cstring("_Thread_local"), 13.uint)
     return (nil, 0.uint)
 
 proc gen(s: Stmt) =
@@ -4331,11 +4442,18 @@ proc gen(s: Stmt) =
     emitDebugLocation(s)
   case s.k:
   of SCompound:
-    # TODO: Block
+    if app.g:
+        b.lexBlocks.add(
+            dIBuilderCreateLexicalBlock(
+                b.di, getLexScope(), getFile(), s.loc.line, s.loc.col
+            )
+        )
     enterScope()
     for i in s.stmts:
       gen(i)
     leaveScope()
+    if app.g:
+        discard b.lexBlocks.pop()
   of SExpr:
       b.expr_stmt = true
       discard gen(s.exprbody)
@@ -4344,9 +4462,10 @@ proc gen(s: Stmt) =
       assert s.functy.spec == TYFUNCTION
       var ty = wrap(s.functy)
       b.currentfunction = newFunction(s.functy, s.funcname)
+      var sp: MetadataRef
       if app.g:
-        var l = getLinkageName()
-        var sp = dIBuilderCreateFunction(b.di, getLexScope(), s.funcname.cstring, s.funcname.len.csize_t, l[0], l[1], getFile(), 
+        var l = getLinkageName(s.functy.ret.tags)
+        sp = dIBuilderCreateFunction(b.di, getLexScope(), s.funcname.cstring, s.funcname.len.csize_t, l[0], l[1], getFile(), 
             s.loc.line, createDebugFuctionType(s.functy), False, True, 0, DIFlagZero, False)
         setSubprogram(b.currentfunction, sp)
         b.lexBlocks.add(sp)
@@ -4358,6 +4477,9 @@ proc gen(s: Stmt) =
         var j = addBlock(cstring(L))
         b.labels[^1][L] = j
       var paramLen = countParamTypes(ty)
+      var loc: MetadataRef
+      if app.g:
+         loc = wrap(s.loc)
       if paramLen > 0:
         var fparamsTypes = create(Type, paramLen)
         var typesarr = cast[ptr UncheckedArray[Type]](fparamsTypes)
@@ -4365,7 +4487,11 @@ proc gen(s: Stmt) =
         var i = 0
         var iter = getFirstParam(b.currentfunction)
         while iter != nil:
-          var p = buildAlloca(b.builder, typesarr[i], cstring(s.functy.params[i][0]))
+          var name = cstring(s.functy.params[i][0])
+          var p = buildAlloca(b.builder, typesarr[i], name)
+          if app.g:
+            var v = dIBuilderCreateParameterVariable(b.di, getLexScope(), name, s.functy.params[i][0].len.csize_t, cuint(i + 1), getFile(), s.loc.line, wrap3(s.functy.params[i][1]), False, DIFlagZero)
+            discard dIBuilderInsertDeclareAtEnd(b.di, p, v, dIBuilderCreateExpression(b.di, nil, 0), loc, entry)
           store(p, iter)
           putVar(s.functy.params[i][0], p)
           iter = getNextParam(iter)
@@ -4376,6 +4502,8 @@ proc gen(s: Stmt) =
       leaveScope()
       if app.g:
         discard b.lexBlocks.pop()
+      if app.g:
+        dIBuilderFinalizeSubprogram(b.di, sp)
       discard b.labels.pop()
       b.currentfunction = nil
   of SReturn:
@@ -4402,6 +4530,8 @@ proc gen(s: Stmt) =
     gen_for(s.forcond, s.forbody, s.forinit, s.forincl)
     leaveScope()
   of SDeclOnly:
+    if app.g:
+        discard wrap3Noqualified(s.decl)
     discard wrap(s.decl)
   of SLabled:
     var ib = b.labels[^1].getOrDefault(s.label, nil)
@@ -4466,6 +4596,10 @@ proc gen(s: Stmt) =
               warning("register variables is ignored in LLVM backend")
           # setLinkage(g, CommonLinkage)
           putVar(name, g)
+          if app.g:
+            var linkage = getLinkageName(varty.tags)
+            var gve = dIBuilderCreateGlobalVariableExpression(b.di, getLexScope(), cstring(name), name.len.csize_t, linkage[0], linkage[1], getFile(), s.loc.line, wrap3(varty), False, dIBuilderCreateExpression(b.di, nil, 0), nil, align)
+            nimGlobalAddDebugInfo(g, gve)
         else:
           var ty: Type = nil
           var vla: Value = nil
@@ -4479,6 +4613,9 @@ proc gen(s: Stmt) =
             val = buildArrayAlloca(b.builder, ty, vla, cstring(name))
           else:
             val = buildAlloca(b.builder, ty, cstring(name))
+          if app.g:
+            var v = dIBuilderCreateAutoVariable(b.di, getLexScope(), cstring(name), name.len.csize_t, getFile(), s.loc.line, wrap3(varty), False, 0, 0)
+            discard dIBuilderInsertDeclareAtEnd(b.di, val, v, dIBuilderCreateExpression(b.di, nil, 0), wrap(s.loc), getInsertBlock(b.builder))
           if align != 0:
             setAlignment(val, align)
             if init != nil:
@@ -4523,7 +4660,7 @@ proc getStruct(e: Expr): Value =
       dealloc(inits)
 
 proc getArray(e: Expr): Value =
-    var l = len(e.arr)
+    var l = len(e.arr).uintmax_t
     var elemTy = wrap(e.ty.arrtype)
     var inits = create(Value, e.ty.arrsize or 1)
     var arr = cast[ptr UncheckedArray[Value]](inits)
@@ -4582,7 +4719,7 @@ proc getAddress(e: Expr): Value =
     var arr = getAddress(e.voidexpr)
     buildBitCast(b.builder, arr, wrap(e.ty), "")
   of EString:
-    gen_str_ptr(e.str)
+    gen_str_ptr(e.str, e.is_constant)
   of EArray, EStruct:
     var v = if e.k == EArray: getArray(e) else: getStruct(e)
     if b.currentfunction == nil:
@@ -4626,7 +4763,7 @@ proc gen(e: Expr): Value =
       base = load(base, wrap(e.obj.ty), e.obj.ty.align)
     buildExtractValue(b.builder, base, e.idx.cuint, "")
   of EString:
-    gen_str_ptr(e.str)
+    gen_str_ptr(e.str, e.is_constant)
   of EBackend:
     cast[Value](e.p)
   of EBin:
@@ -4679,6 +4816,7 @@ proc gen(e: Expr): Value =
       # => a ? 1 : b
       gen_logical(e.rhs, e.lhs, isand=false)
     of Comma:
+      b.expr_stmt = true
       discard gen(e.lhs)
       gen(e.rhs)
     else:
@@ -4845,14 +4983,12 @@ proc runjit() =
 
     let fmain = cast[MainTY](main)
 
-    var o = @[appFileName]
-    o &= options
-    var argslen = len(o)
+    var argslen = len(options)
     var mainargs = create(cstring, argslen or 1)
     var arr = cast[ptr UncheckedArray[cstring]](mainargs)
 
     for i in 0..<argslen:
-      arr[i] = cstring(o[i])
+      arr[i] = cstring(options[i])
 
     let ret = fmain(cint(argslen), mainargs)
 
@@ -5233,7 +5369,7 @@ proc enterBlock() =
   t.sema.scopes.add(BScope(
     typedefs: initTable[string, Info](),
     tags: initTable[string, Info](),
-    enums: initTable[string, intmax_t]()
+    enums: initTable[string, uintmax_t]()
   ))
 
 proc leaveBlock() =
@@ -5292,7 +5428,6 @@ proc intRank(a: uint32): int =
 
 proc err(): bool =
   t.sema.type_error or t.parse_error or t.pp.eval_error
-
 
 proc inTheExpression(e: Expr) =
     ## emit in the expression message
@@ -5387,7 +5522,7 @@ proc putuniondef(ty: CType) =
     else:
         t.sema.scopes[^1].tags[ty.sname] = Info(ty: ty, loc: Location(line: t.l.line, col: t.l.col))
 
-proc putenum(name: string, val: intmax_t) =
+proc putenum(name: string, val: uintmax_t) =
     if t.sema.scopes[^1].enums.contains(name) or t.sema.scopes[^1].typedefs.contains(name):
         type_error('\'' & name & "' redeclared")
     t.sema.scopes[^1].enums[name] = val
@@ -5896,6 +6031,12 @@ proc merge_types(ts: seq[Token]): CType =
     type_error("cannot combine types: " & $b)
     return nil
 
+proc checkSemicolon() =
+   if t.l.tok.tok != TSemicolon:
+       warning("missing ';'")
+   else:
+       consume()
+
 proc type_qualifier_list(ty: var CType) =
     ## parse many type qualifiers, add to type
     while true:
@@ -6010,18 +6151,27 @@ proc declarator(base: CType; flags=Direct): Stmt =
         type_qualifier_list(ty)
     return direct_declarator(ty, flags)
 
+proc warn_if_bad_cast(e: Expr, ty: CType, msg: string): bool =
+    if e.ty.spec == TYPOINTER and ty.spec != TYPOINTER:
+        warning(msg & " makes pointer from integer without a cast")
+        result = true
+    elif e.ty.spec != TYPOINTER and ty.spec == TYPOINTER:
+        warning(msg & " makes integer from pointer without a cast")
+        result = true
+
 proc initializer_list(): Expr =
     if t.l.tok.tok != TLcurlyBracket:
         if t.sema.currentInitTy == nil:
             # when 'excess elements in initializer-list', 't.sema.currentInitTy' is nil
             return assignment_expression()
-        if t.sema.currentInitTy.spec notin {TYPRIM, TYPOINTER}:
+        if t.sema.currentInitTy.spec notin {TYPRIM, TYPOINTER, TYENUM}:
             type_error("expect bracket initializer")
             return nil
         var e = assignment_expression()
         if e == nil:
             expectExpression()
             return nil
+        discard warn_if_bad_cast(e, t.sema.currentInitTy, "initialization of '" & $t.sema.currentInitTy & "' from '" & $e.ty & '\'')
         return castto(e, t.sema.currentInitTy)
     if t.sema.currentInitTy.spec == TYSTRUCT:
         result = Expr(k: EStruct, ty: t.sema.currentInitTy)
@@ -6071,7 +6221,7 @@ proc initializer_list(): Expr =
         if t.l.tok.tok == TComma:
             consume()
         inc i
-    if t.sema.currentInitTy.spec == TYPRIM or t.sema.currentInitTy.spec == TYPOINTER:
+    if t.sema.currentInitTy.spec in {TYPRIM, TYPOINTER, TYENUM}:
         result = result.arr[0]
 
 proc direct_declarator_end(base: CType, name: string): Stmt
@@ -6133,7 +6283,7 @@ proc direct_declarator_end(base: CType, name: string): Stmt =
                 type_error("size of array has non-integer type '" & $e.ty & '\'')
             ty.hassize = true
             var o = t.pp.eval_error
-            ty.arrsize = eval_const_expression(e)
+            ty.arrsize = evali(e)
             if t.pp.eval_error:
                 t.pp.eval_error = o
                 # VLA
@@ -6177,18 +6327,14 @@ proc direct_declarator_end(base: CType, name: string): Stmt =
                 return nil
             if name == "main":
                 if not bool(ty.ret.tags and TYINT):
-                    type_error("main should return 'int'")
+                    warning("main should return 'int'")
                 if ty.params.len >= 1:
                     if ty.params[0][1] != nil and (not bool(ty.params[0][1].tags and TYINT)):
-                        type_error("first parameter of 'main' should be of type 'int'")
+                        warning("first parameter of 'main' should be of type 'int'")
                     if ty.params.len >= 2:
                         if ty.params[1][1] != nil and (not (ty.params[1][1].spec == TYPOINTER and ty.params[1][1].p.spec == TYPOINTER)):
-                            type_error("second parameter of 'main' should be has type 'char'(pointer to char array)")
+                            warning("second parameter of 'main' is not 'char**'")
             if len(body.stmts) == 0 or (body.stmts[^1].k != SReturn and body.stmts[^1].k != SGoto):
-                if not bool(ty.ret.tags and TYVOID):
-                    if name != "main":
-                        warning("no 'return' statement in a function should return a value")
-                        note("in the function definition: '" & name & '\'')
                 body.stmts &= Stmt(k: SReturn, exprbody: if bool(ty.ret.tags and TYVOID): nil else: 
                     (if name == "main": Expr(k: EDefault, ty: ty.ret, loc: getLoc()) else: Expr(k: EUndef, ty: ty.ret, loc: getLoc()))
                 )
@@ -6205,7 +6351,7 @@ proc struct_declarator(base: CType): (string, CType) =
             expectExpression()
             note("in bit field declaration")
             return ("", nil)
-        let bitsize = eval_const_expression(e)
+        let bitsize = evali(e)
         return ("", CType(tags: TYINVALID, spec: TYBITFIELD, bittype: base, bitsize: bitsize))
     else:
         let d = declarator(base, Direct)
@@ -6218,7 +6364,7 @@ proc struct_declarator(base: CType): (string, CType) =
                 expectExpression()
                 note("in bit field declaration")
                 return
-            let bitsize = eval_const_expression(e)
+            let bitsize = evali(e)
             return ("", CType(tags: TYINVALID, spec: TYBITFIELD, bittype: if d.k == SFunction: d.functy else: d.var1type, bitsize: bitsize))
         if d.k == SFunction:
             return (d.funcname, d.functy)
@@ -6279,10 +6425,7 @@ proc struct_union(tok: Token): CType =
                     if t.l.tok.tok == TComma:
                         consume()
                     else:
-                        if t.l.tok.tok != TSemicolon:
-                            expect("';'")
-                            return nil
-                        consume()
+                        checkSemicolon()
                         break
                 if t.l.tok.tok == TRcurlyBracket:
                     consume()
@@ -6317,7 +6460,7 @@ proc enum_decl(): CType =
         return nil
     result = CType(tags: TYINVALID, spec: TYENUM, ename: name)
     consume()
-    var c: intmax_t = 0
+    var c: uintmax_t = 0
     while true:
         if t.l.tok.tok != TIdentifier:
             break # enum {A, } is ok !
@@ -6326,10 +6469,11 @@ proc enum_decl(): CType =
         if t.l.tok.tok == TAssign:
             consume()
             var e = constant_expression()
-            c = eval_const_expression(e)
+            c = evali(e)
             if err():
                 return nil
         putenum(s, c)
+        result.enumerators.add((s, c))
         inc c
         if t.l.tok.tok == TComma:
             consume()
@@ -6393,7 +6537,7 @@ proc parse_alignas(): bool =
         if e == nil:
             expectExpression()
             return false
-        var a = eval_const_expression(e)
+        var a = evali(e)
         if a <= 0:
             type_error("alignment " & $a &  " too small")
         else:
@@ -6479,12 +6623,13 @@ proc static_assert(): Stmt =
     consume()
     var msg = ""
     let e = constant_expression()
-    let ok = eval_const_expression(e) != 0
+    let ok = evali(e) != 0
+    if t.pp.eval_error:
+        write_eval_msg()
     if t.l.tok.tok == TRbracket: # no message
         if ok == false:
             error("static assert failed!")
         consume()
-        note("static assert with no message")
     elif t.l.tok.tok == TComma:
         consume()
         if t.l.tok.tok != TStringLit:
@@ -6501,10 +6646,7 @@ proc static_assert(): Stmt =
     else:
         expect("',' or ')'")
         return nil
-    if t.l.tok.tok != TSemicolon:
-        expect("';'")
-        return nil
-    consume()
+    checkSemicolon()
     return Stmt(k: SSemicolon)
 
 proc checkRetType(ty: CType) =
@@ -7149,10 +7291,10 @@ proc primary_expression(): Expr =
                 return nil
         case enc:
         of 8:
-            let ty = tycache.i8
+            let ty = tycache.strty
             result = Expr(
-                k: ArrToAddress, voidexpr: Expr(k: EString, ty: ty, str: s), 
-                ty: getPointerType(ty), loc: getLoc()
+                k: ArrToAddress, voidexpr: Expr(k: EString, ty: ty, str: s, is_constant: true), 
+                ty: ty, loc: getLoc()
             )
         of 16:
             var a: seq[Expr]
@@ -7207,7 +7349,11 @@ proc primary_expression(): Expr =
         if t.pp.want_expr:
             result = Expr(k: EIntLit, ival: 0, ty: tycache.iintty) # no location!
         elif t.l.tok.s == "__func__":
-            result = Expr(k: EString, str: t.sema.pfunc, ty: CType(tags: TYCONST, spec: TYPOINTER, p: tycache.icharty), loc: getLoc())
+            let ty = tycache.strty
+            result = Expr(
+                k: ArrToAddress, voidexpr: Expr(k: EString, str: t.sema.pfunc, ty: ty, is_constant: true), 
+                ty: ty, loc: getLoc()
+            )
         else:
             var ty: CType = nil
             for i in countdown(len(t.sema.scopes)-1, 0):
@@ -7217,9 +7363,10 @@ proc primary_expression(): Expr =
                   ty = info.ty
                   break
                 if t.sema.scopes[i].enums.hasKey(t.l.tok.s):
-                  var i = t.sema.scopes[i].enums[t.l.tok.s]
+                  var val = t.sema.scopes[i].enums[t.l.tok.s]
+                  var loc = getLoc()
                   consume()
-                  return Expr(k: EIntLit, ival: uintmax_t(i), ty: tycache.iintty)
+                  return Expr(k: EIntLit, ival: val, ty: tycache.iintty, loc: loc)
             if ty == nil:
                 type_error("Variable not in scope: " & t.l.tok.s)
                 if t.l.tok.s.len > 2:
@@ -7400,7 +7547,6 @@ proc postfix_expression(): Expr =
                 return nil
         elif len(params) != len(args):
             type_error("expect " & $(len(params)) & " parameters, " & $len(args) & " provided")
-            inTheExpression(f)
             return nil
         var i = 0
         while true:
@@ -7410,9 +7556,12 @@ proc postfix_expression(): Expr =
                 for j in i ..< len(args):
                     args[j] = default_argument_promotions(args[j])
                 break
-            #if not compatible(args[i].ty, params[i][1]):
-            #    warning("incompatible type in calling function '" & $f & '\'')
-            #    note("expect '" & $params[i][1] & "' but argument " & $i & " is of type '" & $args[i].ty & '\'')
+            var msg = "passing argument " 
+            msg.add($(i + 1))
+            msg.add(" of '")
+            msg.add($f)
+            msg.add('\'')
+            discard warn_if_bad_cast(args[i], params[i][1], msg)
             var a = castto(args[i], params[i][1])
             args[i] = a
             inc i
@@ -7740,10 +7889,7 @@ proc translation_unit(): Stmt =
     while t.l.tok.tok != TEOF:
         if t.l.tok.tok == KAsm:
             s = parse_asm()
-            if t.l.tok.tok != TSemicolon:
-               expect("';'")
-               s = nil
-            consume()
+            checkSemicolon()
         else:
             s = declaration()
         if s == nil:
@@ -7819,10 +7965,7 @@ proc statament(): Stmt =
     var loc = getLoc()
     if t.l.tok.tok == KAsm:
         result = parse_asm()
-        if t.l.tok.tok != TSemicolon:
-           expect("';'")
-           return nil
-        consume()
+        checkSemicolon()
         return result
     if t.l.tok.tok == TSemicolon:
         consume()
@@ -7836,7 +7979,7 @@ proc statament(): Stmt =
             expect("constant-expression")
             return nil
         if t.l.tok.tok != TColon:
-            expect("':'")
+            expect(":")
             return nil
         consume()
         let s = statament()
@@ -7847,7 +7990,7 @@ proc statament(): Stmt =
     elif t.l.tok.tok == Kdefault:
         consume()
         if t.l.tok.tok != TColon:
-            expect("':'")
+            expect(":")
             return nil
         consume()
         let s = statament()
@@ -7862,25 +8005,16 @@ proc statament(): Stmt =
             return nil
         var location = t.l.tok.s
         consume()
-        if t.l.tok.tok != TSemicolon:
-            expect("';'")
-            return nil
-        consume()
+        checkSemicolon()
         getLabel(location)
         return Stmt(k: SGoto, location: location, loc: loc)
     elif t.l.tok.tok == Kcontinue:
         consume()
-        if t.l.tok.tok != TSemicolon:
-            expect("';'")
-            return nil
-        consume()
+        checkSemicolon()
         return Stmt(k: SContinue, loc: loc)
     elif t.l.tok.tok == Kbreak:
         consume()
-        if t.l.tok.tok != TSemicolon:
-            expect("';'")
-            return nil
-        consume()
+        checkSemicolon()
         return Stmt(k: SBreak, loc: loc)
     elif t.l.tok.tok == Kreturn:
         consume()
@@ -7888,28 +8022,19 @@ proc statament(): Stmt =
             consume()
             if bool(t.sema.currentfunctionRet.tags and TYVOID):
                 return Stmt(k: SReturn, exprbody: nil, loc: loc)
-            warning("use default value in 'return' statement")
-            note("function should return a value, but no value provided in 'return'")
+            warning("missing return value in function returning non-void")
             note("A return statement without an expression shall only appear in a function whose return type is void")
             return Stmt(k: SReturn, exprbody: Expr(k: EDefault, ty: t.sema.currentfunctionRet), loc: loc)
         let e = expression()
         if e == nil:
             expectExpression()
             return nil
-        if t.l.tok.tok != TSemicolon:
-            expect("';'")
-            return nil
-        consume()
+        checkSemicolon()
         if bool(t.sema.currentfunctionRet.tags and TYVOID):
-            warning("the value of 'return' statement is ignored")
-            warning("'return' a value in function return void")
+            warning("ignored the return value in function returning void")
             note("A return statement with an expression shall not appear in a function whose return type is void")
             return Stmt(k: SReturn, exprbody: nil, loc: loc)
-        if not compatible(e.ty, t.sema.currentfunctionRet) and e.ty.spec != TYPRIM:
-            # if it is cast from int to long, int to double, ...etc, we do not emit a warning
-            warning("incompatible type in 'return' statement")
-            note("expect " & $t.sema.currentfunctionRet & ", but got " & $e.ty)
-            inTheExpression(e)
+        discard warn_if_bad_cast(e, t.sema.currentfunctionRet, " returning '" & $t.sema.currentfunctionRet & "' from a function with return type '" & $e.ty & "'")
         return Stmt(k: SReturn, exprbody: castto(e, t.sema.currentfunctionRet), loc: loc)
     elif t.l.tok.tok == Kif:
         consume()
@@ -8055,10 +8180,7 @@ proc statament(): Stmt =
             expectRB()
             return nil
         consume()
-        if t.l.tok.tok != TSemicolon:
-            expect("';'")
-            return nil
-        consume()
+        checkSemicolon()
         return Stmt(k: SDoWhile, test: e, body: s, loc: loc)
     elif t.l.tok.tok == TIdentifier:
         var val = t.l.tok.s
@@ -8079,10 +8201,7 @@ proc statament(): Stmt =
     if e == nil:
         expectExpression()
         return nil
-    if t.l.tok.tok != TSemicolon:
-        expect("';'")
-        return nil
-    consume()
+    checkSemicolon()
     return Stmt(k: SExpr, exprbody: e, loc: loc)
 
 
@@ -8193,3 +8312,7 @@ if parseCLI():
         llvm.shutdown()
         set_exit_code(0)
 
+static:
+  echo "CC_LONG64=", CC_LONG64
+  echo "CC_NO_RAEADLINE=", CC_NO_RAEADLINE
+  echo "CC_WCHAR32=", CC_WCHAR32

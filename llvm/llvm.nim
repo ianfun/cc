@@ -213,4 +213,8 @@ proc nimGetEnv*(t: tripleRef): EnvironmentType {.importc: "LLVMNimGetEnv".}
 
 proc nimGetArchName*(t: tripleRef): cstring {.importc: "LLVMNimGetArchName".}
 
+proc nimdIBuilderGetOrCreateSubrange*(b: DIBuilderRef, count: MetadataRef): MetadataRef {.importc: "LLVMNimdIBuilderGetOrCreateSubrange".}
+
+proc nimGlobalAddDebugInfo*(g: ValueRef, m: MetadataRef) {.importc: "LLVMNimGlobalAddDebugInfo".}
+
 # end wrappers

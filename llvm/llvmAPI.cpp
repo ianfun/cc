@@ -20,6 +20,7 @@ $ g++ `llvm-config --cxxflags` llvmAPI.cpp -c -o llvmAPI.o -O3
 #include <cstdint>
 
 #include <llvm-c/Core.h>
+#include <llvm-c/DebugInfo.h>
 #include <llvm-c/TargetMachine.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/Host.h>
@@ -28,8 +29,13 @@ $ g++ `llvm-config --cxxflags` llvmAPI.cpp -c -o llvmAPI.o -O3
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Intrinsics.h>
+#include <llvm/IR/DebugInfo.h>
+#include <llvm/IR/DebugInfoMetadata.h>
+#include <llvm/IR/DIBuilder.h>
+#include <llvm/IR/Metadata.h>
 #include <llvm/MC/TargetRegistry.h>
 #include <llvm/ADT/Triple.h>
+#include <llvm/Support/Casting.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
 
@@ -172,6 +178,13 @@ char* LLVMNimConfigureTarget(const char* tripleStr, LLVMTargetRef *Target, LLVMT
 void LLVMNimSetDSOLocal(LLVMValueRef Global){
 	GlobalValue *GV = unwrap<GlobalValue>(Global);
 	GV->setDSOLocal(true);
+}
+LLVMMetadataRef LLVMNimdIBuilderGetOrCreateSubrange(LLVMDIBuilderRef Builder, LLVMMetadataRef count){
+	return wrap(unwrap(Builder)->getOrCreateSubrange(0, reinterpret_cast<Metadata*>(count)));
+}
+void LLVMNimGlobalAddDebugInfo(LLVMValueRef Global, LLVMMetadataRef GVE){
+	GlobalVariable *G = unwrap<GlobalVariable>(Global);
+	G->addDebugInfo(reinterpret_cast<DIGlobalVariableExpression*>(GVE));
 }
 LLVMValueRef LLVMNimGetAllocaArraySize(LLVMValueRef Alloca){
 	return wrap(unwrap<AllocaInst>(Alloca)->getArraySize());
