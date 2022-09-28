@@ -40,8 +40,6 @@ type
     VerboseLevel = enum
       VError, VWarning, VNote, VVerbose
     Linker = enum LLD, GCCLD
-    Input = enum
-      InputC, InputIR, InputBC, InputObject, InputBF, InputAsm
     Output = enum
       OutputLink,
       OutputLLVMAssembly, OutputBitcode,
@@ -49,7 +47,6 @@ type
       OutputCheck
     CC{.final.} = object
       ## command line options
-      input: Input
       mode: Output
       runJit: bool
       dir: string
@@ -99,7 +96,6 @@ var app = CC(
     inlineThreshold: 0, 
     verboseLevel: VNote,
     mode: OutputLink,
-    input: InputC,
     output: "",
     triple: "",
     runJit: false,
@@ -2277,7 +2273,7 @@ proc ppMacroEq(a, b: PPMacro): bool =
   tokensEq(a.tokens, b.tokens)  
 
 proc nextTok() =
-    ## Tokenize
+    # Tokenize
     while true:
         if t.l.c in CSkip:
             while true:
@@ -3090,6 +3086,7 @@ proc runLD(input, path: string) =
   let status = system(cmd.cstring)
   if status != 0:
     myperror("gcc returned " & $status & " exit status")
+    set_exit_code(1)
 
 proc runLLD(input, output: string) =
   var cmd = "ld.lld --hash-style=gnu --no-add-needed  --build-id --eh-frame-hdr -dynamic-linker /lib/x86_64-linux-gnu/libc.so.6 /usr/lib64/ld-linux-x86-64.so.2 "
@@ -3099,6 +3096,7 @@ proc runLLD(input, output: string) =
   let status = system(cmd.cstring)
   if status != 0:
     error("ld.lld returned " & $status & " exit status")
+    set_exit_code(1)
 
 proc dumpVersionInfo() =
   var arr = [cstring("llvm"), cstring("--version")]
@@ -3109,20 +3107,6 @@ proc showVersion() =
   raw_message_line "Homepage: https://github.com/ianfun/cc.git"
   raw_message_line "Bug report: https://github.com/ianfun/cc/issues"
   dumpVersionInfo()
-
-proc setInput(s: string) =
-  case s:
-  of "c", "C":
-    app.input = InputC
-  of "S", "s", "assembler", "asm", "Asm", "ASM":
-    app.input = InputAsm
-  of "ir", "IR":
-    app.input = InputIR
-  of "bc", "BC":
-    app.input = InputBC
-  else:
-    error("unrecognized input language: " & s)
-    quit 0
 
 proc help()
 
@@ -3146,15 +3130,9 @@ proc initBackend() =
   # you must initTarget before you call this
   b.tsCtx = orcCreateNewThreadSafeContext()
   b.ctx = orcThreadSafeContextGetContext(b.tsCtx)
+  contextSetDiscardValueNames(b.ctx, True)
   b.builder = createBuilderInContext(b.ctx)
   b.types[DIintPtr].ty = intPtrTypeInContext(b.ctx, b.layout)
-  b.arch = nimGetArch(b.triple)
-  b.archName = nimGetArchName(b.triple)
-  b.os = nimGetOS(b.triple)
-  b.env = nimGetEnv(b.triple)
-
-  if app.input == InputC and not app.g:
-    contextSetDiscardValueNames(b.ctx, True)
 
   b.types[DIvoidty].ty = voidTypeInContext(b.ctx)
   b.types[DIptr].ty = pointerTypeInContext(b.ctx, 0)
@@ -3226,7 +3204,6 @@ var cliOptions = [
   ("O4".h, 0, proc () = app.optLevel = 3, " = O3"),
   ("Os".h, 0, proc () = app.sizeLevel = 1, "reduce code size"),
   ("Oz".h, 0, proc () = app.sizeLevel = 2, "reduce code size further"),
-  ("x".h, 1, cast[P](setInput), "set input langauge")
 ]
 
 proc help() =
@@ -3264,17 +3241,6 @@ proc fix(name: string) =
             msg.add("Perhaps you meant: '-" & f.name & "'\n")
     if msg.len > 1:
         fstderr << msg
-
-proc addString(s: string, filename: string) =
-  t.fstack.add(newStringStream(s))
-  t.filenamestack.add(t.filename)
-  t.pathstack.add(t.path)
-  t.locstack.add(Location(line: t.l.line, col: t.l.col))
-  t.filename = filename
-  t.path = filename
-  t.l.line = 1
-  t.l.col = 1
-
 
 proc parseCLI(): bool =
   var inputs = false
@@ -3525,6 +3491,10 @@ proc initTarget(all = false): bool =
     llvm_error(err)
     return false
   app.pointersize = pointerSize(b.layout)
+  b.arch = nimGetArch(b.triple)
+  b.archName = nimGetArchName(b.triple)
+  b.os = nimGetOS(b.triple)
+  b.env = nimGetEnv(b.triple)
   return true
 
 proc handle_asm(s: string) =
@@ -3589,60 +3559,24 @@ proc optimize() =
   passManagerBuilderDispose(pb)
   disposePassManager(passM)
 
-proc link(dest, src: ModuleRef): bool =
-  ## return true when error
-  bool(linkModules2(dest, src))
-
-proc readBitcodeToModule(path: cstring): ModuleRef =
-  var mem: MemoryBufferRef
-  var err: cstring
-  if createMemoryBufferWithContentsOfFile(path, addr mem, cast[cstringArray](addr err)) == True:
-    llvm_error(err)
-    return nil
-  if parseBitcodeInContext(b.ctx, mem, addr result, cast[cstringArray](addr err)) == True:
-    llvm_error(err)
-  disposeMemoryBuffer(mem)
-
-proc readIRToModule(path: cstring): ModuleRef =
-  var mem: MemoryBufferRef
-  var err: cstring
-  if createMemoryBufferWithContentsOfFile(path, addr mem, cast[cstringArray](addr err)) == True:
-    llvm_error(err)
-    return nil
-  if parseIRInContext(b.ctx, mem, addr result, cast[cstringArray](addr err)) == True:
-    llvm_error(err)
-  disposeMemoryBuffer(mem)
-
-proc writeModuleToFile(path: string, m: ModuleRef) =
-  var err: cstring = ""
-  if printModuleToFile(m, path, cast[cstringArray](addr err)) == True:
-    llvm_error(err)
-
 proc writeModuleToFile(path: string) =
-  writeModuleToFile(path, b.module)
-
-proc writeBitcodeToFile(path: string, m: ModuleRef) =
-  if writeBitcodeToFile(m, path) != 0:
-    llvm_error("LLVMWriteBitcodeToFile")
+  var err: cstring
+  if printModuleToFile(b.module, path, cast[cstringArray](addr err)) == True:
+    llvm_error(err)
 
 proc writeBitcodeToFile(path: string) =
-  writeBitcodeToFile(path, b.module)
-
-proc writeObjectFile(path: string, m: ModuleRef) =
-  var err: cstring
-  if targetMachineEmitToFile(b.machine, m, path, ObjectFile, cast[cstringArray](addr err)) == True:
-    llvm_error(err)
+  if writeBitcodeToFile(b.module, path) != 0:
+    llvm_error("LLVMWriteBitcodeToFile")
 
 proc writeObjectFile(path: string) =
-  writeObjectFile(path, b.module)
-
-proc writeAssemblyFile(path: string, m: ModuleRef) =
   var err: cstring
-  if targetMachineEmitToFile(b.machine, m, path, AssemblyFile, cast[cstringArray](addr err)) == True:
+  if targetMachineEmitToFile(b.machine, b.module, path, ObjectFile, cast[cstringArray](addr err)) == True:
     llvm_error(err)
 
 proc writeAssemblyFile(path: string) =
-  writeAssemblyFile(path, b.module)
+  var err: cstring
+  if targetMachineEmitToFile(b.machine, b.module, path, AssemblyFile, cast[cstringArray](addr err)) == True:
+    llvm_error(err)
 
 proc gen(e: Expr): Value
 
@@ -8055,7 +7989,6 @@ proc statament(): Stmt =
     checkSemicolon()
     return Stmt(k: SExpr, exprbody: e, loc: loc)
 
-
 proc link(opath: string = app.output) =
     case app.linker:
     of GCCLD:
@@ -8082,83 +8015,28 @@ proc output() =
     of OutputLink:
         link()
 
-proc c() =
-    let translation_unit = runParser()
-    if err():
-        stderr.writeLine("compilation terminated.")
-        set_exit_code(1)
-        return
-    if app.mode != OutputCheck:
-        gen(translation_unit)
-        optimize()
-        if app.runJit:
-            runJit()
-            if app.mode != OutputLink:
-                warning("jit cannot combine with other output flags\njit will not write output\n")
-        else:
-            output()
-            if app.g:
-                dIBuilderFinalize(b.di)
-                disposeDIBuilder(b.di)
-            disposeBuilder(b.builder)
-
-proc brainfuck(i: Stream) =
-    var s = "int getchar(void);int putchar(int);int main(){charptr=malloc(1024);"
-    while true:
-        var x = readChar(i)
-        if x == '\0':
-            break
-        s.add(
-            case x:
-            of '+': "++ptr;"
-            of '-': "--ptr;"
-            of '<': "++ptr"
-            of '>': "--ptr"
-            of '.': "putchar(ptr);"
-            of ',': "ptr = getchar();"
-            of '[': "while(ptr){"
-            of ']': "}"
-            else: ""
-        )
-    s.add("free(ptr);}")
-    addString(s, "<brainfuck>")
-
-proc bf() =
-    for s in t.fstack:
-        brainfuck(s)
-        close(s)
-    c()
-
-
 set_exit_code(1)
 if parseCLI():
-    if initTarget(): 
-        initBackend()
-        for (name, v) in getDefines():
-            t.pp.macros[name] = PPMacro(tokens: v, flags: MOBJ)
-        addLLVMModule(t.path)
-        case app.input:
-        of InputC:
-            c()
-        of InputBF:
-            bf()
-        of InputIR, InputBC:
-            var reader = if app.input == InputBC: readBitcodeToModule else: readIRToModule
-            b.module = reader(t.pathstack[1].cstring)
-            if b.module != nil:
-                var i = 2
-                while true:
-                    if i == len(t.pathstack):
-                        optimize()
-                        output()
-                        break
-                    var n = reader(t.pathstack[i].cstring)
-                    if n == nil:
-                        break
-                    if link(b.module, n):
-                        break
-                    inc i
-        of InputObject, InputAsm:
-            warning("use gcc instead for object and assembly file")
-        llvm.shutdown()
-        set_exit_code(0)
+      if initTarget(): 
+          initBackend()
+          for (name, v) in getDefines():
+              t.pp.macros[name] = PPMacro(tokens: v, flags: MOBJ)
+          addLLVMModule(t.path)
+          let translation_unit = runParser()
+          if not err():
+              set_exit_code(0)
+              if app.mode != OutputCheck:
+                  gen(translation_unit)
+                  optimize()
+                  if app.runJit:
+                      runJit()
+                      if app.mode != OutputLink:
+                          warning("jit cannot combine with other output flags\njit will not write output\n")
+                  else:
+                      if app.g:
+                          dIBuilderFinalize(b.di)
+                          disposeDIBuilder(b.di)
+                      disposeBuilder(b.builder)
+                      output()
+              
+          llvm.shutdown()
