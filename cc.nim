@@ -1,23 +1,10 @@
-## cc - A C Compiler
-##
-## translation-unit:
-##
-## Source stream => Lexer => CPP => Parser => code generator => Optmizer => Write output(LLVM IR, Assembly)
-##
-## `myop.h` is defined as
-## ```C
-## #define myopand(a, b) ((a) && (b))
-## #define myopor(a, b) ((a) || (b))
-## #define myopnot(a) (!(a))
-## #define myopneg(a) (-(a))
-## ```
-##
-## note: should call `SetConsoleTextAttribute` in Windows?
-
-# llvm-config --ldflags --system-libs --libs all
+# cc - C Compiler
+#
+# Copyright(c) ianfun 2022
 
 include "config.nim"
 
+# llvm-config --ldflags --system-libs --libs all
 when defined(windows):
     when CC_NO_RAEADLINE:
         {.passL: "./llvm/llvmAPI.o libLLVM-15.dll".}
@@ -45,33 +32,7 @@ type
   Codepoint = uint32
 
 when USE_SetConsoleTextAttribute:
-    import winlean
-    type CONSOLE_SCREEN_BUFFER_INFO {.importc, nodecl.} = object
-        wAttributes: DWORD
-    let 
-      FOREGROUND_BLUE {.importc, nodecl.}: DWORD
-      FOREGROUND_GREEN {.importc, nodecl.}: DWORD
-      FOREGROUND_RED {.importc, nodecl.}: DWORD
-      FOREGROUND_INTENSITY {.importc, nodecl.}: DWORD
-      BACKGROUND_BLUE {.importc, nodecl.}: DWORD
-      BACKGROUND_GREEN {.importc, nodecl.}: DWORD
-      BACKGROUND_RED {.importc, nodecl.}: DWORD
-      BACKGROUND_INTENSITY {.importc, nodecl.}: DWORD
-      COMMON_LVB_LEADING_BYTE {.importc, nodecl.}: DWORD
-      COMMON_LVB_TRAILING_BYTE {.importc, nodecl.}: DWORD
-      COMMON_LVB_GRID_HORIZONTAL {.importc, nodecl.}: DWORD
-      COMMON_LVB_GRID_LVERTICAL {.importc, nodecl.}: DWORD
-      COMMON_LVB_GRID_RVERTICAL {.importc, nodecl.}: DWORD
-      COMMON_LVB_REVERSE_VIDEO {.importc, nodecl.}: DWORD
-      COMMON_LVB_UNDERSCORE {.importc, nodecl.}: DWORD
-      STD_ERROR_HANDLE {.importc, nodecl.}: DWORD
-
-    proc GetStdHandle(nStdHandle: DWORD): HANDLE {.importc, nodecl, header: "windows.h".}
-
-    proc SetConsoleTextAttribute(hConsoleOutput: HANDLE, dwAttributes: DWORD): WINBOOL {.importc, nodecl, header: "windows.h".}
-
-    proc GetConsoleScreenBufferInfo(hConsoleOutput: HANDLE, lpConsoleScreenBufferInfo: ptr CONSOLE_SCREEN_BUFFER_INFO): WINBOOL {.importc, nodecl, header: "windows.h".}
-
+    import wincolor
 else:
     proc isatty(fd: cint): cint {.importc: "isatty", header: "<unistd.h>".}
 
@@ -97,7 +58,6 @@ type
       inlineThreshold: cuint
       output: string
       verboseLevel: VerboseLevel
-      opaquePointerEnabled: bool
       linker: Linker
       triple: string
       ## input files
@@ -126,7 +86,7 @@ proc open(pathname: cstring, flags: cint): cint {.importc: "open", nodecl, heade
 
 proc close(fd: cint): cint {.importc: "close", nodecl, header: "unistd.h".}
 
-proc lseek(fd: Fd, offset: off_t , whence: int): off_t {.importc: "lseek", nodecl, header: "unistd.h".}
+# proc lseek(fd: Fd, offset: off_t , whence: int): off_t {.importc: "lseek", nodecl, header: "unistd.h".}
 
 let O_RDONLY = cint(0)
 
@@ -138,7 +98,6 @@ var app = CC(
     sizeLevel: 0.cuint, 
     inlineThreshold: 0, 
     verboseLevel: VNote,
-    opaquePointerEnabled: true,
     mode: OutputLink,
     input: InputC,
     output: "",
@@ -176,61 +135,6 @@ type
 
 proc `<<`(stream: Fd, msg: string) =
     discard write(stream, cstring(msg), msg.len.csize_t)
-
-proc `<<`(stream: Fd, c: char) =
-    var a = c
-    discard write(stream, addr a, 1)
-
-let 
-  SEEK_CUR {.importc: "SEEK_CUR", nodecl.}: cint
-  SEEK_END {.importc: "SEEK_END", nodecl.}: cint
-  SEEK_SET {.importc: "SEEK_SET", nodecl.}: cint
-
-proc printSourceLine(s: Stream, line: int) {.raises: [].} =
-    case s.k:
-    of StdinStream, StringStream:
-        discard
-    of FileStream:
-        var old = lseek(s.fd, 0, SEEK_CUR)
-        if old > 0 and lseek(s.fd, -2, SEEK_CUR) == 0:
-            var c: char
-            let t = read(s.fd, addr c, 1)
-            if t < 0:
-                return
-            if (c == '\n' or c == '\r') and lseek(s.fd, -2, SEEK_CUR) == 0:
-                while true:
-                    var c: char
-                    let ok = read(s.fd, addr c, 1)
-                    if ok < 0 or c == '\n' or c == '\r':
-                        break
-                    if lseek(s.fd, -2, SEEK_CUR) < 0:
-                        break
-            var off = 0
-            while true:
-                var c: char
-                let t = read(s.fd, addr c, 1)
-                if t < 0 or c == '\n' or c == '\r':
-                    break
-                if lseek(s.fd, -2, SEEK_CUR) != 0:
-                    discard lseek(s.fd, -1, SEEK_CUR)
-                    break
-                inc off
-            var f = $line
-            for i in 0..<(6-len(f)):
-                fstderr << ' '
-            fstderr << f
-            fstderr << " | "
-            while true:
-                var c: char
-                let t = read(s.fd, addr c, 1)
-                if t < 0 or c == '\n' or c == '\r':
-                    break
-                fstderr << c
-            fstderr << "\n       | "
-            for i in 0..<off:
-                fstderr << '~'
-            fstderr << "\e[32m^\e[0m\n"
-            discard lseek(s.fd, old, SEEK_SET)
 
 proc newStringStream(s: string): Stream {.raises: [].} =
     result = Stream(k: StringStream, s: s, i: 0)
@@ -966,6 +870,7 @@ const ## optional type tags
   TYTHREAD_LOCAL = make_ty()
   TYTYPEDEF = make_ty()
   TYLVALUE = make_ty()
+  TYPARAM = make_ty()
 
 const ## basic types
   TYVOID = make_ty()
@@ -1007,6 +912,24 @@ proc addTag2(a: uint32, dst: var string) =
   if bool(a and TYVOLATILE): dst.add("volatile ")
   if bool(a and TYRESTRICT): dst.add("restrict ")
 
+proc noralizeType(ty: var CType) =
+    const mask = TYTYPEDEF or TYEXTERN or TYSTATIC or TYTHREAD_LOCAL or TYREGISTER
+    case ty.spec:
+    of TYFUNCTION:
+        var h = ty.ret.tags and mask
+        ty.ret.tags = ty.ret.tags and (not mask)
+        ty.tags = ty.tags or h
+    of TYARRAY:
+        var h = ty.arrtype.tags and mask
+        ty.arrtype.tags = ty.arrtype.tags and (not mask)
+        ty.tags = ty.tags or h
+    of TYPOINTER:
+        var h = ty.p.tags and mask
+        ty.p.tags = ty.p.tags and (not mask)
+        ty.tags = ty.tags or h
+    else:
+        discard
+
 proc addTag(a: uint32, dst: var string) =
   addTag2(a, dst)
   if bool(a and TYATOMIC): dst.add("_Atomic ")
@@ -1035,12 +958,16 @@ proc `$`(a: CType, level=0): string =
   result = ""
   case a.spec:
   of TYINCOMPLETE:
-    if a.tag == TYSTRUCT:
-        return "struct " & a.sname
-    if a.tag == TYUNION:
-        return "union " & a.sname
-    if a.tag == TYENUM:
-        return "enum " & a.ename
+    case a.tag:
+    of TYSTRUCT:
+        result.add("struct ")
+    of TYUNION:
+        result.add("union ")
+    of TYENUM:
+        result.add("enum ")
+    else:
+        unreachable()
+    result.add(a.name)
   of TYPRIM:
       addTag(a.tags, result)
       let s = (
@@ -1122,9 +1049,6 @@ proc ilongty(self: TypeCache): CType =
     else:
         self.i32
 
-proc icharty(self: TypeCache): CType =
-    self.i8
-
 proc ulongty(self: TypeCache): CType =
     when CC_LONG64:
         self.u64
@@ -1142,9 +1066,6 @@ proc ilonglongty(self: TypeCache): CType =
 
 proc ulonglongty(self: TypeCache): CType =
     self.u64
-
-proc ishortty(self: TypeCache): CType =
-    self.i16
 
 proc ushortty(self: TypeCache): CType =
     self.u16
@@ -1209,11 +1130,6 @@ proc `&`(s: string, c: StringRef): string =
 proc `[]`(self: StringRef, idx: auto): char =
     assert idx < self.len, "index too large for const string!"
     self.str[idx]
-
-proc hash(self: StringRef): uint64 =
-    result = 5381
-    for i in 0 ..< self.len:
-        result = ((result shl 5) + result) + uint64(self.str[i])
 
 proc len(self: StringRef): int = self.len
 
@@ -1338,21 +1254,26 @@ type
     ## true when gen expression statement
     expr_stmt: bool
 
-
 var b = Backend()
+
+# clang use i8 for C's void types(LLVM's void type void type only allowed for function results)
+# for the code
+#   `extern void foo;`
+# will produce 
+#   `@foo = external global i8, align 1`
+# and `void*` is `i8*` or `ptr` in clang
 
 proc getBasicTypeIndex(a: uint32): BasicTypeIndex =
     if (a and TYBOOL) != 0: DIi1
-    elif (a and (TYINT8 or TYUINT8)) != 0: DIi8
+    elif (a and (TYINT8 or TYUINT8 or TYVOID)) != 0: DIi8
     elif (a and (TYINT16 or TYUINT16)) != 0: DIi16
     elif (a and (TYINT32 or TYUINT32)) != 0: DIi32
     elif (a and (TYINT64 or TYUINT64)) != 0: DIi64
     elif (a and TYFLOAT) != 0: DIffloat
     elif (a and TYDOUBLE) != 0: DIfdouble
-    elif (a and TYVOID) != 0: DIvoidty
     else:
       unreachable()
-      DIi1
+      DIi8
 
 proc `$`(loc: Location): string =
   $loc.line & ':' & $loc.col
@@ -1472,7 +1393,7 @@ proc consoleColoredWritter(s: StringRef, ty: MessageType) {.raises: [], locks: 0
     else:
         app.strbuf.add("cc: ")
     if app.isAttyStderr:
-        if ty == MError:
+        if ty == MError or ty == MTypeError:
             # red
             when USE_SetConsoleTextAttribute:
                 discard SetConsoleTextAttribute(app.hStderr, FOREGROUND_RED)
@@ -1496,12 +1417,6 @@ proc consoleColoredWritter(s: StringRef, ty: MessageType) {.raises: [], locks: 0
                 discard SetConsoleTextAttribute(app.hStderr, FOREGROUND_BLUE)
             else:
                 app.strbuf.add("\e[34m")
-        elif ty == MTypeError:
-            # yellow
-            when USE_SetConsoleTextAttribute:
-                discard SetConsoleTextAttribute(app.hStderr, FOREGROUND_GREEN or FOREGROUND_RED)
-            else:
-                app.strbuf.add("\e[33m")
         elif ty == MEvalError:
             # blue
             when USE_SetConsoleTextAttribute:
@@ -1622,9 +1537,6 @@ template verbose(msg: untyped) =
 template note(msg: untyped) =
     if ord(app.verboseLevel) >= ord(VNote):
         write(msg, MNote)
-
-proc addOnce() =
-    t.pp.onces.incl t.path
 
 proc putToken() = 
     t.tokenq.add(t.l.tok)
@@ -2364,19 +2276,6 @@ proc ppMacroEq(a, b: PPMacro): bool =
   (if a.flags == MFUNC: (a.ivarargs == b.ivarargs) else: true) and
   tokensEq(a.tokens, b.tokens)  
 
-proc macro_define(name: string, m: PPMacro) =
-  let pr = t.pp.macros.getOrDefault(name, nil)
-  if pr != nil:
-    if not ppMacroEq(pr, m):
-      warning("macro " & name & " redefined")
-  t.pp.macros[name] = m
-
-proc macro_defined(name: string): bool =
-  t.pp.macros.contains(name)
-
-proc macro_undef(name: string) =
-  t.pp.macros.del(name)
-
 proc nextTok() =
     ## Tokenize
     while true:
@@ -2415,7 +2314,7 @@ proc nextTok() =
                     parse_error("macro name should be a identifier, got " & showToken())
                     note("the syntax is:\n\t#define identifier replacement-list\n\t#define identifier(identifier-list) replacement-list")
                     return
-                var name = t.l.tok.s # copy to string
+                var name = t.l.tok.s
                 nextTok()
                 var m = if t.l.tok.tok == TLbracket: PPMacro(flags: MFUNC, ivarargs: false) else: PPMacro(flags: MOBJ)
                 if m.flags == MFUNC:
@@ -2481,7 +2380,11 @@ proc nextTok() =
                             parse_error("'##' cannot appear at end of macro expansion")
                             ok = false
                 if ok:
-                    macro_define(name, m)
+                  let pr = t.pp.macros.getOrDefault(name, nil)
+                  if pr != nil:
+                    if not ppMacroEq(pr, m):
+                      warning("macro " & name & " redefined")
+                  t.pp.macros[name] = m
             of "if":
                 nextTok() # if
                 while t.l.tok.tok == TSpace:
@@ -2511,7 +2414,7 @@ proc nextTok() =
                     note("the syntax is:\n\t#ifdef identifier\n\t#ifndef identifier")
                     return
                 let name = t.l.tok.s # no copy
-                let v = if ndef: not macro_defined(name) else: macro_defined(name)
+                let v = if ndef: not t.pp.macros.contains(name) else: t.pp.macros.contains(name)
                 t.pp.ppstack.add(if v: 1 else: 0)
                 t.pp.ok = v
                 skipLine()
@@ -2639,7 +2542,7 @@ proc nextTok() =
                     parse_error("macro name should be a identifier")
                     note("the syntax is: #undef identifier")
                     return
-                macro_undef(t.l.tok.s)
+                t.pp.macros.del(t.l.tok.s)
                 skipLine()
             of "pragma":
                 nextTok() # eat pragma
@@ -2931,7 +2834,6 @@ proc nextTok() =
             discard
         warning("stray " & show(t.l.c) & " in program")
         eat()
-
 
 proc builtin_Pragma() =
   getToken()
@@ -3317,7 +3219,6 @@ var cliOptions = [
   ("lld".h, 0, cast[P](proc () = app.linker = LLD), "use LLD, The LLVM linker"),
   ("s".h, 0, cast[P](proc () = app.mode = OutputAssembly),  "output assembly"),
   ("fsyntax-only".h, 0, cast[P](proc () = app.mode = OutputCheck), "parse input file, type checking, emit warning and messages.Do not output a file"),
-  ("no-opaque-pointers".h, 0, proc () = app.opaquePointerEnabled = false, "disable opaque pointer"),
   ("O0".h, 0, proc () = app.optLevel = 0, "no optimization(default)"),
   ("O1".h, 0, proc () = app.optLevel = 1, "Somewhere between -O0 and -O2"),
   ("O2".h, 0, proc () = app.optLevel = 2, "enables most optimizations"),
@@ -3760,9 +3661,9 @@ proc gen_int(i: culonglong, tags: uint32): Value =
 proc gen_float(f: float, tag: uint32): Value =
   constReal(if (tag and TYFLOAT) != 0: b.types[DIffloat].ty else: b.types[DIfdouble].ty, f)
 
-proc gen_str(val: string, ty: var Type, is_constant: bool): Value =
+proc gen_str_ptr(val: string, is_constant: bool): Value =
   var gstr = constStringInContext(b.ctx, cstring(val), len(val).cuint, False)
-  ty = typeOfX(gstr)
+  var ty = typeOfX(gstr)
   result = addGlobal(b.module, ty, ".str")
   setLinkage(result, PrivateLinkage)
   setInitializer(result, gstr)
@@ -3770,15 +3671,6 @@ proc gen_str(val: string, ty: var Type, is_constant: bool): Value =
   setUnnamedAddr(result, 1)
   if is_constant:
     setGlobalConstant(result, True)
-
-proc gen_str_ptr(val: string, is_constant: bool): Value =
-  var ty: Type
-  var s = gen_str(val, ty, is_constant)
-  if app.opaquePointerEnabled:
-    s
-  else:
-    var indices = [b.i32_0, b.i32_0]
-    gep(ty, s, indices)
 
 proc load(p: Value, t: Type, align: uint32 = 0): Value =
   assert p != nil
@@ -3943,14 +3835,7 @@ proc wrap(ty: CType): Type =
   of TYPRIM:
     return b.types[getBasicTypeIndex(ty.tags)].ty
   of TYPOINTER:
-    if app.opaquePointerEnabled:
-      return b.types[DIptr].ty
-    else:
-      # `return pointerType(voidTypeInContext(b.ctx), 0)`
-      # clang use `i8` for `void` and `char`
-      if bool(ty.p.tags and TYVOID):
-        return pointerType(b.types[DIi8].ty, 0)
-      return pointerType(wrap(ty.p), 0)
+    return b.types[DIptr].ty
   of TYSTRUCT, TYUNION:
     if len(ty.sname) > 0:
       # try to find old definition or declaration
@@ -4017,10 +3902,10 @@ proc wrap(ty: CType): Type =
   of TYINCOMPLETE:
     case ty.tag:
     of TYSTRUCT:
-      result = getTags(ty.sname)
+      result = getTags(ty.name)
       if result != nil:
         return result
-      return structCreateNamed(b.ctx, cstring(ty.sname))
+      return structCreateNamed(b.ctx, cstring(ty.name))
     of TYUNION:
       result = getTags(ty.sname)
       if result != nil:
@@ -4338,11 +4223,12 @@ proc newFunction(varty: CType, name: string): Value =
     nimLLVMSetDSOLocal(result)
     addAttribute(result, NoUnwind)
     addAttribute(result, OptimizeForSize)
-    if bool(varty.ret.tags and TYSTATIC):
+    var tags = varty.ret.tags
+    if bool(tags and TYSTATIC):
         setLinkage(result, InternalLinkage)
-    if bool(varty.ret.tags and TYNORETURN):
+    if bool(tags and TYNORETURN):
         addAttribute(result, NoReturn)
-    if bool(varty.ret.tags and TYINLINE):
+    if bool(tags and TYINLINE):
         addAttribute(result, InlineHint)
     b.vars[0][name] = result
     if app.g:
@@ -4510,7 +4396,7 @@ proc gen(s: Stmt) =
             if isConstant(ginit) == False:
               llvm_error("global initializer is not constant")
               return
-            if not bool(varty.tags and TYEXTERN):
+            if (varty.tags and TYEXTERN) == 0:
                 setInitializer(g, ginit)
                 nimLLVMSetDSOLocal(g)
             if (varty.tags and TYTHREAD_LOCAL) != 0:
@@ -4943,6 +4829,7 @@ var
   empty: seq[TokenV] 
 
 iterator getDefines(): (string, seq[TokenV]) =
+  discard F32Bit
   # (windows) gcc -dM -E - <NUL:
   # (bash) gcc -dM -E - </dev/null
   yield ("__builtin_LINE", str("__LINE__"))
@@ -5299,11 +5186,23 @@ proc enterBlock() =
   ))
 
 proc leaveBlock() =
-    if isTopLevel() == false:
+    if isTopLevel():
+        for (name, i) in t.sema.scopes[0].typedefs.pairs():
+            if bool(i.ty.tags and TYTYPEDEF):
+                continue
+            if (i.tag and INFO_USED) == 0:
+                if i.ty.spec == TYFUNCTION:
+                    if bool(i.ty.ret.tags and TYSTATIC):
+                        warning("static function '" & name & "' defined/declared but not used")
+                elif bool(i.ty.tags and TYSTATIC):
+                    warning("static variable '" & name & "' defined/declared but not used")
+    else:
       for (name, i) in t.sema.scopes[^1].typedefs.pairs():
-        if not bool(i.tag and INFO_USED):
-            warning("declared but not used: '" & name & '\'')
-            note("declared at " & $i.loc)
+        if (i.tag and INFO_USED) == 0:
+            if bool(i.ty.tags and TYPARAM):
+                warning("unused parameter '" & name & '\'')
+            else:
+                warning("unused variable '" & name & '\'')
     discard t.sema.scopes.pop()
 
 proc isFloating(ty: CType): bool =
@@ -5478,13 +5377,13 @@ proc putsymtype(name: string, yt: CType) =
         var old = ty.ty
         var err = true
         const q = TYATOMIC or TYCONST or TYRESTRICT
-        if bool(yt.tags and TYSTATIC) and not bool(old.tags and TYSTATIC):
+        if bool(yt.tags and TYSTATIC) and (old.tags and TYSTATIC) == 0:
             type_error("static declaration of '" & name & "' follows non-static declaration")
-        elif bool(old.tags and TYSTATIC) and not bool(yt.tags and TYSTATIC):
+        elif bool(old.tags and TYSTATIC) and (yt.tags and TYSTATIC) == 0:
             type_error("non-static declaration of '" & name & "' follows static declaration")
-        elif bool(yt.tags and TYTHREAD_LOCAL) and not bool(old.tags and TYTHREAD_LOCAL):
+        elif bool(yt.tags and TYTHREAD_LOCAL) and (old.tags and TYTHREAD_LOCAL) == 0:
             type_error("thread-local declaration of '" & name & "' follows non-thread-local declaration")
-        elif bool(old.tags and TYTHREAD_LOCAL) and not bool(yt.tags and TYTHREAD_LOCAL):
+        elif bool(old.tags and TYTHREAD_LOCAL) and (yt.tags and TYTHREAD_LOCAL) == 0:
             type_error("non-thread-local declaration of '" & name & "' follows thread-local declaration")
         elif (yt.tags and q) != (old.tags and q):
             type_error("conflicting type qualifiers for '" & name & "'")
@@ -5514,7 +5413,7 @@ proc intcast(e: Expr, to: CType): Expr =
         if to.tags == e.ty.tags:
             return Expr(k: ECast, castop: CastOp.BitCast, castval: e, ty: to, loc: e.loc)
         if intRank(to.tags) > intRank(e.ty.tags):
-            if isSigned(to) and not bool(e.ty.tags and TYBOOL):
+            if isSigned(to) and (e.ty.tags and TYBOOL) == 0:
                 return Expr(k: ECast, castop: CastOp.SExt, castval: e, ty: to, loc: e.loc)
             else:
                 return Expr(k: ECast, castop: CastOp.ZExt, castval: e, ty: to, loc: e.loc)
@@ -5976,7 +5875,7 @@ proc checkSemicolon() =
        consume()
 
 proc type_qualifier_list(ty: var CType) =
-    ## parse many type qualifiers, add to type
+    # parse many type qualifiers, add to type
     while true:
         case t.l.tok.tok:
         of Kconst:
@@ -6026,7 +5925,7 @@ proc handle_typedef(s: var seq[Token], ty: CType): CType =
     return result
 
 proc specifier_qualifier_list(): CType =
-    ## specfier_qualifier_list is used in struct declaration
+    # specfier-qualifier-list: parse many type specfiers and type qualifiers
     var s: seq[Token]
     while t.l.tok.tok in (type_specifier_set + type_qualifier_set + {Kstruct, Kenum, Kunion}):
         if t.l.tok.tok == Kenum:
@@ -6234,6 +6133,14 @@ proc direct_declarator_end(base: CType, name: string): Stmt =
         return direct_declarator_end(ty, name)
     of TLbracket:
         consume()
+        if base.spec == TYARRAY:
+            type_error("function cannot return array")
+        if (base.tags and (TYREGISTER)) != 0:
+            warning("'register' in function has no effect")
+        if (base.tags and (TYTHREAD_LOCAL)) != 0:
+            warning("'_Thread_local' in function has no effect")
+        if bool(base.tags and (TYCONST or TYRESTRICT or TYVOLATILE)):
+            warning("type qualifiers ignored in function")
         var ty = CType(tags: TYINVALID, spec: TYFUNCTION, ret: base)
         if t.l.tok.tok != TRbracket:
             let res = parameter_type_list()
@@ -6264,10 +6171,10 @@ proc direct_declarator_end(base: CType, name: string): Stmt =
                 expect("function body")
                 return nil
             if name == "main":
-                if not bool(ty.ret.tags and TYINT):
+                if (ty.ret.tags and TYINT) == 0:
                     warning("main should return 'int'")
                 if ty.params.len >= 1:
-                    if ty.params[0][1] != nil and (not bool(ty.params[0][1].tags and TYINT)):
+                    if ty.params[0][1] != nil and (ty.params[0][1].tags and TYINT) == 0:
                         warning("first parameter of 'main' should be of type 'int'")
                     if ty.params.len >= 2:
                         if ty.params[1][1] != nil and (not (ty.params[1][1].spec == TYPOINTER and ty.params[1][1].p.spec == TYPOINTER)):
@@ -6425,8 +6332,11 @@ proc enum_decl(): CType =
     return result
 
 proc parameter_type_list(): (bool, seq[(string, CType)]) =
+    enterBlock() # function prototype scope
     result = (true, default(typeof(result[1])))
+    var i = 0
     while true:
+        inc i
         if not istype(t.l.tok.tok):
             type_error("expect a type")
             return (false, default(typeof(result[1])))
@@ -6440,6 +6350,10 @@ proc parameter_type_list(): (bool, seq[(string, CType)]) =
             result[1].add((res.funcname, res.functy))
         else:
             result[1].add((res.var1name, res.var1type))
+        if result[1][^1][1].spec == TYINCOMPLETE:
+            type_error("parameter " & $i & " has imcomplete type '" & $result[1][^1][1] & '\'')
+        result[1][^1][1].tags = result[1][^1][1].tags or TYPARAM
+        t.sema.scopes[^1].typedefs[result[1][^1][0]] = Info(ty: result[1][^1][1], tag: INFO_USED)
         if t.l.tok.tok == TRbracket:
             break
         if t.l.tok.tok == TComma:
@@ -6460,10 +6374,13 @@ proc parameter_type_list(): (bool, seq[(string, CType)]) =
         if result[1][i][1].spec == TYINCOMPLETE:
             error_incomplete(result[1][i][1])
             return (false, default(typeof(result[1])))
+        if result[1][i][1].spec == TYARRAY:
+            result[1][i][1] = getPointerType(result[1][i][1].arrtype)
     if zero:
         if result[1].len > 1:
             warning("'void' must be the only parameter")
         result[1].setLen 0
+    leaveBlock()
 
 proc checkAlign(a: uint32) =
     if (a and (a - 1)) != 0:
@@ -6502,7 +6419,7 @@ proc parse_alignas(): bool =
     return true
 
 proc declaration_specifiers(): CType =
-    ## declaration_specfier is used in function and variable declaration/definition
+    # declaration-specifiers: parse a declaration-specifiers(e.g: int a, *b, c[10];)
     var s: seq[Token]
     var should_return = false
     while t.l.tok.tok in (declaration_specifier_set + {Kstruct, Kenum, Kunion, K_Alignas}):
@@ -6536,10 +6453,8 @@ proc declaration_specifiers(): CType =
             s.add(t.l.tok.tok)
             consume()
     if should_return:
-        for i in s:
-            if i == Ktypedef:
-                result.tags = result.tags or TYTYPEDEF
-                continue
+        for tok in s:
+            discard addTag(result, tok)
         return result
     if t.l.tok.tok == TIdentifier:
         let o = gettypedef(t.l.tok.s)
@@ -6575,6 +6490,8 @@ proc static_assert(): Stmt =
     consume()
     var msg = ""
     let e = constant_expression()
+    if e == nil:
+        return nil
     let ok = evali(e) != 0
     if t.pp.eval_error:
         write_eval_msg()
@@ -6601,13 +6518,6 @@ proc static_assert(): Stmt =
     checkSemicolon()
     return Stmt(k: SSemicolon)
 
-proc checkRetType(ty: CType) =
-    if ty.spec == TYFUNCTION:
-        if (ty.ret.tags and (TYREGISTER)) != 0:
-            warning("'register' in function has no effect")
-        if (ty.ret.tags and (TYTHREAD_LOCAL)) != 0:
-            warning("'_Thread_local' in function has no effect")    
-
 proc assignable(e: Expr): bool =
     if e.ty.spec == TYPOINTER:
         if bool(e.ty.tags and TYLVALUE) and e.ty.p.spec == TYARRAY:
@@ -6624,89 +6534,91 @@ proc declaration(): Stmt =
     ## parse declaration or function definition
     if t.l.tok.tok == K_Static_assert:
         return static_assert()
-    block:
-        t.sema.currentAlign = 0
-        var base = declaration_specifiers()
-        if base == nil:
-            expect("declaration-specifiers")
+    elif t.l.tok.tok == TSemicolon:
+        consume()
+        return Stmt(k: SSemicolon)
+    t.sema.currentAlign = 0
+    var base = declaration_specifiers()
+    if base == nil:
+        expect("declaration-specifiers")
+        return nil
+    if t.sema.currentAlign > 0:
+        var m = getAlignof(base)
+        if t.sema.currentAlign < m:
+            type_error("requested alignment is less than minimum alignment of " & $m & " for type '" & $base & "'")
+        else:
+            base.align = t.sema.currentAlign
+    if t.l.tok.tok == TSemicolon:
+        consume()
+        if base.align != 0:
+            type_error("'_Alignas' can only used in variables")
+        return Stmt(k: SDeclOnly, decl: base)
+    result = Stmt(k: SVarDecl)
+    while true:
+        var st = declarator(base)
+        if st == nil:
+            expect("declarator")
+            note("maybe you missing ';' after declarator")
             return nil
-        if t.sema.currentAlign > 0:
-            var m = getAlignof(base)
-            if t.sema.currentAlign < m:
-                type_error("requested alignment is less than minimum alignment of " & $m & " for type '" & $base & "'")
-            else:
-                base.align = t.sema.currentAlign
-        if t.l.tok.tok == TSemicolon:
-            if base.spec notin {TYSTRUCT, TYUNION, TYENUM}:
-                warning("declaration does not declare anything")
-                note("add a variable name in the declaration")
-            consume()
-            if base.align != 0:
-                type_error("'_Alignas' can only used in variables")
-            return Stmt(k: SDeclOnly, decl: base)
-        result = Stmt(k: SVarDecl)
-        while true:
-            let st = declarator(base)
-            if st == nil:
-                expect("declarator")
-                note("maybe you missing ';' after declarator")
+        if st.k == SFunction:
+            return st
+        noralizeType(st.var1type)
+        st.var1type.tags = st.var1type.tags or TYLVALUE
+        putsymtype(st.var1name, st.var1type)
+        result.vars.add((st.var1name, st.var1type, nil))
+        if (st.var1type.tags and TYINLINE) != 0:
+            warning("inline can only used in function declaration")
+        if (st.var1type.tags and TYEXTERN) == 0:
+            if bool(st.var1type.tags and TYVOID) and (st.var1type.tags and TYTYPEDEF) == 0:
+                type_error("variable '" & st.var1name & "' declared void")
                 return nil
-            if st.k == SFunction:
-                # function has not lvalue
-                checkRetType(st.functy)
-                return st
-            assert st.k == SVarDecl1
             if st.var1type.spec == TYINCOMPLETE:
+                echo st.var1type
                 error_incomplete(st.var1type)
                 return nil
-            if (st.var1type.tags and TYINLINE) != 0:
-                warning("inline declaration is in block scope has no effect")
-            checkRetType(st.var1type)
-            # variable has lvalue
-            st.var1type.tags = st.var1type.tags or TYLVALUE
-            result.vars.add((st.var1name, st.var1type, nil))
-            putsymtype(st.var1name, st.var1type)
-            if t.l.tok.tok == TAssign:
-                if st.var1type.spec == TYARRAY and st.var1type.vla != nil:
+        if t.l.tok.tok == TAssign:
+            if st.var1type.spec == TYARRAY:
+                if st.var1type.vla != nil:
                     type_error("variable length array may not be initialized")
-                    return nil
-                if st.var1type.spec == TYFUNCTION:
-                    type_error("function may not be initialized")
-                    return nil
-                if bool(st.var1type.tags and TYEXTERN):
-                    type_error("'extern' variables may not be initialized")
-                    if not isTopLevel():
-                        note("place initializer after 'extern' declaration to fix this\nint foo(){\n\textern int a;\n\ta = 0;")
-                consume()
-                var old = t.sema.currentInitTy
-                t.sema.currentInitTy = st.var1type
-                let init = initializer_list()
-                t.sema.currentInitTy = old
-                if init == nil:
-                    expect("initializer-list")
-                    return nil
-                result.vars[^1][2] = init
-                if isTopLevel() and isConstant(result.vars[^1][2]) == false:
-                    type_error("initializer element is not constant")
-                    note("global variable requires constant initializer")
-            else:
-                if st.var1type.spec == TYARRAY:
-                    if st.var1type.vla != nil and isTopLevel():
-                        type_error("variable length array declaration not allowed at file scope")
-                        note("in the declaration of variable: '" & st.var1name & '\'')
-                    elif st.var1type.hassize == false and st.var1type.vla == nil:
-                        if isTopLevel():
-                            warning("array '" & st.var1name & "' assumed to have one element")
-                            st.var1type.hassize = true
-                            st.var1type.arrsize = 1
-                        else:
-                            type_error("array size missing in ‘" & st.var1name & "’")
-            if t.l.tok.tok == TComma:
-                consume()
-            elif t.l.tok.tok == TSemicolon:
-                consume()
-                break
-        return result
+            elif st.var1type.spec == TYFUNCTION:
+                type_error("function may not be initialized")
+                return nil
+            if bool(st.var1type.tags and TYTYPEDEF):
+                type_error("'typedef' may not be initialized")
+                return nil
+            if bool(st.var1type.tags and TYEXTERN):
+                type_error("'extern' variables may not be initialized")
+                if not isTopLevel():
+                    note("place initializer after 'extern' declaration to fix this\nint foo(){\n\textern int a;\n\ta = 0;")
+            consume()
+            var old = t.sema.currentInitTy
+            t.sema.currentInitTy = st.var1type
+            let init = initializer_list()
+            t.sema.currentInitTy = old
+            if init == nil:
+                expect("initializer-list")
+                return nil
+            result.vars[^1][2] = init
+            if isTopLevel() and isConstant(result.vars[^1][2]) == false:
+                type_error("initializer element is not constant")
+                note("global variable requires constant initializer")
+        else:
+            if st.var1type.spec == TYARRAY:
+                if st.var1type.vla != nil and isTopLevel():
+                    type_error("variable length array declaration not allowed at file scope")
+                    note("in the declaration of variable: '" & st.var1name & '\'')
+                elif st.var1type.hassize == false and st.var1type.vla == nil and (st.var1type.tags and TYEXTERN) == 0:
+                    if isTopLevel():
+                        warning("array '" & st.var1name & "' assumed to have one element")
+                        st.var1type.hassize = true
+                        st.var1type.arrsize = 1
+                    else:
+                        type_error("array size missing in ‘" & st.var1name & "’")
+        if t.l.tok.tok == TComma:
+            consume()
+        elif t.l.tok.tok == TSemicolon:
+            consume()
+            break
 
 proc cast_expression(): Expr =
     case t.l.tok.tok:
@@ -6815,7 +6727,7 @@ proc unary_expression(): Expr =
         if e.k == ArrToAddress:
             e.ty = getPointerType(e.voidexpr.ty)
             return e
-        if not bool(e.ty.tags and TYLVALUE):
+        if (e.ty.tags and TYLVALUE) == 0:
             type_error("cannot take the address of an rvalue")
             inTheExpression(e)
             return nil
@@ -7411,6 +7323,8 @@ proc primary_expression(): Expr =
 
 proc postfix_expression(): Expr =
     let e = primary_expression()
+    if e == nil:
+        return nil
     case t.l.tok.tok:
     of TSubSub, TAddAdd:
         if not assignable(e):
@@ -7888,7 +7802,7 @@ proc compound_statement(params: seq[(string, CType)], lables: var HashSet[string
         if t == LBL_FORWARD:
             type_error("use of undeclared label '" & name & "'")
         elif t == LBL_DECLARED:
-            warning("un-used label: '" & name & '\'')
+            warning("unused label: '" & name & '\'')
         else:
             assert t == LBL_OK
             lables.incl name
@@ -8248,8 +8162,3 @@ if parseCLI():
             warning("use gcc instead for object and assembly file")
         llvm.shutdown()
         set_exit_code(0)
-
-static:
-  echo "CC_LONG64=", CC_LONG64
-  echo "CC_NO_RAEADLINE=", CC_NO_RAEADLINE
-  echo "CC_WCHAR32=", CC_WCHAR32
