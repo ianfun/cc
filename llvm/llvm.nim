@@ -3,53 +3,53 @@
 ## LLVM-C API
 
 type
-  OpaqueMemoryBuffer*{.pure, final.} = object
-  OpaqueAttributeRef*{.pure, final.} = object
-  OpaqueContext*{.pure, final.} = object
-  OpaqueModule*{.pure, final.} = object
-  OpaqueType*{.pure, final.} = object
-  OpaqueValue*{.pure, final.} = object
-  OpaqueBasicBlock*{.pure, final.} = object
-  OpaqueBuilder*{.pure, final.} = object
-  OpaqueModuleProvider*{.pure, final.} = object
-  OpaquePassManager*{.pure, final.} = object
-  OpaquePassRegistry*{.pure, final.} = object
-  OpaqueUse*{.pure, final.} = object
-  OpaqueDiagnosticInfo*{.pure, final.} = object
-  OpaqueTargetMachine*{.pure, final.} = object
-  orcOpaqueLLJITBuilder*{.pure, final.} = object
-  orcOpaqueLLJIT*{.pure, final.} = object
-  orcOpaqueSymbolStringPool*{.pure, final.} = object
-  orcOpaqueSymbolStringPoolEntry*{.pure, final.} = object
-  orcOpaqueJITDylib*{.pure, final.} = object
-  orcOpaqueJITTargetMachineBuilder*{.pure, final.} = object
-  orcOpaqueMaterializationUnit*{.pure, final.} = object
-  orcOpaqueMaterializationResponsibility*{.pure, final.} = object
-  orcOpaqueResourceTracker*{.pure, final.} = object
-  orcOpaqueDefinitionGenerator*{.pure, final.} = object
-  orcOpaqueLookupState{.pure, final.} = object
-  orcOpaqueThreadSafeContext{.pure, final.} = object
-  orcOpaqueObjectTransformLayer*{.pure, final.} = object
-  orcOpaqueExecutionSession*{.pure, final.} = object
-  orcOpaqueIRTransformLayer*{.pure, final.} = object
-  opaqueError*{.pure, final.} = object
-  orcOpaqueObjectLayer*{.pure, final.} = object
-  orcOpaqueObjectLinkingLayer*{.pure, final.} = object
-  orcOpaqueIndirectStubsManager*{.pure, final.} = object
-  orcOpaqueLazyCallThroughManager*{.pure, final.} = object
-  orcOpaqueDumpObjects*{.pure, final.} = object
+  OpaqueMemoryBuffer*{.importc: "void".} = object
+  OpaqueAttributeRef*{.importc: "void".} = object
+  OpaqueContext*{.importc: "void".} = object
+  OpaqueModule*{.importc: "void".} = object
+  OpaqueType*{.importc: "void".} = object
+  OpaqueValue*{.importc: "void".} = object
+  OpaqueBasicBlock*{.importc: "void".} = object
+  OpaqueBuilder*{.importc: "void".} = object
+  OpaqueModuleProvider*{.importc: "void".} = object
+  OpaquePassManager*{.importc: "void".} = object
+  OpaquePassRegistry*{.importc: "void".} = object
+  OpaqueUse*{.importc: "void".} = object
+  OpaqueDiagnosticInfo*{.importc: "void".} = object
+  OpaqueTargetMachine*{.importc: "void".} = object
+  orcOpaqueLLJITBuilder*{.importc: "void".} = object
+  orcOpaqueLLJIT*{.importc: "void".} = object
+  orcOpaqueSymbolStringPool*{.importc: "void".} = object
+  orcOpaqueSymbolStringPoolEntry*{.importc: "void".} = object
+  orcOpaqueJITDylib*{.importc: "void".} = object
+  orcOpaqueJITTargetMachineBuilder*{.importc: "void".} = object
+  orcOpaqueMaterializationUnit*{.importc: "void".} = object
+  orcOpaqueMaterializationResponsibility*{.importc: "void".} = object
+  orcOpaqueResourceTracker*{.importc: "void".} = object
+  orcOpaqueDefinitionGenerator*{.importc: "void".} = object
+  orcOpaqueLookupState{.importc: "void".} = object
+  orcOpaqueThreadSafeContext{.importc: "void".} = object
+  orcOpaqueObjectTransformLayer*{.importc: "void".} = object
+  orcOpaqueExecutionSession*{.importc: "void".} = object
+  orcOpaqueIRTransformLayer*{.importc: "void".} = object
+  opaqueError*{.importc: "void".} = object
+  orcOpaqueObjectLayer*{.importc: "void".} = object
+  orcOpaqueObjectLinkingLayer*{.importc: "void".} = object
+  orcOpaqueIndirectStubsManager*{.importc: "void".} = object
+  orcOpaqueLazyCallThroughManager*{.importc: "void".} = object
+  orcOpaqueDumpObjects*{.importc: "void".} = object
   ErrorRef* = pointer
-  orcOpaqueThreadSafeModule*{.pure, final.} = object
-  OpaquePassManagerBuilder*{.pure, final.} = object
-  OpaqueMetaData{.pure, final.} = object
-  OpaqueDIBuilder{.pure, final.} = object
-  target{.pure, final.} = object
-  OpaqueJITEventListener{.pure, final.} = object
-  OpaqueNamedMDNode{.pure, final.} = object
-  opaqueValueMetadataEntry{.pure, final.} = object
-  comdat{.pure, final.} = object
-  opaqueModuleFlagEntry{.pure, final.} = object
-  OpaqueBinary{.pure, final.} = object
+  orcOpaqueThreadSafeModule*{.importc: "void".} = object
+  OpaquePassManagerBuilder*{.importc: "void".} = object
+  OpaqueMetaData{.importc: "void".} = object
+  OpaqueDIBuilder{.importc: "void".} = object
+  target{.importc: "void".} = object
+  OpaqueJITEventListener{.importc: "void".} = object
+  OpaqueNamedMDNode{.importc: "void".} = object
+  opaqueValueMetadataEntry{.importc: "void".} = object
+  comdat{.importc: "void".} = object
+  opaqueModuleFlagEntry{.importc: "void".} = object
+  OpaqueBinary{.importc: "void".} = object
   int64T = int64
   uint64T = uint64
   uint8T = uint8
@@ -57,17 +57,17 @@ type
   uint32T = uint32
   Bool* = cint
   AttributeIndex* = cuint
-  opaqueTargetData{.pure, final.} = object
+  opaqueTargetData = object
   TargetDataRef* = ptr opaqueTargetData
-  TargetLibraryInfoRef* = distinct pointer
+  TargetLibraryInfoRef* = pointer
   Opcode* = cint
   DIFlags* = cint
   DWARFTypeEncoding* = cuint
   MetadataKind* = cuint
   ByteOrdering* {.size: sizeof(cint).} = enum
     BigEndian, LittleEndian
-  TargetMachineRef* = distinct pointer
-  PassManagerBuilderRef* = distinct pointer
+  TargetMachineRef* = pointer
+  PassManagerBuilderRef* = pointer
   VerifierFailureAction* {.size: sizeof(cint), pure.} = enum
     AbortProcessAction, PrintMessageAction, ReturnStatusAction
 
@@ -203,7 +203,7 @@ proc nimLLVMGetIntrinsicForMSBuiltin*(Prefix, BuiltinName: cstring): cuint {.imp
 
 proc nimLLVMGetIntrinsicForClangBuiltin*(Prefix, BuiltinName: cstring): cuint {.importc: "LLVMNimGetIntrinsicForClangBuiltin".}
 
-proc nimLLVMConfigureTarget*(tripleStr: cstring, Target: ptr TargetRef, Machine: ptr TargetMachineRef, TD: ptr TargetDataRef, theTriple: ptr tripleRef, f: ptr uint32, all: Bool): cstring {.importc: "LLVMNimConfigureTarget".}
+proc nimLLVMConfigureTarget*(tripleStr: cstring, Target: ptr TargetRef, Machine: ptr TargetMachineRef, TD: ptr TargetDataRef, theTriple: ptr tripleRef, f: ptr uint32): cstring {.importc: "LLVMNimConfigureTarget".}
 
 proc nimGetArch*(t: tripleRef): ArchType {.importc: "LLVMNimGetArch".}
 
@@ -216,5 +216,7 @@ proc nimGetArchName*(t: tripleRef): cstring {.importc: "LLVMNimGetArchName".}
 proc nimdIBuilderGetOrCreateSubrange*(b: DIBuilderRef, count: MetadataRef): MetadataRef {.importc: "LLVMNimdIBuilderGetOrCreateSubrange".}
 
 proc nimGlobalAddDebugInfo*(g: ValueRef, m: MetadataRef) {.importc: "LLVMNimGlobalAddDebugInfo".}
+
+proc nimAddLabel*(Builder: DIBuilderRef, Scope: MetadataRef, BB: BasicBlockRef, name: cstring, nameLen: csize_t, file:MetadataRef, lineno: cuint, loc: MetadataRef) {.importc: "LLVMNimAddLabel".}
 
 # end wrappers

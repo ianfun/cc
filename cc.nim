@@ -488,16 +488,8 @@ proc stringizing(a: seq[TokenV]): string =
     for t in a:
         result.add(stringizing(t))
 
-proc builtin_unreachable() {.importc: "__builtin_unreachable", nodecl.}
-
 proc unreachable() =
-  # https://learn.microsoft.com/en-us/cpp/intrinsics/assume?view=msvc-170
-  # https://clang.llvm.org/docs/LanguageExtensions.html#builtin-assume
-  # https://stackoverflow.com/questions/63493968/reproducing-clangs-builtin-assume-for-gcc
-  when defined(debug):
-    assert false, "INTERNAL ERROR: unreachable executed!"
-  else:
-    builtin_unreachable()
+  assert false, "INTERNAL ERROR: unreachable executed!"
 
 proc set_exit_code(code: auto) =
   exitprocs.setProgramResult(code)
@@ -993,7 +985,6 @@ const ## basic types
 const ## type alias
   TYCHAR = TYINT8
   TYSHORT = TYINT16
-  TYWCHAR = when CC_WCHAR32: TYINT32 else: TYINT16
   TYINT = TYINT32
   TYLONG = when CC_LONG64: TYINT64 else: TYINT32
   TYLONGLONG = TYINT64
@@ -3279,7 +3270,7 @@ proc initBackend() =
   b.i1_1 = constInt(b.types[DIi1].ty, 1)
 
 proc initTarget2() =
-  discard nimLLVMConfigureTarget(nil, nil, nil, nil, nil, nil, True)
+  discard nimLLVMConfigureTarget(nil, nil, nil, nil, nil, nil)
 
 proc listTargets() =
   initTarget2()
@@ -3302,74 +3293,6 @@ proc listTargets() =
   cc_exit(1)
 
 type P = proc () {.nimcall.}
-
-type
-  FileType = enum
-    FileTypeNone, SourceC, SourceIR, SourceBC, SourceLinking
-
-proc getFileType(path: string): FileType =
-    var i = path.len
-    var s = path.cstring
-    while true:
-        if i == 0:
-            return FileTypeNone
-        dec i
-        if s[i] == '.':
-            inc i
-            if i == len(path):
-                return FileTypeNone
-            case s[i]:
-            of 'C':
-                if s[i + 1] == '\0':
-                    # C file
-                    return SourceC
-                return FileTypeNone
-            of 'S':
-                if s[i + 1] == '\0':
-                    # Assembly
-                    return SourceLinking
-                return FileTypeNone
-            of 'l':
-                if s[i + 1] == 'l' and s[i + 2] == '\0':
-                    # LLVM IR
-                    return SourceIR
-                if s[i + 1] == 'i' and s[i + 2] == 'b' and s[i + 3] == '\0':
-                    # MSVC: libary
-                    return SourceLinking
-                return FileTypeNone
-            of 'b':
-                if s[i + 1] == 'l' and s[i + 2] == '\0':
-                    # LLVM BitCode
-                    return SourceBC
-                return FileTypeNone
-            of 'a':
-                if s[i + 1] == '\0':
-                    # libary
-                    return SourceLinking
-                return FileTypeNone        
-            of 'o':
-                if s[i + 1] == '\0':
-                    # object
-                    return SourceLinking
-                if s[i + 1] == 'b' and s[i + 2] == 'j' and s[i + 3] == '\0':
-                    # MSVC: object file
-                    return SourceLinking
-                return FileTypeNone
-            of 'd':
-                if s[i + 1] == 'l' and s[i + 2] == 'l' and s[i + 3] == '\0':
-                    # windows dynamic libary
-                    return SourceLinking
-                return FileTypeNone
-            of 's':
-                if s[i + 1] == '\0':
-                    # assembly file
-                    return SourceLinking
-                if s[i + 1] == 'o' and s[i + 2] == '\0':
-                    # linux dynamic libary
-                    return SourceLinking
-                return FileTypeNone
-            else:
-                return FileTypeNone
 
 var cliOptions = [
   ("v".h, 0, cast[P](showVersion), "print version info"),
@@ -3560,27 +3483,13 @@ proc llvmGetsizeof(ty: CType): culonglong =
   storeSizeOfType(b.layout, wrap2(ty))
 
 proc getsizeof(ty: CType): culonglong =
+    if bool(ty.tags and TYVOID):
+        return 1
     if ty.spec == TYINCOMPLETE:
         error_incomplete(ty)
         return 0
-    if ty.spec == TYPRIM:
-        if (ty.tags and TYVOID) != 0:
-            type_error("cannot get sizeof void")
-            return 0
-        if (ty.tags and (TYINT8 or TYUINT8)) != 0:
-          return 1
-        if (ty.tags and (TYINT16 or TYUINT16)) != 0:
-          return 2
-        if (ty.tags and (TYINT32 or TYUINT32)) != 0:
-          return 4
-        if (ty.tags and (TYINT64 or TYUINT64)) != 0:
-            return 8
-    if ty.spec == TYBITFIELD:
-        type_error("invalid application of 'sizeof' to bit-field")
-        return 0
-    if ty.spec == TYFUNCTION:
-        type_error("invalid application of 'sizeof' to a function type")
-        return 0
+    elif ty.spec == TYFUNCTION:
+        return 1
     if ty.spec == TYENUM:
         return sizeofint
     if ty.spec == TYPOINTER:
@@ -3591,13 +3500,6 @@ proc getsizeof(e: Expr): culonglong =
     getsizeof(e.ty)
 
 proc getAlignof(ty: CType): culonglong =
-    if ty.spec == TYFUNCTION:
-        return 1
-    if ty.spec == TYENUM:
-        return sizeofint
-    if ty.spec == TYINCOMPLETE:
-        error_incomplete(ty)
-        return 0
     llvmGetAlignOf(ty)
 
 proc getAlignof(e: Expr): culonglong =
@@ -3713,7 +3615,11 @@ proc gep(ty: Type, p: Value, indices: var openarray[Value]): Value {.inline.} =
   gep(ty, p, addr indices[0], indices.len.cuint)
 
 proc initTarget(all = false): bool =
-  var err = nimLLVMConfigureTarget(app.triple.cstring, addr b.target, addr b.machine, addr b.layout, addr b.triple, addr b.f, Bool(all))
+  b.f = FNone
+  if app.triple.len == 0:
+    app.triple = $getDefaultTargetTriple()
+    b.f = 1
+  var err = nimLLVMConfigureTarget(app.triple.cstring, addr b.target, addr b.machine, addr b.layout, addr b.triple, addr b.f)
   if err != nil or b.triple == nil:
     llvm_error(err)
     return false
@@ -3858,8 +3764,6 @@ proc gen_str(val: string, ty: var Type, is_constant: bool): Value =
   var gstr = constStringInContext(b.ctx, cstring(val), len(val).cuint, False)
   ty = typeOfX(gstr)
   result = addGlobal(b.module, ty, ".str")
-  # setGlobalConstant(result, True)
-  # we use array instead of constant string!
   setLinkage(result, PrivateLinkage)
   setInitializer(result, gstr)
   setAlignment(result, 1)
@@ -3967,18 +3871,35 @@ proc wrap3Noqualified(ty: CType): DIType =
             alignInBits=0, offsetInBits=offsetOfElement(b.layout, t, i.cuint) * 8,
             flags=DIFlagZero, ty=m
         )
-    result = dIBuilderCreateStructType(
-        b.di, getLexScope(), 
-        cstring(ty.sname), ty.sname.len.csize_t,
-        getFile(), lineNumber=0,
-        sizeInBits=sizeOfTypeInBits(b.layout, t), alignInBits=preferredAlignmentOfType(b.layout, t) * 8, flags=DIFlagZero,
-        derivedFrom=nil,
-        elements=buf,
-        numElements=l.cuint,
-        runTimeLang=0,
-        vTableHolder=nil,
-        uniqueId=nil,
-        uniqueIdLen=0,
+    if ty.spec == TYSTRUCT: 
+        result = dIBuilderCreateStructType(
+            b.di, getLexScope(), 
+            cstring(ty.sname), ty.sname.len.csize_t,
+            getFile(), lineNumber=0,
+            sizeInBits=sizeOfTypeInBits(b.layout, t), 
+            alignInBits=0, 
+            flags=DIFlagZero,
+            derivedFrom=nil,
+            elements=buf,
+            numElements=l.cuint,
+            runTimeLang=0,
+            vTableHolder=nil,
+            uniqueId=nil,
+            uniqueIdLen=0
+        )
+    else:
+        result = dIBuilderCreateUnionType(
+            b.di, getLexScope(),
+            cstring(ty.sname), ty.sname.len.csize_t, 
+            getFile(), lineNumber=0,
+            sizeInBits=sizeOfTypeInBits(b.layout, t),
+            alignInBits=0, 
+            flags=DIFlagZero,
+            elements=buf,
+            numElements=l.cuint,
+            runTimeLang=0,
+            uniqueId=nil,
+            uniqueIdLen=0
         )
     dealloc(buf)
     if ty.sname.len > 0:
@@ -4003,7 +3924,7 @@ proc wrap3Noqualified(ty: CType): DIType =
         putDIEnum(ty.ename, result)
     return result
   else:
-    unreachable()
+    return nil
 
 proc wrap3(ty: CType): DIType = 
     result = wrap3Noqualified(ty)
@@ -4041,7 +3962,9 @@ proc wrap(ty: CType): Type =
       else:
         # the struct name is not created
         # create a opaque struct
-        result = structCreateNamed(b.ctx, cstring(ty.sname))
+        var name = if ty.spec == TYUNION: "union." else: "struct."
+        name.add(ty.sname)
+        result = structCreateNamed(b.ctx, cstring(name))
       let l = len(ty.selems)
       var buf = create(Type, l or 1)
       var arr = cast[ptr UncheckedArray[Type]](buf)
@@ -4539,6 +4462,8 @@ proc gen(s: Stmt) =
     if getTerminator() == nil:
       br ib
     setInsertPoint(ib)
+    if app.g:
+        nimAddLabel(b.di, getLexScope(), ib, cstring(s.label), s.label.len.csize_t, getFile(), s.loc.line, loc=wrap(s.loc))
     gen(s.labledstmt)
   of SGoto:
     let loc = b.labels[^1].getOrDefault(s.location, nil)
@@ -4570,36 +4495,38 @@ proc gen(s: Stmt) =
       elif varty.spec == TYFUNCTION:
         discard newFunction(varty, name)
       else:
-        if b.currentfunction == nil:
-          var ty = wrap(varty)
-          var ginit = if init == nil: constNull(ty) else: gen(init)
-          var g = addGlobal(b.module, ty, cstring(name))
-          nimLLVMSetDSOLocal(g)
-          if align != 0:
-            setAlignment(g, align)
-          if isConstant(ginit) == False:
-            llvm_error("global initializer is not constant")
-            return
-          setInitializer(g, ginit)
-          if (varty.tags and TYTHREAD_LOCAL) != 0:
-            # LLVMSetThreadLocalMode ?
-            setThreadLocal(g, 1)
-          if (varty.tags and TYSTATIC) != 0:
-            setLinkage(g, InternalLinkage)
-          elif (varty.tags and TYEXTERN) != 0:
-            setExternallyInitialized(g, True)
-            setLinkage(g, ExternalLinkage)
-          else:
-            if init == nil:
-              setLinkage(g, CommonLinkage)
-            if (varty.tags and TYREGISTER) != 0:
-              warning("register variables is ignored in LLVM backend")
-          # setLinkage(g, CommonLinkage)
-          putVar(name, g)
-          if app.g:
-            var linkage = getLinkageName(varty.tags)
-            var gve = dIBuilderCreateGlobalVariableExpression(b.di, getLexScope(), cstring(name), name.len.csize_t, linkage[0], linkage[1], getFile(), s.loc.line, wrap3(varty), False, dIBuilderCreateExpression(b.di, nil, 0), nil, align)
-            nimGlobalAddDebugInfo(g, gve)
+        if b.currentfunction == nil or bool(varty.tags and (TYEXTERN or TYSTATIC)):
+          block InitGV:
+            var old = getVar(name)
+            if old != nil:
+              if bool(varty.tags and TYEXTERN):
+                break InitGV
+              deleteGlobal(old)
+            var ty = wrap(varty)
+            var ginit = if init == nil: constNull(ty) else: gen(init)
+            var g = addGlobal(b.module, ty, cstring(name))
+            if align != 0:
+              setAlignment(g, align)
+            if isConstant(ginit) == False:
+              llvm_error("global initializer is not constant")
+              return
+            if not bool(varty.tags and TYEXTERN):
+                setInitializer(g, ginit)
+                nimLLVMSetDSOLocal(g)
+            if (varty.tags and TYTHREAD_LOCAL) != 0:
+              # LLVMSetThreadLocalMode ?
+              setThreadLocal(g, 1)
+            if (varty.tags and TYSTATIC) != 0:
+              setLinkage(g, InternalLinkage)
+            elif (varty.tags and TYEXTERN) != 0:
+              setLinkage(g, ExternalLinkage)
+            else:
+              discard
+            putVar(name, g)
+            if app.g:
+              var linkage = getLinkageName(varty.tags)
+              var gve = dIBuilderCreateGlobalVariableExpression(b.di, getLexScope(), cstring(name), name.len.csize_t, linkage[0], linkage[1], getFile(), s.loc.line, wrap3(varty), False, dIBuilderCreateExpression(b.di, nil, 0), nil, align)
+              nimGlobalAddDebugInfo(g, gve)
         else:
           var ty: Type = nil
           var vla: Value = nil
@@ -4800,9 +4727,9 @@ proc gen(e: Expr): Value =
       else:
         sub
     of SAddP:
-      var l = gen(e.lhs)
-      var r = gen(e.rhs)
-      gep( wrap(e.ty.p), l, r)
+       var l = gen(e.lhs)
+       var r = gen(e.rhs)
+       gep(if bool(e.lhs.ty.p.tags and TYVOID) or (e.lhs.k == EUnary and e.lhs.uop == AddressOf and e.lhs.ty.p.spec == TYFUNCTION): b.types[DIi8].ty else: wrap(e.ty.p), l, r)
     of EQ..SLE:
       buildICmp(b.builder, getICmpOp(e.bop), gen(e.lhs), gen(e.rhs), "")
     of FEQ..FLE:
@@ -4885,7 +4812,6 @@ proc gen(e: Expr): Value =
           incl(basep, ty, a)
   of EVar:
     var pvar = getVar(e.sval)
-    assert pvar != nil, e.sval
     load(pvar, wrap(e.ty), e.ty.align)
   of ECondition:
     gen_condition(e.cond, e.cleft, e.cright)
@@ -5531,21 +5457,13 @@ proc noEnum(name: string) =
     if t.sema.scopes[^1].enums.hasKey(name):
         type_error(name & " redeclared")
 
-# function definition
-proc putsymtype3(name: string, yt: CType) =
-  noEnum(name)
-  let ty = t.sema.scopes[^1].typedefs.getOrDefault(name, nil)
-  if ty != nil:
-    type_error("function " & name & " redefined")
-  t.sema.scopes[^1].typedefs[name] = Info(ty: yt, loc: Location(line: t.l.line, col: t.l.col))
-
-# function declaration
+# function
 proc putsymtype2(name: string, yt: CType) =
   noEnum(name)
   let ty = t.sema.scopes[^1].typedefs.getOrDefault(name, nil)
   if ty != nil:
     if not compatible(yt, ty.ty):
-        type_error("conflicting types for function declaration '" & name &  "'")
+        warning("conflicting types for function declaration '" & name &  "'")
   t.sema.scopes[^1].typedefs[name] = Info(ty: yt, loc: Location(line: t.l.line, col: t.l.col))
 
 # typedef, variable
@@ -5555,9 +5473,29 @@ proc putsymtype(name: string, yt: CType) =
     putsymtype2(name, yt)
     return
   let ty = t.sema.scopes[^1].typedefs.getOrDefault(name, nil)
-  if ty != nil and not bool(ty.ty.tags and TYEXTERN):
-    type_error(name & " redeclared")
-    return
+  if ty != nil:
+    if isTopLevel() or bool(yt.tags and (TYEXTERN or TYSTATIC)):
+        var old = ty.ty
+        var err = true
+        const q = TYATOMIC or TYCONST or TYRESTRICT
+        if bool(yt.tags and TYSTATIC) and not bool(old.tags and TYSTATIC):
+            type_error("static declaration of '" & name & "' follows non-static declaration")
+        elif bool(old.tags and TYSTATIC) and not bool(yt.tags and TYSTATIC):
+            type_error("non-static declaration of '" & name & "' follows static declaration")
+        elif bool(yt.tags and TYTHREAD_LOCAL) and not bool(old.tags and TYTHREAD_LOCAL):
+            type_error("thread-local declaration of '" & name & "' follows non-thread-local declaration")
+        elif bool(old.tags and TYTHREAD_LOCAL) and not bool(yt.tags and TYTHREAD_LOCAL):
+            type_error("non-thread-local declaration of '" & name & "' follows thread-local declaration")
+        elif (yt.tags and q) != (old.tags and q):
+            type_error("conflicting type qualifiers for '" & name & "'")
+        elif not compatible(old, yt):
+            type_error("conflicting types for '" & name & '\'')
+        else:
+            err = false
+        if err:
+            note("previous declaration of '" & name & "'' with type '" & $old & "'")
+    else:
+        type_error(name & " redeclared")
   t.sema.scopes[^1].typedefs[name] = Info(ty: yt, loc: Location(line: t.l.line, col: t.l.col))
 
 proc istype(a: Token): bool =
@@ -6310,7 +6248,7 @@ proc direct_declarator_end(base: CType, name: string): Stmt =
             ty.params.add(("", nil))
         consume()
         if t.l.tok.tok == TLcurlyBracket: # function definition
-            putsymtype3(name, ty)
+            putsymtype2(name, ty)
             t.sema.pfunc = name
             if not isTopLevel():
                 parse_error("function definition is not allowed here")
@@ -6512,6 +6450,20 @@ proc parameter_type_list(): (bool, seq[(string, CType)]) =
             break
         elif t.l.tok.tok == TRbracket:
             break
+    var zero = false
+    for i in 0..<len(result[1]):
+        if i == 0 and bool(result[1][0][1].tags and TYVOID):
+            zero = true
+            discard
+        if result[1][i][1] == nil:
+            break
+        if result[1][i][1].spec == TYINCOMPLETE:
+            error_incomplete(result[1][i][1])
+            return (false, default(typeof(result[1])))
+    if zero:
+        if result[1].len > 1:
+            warning("'void' must be the only parameter")
+        result[1].setLen 0
 
 proc checkAlign(a: uint32) =
     if (a and (a - 1)) != 0:
@@ -6656,23 +6608,6 @@ proc checkRetType(ty: CType) =
         if (ty.ret.tags and (TYTHREAD_LOCAL)) != 0:
             warning("'_Thread_local' in function has no effect")    
 
-proc checkInComplete(base: CType) =
-    case base.tag:
-    of TYSTRUCT:
-        type_error("variable has incomplete type `struct " & base.name & '`')
-        note("in forward references of `struct " & base.name & '`')
-        note("add struct definition before use")
-    of TYENUM:
-        type_error("variable has incomplete type `enum " & base.name & '`')
-        note("in forward references of `enum " & base.name & '`')
-        note("add struct definition before use")
-    of TYUNION:
-        type_error("variable has incomplete type `union " & base.name & '`')
-        note("in forward references of `union " & base.name & '`')
-        note("add union definition before use")
-    else:
-        unreachable()
-
 proc assignable(e: Expr): bool =
     if e.ty.spec == TYPOINTER:
         if bool(e.ty.tags and TYLVALUE) and e.ty.p.spec == TYARRAY:
@@ -6722,7 +6657,7 @@ proc declaration(): Stmt =
                 return st
             assert st.k == SVarDecl1
             if st.var1type.spec == TYINCOMPLETE:
-                checkInComplete(st.var1type)
+                error_incomplete(st.var1type)
                 return nil
             if (st.var1type.tags and TYINLINE) != 0:
                 warning("inline declaration is in block scope has no effect")
@@ -6733,8 +6668,15 @@ proc declaration(): Stmt =
             putsymtype(st.var1name, st.var1type)
             if t.l.tok.tok == TAssign:
                 if st.var1type.spec == TYARRAY and st.var1type.vla != nil:
-                    type_error("variable-sized object may not be initialized")
+                    type_error("variable length array may not be initialized")
                     return nil
+                if st.var1type.spec == TYFUNCTION:
+                    type_error("function may not be initialized")
+                    return nil
+                if bool(st.var1type.tags and TYEXTERN):
+                    type_error("'extern' variables may not be initialized")
+                    if not isTopLevel():
+                        note("place initializer after 'extern' declaration to fix this\nint foo(){\n\textern int a;\n\ta = 0;")
                 consume()
                 var old = t.sema.currentInitTy
                 t.sema.currentInitTy = st.var1type
@@ -6743,14 +6685,10 @@ proc declaration(): Stmt =
                 if init == nil:
                     expect("initializer-list")
                     return nil
-                if st.var1type.spec == TYFUNCTION:
-                    type_error("function declaration has no initializer")
-                    note("only variables can be initialized")
-                else:
-                    result.vars[^1][2] = init
-                    if isTopLevel() and isConstant(result.vars[^1][2]) == false:
-                        type_error("initializer element is not constant")
-                        note("global variable requires constant initializer")
+                result.vars[^1][2] = init
+                if isTopLevel() and isConstant(result.vars[^1][2]) == false:
+                    type_error("initializer element is not constant")
+                    note("global variable requires constant initializer")
             else:
                 if st.var1type.spec == TYARRAY:
                     if st.var1type.vla != nil and isTopLevel():
@@ -6827,11 +6765,13 @@ proc type_name(): (CType, bool) =
 proc getsizeof2(e: Expr, loc: Location): Expr =
     if e.k == ArrToAddress:
         if e.voidexpr.ty.vla != nil:
-            Expr(ty: tycache.isize_tty, k: EVLAGetSize, vla: e, loc: loc)
+            return Expr(ty: tycache.isize_tty, k: EVLAGetSize, vla: e, loc: loc)
         else:
-            Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[uintmax_t](getsizeof(e.voidexpr.ty)), loc: loc)
+            return Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[uintmax_t](getsizeof(e.voidexpr.ty)), loc: loc)
+    if e.k == EUnary and e.uop == AddressOf and e.ty.p.spec == TYFUNCTION:
+        return Expr(ty: tycache.isize_tty, k: EIntLit, ival: 1, loc: loc)
     else:
-        Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[uintmax_t](getsizeof(e)), loc: loc)
+        return Expr(ty: tycache.isize_tty, k: EIntLit, ival: cast[uintmax_t](getsizeof(e)), loc: loc)
 
 proc unary_expression(): Expr =
     let tok = t.l.tok.tok
@@ -7236,6 +7176,7 @@ proc primary_expression(): Expr =
     ##      constant
     ##      `(` expression `)`
     ##      identfier
+    var loc = getLoc()
     case t.l.tok.tok:
     of TCharLit:
         var ty: CType = nil
@@ -7254,7 +7195,7 @@ proc primary_expression(): Expr =
             ty = tycache.iwcharty
         else:
             unreachable()
-        result = Expr(k: EIntLit, ival: t.l.tok.i, ty: ty, loc: getLoc())
+        result = Expr(k: EIntLit, ival: t.l.tok.i, ty: ty, loc: loc)
         consume()
     of TNumberLit:
         var ty: CType = nil
@@ -7271,13 +7212,12 @@ proc primary_expression(): Expr =
             ty = tycache.ulonglongty
         of Iuint:
             ty = tycache.uintty
-        result = Expr(k: EIntLit, ival: t.l.tok.i, ty: ty, loc: getLoc())
+        result = Expr(k: EIntLit, ival: t.l.tok.i, ty: ty, loc: loc)
         consume()
     of TFloatLit:
-        result = Expr(k: EFloatLit, fval: t.l.tok.f, ty: if t.l.tok.ftag == Ffloat: tycache.ffloatty else: tycache.fdoublety, loc: getLoc())
+        result = Expr(k: EFloatLit, fval: t.l.tok.f, ty: if t.l.tok.ftag == Ffloat: tycache.ffloatty else: tycache.fdoublety, loc: loc)
         consume()
     of TStringLit:
-        var loc = getLoc()
         var s: string
         var enc = t.l.tok.enc
         while true:
@@ -7293,23 +7233,24 @@ proc primary_expression(): Expr =
         of 8:
             let ty = tycache.strty
             result = Expr(
-                k: ArrToAddress, voidexpr: Expr(k: EString, ty: ty, str: s, is_constant: true), 
-                ty: ty, loc: getLoc()
+                k: ArrToAddress, voidexpr: Expr(k: EString, ty: ty, str: s, is_constant: true, loc: loc),
+                ty: ty
             )
         of 16:
+            var loc = getLoc()
             var a: seq[Expr]
             let ty = tycache.ushortty
             for i in writeUTF8toUTF16(s):
-                a.add(Expr(k: EIntLit, ival: cast[uintmax_t](i), ty: ty))
+                a.add(Expr(k: EIntLit, ival: cast[uintmax_t](i), ty: ty, loc: loc))
             result = Expr(
-                k: ArrToAddress, voidexpr: Expr(k: EArray, ty: ty, arr: a), 
-                ty: getPointerType(ty), loc: getLoc()
+                k: ArrToAddress, voidexpr: Expr(k: EArray, ty: ty, arr: a, loc: loc), 
+                ty: getPointerType(ty)
             )
         of 32:
             var a: seq[Expr]
             let ty = tycache.u32
             for i in writeUTF8toUTF32(s):
-                a.add(Expr(k: EIntLit, ival: uintmax_t(i), ty: ty))
+                a.add(Expr(k: EIntLit, ival: uintmax_t(i), ty: ty, loc: loc))
             result = Expr(
                 k: ArrToAddress, voidexpr: Expr(k: EArray, ty: ty, arr: a), 
                 ty: getPointerType(ty), loc: getLoc()
@@ -7352,7 +7293,7 @@ proc primary_expression(): Expr =
             let ty = tycache.strty
             result = Expr(
                 k: ArrToAddress, voidexpr: Expr(k: EString, str: t.sema.pfunc, ty: ty, is_constant: true), 
-                ty: ty, loc: getLoc()
+                ty: ty, loc: loc
             )
         else:
             var ty: CType = nil
@@ -7364,7 +7305,6 @@ proc primary_expression(): Expr =
                   break
                 if t.sema.scopes[i].enums.hasKey(t.l.tok.s):
                   var val = t.sema.scopes[i].enums[t.l.tok.s]
-                  var loc = getLoc()
                   consume()
                   return Expr(k: EIntLit, ival: val, ty: tycache.iintty, loc: loc)
             if ty == nil:
@@ -7375,22 +7315,21 @@ proc primary_expression(): Expr =
             case ty.spec:
             of TYFUNCTION:
                 result = unary(
-                    Expr(k: EVar, sval: t.l.tok.s, ty: ty), AddressOf, 
+                    Expr(k: EVar, sval: t.l.tok.s, ty: ty, loc: loc), AddressOf, 
                     CType(tags: TYLVALUE, spec: TYPOINTER, p: ty)
                 )
             of TYARRAY:
                 var cp = deepCopy(ty)
                 cp.arrtype.tags = cp.arrtype.tags and prim
                 result = Expr(
-                    k: ArrToAddress, voidexpr: Expr(k: EVar, sval: t.l.tok.s, ty: cp),
-                    ty: CType(tags: TYLVALUE, spec: TYPOINTER, p: ty.arrtype)
+                    k: ArrToAddress, voidexpr: Expr(k: EVar, sval: t.l.tok.s, ty: cp, loc: loc),
+                    ty: CType(tags: TYLVALUE, spec: TYPOINTER, p: ty.arrtype), loc: loc
                 )
             else:
-                result = Expr(k: EVar, sval: t.l.tok.s, ty: ty)
+                result = Expr(k: EVar, sval: t.l.tok.s, ty: ty, loc: loc)
         result.loc = getLoc()
         consume()
     of TLbracket:
-        var loc = getLoc()
         consume()
         result = expression()
         if result == nil:
@@ -7788,7 +7727,7 @@ proc expression(): Expr =
             var r = assignment_expression()
             if r == nil:
                 return nil
-            result = binop(result, Comma, r, r.ty)
+            result = Expr(k: EBin, lhs: result, rhs: r, bop: Comma, ty: r.ty, loc: r.loc)
         else:
             return result
 
@@ -7895,8 +7834,6 @@ proc translation_unit(): Stmt =
         if s == nil:
             break
         result.stmts.add(s)
-
-
 
 proc runParser(): Stmt =
     ## eat first token and parse a translation_unit

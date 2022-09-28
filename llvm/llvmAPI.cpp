@@ -130,17 +130,16 @@ const char* LLVMNimGetArchName(Triple* t){
 	*/
 	return t->getArchName().begin();
 }
-char* LLVMNimConfigureTarget(const char* tripleStr, LLVMTargetRef *Target, LLVMTargetMachineRef *Machine, LLVMTargetDataRef *TD, Triple** theTriple, uint32_t* f, LLVMBool all){
-	if (all)
+char* LLVMNimConfigureTarget(const char* tripleStr, LLVMTargetRef *Target, LLVMTargetMachineRef *Machine, LLVMTargetDataRef *TD, Triple** theTriple, uint32_t* f){
+	if (tripleStr == NULL)
 	{
 		myInitAllTargets();
 		return NULL;
 	}
 	std::string Error;
-	std::string triple = tripleStr;
-	if (triple.empty()){
+	std::string triple {tripleStr};
+	if (*f){
 		myInitTarget();
-		triple = sys::getDefaultTargetTriple();
 	}else{
 		myInitAllTargets();
 	}
@@ -194,6 +193,11 @@ void LLVMNimOptModule(LLVMModuleRef M){
 	for(Module::iterator I = Mod->begin();I != Mod->end();++I){
 		opt(& *I);
 	}
+}
+void LLVMNimAddLabel(LLVMDIBuilderRef Builder, LLVMMetadataRef Scope, LLVMBasicBlockRef BB, const char* name, size_t nameLen, LLVMMetadataRef file, unsigned lineno, LLVMMetadataRef loc){
+	auto DIBuilder = unwrap(Builder);
+	DILabel *LabelInfo = DIBuilder->createLabel(reinterpret_cast<DIScope*>(Scope), StringRef(name, nameLen), reinterpret_cast<DIFile*>(file), lineno);
+	DIBuilder->insertLabel(LabelInfo, reinterpret_cast<DILocation*>(loc), reinterpret_cast<BasicBlock*>(BB));
 }
 unsigned LLVMNimGetIntrinsicForMSBuiltin(const char* Prefix, const char* BuiltinName){
 	return Intrinsic::getIntrinsicForMSBuiltin(Prefix, StringRef(BuiltinName));
