@@ -63,6 +63,7 @@ type
       ## create debug output
       g: bool
       strbuf: string
+      libtrace: bool
       when defined(windows):
         hStderr: HANDLE
         hStderrInfo: CONSOLE_SCREEN_BUFFER_INFO
@@ -102,7 +103,8 @@ var app = CC(
     linker: GCCLD,
     strbuf: newStringOfCap(150),
     g: false,
-    dir: getCurrentDir()
+    dir: getCurrentDir(),
+    libtrace: false
 )
 
 when defined(windows):
@@ -1249,6 +1251,10 @@ type
     i1_0, i1_1: Value
     ## true when gen expression statement
     expr_stmt: bool
+    ## libtrace support
+    lt_callframe, lt_call_ty: Type
+    lt_begin_call, lt_end_call: Value
+    lt_now: Value
 
 var b = Backend()
 
@@ -3082,7 +3088,7 @@ proc get(): string =
 proc system(command: cstring): cint {.importc: "system", header: "stdio.h".}
 
 proc runLD(input, path: string) =
-  var cmd = "gcc \"" & $input & "\" -o \"" & $path & '"'
+  var cmd = "gcc libtrace/libtrace.o \"" & $input & "\" -o \"" & $path & '"'
   let status = system(cmd.cstring)
   if status != 0:
     myperror("gcc returned " & $status & " exit status")
@@ -3177,6 +3183,7 @@ type P = proc () {.nimcall.}
 var cliOptions = [
   ("v".h, 0, cast[P](showVersion), "print version info"),
   ("g".h, 0, proc () = app.g = true, "create debug information in output"),
+  ("libtrace".h, 0, proc () = app.libtrace = true, "Crate libtrace stack trace"),
   ("version".h, 0, cast[P](showVersion), "print version info"),
   ("help".h, 0, help, "help"),
   ("-help".h, 0, help, "help"),
@@ -3322,8 +3329,13 @@ proc wrap3(ty: CType): DIType
 proc getLexScope(): DIScope =
     b.lexBlocks[^1]
 
+var file: MetadataRef
+
 proc getFile(): DIScope =
-    b.lexBlocks[0]
+    if file == nil:
+      file = dIBuilderCreateFile(b.di, "foobar", 6, app.dir.cstring, app.dir.len.csize_t)
+    return file
+    # b.lexBlocks[0]
 
 proc createDebugFuctionType(ty: CType): DIType =
     let l = len(ty.params)
@@ -3341,13 +3353,15 @@ proc createDebugFuctionType(ty: CType): DIType =
         break
       arr[i] = wrap3(ty.params[i-1][1])
       inc i
-    dIBuilderCreateSubroutineType(b.di, getLexScope(), buf, i, DIFlagZero)
+    dIBuilderCreateSubroutineType(b.di, getFile(), buf, i, DIFlagZero)
 
 proc llvmGetAlignof(ty: CType): culonglong =
   aBIAlignmentOfType(b.layout, wrap2(ty))
 
 proc llvmGetsizeof(ty: CType): culonglong =
   storeSizeOfType(b.layout, wrap2(ty))
+
+proc gen_str_ptr(val: string, is_constant: bool): Value
 
 proc getsizeof(ty: CType): culonglong =
     if bool(ty.tags and TYVOID):
@@ -3382,6 +3396,34 @@ proc emitDebugLocation(e: Expr | Stmt) =
     var loc = wrap(e.loc)
     setCurrentDebugLocation2(b.builder, loc)
 
+proc addlibtraceSupport() =
+  var arr = [
+    b.types[DIi32].ty, # line
+    b.types[DIptr].ty, # func
+    b.types[DIptr].ty, # file
+    b.types[DIptr].ty  # next
+  ]
+  b.lt_callframe = structCreateNamed(b.ctx, "CallFrame")
+  structSetBody(b.lt_callframe, addr arr[0], len(arr).cuint, False)
+  b.lt_now = addGlobal(b.module, b.types[DIptr].ty, "__libtrace_now")
+  setLinkage(b.lt_now, ExternalLinkage)
+  var ty = functionType(b.types[DIvoidty].ty, nil, 0, False)
+  b.lt_call_ty = ty
+  b.lt_begin_call = addFunction(b.module, "__libtrace_begin_call", ty)
+  b.lt_end_call = addFunction(b.module, "__libtrace_end_call", ty)
+
+proc load(p: Value, t: Type, align: uint32 = 0): Value =
+  assert p != nil
+  assert t != nil
+  result = buildLoad2(b.builder, t, p, "")
+  if align != 0:
+    setAlignment(result, align.cuint)
+
+proc store(p: Value, v: Value, align: uint32 = 0) =
+  var s = buildStore(b.builder, v, p)
+  if align != 0:
+    setAlignment(s, align.cuint)
+
 proc addLLVMModule(source_file: string) =
   b.module = moduleCreateWithNameInContext(source_file.cstring, b.ctx)
   setSourceFileName(b.module, cstring(source_file), source_file.len.csize_t)
@@ -3406,6 +3448,8 @@ proc addLLVMModule(source_file: string) =
   var wcharsizenode = mDNodeInContext(b.ctx, addr wcharsize_arr[0], 3)
   addNamedMetadataOperand(b.module, "llvm.module.flags", wcharsizenode)
 
+  if app.libtrace:
+    addlibtraceSupport()
   if app.g:
     b.di = createDIBuilder(b.module)
     var file = dIBuilderCreateFile(b.di, source_file.cstring, source_file.len.csize_t, app.dir.cstring, app.dir.len.csize_t)
@@ -3450,9 +3494,9 @@ proc addLLVMModule(source_file: string) =
     b.di32 = dbgType2("int", DW_ATE_signed, sizeOfTypeInBits(b.layout, b.types[DIi32].ty))
     b.di64 = dbgType2("long long", DW_ATE_signed, sizeOfTypeInBits(b.layout, b.types[DIi64].ty))
     const dwarf_version = "Dwarf Version"
-    addModuleFlag(b.module, 7, dwarf_version, dwarf_version.len.csize_t, valueAsMetadata(constInt(b.types[DIi32].ty, DWARF_VERSION)))
+    addModuleFlag(b.module, 6, dwarf_version, dwarf_version.len.csize_t, valueAsMetadata(constInt(b.types[DIi32].ty, DWARF_VERSION)))
     const debug_info = "Debug Info Version"
-    addModuleFlag(b.module, 2, debug_info, debug_info.len.csize_t, valueAsMetadata(constInt(b.types[DIi32].ty, debugMetadataVersion())))
+    addModuleFlag(b.module, 1, debug_info, debug_info.len.csize_t, valueAsMetadata(constInt(b.types[DIi32].ty, debugMetadataVersion())))
 
 proc setInsertPoint(loc: Label) {.inline.} =
   positionBuilderAtEnd(b.builder, loc)
@@ -3480,6 +3524,25 @@ proc gep(ty: Type, p: Value, indices: ptr Value, num: cuint): Value {.inline.} =
 
 proc gep(ty: Type, p: Value, indices: var openarray[Value]): Value {.inline.} =
   gep(ty, p, addr indices[0], indices.len.cuint)
+
+proc buildlibtraceBeginCall(funcstr: string, line: uint32, file: string): ValueRef =
+  discard buildCall2(b.builder, b.lt_call_ty, b.lt_begin_call, nil, 0, "")
+  var frame = buildAlloca(b.builder, b.lt_callframe, "")
+  var vals = [constInt(b.types[DIi32].ty, line.culonglong), gen_str_ptr(funcstr, true), gen_str_ptr(file, true), constNull(b.types[DIptr].ty)]
+  store(frame, constNamedStruct(b.lt_callframe, addr vals[0], vals.len.cuint))
+  var old = buildAlloca(b.builder, b.types[DIptr].ty, "")
+  var o = load(b.lt_now, b.types[DIptr].ty)
+  store(old, o)
+  var p = buildStructGEP2(b.builder, b.lt_callframe, o, 3, "")
+  store(p, frame)
+  store(b.lt_now, frame)
+  return old
+
+proc buildlibtraceAfterCall(old: ValueRef) =
+  store(b.lt_now, load(old, b.types[DIptr].ty))
+  var p = buildStructGEP2(b.builder, b.lt_callframe, load(b.lt_now, b.types[DIptr].ty), 3, "")
+  store(p, constNull(b.types[DIptr].ty))
+  discard buildCall2(b.builder, b.lt_call_ty, b.lt_end_call, nil, 0, "")
 
 proc initTarget(all = false): bool =
   b.f = FNone
@@ -3605,18 +3668,6 @@ proc gen_str_ptr(val: string, is_constant: bool): Value =
   setUnnamedAddr(result, 1)
   if is_constant:
     setGlobalConstant(result, True)
-
-proc load(p: Value, t: Type, align: uint32 = 0): Value =
-  assert p != nil
-  assert t != nil
-  result = buildLoad2(b.builder, t, p, "")
-  if align != 0:
-    setAlignment(result, align.cuint)
-
-proc store(p: Value, v: Value, align: uint32 = 0) =
-  var s = buildStore(b.builder, v, p)
-  if align != 0:
-    setAlignment(s, align.cuint)
 
 proc wrap2(ty: CType): Type =
   case ty.spec:
@@ -3819,8 +3870,13 @@ proc wrap(ty: CType): Type =
         break
       arr[i] = wrap(ty.params[i][1])
       inc i
-    result = functionType(wrap(ty.ret), buf, i, if ivarargs: True else: False)
-    dealloc(buf)  
+    var ret: Type
+    if bool(ty.ret.tags and TYVOID):
+      ret = b.types[DIvoidty].ty
+    else:
+      ret = wrap(ty.ret)
+    result = functionType(ret, buf, i, if ivarargs: True else: False)
+    dealloc(buf)
     return result
   of TYARRAY:
     return arrayType(wrap(ty.arrtype), cuint(ty.arrsize))
@@ -4148,16 +4204,14 @@ proc addAttribute(f: Value, attrID: cuint) =
     var attr = createEnumAttribute(b.ctx, attrID, 0)
     addAttributeAtIndex(f, cast[AttributeIndex](AttributeFunctionIndex), attr)
 
-proc newFunction(varty: CType, name: string): Value =
+proc newFunction(fty: Type, name: string, tags: uint32): Value =
     result = b.vars[0].getOrDefault(name, nil)
     if result != nil:
         return result
-    var fty = wrap(varty)
     result = addFunction(b.module, name.cstring, fty)
     nimLLVMSetDSOLocal(result)
     addAttribute(result, NoUnwind)
     addAttribute(result, OptimizeForSize)
-    var tags = varty.ret.tags
     if bool(tags and TYSTATIC):
         setLinkage(result, InternalLinkage)
     if bool(tags and TYNORETURN):
@@ -4165,11 +4219,6 @@ proc newFunction(varty: CType, name: string): Value =
     if bool(tags and TYINLINE):
         addAttribute(result, InlineHint)
     b.vars[0][name] = result
-    if app.g:
-        for i in 0 ..< len(varty.params):
-            if varty.params[i][1] == nil:
-                break
-            setValueName2(getParam(result, i.cuint), cstring(varty.params[i][0]), varty.params[i][0].len.csize_t)
 
 proc getLinkageName(tags: uint32): (cstring, uint) =
     if bool(tags and TYSTATIC):
@@ -4186,11 +4235,11 @@ proc gen(s: Stmt) =
   case s.k:
   of SCompound:
     if app.g:
-        b.lexBlocks.add(
-            dIBuilderCreateLexicalBlock(
-                b.di, getLexScope(), getFile(), s.loc.line, s.loc.col
-            )
-        )
+          b.lexBlocks.add(
+              dIBuilderCreateLexicalBlock(
+                  b.di, getLexScope(), getFile(), s.loc.line, s.loc.col
+              )
+          )
     enterScope()
     for i in s.stmts:
       gen(i)
@@ -4201,10 +4250,23 @@ proc gen(s: Stmt) =
       b.expr_stmt = true
       discard gen(s.exprbody)
   of SFunction:
+      var debugMain = app.libtrace and s.funcname == "main"
       enterScope()
-      assert s.functy.spec == TYFUNCTION
+      if debugMain:
+        var l = s.functy.params.len
+        var v = false
+        if l > 0 and s.functy.params[^1][1] == nil:
+          v = true
+          discard s.functy.params.pop()
+          dec l
+        if l == 0:
+          s.functy.params.add(("argc", tycache.iintty))
+        if l <= 1:
+          s.functy.params.add(("argv", getPointerType(getPointerType(tycache.i8))))
+        if v:
+          s.functy.params.add(("", nil))
       var ty = wrap(s.functy)
-      b.currentfunction = newFunction(s.functy, s.funcname)
+      b.currentfunction = newFunction(ty, s.funcname, s.functy.tags)
       var sp: MetadataRef
       if app.g:
         var l = getLinkageName(s.functy.ret.tags)
@@ -4240,6 +4302,12 @@ proc gen(s: Stmt) =
           iter = getNextParam(iter)
           inc i
         dealloc(fparamsTypes)
+      if debugMain:
+          var args = [getParam(b.currentfunction, 0), getParam(b.currentfunction, 1)]
+          var argtypes = [b.types[DIi32].ty, b.types[DIptr].ty]
+          var fty = functionType(b.types[DIvoidty].ty, addr argtypes[0], 2, False)
+          var f = addFunction(b.module, "__libtrace_init", fty)
+          discard buildCall2(b.builder, fty, f, addr args[0], 2, "")
       for i in s.funcbody.stmts:
         gen(i)
       leaveScope()
@@ -4313,7 +4381,7 @@ proc gen(s: Stmt) =
       if bool(varty.tags and TYTYPEDEF):
         discard
       elif varty.spec == TYFUNCTION:
-        discard newFunction(varty, name)
+        discard newFunction(wrap(varty), name, varty.tags)
       else:
         if b.currentfunction == nil or bool(varty.tags and (TYEXTERN or TYSTATIC)):
           block InitGV:
@@ -4645,18 +4713,22 @@ proc gen(e: Expr): Value =
   of ECall:
     var ty = wrap(e.callfunc.ty)
     var f = getAddress(e.callfunc)
-    if f == nil:
-      llvm_error("connot find function")
-      nil
-    else:
-      var l = len(e.callargs)
-      var args = create(Value, l or 1)
-      var arr = cast[ptr UncheckedArray[Value]](args)
-      for i in 0 ..< l:
-        arr[i] = gen(e.callargs[i]) # eval argument from left to right
-      var res = buildCall2(b.builder, ty, f, args, l.cuint, "")
-      dealloc(args)
-      res
+    var l = len(e.callargs)
+    var args = create(Value, l or 1)
+    var arr = cast[ptr UncheckedArray[Value]](args)
+    for i in 0 ..< l:
+      arr[i] = gen(e.callargs[i]) # eval argument from left to right
+    var old: Value
+    if app.libtrace:
+      var s = $e
+      var line = e.loc.line
+      var file = "FooBar"
+      old = buildlibtraceBeginCall(s, line, file)
+    var res = buildCall2(b.builder, ty, f, args, l.cuint, "")
+    if app.libtrace:
+      buildlibtraceAfterCall(old)
+    dealloc(args)
+    res
   of EStruct:
     getStruct(e)
   of EArray:
@@ -8026,7 +8098,10 @@ if parseCLI():
           if not err():
               set_exit_code(0)
               if app.mode != OutputCheck:
-                  gen(translation_unit)
+                  enterScope()
+                  for i in translation_unit.stmts:
+                    gen(i)
+                  leaveScope()
                   optimize()
                   if app.runJit:
                       runJit()
