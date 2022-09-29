@@ -1007,6 +1007,9 @@ proc `$`(a: CType, level=0): string =
   of TYARRAY:
     result.add($a.arrtype & " [" & (if a.vla != nil: $a.vla else: (if a.hassize: $a.arrsize else: "")) & "]")
 
+proc isFloating(ty: CType): bool =
+    bool(ty.tags and (TYFLOAT or TYDOUBLE))
+
 proc make_primitive(tag: uint32): CType =
   CType(tags: tag, spec: TYPRIM)
 
@@ -1252,9 +1255,10 @@ type
     ## true when gen expression statement
     expr_stmt: bool
     ## libtrace support
-    lt_callframe, lt_call_ty: Type
-    lt_begin_call, lt_end_call: Value
-    lt_now: Value
+    lt_callframe, lt_call_ty, lt_call_ty2, lt_call_ty3: Type
+    lt_begin_call, lt_end_call, lt_defef_nil, lt_div_zero, lt_fdiv_zero, lt_arr_index, lt_now, lt_line, lt_file: Value
+    last_line: uint32
+
 
 var b = Backend()
 
@@ -3313,6 +3317,8 @@ const
  F32Bit = 2'u32
  F64Bit = 4'u32
 
+proc gen_str_ptr(val: string, is_constant = true): Value
+
 proc llvm_error(msg: string) =
   raw_message_line "LLVM ERROR: " & msg
 
@@ -3330,6 +3336,9 @@ proc getLexScope(): DIScope =
     b.lexBlocks[^1]
 
 var file: MetadataRef
+
+proc getFileStr(): string =
+  "xc.c"
 
 proc getFile(): DIScope =
     if file == nil:
@@ -3361,8 +3370,6 @@ proc llvmGetAlignof(ty: CType): culonglong =
 proc llvmGetsizeof(ty: CType): culonglong =
   storeSizeOfType(b.layout, wrap2(ty))
 
-proc gen_str_ptr(val: string, is_constant: bool): Value
-
 proc getsizeof(ty: CType): culonglong =
     if bool(ty.tags and TYVOID):
         return 1
@@ -3392,9 +3399,22 @@ proc emitDebugLocation() =
 proc wrap(loc: Location): DIScope =
     dIBuilderCreateDebugLocation(b.ctx, loc.line.cuint, loc.col.cuint, getLexScope(), nil)
 
+proc store(p: Value, v: Value, align: uint32 = 0) =
+  var s = buildStore(b.builder, v, p)
+  if align != 0:
+    setAlignment(s, align.cuint)
+
 proc emitDebugLocation(e: Expr | Stmt) =
-    var loc = wrap(e.loc)
-    setCurrentDebugLocation2(b.builder, loc)
+    if app.g:
+      var loc = wrap(e.loc)
+      setCurrentDebugLocation2(b.builder, loc)
+    elif app.libtrace:
+      if b.currentfunction != nil:
+        let target = e.loc.line
+        if b.last_line == target:
+          return
+        b.last_line = target
+        store(b.lt_line, constInt(b.types[DIi32].ty, target))
 
 proc addlibtraceSupport() =
   var arr = [
@@ -3407,10 +3427,24 @@ proc addlibtraceSupport() =
   structSetBody(b.lt_callframe, addr arr[0], len(arr).cuint, False)
   b.lt_now = addGlobal(b.module, b.types[DIptr].ty, "__libtrace_now")
   setLinkage(b.lt_now, ExternalLinkage)
+  b.lt_line = addGlobal(b.module, b.types[DIi32].ty, "__libtrace_line")
+  setLinkage(b.lt_line, ExternalLinkage)
+  b.lt_file = addGlobal(b.module, b.types[DIptr].ty, "__libtrace_file")
+  setLinkage(b.lt_file, ExternalLinkage)
   var ty = functionType(b.types[DIvoidty].ty, nil, 0, False)
+  var params = [b.types[DIi64].ty, b.types[DIi64].ty]
+  var ty2 = functionType(b.types[DIvoidty].ty, addr params[0], 2, False)
+  var p = b.types[DIptr].ty
+  var ty3 = functionType(b.types[DIvoidty].ty, addr p, 1, False)
   b.lt_call_ty = ty
+  b.lt_call_ty2 = ty2
+  b.lt_call_ty3 = ty3
   b.lt_begin_call = addFunction(b.module, "__libtrace_begin_call", ty)
   b.lt_end_call = addFunction(b.module, "__libtrace_end_call", ty)
+  b.lt_defef_nil = addFunction(b.module, "__libtrace_defef_nil", ty3)
+  b.lt_div_zero = addFunction(b.module, "__libtrace_div_zero", ty)
+  b.lt_fdiv_zero = addFunction(b.module, "__libtrace_fdiv_zero", ty)
+  b.lt_arr_index = addFunction(b.module, "__libtrace_array_index", ty2)
 
 proc load(p: Value, t: Type, align: uint32 = 0): Value =
   assert p != nil
@@ -3419,10 +3453,6 @@ proc load(p: Value, t: Type, align: uint32 = 0): Value =
   if align != 0:
     setAlignment(result, align.cuint)
 
-proc store(p: Value, v: Value, align: uint32 = 0) =
-  var s = buildStore(b.builder, v, p)
-  if align != 0:
-    setAlignment(s, align.cuint)
 
 proc addLLVMModule(source_file: string) =
   b.module = moduleCreateWithNameInContext(source_file.cstring, b.ctx)
@@ -4230,8 +4260,7 @@ proc getLinkageName(tags: uint32): (cstring, uint) =
     return (nil, 0.uint)
 
 proc gen(s: Stmt) =
-  if app.g:
-    emitDebugLocation(s)
+  emitDebugLocation(s)
   case s.k:
   of SCompound:
     if app.g:
@@ -4277,6 +4306,8 @@ proc gen(s: Stmt) =
         emitDebugLocation()
       var entry = addBlock("entry")
       setInsertPoint(entry)
+      if app.libtrace:
+        store(b.lt_file, gen_str_ptr(getFileStr()))
       b.labels.add(initTable[string, Label]())
       for L in s.labels:
         var j = addBlock(cstring(L))
@@ -4486,9 +4517,30 @@ proc getArray(e: Expr): Value =
     result = constArray(elemTy, inits, e.ty.arrsize.cuint)
     dealloc(inits)
 
+proc subscript(e: Expr, ty: var Type): Value =
+    ty = wrap(e.left.ty.p)
+    var v = gen(e.left)
+    var r = gen(e.right)
+    if app.libtrace and e.left.k == ArrToAddress:
+        var is_indexing_array = e.left.voidexpr.ty.spec == TYARRAY
+        # true: indexing array, false: indexing string literal
+        if (is_indexing_array and e.left.voidexpr.ty.hassize) or (not is_indexing_array):
+            var max = constInt(b.types[DIi64].ty, (if is_indexing_array: e.left.voidexpr.ty.arrsize.culonglong else: e.left.voidexpr.str.len.culonglong))
+            var index = r
+            var iftrue = addBlock()
+            var ifend = addBlock()
+            if not bool(e.right.ty.tags and (TYUINT64 or TYINT64)):
+                index = buildZExt(b.builder, r, b.types[DIi64].ty, "")
+            condBr(buildICmp(b.builder, IntUGE, index, max, ""), iftrue, ifend)
+            setInsertPoint(iftrue)
+            var args = [index, max]
+            discard buildCall2(b.builder, b.lt_call_ty2, b.lt_arr_index, addr args[0], 2, "")
+            discard buildUnreachable(b.builder)
+            setInsertPoint(ifend)
+    gep(ty, v, r)
+
 proc getAddress(e: Expr): Value =
-  if app.g:
-      emitDebugLocation(e)
+  emitDebugLocation(e)
   case e.k:
   of EVar:
     getVar(e.sval)
@@ -4525,11 +4577,8 @@ proc getAddress(e: Expr): Value =
           discard incl(basep, ty, a)
       basep
   of ESubscript:
-    assert e.left.ty.spec == TYPOINTER # the left must be a pointer
-    var ty = wrap(e.left.ty.p)
-    var v = gen(e.left) # a pointer
-    var r = [gen(e.right)] # get index
-    gep(ty, v, r)
+    var ty: Type
+    subscript(e, ty)
   of ArrToAddress:
     var arr = getAddress(e.voidexpr)
     buildBitCast(b.builder, arr, wrap(e.ty), "")
@@ -4551,8 +4600,7 @@ proc getAddress(e: Expr): Value =
     nil
 
 proc gen(e: Expr): Value =
-  if app.g:
-    emitDebugLocation(e)
+  emitDebugLocation(e)
   var expr_stmt = b.expr_stmt
   b.expr_stmt = false
   case e.k:
@@ -4566,12 +4614,9 @@ proc gen(e: Expr): Value =
     var arr = getAddress(e.voidexpr)
     buildBitCast(b.builder, arr, wrap(e.ty), "")
   of ESubscript:
-    assert e.left.ty.spec == TYPOINTER # the left must be a pointer
-    var ty = wrap(e.left.ty.p)
-    var v = gen(e.left) # a pointer
-    var r = gen(e.right) # get index
-    var gaddr = gep(ty, v, r)
-    load(gaddr, ty) # return lvalue
+    var ty: Type
+    var v = subscript(e, ty)
+    load(v, ty)
   of EMemberAccess, EPointerMemberAccess:
     var base = gen(e.obj)
     if e.k == EPointerMemberAccess:
@@ -4635,9 +4680,18 @@ proc gen(e: Expr): Value =
       discard gen(e.lhs)
       gen(e.rhs)
     else:
-      var op = getOp(e.bop)
       var lhs = gen(e.lhs)
       var rhs = gen(e.rhs)
+      if e.bop in {UDiv, SDiv, FDiv, FRem, URem, SRem}:
+          if app.libtrace:
+              var iftrue = addBlock()
+              var ifend = addBlock()
+              condBr((if isFloating(e.ty): buildFCmp(b.builder, RealOEQ, rhs, constReal(b.types[DIfdouble].ty, 0.0), "") else: buildisNull(b.builder, rhs, "")), iftrue, ifend)
+              setInsertPoint(iftrue)
+              discard buildCall2(b.builder, b.lt_call_ty, (if isFloating(e.ty): b.lt_fdiv_zero else: b.lt_div_zero), nil, 0, "")
+              discard buildUnreachable(b.builder)
+              setInsertPoint(ifend)
+      var op = getOp(e.bop)
       buildBinOp(b.builder, op, lhs, rhs, "")
   of EIntLit:
     gen_int(e.ival.culonglong, e.ty.tags)
@@ -4676,7 +4730,11 @@ proc gen(e: Expr): Value =
           nil
         else:
           load(basep, ty)
-    of Dereference: load(gen(e.uoperand), wrap(e.ty))
+    of Dereference:
+      var g = gen(e.uoperand)
+      var ty = wrap(e.ty)
+      discard buildCall2(b.builder, b.lt_call_ty3, b.lt_defef_nil, addr g, 1, "")
+      load(g, ty)
     of LogicalNot: buildisNull(b.builder, gen(e.uoperand), "")
   of EPostFix:
     case e.pop:
@@ -4722,8 +4780,7 @@ proc gen(e: Expr): Value =
     if app.libtrace:
       var s = $e
       var line = e.loc.line
-      var file = "FooBar"
-      old = buildlibtraceBeginCall(s, line, file)
+      old = buildlibtraceBeginCall(s, line, getFileStr())
     var res = buildCall2(b.builder, ty, f, args, l.cuint, "")
     if app.libtrace:
       buildlibtraceAfterCall(old)
@@ -5210,9 +5267,6 @@ proc leaveBlock() =
             else:
                 warning("unused variable '" & name & '\'')
     discard t.sema.scopes.pop()
-
-proc isFloating(ty: CType): bool =
-    bool(ty.tags and (TYFLOAT or TYDOUBLE))
 
 proc isSigned(ty: CType): bool =
     ## `_Bool` is not signed

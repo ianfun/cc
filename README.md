@@ -12,6 +12,37 @@ cc is now can compile [xc.c](https://github.com/lotabout/write-a-C-interpreter),
 
 ![](screenshots.png)
 
+cc provides stack trace backs in the `-libtrace` command line option, if the program try to access `NULL` or some signal was recieved, or array index out of bounds, it will print stack trace to stderr
+
+![](debug.png)
+
+libtrace provides some runtime checks
+
+* signal handling
+* call limits in function
+* array index checker
+* division by zero checker
+* derefence from `NULL`
+
+for example the C program
+
+```C
+int getchar(void);
+
+int foo(int n){
+	int arr[10];
+	return arr[n];
+}
+
+int main(){
+	foo(getchar());
+}
+```
+
+will raise errors when index is >= 10
+
+![](debug2.png)
+
 ## Steps of process
 
 1. source file(file or string stream, defined in *stream.nim*) => lexical tokens *lexer.nim* => C-Preprocess(CPP)*lexer.nim* => parsing, type checking

@@ -17,6 +17,8 @@ static const char **gargv;
 static unsigned calll_limits = 0;
 
 struct CallFrame *__libtrace_now = NULL;
+unsigned __libtrace_line = 0;
+const char *__libtrace_file = "(unknown file)";
 
 static void print_main(){
 	fprintf(stderr, "%d, ", gargc);
@@ -28,6 +30,7 @@ static void print_main(){
 }
 
 void _Noreturn __libtrace_print_stacktrace(const char *msg){
+	fprintf(stderr, "Error occured in %s:%u\n", __libtrace_file, __libtrace_line);
 	fprintf(stderr, "%s", "\e[31mTraceback (most recent call last):\e[0m\n");
 	struct CallFrame *last = &base;
 	struct CallFrame *p = base.next;
@@ -64,6 +67,10 @@ static const char *get_sig_str(int sig){
 		case SIGABRT: return "SIGABRT: Abnormal termination(maybe abort was called?)";
 		case SIGSEGV: return "SIGSEGV: Segmentation fault";
 		case SIGFPE: return "SIGFPE: erroneous arithmetic operation";
+		case SIGILL: return "SIGILL: Illegal operation";
+		#ifdef SIGBUS
+		case SIGBUS: return "SIGBUS: Illegal storage access";
+		#endif
 		default: return "(unknown signal)";
 	}
 }
@@ -71,8 +78,21 @@ static void _Noreturn sig_handler(int sig){
 	__libtrace_print_stacktrace(get_sig_str(sig));
 }
 void _Noreturn __libtrace_no_mem(void){
-	__libtrace_print_stacktrace("no enough memory: allocation failed");
+	__libtrace_print_stacktrace("Not enough memory: allocation failed");
 }
+void __libtrace_defef_nil(void *p){
+	if (p == NULL)
+		__libtrace_print_stacktrace("Attempt to defefrence from NULL pointer");
+}
+void _Noreturn __libtrace_div_zero(void){
+	__libtrace_print_stacktrace("Integer division by zero");
+}
+void _Noreturn __libtrace_fdiv_zero(void){
+	__libtrace_print_stacktrace("Floating division by zero");
+}
+__attribute__((__format__ (gnu_printf, 1, 2))) 
+void _Noreturn __libtrace_raise(const char *fmt, ...);
+
 void _Noreturn __libtrace_raise(const char *fmt, ...){
 	va_list ap;
 	va_start(ap, fmt);
@@ -83,8 +103,11 @@ void _Noreturn __libtrace_raise(const char *fmt, ...){
 }
 void __libtrace_begin_call(){
 	if (++calll_limits > CALL_LIMIT){
-		__libtrace_raise("stack overflow, maximum call limits exceeded: (current limit = %u)", CALL_LIMIT);
+		__libtrace_raise("Stack overflow, maximum call limits exceeded: (current limit = %u)", CALL_LIMIT);
 	}
+}
+void _Noreturn __libtrace_array_index(unsigned long long i, unsigned long long len){
+	__libtrace_raise("Array index '%llu' is not accessable when array length '%llu'", i, len);
 }
 void __libtrace_end_call(){
 	--calll_limits;
@@ -93,10 +116,14 @@ void __libtrace_init(int argc, const char* argv[]){
 	gargc = argc;
 	gargv = argv;
 	__libtrace_now = &base;
+	signal(SIGILL, sig_handler);
 	signal(SIGINT, sig_handler);
 	signal(SIGSEGV, sig_handler);
 	signal(SIGABRT, sig_handler);
 	signal(SIGFPE, sig_handler);
+#ifdef SIGBUS
+	signal(SIGBUS, sig_handler);
+#endif
 }
 
 #ifdef TEST
