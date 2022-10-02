@@ -390,8 +390,15 @@ proc stringizing(a: seq[TokenV]): string =
     for t in a:
         result.add(stringizing(t))
 
+
 proc unreachable() =
-  assert false, "INTERNAL ERROR: unreachable executed!"
+  when not defined(release):
+
+    proc abort() {.importc, noreturn, nodecl, header: "stdlib.h".}
+
+    debugEcho("INTERNAL ERROR: unreachable executed!")
+    writeStackTrace()
+    abort()
 
 proc set_exit_code(code: auto) =
   exitprocs.setProgramResult(code)
@@ -961,6 +968,136 @@ proc joinShow2[A, B](a: seq[(A, B)]): string =
         result.add(", ")
     result.add($a[^1][1] & ' ' & $a[^1][0])
 
+proc get_prim_str(tags: uint32): string =
+  if bool(tags and TYVOID): "void"
+  elif bool(tags and TYBOOL): "_Bool"
+  elif bool(tags and TYCOMPLEX): "_Complex"
+  elif bool(tags and TYINT8): "char"
+  elif bool(tags and TYINT16): "short"
+  elif bool(tags and TYINT32): "int"
+  elif bool(tags and TYINT64): "long long"
+  elif bool(tags and TYUINT8): "unsigned char"
+  elif bool(tags and TYUINT16): "unsigned short"
+  elif bool(tags and TYUINT32): "unsigned int"
+  elif bool(tags and TYUINT64): "unsigned long long"
+  elif bool(tags and TYFLOAT): "float"
+  elif bool(tags and TYDOUBLE): "double"
+  else: "(unknown basic type)"
+
+proc `$$$`(ty: CType): string =
+  case ty.spec:
+  of TYINCOMPLETE:   
+    case ty.tag:
+    of TYSTRUCT:
+        result.add("struct ")
+    of TYUNION:
+        result.add("union ")
+    of TYENUM:
+        result.add("enum ")
+    else:
+        unreachable()
+    result.add(ty.name)
+  of TYPRIM:
+      addTag(ty.tags, result)
+      let s = get_prim_str(ty.tags)
+      if s.len > 0:
+        result.add(s)
+  of TYENUM:
+    addTag(ty.tags, result)
+    result.add("enum " & ty.ename)
+  of TYFUNCTION:
+    result.add("function (")
+    for i in 0 ..< (len(ty.params)-1):
+      result.add(", ")
+      result.add($$$ty.params[i][1])
+    if ty.params.len > 0 and ty.params[^1][1] != nil:
+      result.add(", ")
+      result.add($$$ty.params[^1][1])
+    result.add(") returning ")
+    result.add($$$ty.ret)
+  of TYSTRUCT:
+    addTag(ty.tags, result)
+    result.add("struct " & ty.sname)
+  of TYUNION:
+    addTag(ty.tags, result)
+    result.add("union " & ty.sname)
+  of TYBITFIELD:
+    result.add($$$ty.bittype & " : " &  $ty.bitsize)
+  of TYPOINTER:
+    addTag2(ty.tags, result)
+    result.add("pointer to ")
+    result.add($$$ty.p)
+  of TYARRAY:
+    result.add("array")
+    if ty.hassize:
+      result.add(' ')
+      result.addInt(ty.arrsize)
+    elif ty.vla != nil:
+      result.add(' ')
+      result.add($ty.vla)
+    result.add(" of ")
+    result.add($$$ty.arrtype)
+
+proc cdecl(ty: CType, name: string): string =
+  # https://cdecl.org/
+  # C gibberish ↔ English
+  return "declare " & name & " as " & $$$(ty)
+
+proc `$$`(ty: CType): string =
+  case ty.spec:
+  of TYINCOMPLETE:   
+    case ty.tag:
+    of TYSTRUCT:
+        result.add("<imcomplete>struct ")
+    of TYUNION:
+        result.add("<imcomplete>union ")
+    of TYENUM:
+        result.add("<imcomplete>enum ")
+    else:
+        unreachable()
+    result.add(ty.name)
+  of TYPRIM:
+      addTag(ty.tags, result)
+      let s = get_prim_str(ty.tags)
+      if s.len > 0:
+        result.add(s)
+  of TYENUM:
+    addTag(ty.tags, result)
+    result.add("enum " & ty.ename)
+  of TYFUNCTION:
+    result.add("Function[ret=")
+    result.add($$ty.ret)
+    for i in 0 ..< (len(ty.params)-1):
+      result.add(", ")
+      result.add($$ty.params[i][1])
+    if ty.params.len > 0 and ty.params[^1][1] != nil:
+      result.add(", ")
+      result.add($$ty.params[^1][1])
+    result.add("]")
+  of TYSTRUCT:
+    addTag(ty.tags, result)
+    result.add("struct " & ty.sname)
+  of TYUNION:
+    addTag(ty.tags, result)
+    result.add("union " & ty.sname)
+  of TYBITFIELD:
+    result.add($$ty.bittype & " : " &  $ty.bitsize)
+  of TYPOINTER:
+    result.add("pointer[elementType=")
+    addTag2(ty.tags, result)
+    result.add($$ty.p)
+    result.add("]")
+  of TYARRAY:
+    result.add("array[elementType=")
+    result.add($$ty.arrtype)
+    if ty.hassize:
+      result.add(", size=")
+      result.addInt(ty.arrsize)
+    elif ty.vla != nil:
+      result.add(", [vla]size=")
+      result.add($ty.vla)
+    result.add("]")
+
 proc `$`(a: CType, level=0): string =
   if a == nil:
     return "<nil>"
@@ -979,22 +1116,7 @@ proc `$`(a: CType, level=0): string =
     result.add(a.name)
   of TYPRIM:
       addTag(a.tags, result)
-      let s = (
-        if bool(a.tags and TYVOID): "void"
-        elif bool(a.tags and TYBOOL): "_Bool"
-        elif bool(a.tags and TYCOMPLEX): "_Complex"
-        elif bool(a.tags and TYINT8): "char"
-        elif bool(a.tags and TYINT16): "short"
-        elif bool(a.tags and TYINT32): "int"
-        elif bool(a.tags and TYINT64): "long long"
-        elif bool(a.tags and TYUINT8): "unsigned char"
-        elif bool(a.tags and TYUINT16): "unsigned short"
-        elif bool(a.tags and TYUINT32): "unsigned int"
-        elif bool(a.tags and TYUINT64): "unsigned long long"
-        elif bool(a.tags and TYFLOAT): "float"
-        elif bool(a.tags and TYDOUBLE): "double"
-        else: ""
-      )
+      let s = get_prim_str(a.tags)
       if s.len > 0:
         result.add(s)
   of TYENUM:
@@ -1107,7 +1229,7 @@ proc compatible(p, expected: CType): bool =
         of TYFUNCTION:
             if not compatible(p.ret, expected.ret):
                 return false
-            for i in 0..<len(p.params):
+            for i in 0..<min(len(p.params), len(expected.params)):
                 if p.params[i][1] == nil:                    
                     break
                 if expected.params[i][1] == nil:
@@ -4592,9 +4714,11 @@ proc getArray(e: Expr): Value =
     result = constArray(elemTy, inits, e.ty.arrsize.cuint)
     dealloc(inits)
 
+proc getAddress(e: Expr): Value
+
 proc subscript(e: Expr, ty: var Type): Value =
     ty = wrap(e.left.ty.p)
-    var v = gen(e.left)
+    var v = (if e.left.k == ArrToAddress and e.left.voidexpr.ty.spec == TYARRAY: getAddress(e.left.voidexpr) else: gen(e.left))
     var r = gen(e.right)
     if app.libtrace and e.left.k == ArrToAddress:
         var is_indexing_array = e.left.voidexpr.ty.spec == TYARRAY
@@ -4612,7 +4736,11 @@ proc subscript(e: Expr, ty: var Type): Value =
             discard buildCall2(b.builder, b.lt_call_ty2, b.lt_arr_index, addr args[0], 2, "")
             discard buildUnreachable(b.builder)
             setInsertPoint(ifend)
-    gep(ty, v, r)
+    if e.left.k == ArrToAddress and e.left.voidexpr.ty.spec == TYARRAY:
+      var indices = [constInt(typeOfX(r), 0), r]
+      gep(wrap(e.left.voidexpr.ty), v, addr indices[0], 2)
+    else:
+      gep(ty, v, r)
 
 proc getAddress(e: Expr): Value =
   emitDebugLocation(e)
@@ -4626,6 +4754,8 @@ proc getAddress(e: Expr): Value =
     gep(ty, basep, r)
   of EUnary:
     case e.uop:
+    of AddressOf:
+      getAddress(e.uoperand)
     of Dereference:
       gen(e.uoperand)
     else:
@@ -4635,8 +4765,10 @@ proc getAddress(e: Expr): Value =
     var ty: Type
     subscript(e, ty)
   of ArrToAddress:
-    var arr = getAddress(e.voidexpr)
-    buildBitCast(b.builder, arr, wrap(e.ty), "")
+    var p = getAddress(e.voidexpr)
+    #var i = [b.i32_0, b.i32_0]
+    #gep(wrap(e.voidexpr.ty), p, addr i[0], 2)
+    p
   of EString:
     gen_str_ptr(e.str, e.is_constant)
   of EArray, EStruct:
@@ -4828,8 +4960,13 @@ proc gen(e: Expr): Value =
     else:
       constNull(wrap(e.ty))
   of ECall:
-    var ty = wrap(e.callfunc.ty)
-    var f = getAddress(e.callfunc)
+    var f: Value
+    var ty = wrap(e.callfunc.ty.p)
+    if e.callfunc.k == EUnary:
+      assert e.callfunc.uop == AddressOf
+      f = getAddress(e.callfunc)
+    else:
+      f = gen(e.callfunc)
     var l = len(e.callargs)
     var args = create(Value, l or 1)
     var arr = cast[ptr UncheckedArray[Value]](args)
@@ -5478,6 +5615,15 @@ proc noEnum(name: string) =
 # function
 proc putsymtype2(name: string, yt: CType) =
   noEnum(name)
+  let base = yt.ret
+  if base.spec == TYARRAY:
+      type_error("function cannot return array")
+  if (base.tags and (TYREGISTER)) != 0:
+      warning("'register' in function has no effect")
+  if (base.tags and (TYTHREAD_LOCAL)) != 0:
+      warning("'_Thread_local' in function has no effect")
+  if bool(base.tags and (TYCONST or TYRESTRICT or TYVOLATILE)):
+      warning("type qualifiers ignored in function")
   let ty = t.sema.scopes[^1].typedefs.getOrDefault(name, nil)
   if ty != nil:
     if not compatible(yt, ty.ty):
@@ -6188,18 +6334,21 @@ proc direct_declarator(base: CType; flags=Direct): Stmt =
         return direct_declarator_end(base, name)
     of TLbracket:
         consume()
-        let st = declarator(base, flags)
+        let dummy = CType(spec: TYPRIM)
+        let st = declarator(dummy, flags) # copy by ref
         if st == nil:
-            expect("declarator")
             return nil
         if t.l.tok.tok != TRbracket:
-            expectRB()
-            return nil
-        consume()
-        if st.k == SFunction:
-            return direct_declarator_end(st.functy, st.funcname)
+          warning("missing ')'")
         else:
-            return direct_declarator_end(st.var1type, st.var1name)
+          consume()
+        var e = direct_declarator_end(base, (if st.k == SFunction: st.funcname else: st.var1name))
+        # modify ref
+        if e.k == SFunction:
+          dummy[] = e.functy[]
+        else:
+          dummy[] = e.var1type[]
+        return st
     else:
         if flags != Direct:
             return direct_declarator_end(base, "")
@@ -6208,16 +6357,15 @@ proc direct_declarator(base: CType; flags=Direct): Stmt =
 proc direct_declarator_end(base: CType, name: string): Stmt =
     var loc = getLoc()
     case t.l.tok.tok:
-    of TLSquareBrackets: # int arr[5], int arr[], int arr[static 5], int arr[static const 5], int arr[const static 5], int arr2[static const restrict 5]
-        consume() # eat ]
+    of TLSquareBrackets:
+        consume()
         var ty = CType(tags: TYINVALID, spec: TYARRAY, arrsize: 0, arrtype: base, hassize: false)
-        if t.l.tok.tok == TMul: # int arr[]
+        if t.l.tok.tok == TMul:
           consume()
           if t.l.tok.tok != TRSquareBrackets:
             parse_error("expect ']'")
             note("the syntax is:\n\tint arr[]")
             return nil
-          # only allowed at extern variable and function prototype scope!
           return Stmt(k: SVarDecl1, var1name: name, var1type: ty)
         if t.l.tok.tok == Kstatic:
            consume()
@@ -6244,18 +6392,10 @@ proc direct_declarator_end(base: CType, name: string): Stmt =
             if t.l.tok.tok != TRSquareBrackets:
                parse_error("expect ']'")
                return nil
-        consume() # eat ]
+        consume()
         return direct_declarator_end(ty, name)
     of TLbracket:
         consume()
-        if base.spec == TYARRAY:
-            type_error("function cannot return array")
-        if (base.tags and (TYREGISTER)) != 0:
-            warning("'register' in function has no effect")
-        if (base.tags and (TYTHREAD_LOCAL)) != 0:
-            warning("'_Thread_local' in function has no effect")
-        if bool(base.tags and (TYCONST or TYRESTRICT or TYVOLATILE)):
-            warning("type qualifiers ignored in function")
         var ty = CType(tags: TYINVALID, spec: TYFUNCTION, ret: base)
         if t.l.tok.tok != TRbracket:
             let res = parameter_type_list()
@@ -6675,8 +6815,11 @@ proc declaration(): Stmt =
             expect("declarator")
             note("maybe you missing ';' after declarator")
             return nil
+        # if this is a function definition, just return it
         if st.k == SFunction:
             return st
+        #echo $$st.var1type
+        echo cdecl(st.var1type, st.var1name)
         noralizeType(st.var1type)
         putsymtype(st.var1name, st.var1type)
         result.vars.add((st.var1name, st.var1type, nil))
@@ -7334,6 +7477,9 @@ proc primary_expression(): Expr =
             for i in countdown(len(t.sema.scopes)-1, 0):
                 var info = t.sema.scopes[i].typedefs.getOrDefault(t.l.tok.s, nil)
                 if info != nil:
+                  if bool(info.ty.tags and TYTYPEDEF):
+                    type_error("typedef-names is not allowed here")
+                    return nil
                   info.tag = info.tag or INFO_USED
                   ty = deepCopy(info.ty)
                   # 6.3.2.1 Lvalues, arrays, and function designators
@@ -7448,123 +7594,114 @@ proc primary_expression(): Expr =
         return nil
 
 proc postfix_expression(): Expr =
-    let e = primary_expression()
-    if e == nil:
-        return nil
-    case t.l.tok.tok:
-    of TSubSub, TAddAdd:
-        if not assignable(e):
+    result = primary_expression()
+    if result == nil:
+      return nil
+    while true:
+      case t.l.tok.tok:
+      of TSubSub, TAddAdd:
+          if not assignable(result):
+              return nil
+          let op = if t.l.tok.tok == TAddAdd: PostfixIncrement else: PostfixDecrement
+          consume()
+          result = Expr(k: EPostDix, poperand: result, pop: op, ty: result.ty, loc: result.loc)
+      of TArrow, TDot: # member access
+          let isarrow = t.l.tok.tok == TArrow
+          consume()
+          if t.l.tok.tok != TIdentifier:
+              expect("identifier")
+              note("the syntax is:\n\tfoo.member\n\tfoo->member")
+              return nil
+          if not (result.ty.spec == TYSTRUCT or result.ty.spec == TYUNION):
+              type_error("member access is not struct or union")
+              return nil
+          if isarrow and result.ty.spec != TYPOINTER:
+              type_error("pointer member access('->') must be used in a pointer")
+              note("maybe you mean: '.'")
+              return nil
+          elif isarrow == false and result.ty.spec == TYPOINTER:
+              type_error("member access('.') cannot used in a pointer")
+              note("maybe you mean: '->'")
+          for i in 0..<len(result.ty.selems):
+              if t.l.tok.s == result.ty.selems[i][0]:
+                  consume()
+                  var ty = result.ty.selems[i][1]
+                  ty.tags = ty.tags or TYLVALUE
+                  if isarrow:
+                      result = Expr(k: EPointerMemberAccess, obj: result, idx: i, ty: ty, loc: result.loc)
+                  result = Expr(k: EMemberAccess, obj: result, idx: i, ty: ty, loc: result.loc)
+                  continue
+          type_error("struct/union " & $result.ty.sname & " has no member " & t.l.tok.s)
+          return nil
+      of TLbracket: # function call
+          consume()
+          var ty = (if result.k == EUnary and result.uop == AddressOf: result.ty.p else: (if result.ty.spec == TYPOINTER: result.ty.p else: result.ty))
+          let f = result
+          if ty.spec != TYFUNCTION:
+            type_error("expect function or function pointer, but the expression has type " & $$ty)
             return nil
-        let op = if t.l.tok.tok == TAddAdd: PostfixIncrement else: PostfixDecrement
-        consume()
-        return Expr(k: EPostDix, poperand: e, pop: op, ty: e.ty, loc: e.loc)
-    of TArrow, TDot: # member access
-        let isarrow = t.l.tok.tok == TArrow
-        consume()
-        if t.l.tok.tok != TIdentifier:
-            expect("identifier")
-            note("the syntax is:\n\tfoo.member\n\tfoo->member")
-            return nil
-        if not (e.ty.spec == TYSTRUCT or e.ty.spec == TYUNION):
-            type_error("member access is not struct or union")
-            inTheExpression(e)
-            return nil
-        if isarrow and e.ty.spec != TYPOINTER:
-            type_error("pointer member access('->') must be used in a pointer")
-            note("maybe you mean: '.'")
-            return nil
-        elif isarrow == false and e.ty.spec == TYPOINTER:
-            type_error("member access('.') cannot used in a pointer")
-            note("maybe you mean: '->'")
-        for i in 0..<len(e.ty.selems):
-            if t.l.tok.s == e.ty.selems[i][0]:
-                consume()
-                var ty = e.ty.selems[i][1]
-                ty.tags = ty.tags or TYLVALUE
-                if isarrow:
-                    return Expr(k: EPointerMemberAccess, obj: e, idx: i, ty: ty, loc: e.loc)
-                return Expr(k: EMemberAccess, obj: e, idx: i, ty: ty, loc: e.loc)
-        type_error("struct/union " & $e.ty.sname & " has no member " & t.l.tok.s)
-        return nil
-    of TLbracket: # function call
-        consume()
-        var ty: CType
-        var f = e
-        if f.ty.spec == TYPOINTER:
-            if e.ty.p.spec != TYFUNCTION:
-                type_error("call function is not a function pointer")
-                inTheExpression(e)
-                return nil
-            ty = f.ty.p
-            f = f.uoperand
-        elif f.ty.spec != TYFUNCTION:
-            type_error("call function is not a function or function pointer")
-            note("expression has type " & $f.ty)
-            inTheExpression(f)
-            return nil
-        var args: seq[Expr]
-        if t.l.tok.tok == TRbracket:
-            consume()
-        else:
-            while true:
-                let a = assignment_expression()
-                if a == nil:
-                    expectExpression()
-                    note("the syntax is:\n\tfunction-name(argument)")
-                    return nil
-                args.add(a)
-                if t.l.tok.tok == TComma:
-                    consume()
-                elif t.l.tok.tok == TRbracket:
-                    consume()
-                    break
-        let params = ty.params
-        if len(params) > 0 and params[^1][1] == nil: # varargs
-            if len(args) < (len(params) - 1):
-                type_error("too few arguments to variable argument function")
-                note("at lease " & $(len(params) - 0) & " arguments needed")
-                return nil
-        elif len(params) != len(args):
-            type_error("expect " & $(len(params)) & " parameters, " & $len(args) & " provided")
-            return nil
-        var i = 0
-        while true:
-            if i == len(params):
-                break
-            if params[i][1] == nil:
-                for j in i ..< len(args):
-                    args[j] = default_argument_promotions(args[j])
-                break
-            var msg = "passing argument " 
-            msg.add($(i + 1))
-            msg.add(" of '")
-            msg.add($f)
-            msg.add('\'')
-            discard warn_if_bad_cast(args[i], params[i][1], msg)
-            var a = castto(args[i], params[i][1])
-            args[i] = a
-            inc i
-        return Expr(k: ECall, callfunc: f, callargs: args, ty: ty.ret, loc: e.loc)
-    of TLSquareBrackets: # array subscript
-        if e.ty.spec != TYPOINTER:
-            type_error("array subscript is not a pointer")
-            inTheExpression(e)
-            return nil
-        consume()
-        var rhs = expression()
-        if rhs == nil:
-            expectExpression()
-            note("the syntax is:\n\tarray[expression]")
-            return nil
-        if t.l.tok.tok != TRSquareBrackets:
-            expect("']'")
-            return
-        consume()
-        var ty = e.ty.p
-        ty.tags = ty.tags or TYLVALUE
-        return Expr(k: ESubscript, left: e, right: rhs, ty: ty, loc: e.loc)
-    else:
-        return e
+          var args: seq[Expr]
+          if t.l.tok.tok == TRbracket:
+              consume()
+          else:
+              while true:
+                  let a = assignment_expression()
+                  if a == nil:
+                      expectExpression()
+                      note("the syntax is:\n\tfunction-name(argument)")
+                      return nil
+                  args.add(a)
+                  if t.l.tok.tok == TComma:
+                      consume()
+                  elif t.l.tok.tok == TRbracket:
+                      consume()
+                      break
+          let params = ty.params
+          if len(params) > 0 and params[^1][1] == nil: # varargs
+              if len(args) < (len(params) - 1):
+                  type_error("too few arguments to variable argument function")
+                  note("at lease " & $(len(params) - 0) & " arguments needed")
+                  return nil
+          elif len(params) != len(args):
+              type_error("expect " & $(len(params)) & " parameters, " & $len(args) & " provided")
+              return nil
+          var i = 0
+          while true:
+              if i == len(params):
+                  break
+              if params[i][1] == nil:
+                  for j in i ..< len(args):
+                      args[j] = default_argument_promotions(args[j])
+                  break
+              var msg = "passing argument " 
+              msg.add($(i + 1))
+              msg.add(" of '")
+              msg.add($f)
+              msg.add('\'')
+              discard warn_if_bad_cast(args[i], params[i][1], msg)
+              var a = castto(args[i], params[i][1])
+              args[i] = a
+              inc i
+          result = Expr(k: ECall, callfunc: result, callargs: args, ty: ty.ret, loc: result.loc)
+      of TLSquareBrackets: # array subscript
+          if result.ty.spec != TYPOINTER:
+              type_error("array subscript is not a pointer")
+              return nil
+          consume()
+          var rhs = expression()
+          if rhs == nil:
+              expectExpression()
+              note("the syntax is:\n\tarray[expression]")
+              return nil
+          if t.l.tok.tok != TRSquareBrackets:
+              warning("missing ']'")
+          else:
+              consume()
+          var ty = result.ty.p
+          ty.tags = ty.tags or TYLVALUE
+          result = Expr(k: ESubscript, left: result, right: rhs, ty: ty, loc: result.loc)
+      else:
+          return result
 
 proc multiplicative_expression(): Expr =
     result = cast_expression()
@@ -8028,7 +8165,7 @@ proc statament(): Stmt =
             warning("ignored the return value in function returning void")
             note("A return statement with an expression shall not appear in a function whose return type is void")
             return Stmt(k: SReturn, exprbody: nil, loc: loc)
-        discard warn_if_bad_cast(e, t.sema.currentfunctionRet, " returning '" & $t.sema.currentfunctionRet & "' from a function with return type '" & $e.ty & "'")
+        discard warn_if_bad_cast(e, t.sema.currentfunctionRet, " returning '" & $e.ty & "' from a function with return type '" & $t.sema.currentfunctionRet & "'")
         return Stmt(k: SReturn, exprbody: castto(e, t.sema.currentfunctionRet), loc: loc)
     elif t.l.tok.tok == Kif:
         consume()

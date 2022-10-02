@@ -191,6 +191,44 @@ $ ./cc test.c -target x86_64-pc-linux-gnu -c # cross compiling from xxx target t
 $ ./a.out
 ```
 
+## Printing C types
+
+cc provides thress way of printing types
+
+for the declaration
+
+```C
+int (*(*foo[10])(void))(void);
+```
+
+1. Standard C
+2. English <https://cdecl.org/> <https://github.com/ridiculousfish/cdecl-blocks>
+
+for example
+
+```C
+declare foo as array 10 of pointer to function () returning pointer to function () returning int
+```
+
+3. Bracket style
+
+for example:
+
+```nim
+array[
+  elementType=
+    pointer[elementType=
+      Function[
+        ret=pointer[elementType=
+          Function[
+            ret=int
+          ]]
+        ]
+    ], 
+  size=10
+]
+```
+
 ## LLVM API
 
 Build in **LLVM 15**, C-API
