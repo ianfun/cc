@@ -10,12 +10,6 @@ cc.out
 llvmAPI
 *.bc
 test.c
-# this are LLVM C/C++ headers for building in windows
-llvm/Config
-llvm/llvm
-llvm/llvm-c
-llvm/polly
-llvm/llvm-config.h
 foo
 build
 make.bat
