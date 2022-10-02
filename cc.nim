@@ -6409,36 +6409,6 @@ proc direct_declarator_end(base: CType, name: string): Stmt =
         else:
             ty.params.add(("", nil))
         consume()
-        if t.l.tok.tok == TLcurlyBracket: # function definition
-            putsymtype2(name, ty)
-            t.sema.pfunc = name
-            if not isTopLevel():
-                parse_error("function definition is not allowed here")
-                note("function can only declared in global scope")
-            var body: Stmt
-            var labels = initHashSet[string]()
-            block:
-                var oldRet = t.sema.currentfunctionRet
-                t.sema.currentfunctionRet = ty.ret
-                body = compound_statement(ty.params, labels)
-                t.sema.currentfunctionRet = oldRet
-            if body == nil:
-                expect("function body")
-                return nil
-            if name == "main":
-                if (ty.ret.tags and TYINT) == 0:
-                    warning("main should return 'int'")
-                if ty.params.len >= 1:
-                    if ty.params[0][1] != nil and (ty.params[0][1].tags and TYINT) == 0:
-                        warning("first parameter of 'main' should be of type 'int'")
-                    if ty.params.len >= 2:
-                        if ty.params[1][1] != nil and (not (ty.params[1][1].spec == TYPOINTER and ty.params[1][1].p.spec == TYPOINTER)):
-                            warning("second parameter of 'main' is not 'char**'")
-            if len(body.stmts) == 0 or (body.stmts[^1].k != SReturn and body.stmts[^1].k != SGoto):
-                body.stmts &= Stmt(k: SReturn, exprbody: if bool(ty.ret.tags and TYVOID): nil else: 
-                    (if name == "main": Expr(k: EDefault, ty: ty.ret, loc: getLoc()) else: Expr(k: EUndef, ty: ty.ret, loc: getLoc()))
-                )
-            return Stmt(k: SFunction, funcname: name, functy: ty, funcbody: body, labels: labels, loc: loc)
         return direct_declarator_end(ty, name)
     else:
         return Stmt(k: SVarDecl1, var1name: name, var1type: base, loc: loc)
@@ -6815,11 +6785,41 @@ proc declaration(): Stmt =
             expect("declarator")
             note("maybe you missing ';' after declarator")
             return nil
-        # if this is a function definition, just return it
-        if st.k == SFunction:
-            return st
-        #echo $$st.var1type
-        echo cdecl(st.var1type, st.var1name)
+        if t.l.tok.tok == TLcurlyBracket:
+            if st.var1type.spec != TYFUNCTION:
+              type_error("unexpected function definition")
+              return nil
+            var loc = getLoc()
+            let ty = st.var1type
+            # function definition
+            putsymtype2(st.var1name, ty)
+            t.sema.pfunc = st.var1name
+            if not isTopLevel():
+                parse_error("function definition is not allowed here")
+                note("function can only declared in global scope")
+                return nil
+            var labels = initHashSet[string]()
+            var oldRet = t.sema.currentfunctionRet
+            t.sema.currentfunctionRet = ty.ret
+            var body = compound_statement(ty.params, labels)
+            t.sema.currentfunctionRet = oldRet
+            if body == nil:
+                expect("function body")
+                return nil
+            if st.var1name == "main":
+                if (ty.ret.tags and TYINT) == 0:
+                    warning("main should return 'int'")
+                if ty.params.len >= 1:
+                    if ty.params[0][1] != nil and (ty.params[0][1].tags and TYINT) == 0:
+                        warning("first parameter of 'main' should be of type 'int'")
+                    if ty.params.len >= 2:
+                        if ty.params[1][1] != nil and (not (ty.params[1][1].spec == TYPOINTER and ty.params[1][1].p.spec == TYPOINTER)):
+                            warning("second parameter of 'main' is not 'char**'")
+            if len(body.stmts) == 0 or (body.stmts[^1].k != SReturn and body.stmts[^1].k != SGoto):
+                body.stmts &= Stmt(k: SReturn, exprbody: if bool(ty.ret.tags and TYVOID): nil else: 
+                    (if st.var1name == "main": Expr(k: EDefault, ty: ty.ret, loc: getLoc()) else: Expr(k: EUndef, ty: ty.ret, loc: getLoc()))
+                )
+            return Stmt(k: SFunction, funcname: st.var1name, functy: ty, funcbody: body, labels: labels, loc: loc)
         noralizeType(st.var1type)
         putsymtype(st.var1name, st.var1type)
         result.vars.add((st.var1name, st.var1type, nil))
