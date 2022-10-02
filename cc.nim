@@ -446,18 +446,20 @@ proc writeUTF8toUTF16(s: string): seq[uint16] =
 proc show(c: char): string =
   return repr(c)
 
+# since `++/--a` and `a++/--` is not lvalue
+# A `++a` is simply converted to `a+=1`, 
+# and `a++` is converted to
+
 type
-    PostfixOP = enum
-      PostfixIncrement="++", PostfixDecrement="--"
+    PostFixOp = enum
+      PostfixIncrement, PostfixDecrement
     UnaryOP = enum
-      Pos, # it like nop, but it will do integer promotion
-      UNeg, SNeg, FNeg,
-      Not, AddressOf,
-      PrefixIncrement, PrefixDecrement, Dereference, LogicalNot
+      UNeg=1, SNeg, FNeg,
+      Not, AddressOf
+      Dereference, LogicalNot
     BinOP = enum
-      Nop=0,
       # Arithmetic operators
-      UAdd, SAdd, FAdd, 
+      UAdd=1, SAdd, FAdd, 
       USub, SSub, FSub,
       UMul, SMul, FMul, # no SMul!
       UDiv, SDiv, FDiv, 
@@ -472,6 +474,13 @@ type
       PtrDiff,
       Comma,
 
+      # Atomic ops
+      AtomicrmwAdd,
+      AtomicrmwSub,
+      AtomicrmwAnd,
+      AtomicrmwOr,
+      AtomicrmwXor
+
       # compare operators
       EQ, NE, 
       UGT, UGE, ULT, ULE, 
@@ -479,8 +488,9 @@ type
       # ordered float compare
       FEQ, FNE, 
       FGT, FGE, FLT, FLE
+
     CastOp = enum
-      Trunc,
+      Trunc=1,
       ZExt,
       SExt,
       FPToUI, 
@@ -531,14 +541,18 @@ type
       of TYINCOMPLETE:
         tag: CTypeSpec
         name: string
+    ReachableKind = enum
+      Reachable, MayReachable, Unreachable
     StmtKind = enum
       SSemicolon, SCompound, SGoto, SContinue, SBreak, SReturn, SExpr, SLabled, SIf, 
-      SDoWhile, SWhile, SFor, SSwitch, SDeclOnly, SAsm
+      SDoWhile, SWhile, SFor, SSwitch, SDeclOnly, SAsm, SLoop
       SVarDecl, SDefault, SCase, SFunction, SVarDecl1
     StmtList = seq[Stmt] # compound_stmt, { body }
     Stmt = ref object
       loc: Location
       case k: StmtKind
+      of SLoop:
+        loop: Stmt
       of SFunction:
         funcname: string
         functy: CType
@@ -583,16 +597,19 @@ type
         decl: CType
 
     ExprKind = enum
-      EBin, EUnary, EPostFix, EIntLit, EFloatLit, EVoid,
+      EBin, EUnary, EIntLit, EFloatLit, EVoid,
       EVar, ECondition, ECast, ECall, ESubscript, EDefault,
       EArray, EStruct, EBackend, EString, EUndef, EVLAGetSize
-      EPointerMemberAccess, EMemberAccess, ArrToAddress
+      EPointerMemberAccess, EMemberAccess, ArrToAddress, EPostDix
     Expr = ref object
       ty: CType
       loc: Location
       case k: ExprKind
       of EVoid, ArrToAddress:
         voidexpr: Expr 
+      of EPostDix:
+        pop: PostFixOp
+        poperand: Expr
       of EVLAGetSize:
         vla: Expr
       of EBin:
@@ -601,9 +618,6 @@ type
       of EUnary:
         uop: UnaryOP
         uoperand: Expr
-      of EPostFix:
-        pop: PostfixOP
-        poperand: Expr
       of EIntLit:
         ival: uintmax_t
       of EFloatLit:
@@ -676,6 +690,8 @@ proc `$`(a: Stmt, level=0): string =
   if a == nil:
     return "<nil>"
   case a.k:
+  of SLoop:
+    "loop " & $a.loop
   of SAsm:
     "__asm__(" & a.asms & ')'
   of SFunction:
@@ -725,18 +741,12 @@ proc `$`(a: Stmt, level=0): string =
 
 proc `$`(o: UnaryOP): string =
   case o:
-  of Pos:
-    "+"
   of UNeg, SNeg, FNeg:
     "-"
   of Not:
     "!"
   of AddressOf:
     "&&"
-  of PrefixIncrement:
-    "++"
-  of PrefixDecrement:
-    "--"
   of Dereference:
     ""
   of LogicalNot:
@@ -744,17 +754,16 @@ proc `$`(o: UnaryOP): string =
 
 proc `$`(o: BinOP): string =
   case o:
-  of Nop: "<nop>"
-  of UAdd, SAdd, FAdd, SAddP: "+"
-  of USub, SSub, FSub, PtrDiff: "-"
+  of AtomicrmwAdd, UAdd, SAdd, FAdd, SAddP: "+"
+  of AtomicrmwSub, USub, SSub, FSub, PtrDiff: "-"
   of UMul, SMul, FMul: ""
   of UDiv, SDiv, FDiv: "/"
   of URem, SRem, FRem: "%"
   of Shr, AShr: ">>"
   of Shl: "<<"
-  of And: "&"
-  of Xor: "^"
-  of Or: "|"
+  of AtomicrmwAnd, And: "&"
+  of AtomicrmwXor, Xor: "^"
+  of AtomicrmwOr, Or: "|"
   of LogicalAnd: "&&"
   of LogicalOr: "||"
   of Assign: "="
@@ -766,10 +775,17 @@ proc `$`(o: BinOP): string =
   of ULT, SLT, FLT: "<"
   of ULE, SLE, FLE: "<="
 
+proc `$`(o: PostFixOp): string =
+  case o:
+  of PostfixIncrement: "++"
+  of PostfixDecrement: "--"
+
 proc `$`(e: Expr): string =
   if e == nil:
     return "<nil>"
   case e.k:
+  of EPostDix:
+    $e.pop & $e.poperand
   of EVLAGetSize:
     "sizeof(" & $e.vla & ')'
   of EUndef:
@@ -790,8 +806,6 @@ proc `$`(e: Expr): string =
     repr(e.str)
   of EBin:
     '(' & $e.lhs & ' ' & $e.bop & ' ' & $e.rhs & ')'
-  of EPostFix:
-    $e.poperand & $e.pop
   of EUnary:
     $e.uop & $e.uoperand
   of EIntLit:
@@ -820,12 +834,12 @@ proc isConstant(e: Expr): bool =
         false
     of ArrToAddress:
         true
+    of EPostDix:
+        isConstant(e.poperand)
     of EBin:
         isConstant(e.lhs) and isConstant(e.rhs)
     of EUnary:
         isConstant(e.uoperand)
-    of EPostFix:
-        false
     of EIntLit, EFloatLit, EString, EVar, EArray, EStruct:
         true
     of ECondition:
@@ -854,7 +868,6 @@ proc make_ty(): uint32 =
 
 const ## optional type tags
   TYINVALID = 0'u32
-  # TYAUTO = make_ty()
   TYCONST = make_ty()
   TYRESTRICT = make_ty()
   TYVOLATILE = make_ty()
@@ -862,7 +875,6 @@ const ## optional type tags
   TYINLINE = make_ty()
   TYSTATIC = make_ty()
   TYNORETURN = make_ty()
-  TYALIGNAS = make_ty()
   TYEXTERN = make_ty()
   TYREGISTER = make_ty()
   TYTHREAD_LOCAL = make_ty()
@@ -934,7 +946,6 @@ proc addTag(a: uint32, dst: var string) =
   if bool(a and TYINLINE): dst.add("inline ")
   if bool(a and TYSTATIC): dst.add("static ")
   if bool(a and TYNORETURN): dst.add("_Noreturn ")
-  if bool(a and TYALIGNAS): dst.add("_Alignas ")
   if bool(a and TYEXTERN): dst.add("extern ")
   if bool(a and TYREGISTER): dst.add("register ")
   if bool(a and TYTHREAD_LOCAL): dst.add("_Thread_local ")
@@ -1248,12 +1259,10 @@ type
     topContinue: Label
     target: TargetRef
     topCase: Label
-    ## `i32 1/0` constant
-    i32_1, i32_0: Value
+    ## `i32 1/0/-1` constant
+    i32_1, i32_0, i32_n1: Value
     ## LLVM false/true constant
     i1_0, i1_1: Value
-    ## true when gen expression statement
-    expr_stmt: bool
     ## libtrace support
     lt_callframe, lt_call_ty, lt_call_ty2, lt_call_ty3: Type
     lt_begin_call, lt_end_call, lt_defef_nil, lt_div_zero, lt_fdiv_zero, lt_arr_index, lt_now, lt_line, lt_file: Value
@@ -1563,6 +1572,67 @@ proc addFile(filename: string) =
     t.l.line = 1
     t.l.col = 1
 
+proc reachable(s: Stmt, o: ReachableKind): ReachableKind =
+      case s.k:
+      of SFunction:
+        reachable(s.funcbody, o)
+      of SAsm:
+        o
+      of SLoop:
+        reachable(s.loop, o)
+      of SDoWhile, SWhile, SSwitch:
+        reachable(s.body, o)
+      of SFor:
+        reachable(s.forbody, o)
+      of SCompound:
+        var p = o
+        var i = 0
+        var l = len(s.stmts)
+        while true:
+          if i == l:
+            break
+          p = reachable(s.stmts[i], p)
+          if p == Unreachable:
+            break
+          inc i
+        if p == Unreachable:
+          if (i + 1) != l:
+            warning("unreachable code after " & $s.stmts[i])
+            while len(s.stmts) > (i+1):
+              discard s.stmts.pop()
+        p
+      of SDefault:
+        reachable(s.default_stmt, Reachable)
+      of Scase:
+        reachable(s.case_stmt, Reachable)
+      of SGoto, SReturn, SBreak, SContinue:
+        Unreachable
+      of SLabled:
+        reachable(s.labledstmt, Reachable)
+      of SIf:
+        if s.elsebody == nil:
+          var ifs = reachable(s.ifbody, o)
+          if ifs == Reachable:
+            Reachable
+          else:
+            MayReachable
+        else:
+          var ifs = reachable(s.ifbody, o)
+          var elses = reachable(s.elsebody, o)
+          if ifs == Unreachable and elses == Unreachable:
+            Unreachable
+          elif ifs == Reachable and elses == Reachable:
+            Reachable
+          else:
+            MayReachable
+      of SExpr:
+        if s.exprbody.k == ECall and bool(s.exprbody.callfunc.ty.tags and TYNORETURN):
+          Unreachable
+        else:
+          o
+      of SVarDecl, SVarDecl1, SDeclOnly, SSemicolon:
+        o
+
 proc setStdin() =
   t.fstack.add(newStdinStream())
   t.filenamestack.add(t.filename)
@@ -1708,8 +1778,6 @@ proc evali(e: Expr): uintmax_t =
       eval_error2($e)
   of EUnary:
     case e.uop:
-    of Pos:
-        evali(e.uoperand)
     of UNeg:
       my_UNEG(evali(e.uoperand))
     of SNeg:
@@ -3154,6 +3222,7 @@ proc initBackend() =
   b.types[DIffloat].ty = floatTypeInContext(b.ctx)
   b.types[DIfdouble].ty = doubleTypeInContext(b.ctx)
 
+  b.i32_n1 = constInt(b.types[DIi32].ty, not culonglong(0))
   b.i32_1 = constInt(b.types[DIi32].ty, 1)
   b.i32_0 = constInt(b.types[DIi32].ty, 0)
   b.i1_0 = constInt(b.types[DIi1].ty, 0)
@@ -3528,7 +3597,7 @@ proc addLLVMModule(source_file: string) =
     const debug_info = "Debug Info Version"
     addModuleFlag(b.module, 1, debug_info, debug_info.len.csize_t, valueAsMetadata(constInt(b.types[DIi32].ty, debugMetadataVersion())))
 
-proc setInsertPoint(loc: Label) {.inline.} =
+proc setInsertPoint(loc: Label) =
   positionBuilderAtEnd(b.builder, loc)
 
 proc addBlock(): Label {.inline.} =
@@ -3536,15 +3605,6 @@ proc addBlock(): Label {.inline.} =
 
 proc addBlock(name: cstring): Label {.inline.} =
   appendBasicBlockInContext(b.ctx, b.currentfunction, name)
-
-proc condBr(cond: Value, iftrue, iffalse: Label) =
-  discard buildCondBr(b.builder, cond, iftrue, iffalse)
-
-proc br(loc: Label) {.inline.} =
-  discard buildBr(b.builder, loc)
-
-proc getTerminator(): Value =
-    getBasicBlockTerminator(getInsertBlock(b.builder))
 
 proc gep(ty: Type, p: Value, indices: var Value): Value {.inline.} =
   buildInBoundsGEP2(b.builder, ty, p, addr indices, 1, "")
@@ -3945,15 +4005,15 @@ proc gen_condition(test: Expr, lhs: Expr, rhs: Expr): Value =
   var iftrue = addBlock()
   var iffalse = addBlock()
   var ifend = addBlock()
-  condBr(gen_cond(test), iftrue, iffalse)
+  discard buildCondBr(b.builder, gen_cond(test), iftrue, iffalse)
 
   setInsertPoint(iftrue)
   var left = gen(lhs)
-  br ifend
+  discard buildBr(b.builder, ifend)
   
   setInsertPoint(iffalse)
-  var right =gen(rhs)
-  br ifend
+  var right = gen(rhs)
+  discard buildBr(b.builder, ifend)
 
   setInsertPoint(ifend)
   var phi = buildPhi(b.builder, ty, "")
@@ -3970,14 +4030,14 @@ proc gen_logical(lhs: Expr, rhs: Expr, isand = true): Value =
   var left = gen_cond(lhs)
   store(a, left)
   if isand:
-    condBr(left, cond2, phib)
+    discard buildCondBr(b.builder, left, cond2, phib)
   else:
-    condBr(left, phib, cond2)
+    discard buildCondBr(b.builder, left, phib, cond2)
 
   setInsertPoint(cond2)
   var right = gen_cond(rhs)
   store(a, right)
-  br phib
+  discard buildBr(b.builder, phib)
 
   setInsertPoint(phib)
 
@@ -3986,12 +4046,15 @@ proc gen_logical(lhs: Expr, rhs: Expr, isand = true): Value =
 proc gen_if(test: Expr, body: Stmt) =
   var iftrue = addBlock()
   var ifend = addBlock()
-  condBr(gen_cond(test), iftrue, ifend)
+  discard buildCondBr(b.builder, gen_cond(test), iftrue, ifend)
 
   setInsertPoint(iftrue)
   gen(body)
-  if getTerminator() == nil:
-    br ifend
+  # sometimes we don't needed jump to ifend
+  # if (xxx) 
+  #  return
+  if getBasicBlockTerminator(getInsertBlock(b.builder)) == nil:
+    discard buildBr(b.builder, ifend)
 
   setInsertPoint(ifend)
 
@@ -3999,17 +4062,17 @@ proc gen_if(test: Expr, body: Stmt, elsebody: Stmt) =
   var iftrue = addBlock()
   var iffalse = addBlock()
   var ifend = addBlock()
-  condBr(gen_cond(test), iftrue, iffalse)
+  discard buildCondBr(b.builder, gen_cond(test), iftrue, iffalse)
 
   setInsertPoint(iftrue)
   gen(body)
-  if getTerminator() == nil:
-      br ifend
+  if getBasicBlockTerminator(getInsertBlock(b.builder)) == nil:
+    discard buildBr(b.builder, ifend)
 
   setInsertPoint(iffalse)
   gen(elsebody)
-  if getTerminator() == nil:
-    br ifend
+  if getBasicBlockTerminator(getInsertBlock(b.builder)) == nil:
+    discard buildBr(b.builder, ifend)
 
   setInsertPoint(ifend)
 
@@ -4027,9 +4090,12 @@ proc gen_switch(test: Expr, body: Stmt) =
   b.topdefaultCase = addBlock()
   gen(body)
   if b.topCase != nil:
-    br b.topBreak
-  setInsertPoint(b.topSwitch)
-  br b.topdefaultCase
+    if getBasicBlockTerminator(getInsertBlock(b.builder)) == nil:
+      discard buildBr(b.builder, b.topBreak)
+
+  if getBasicBlockTerminator(b.topSwitch) == nil:
+    setInsertPoint(b.topSwitch)
+    discard buildBr(b.builder, b.topdefaultCase)
   setInsertPoint(b.topBreak)
 
   b.topdefaultCase = old_default
@@ -4041,20 +4107,22 @@ proc gen_switch(test: Expr, body: Stmt) =
 proc gen_case(test: Expr, body: Stmt) =
   var thiscase = addBlock()
   if b.topCase != nil:
-    br thiscase
+    if getBasicBlockTerminator(getInsertBlock(b.builder)) == nil:
+      discard buildBr(b.builder, thiscase)
   b.topCase = thiscase
   setInsertPoint(b.topSwitch)
   let lhs = gen(test)
   let rhs = b.topTest
   let cond = buildICmp(b.builder, IntEQ, lhs, rhs, "")
   b.topSwitch = addBlock()
-  condBr(cond, thiscase, b.topSwitch)
+  discard buildCondBr(b.builder, cond, thiscase, b.topSwitch)
   setInsertPoint(thiscase)
   gen(body)
 
 proc gen_default(body: Stmt) =
   if b.topCase != nil:
-    br b.topdefaultCase
+    if getBasicBlockTerminator(getInsertBlock(b.builder)) == nil:
+      discard buildBr(b.builder, b.topdefaultCase)
   b.topCase = b.topdefaultCase
   setInsertPoint(b.topdefaultCase)
   gen(body)
@@ -4070,18 +4138,19 @@ proc gen_while(test: Expr, body: Stmt) =
   b.topBreak = whileleave
   b.topContinue = whilecmp
 
-  if getTerminator() == nil:
-      br whilecmp
+  discard buildBr(b.builder, whilecmp)
 
   setInsertPoint(whilecmp)
   var cond = gen_cond(test)
-  condBr(cond, whilebody, whileleave)
+  discard buildCondBr(b.builder, cond, whilebody, whileleave)
 
   setInsertPoint(whilebody)
   gen(body)
 
-  if getTerminator() == nil:
-      br whilecmp
+  # while (xxx)
+  #   return
+  if getBasicBlockTerminator(getInsertBlock(b.builder)) == nil:
+    discard buildBr(b.builder, whilecmp)
 
   setInsertPoint(whileleave)
 
@@ -4103,33 +4172,33 @@ proc gen_for(test: Expr, body: Stmt, sforinit: Stmt, eforincl: Expr) =
     b.topBreak = forleave
     b.topContinue = forincl
   
-    if getTerminator() == nil:
-        br forcmp
-  
+    discard buildBr(b.builder, forcmp)
+
     # for.cmp
     setInsertPoint(forcmp)
     if test != nil:
         var cond = gen_cond(test)
-        condBr(cond, forbody, forleave)
+        discard buildCondBr(b.builder, cond, forbody, forleave)
     else:
-        br forbody
+        discard buildBr(b.builder, forbody)
 
     # for.body
     setInsertPoint(forbody)
     gen(body)
-    br forincl
+    if getBasicBlockTerminator(getInsertBlock(b.builder)) == nil:
+      discard buildBr(b.builder, forincl)
 
     # for.incl
     setInsertPoint(forincl)
     if eforincl != nil:
-        b.expr_stmt = true
         discard gen(eforincl)
-  
-    if getTerminator() == nil:
-        br forcmp
+
+    # for someone may call exit() in for-incl  
+    if getBasicBlockTerminator(getInsertBlock(b.builder)) == nil:
+      discard buildBr(b.builder, forcmp)
+
     setInsertPoint(forleave)
     leaveScope()
-  
     b.topBreak = old_break
     b.topContinue = old_continue
 
@@ -4143,15 +4212,17 @@ proc gen_dowhile(test: Expr, body: Stmt) =
   
     b.topBreak = dowhileleave
     b.topContinue = dowhilecmp
-  
+
+    discard buildBr(b.builder, dowhilecmp)
     setInsertPoint(dowhilebody)
     gen(body)
-  
+    if getBasicBlockTerminator(getInsertBlock(b.builder)) == nil:
+      discard buildBr(b.builder, dowhilecmp)
+
     setInsertPoint(dowhilecmp)
     var cond = gen_cond(test)
-    if getTerminator() == nil:
-        condBr(cond, dowhilebody, dowhileleave)
-  
+    discard buildCondBr(b.builder, cond, dowhilebody, dowhileleave)
+
     setInsertPoint(dowhileleave)
     b.topBreak = old_break
     b.topContinue = old_continue
@@ -4262,6 +4333,27 @@ proc getLinkageName(tags: uint32): (cstring, uint) =
 proc gen(s: Stmt) =
   emitDebugLocation(s)
   case s.k:
+  of SLoop:
+    # loop:
+    # stmt
+    #  br loop
+    # leave:
+    var old_break = b.topBreak
+    var old_continue = b.topContinue
+
+    var c = addBlock()
+    var leave = addBlock()
+    b.topBreak = leave
+    b.topContinue = c
+    discard buildBr(b.builder, c)
+    setInsertPoint(c)
+    gen(s.loop)
+    if getBasicBlockTerminator(getInsertBlock(b.builder)) == nil:
+      discard buildBr(b.builder, c)
+    setInsertPoint(leave)
+
+    b.topBreak = old_break
+    b.topContinue = old_continue
   of SCompound:
     if app.g:
           b.lexBlocks.add(
@@ -4276,7 +4368,6 @@ proc gen(s: Stmt) =
     if app.g:
         discard b.lexBlocks.pop()
   of SExpr:
-      b.expr_stmt = true
       discard gen(s.exprbody)
   of SFunction:
       var debugMain = app.libtrace and s.funcname == "main"
@@ -4378,8 +4469,7 @@ proc gen(s: Stmt) =
   of SLabled:
     var ib = b.labels[^1].getOrDefault(s.label, nil)
     assert ib != nil
-    if getTerminator() == nil:
-      br ib
+    discard buildBr(b.builder, ib)
     setInsertPoint(ib)
     if app.g:
         nimAddLabel(b.di, getLexScope(), ib, cstring(s.label), s.label.len.csize_t, getFile(), s.loc.line, loc=wrap(s.loc))
@@ -4387,17 +4477,14 @@ proc gen(s: Stmt) =
   of SGoto:
     let loc = b.labels[^1].getOrDefault(s.location, nil)
     assert loc != nil
-    if getTerminator() == nil:
-        br loc
+    discard buildBr(b.builder, loc)
     setInsertPoint(loc)
   of SSemicolon:
     discard
   of SContinue:
-    if getTerminator() == nil:
-        br b.topContinue
+    discard buildBr(b.builder, b.topContinue)
   of SBreak:
-    if getTerminator() == nil:
-        br b.topBreak
+    discard buildBr(b.builder, b.topBreak)
   of SAsm:
     handle_asm(s.asms)
   of SSwitch:
@@ -4440,7 +4527,7 @@ proc gen(s: Stmt) =
             elif (varty.tags and TYEXTERN) != 0:
               setLinkage(g, ExternalLinkage)
             else:
-              discard
+              setLinkage(g, CommonLinkage)
             putVar(name, g)
             if app.g:
               var linkage = getLinkageName(varty.tags)
@@ -4476,18 +4563,6 @@ proc gen(s: Stmt) =
     unreachable()
 
 proc gen_cast(e: Expr, to: CType, op: CastOp): Value
-
-proc incl(p: Value, t: Type, align: uint32): Value =
-  var l = load(p, t, align)
-  var l2 = buildAdd(b.builder, l, constInt(t, 1), "")
-  store(p, l2, align)
-  return l
-
-proc decl(p: Value, t: Type, align: uint32): Value =
-  var l = load(p, t, align)
-  var l2 = buildSub(b.builder, l, constInt(t, 1), "")
-  store(p, l2, align)
-  return l
 
 proc getStruct(e: Expr): Value =
     var ty = wrap(e.ty)
@@ -4531,7 +4606,7 @@ proc subscript(e: Expr, ty: var Type): Value =
             var ifend = addBlock()
             if not bool(e.right.ty.tags and (TYUINT64 or TYINT64)):
                 index = buildZExt(b.builder, r, b.types[DIi64].ty, "")
-            condBr(buildICmp(b.builder, IntUGE, index, max, ""), iftrue, ifend)
+            discard buildCondBr(b.builder, buildICmp(b.builder, IntUGE, index, max, ""), iftrue, ifend)
             setInsertPoint(iftrue)
             var args = [index, max]
             discard buildCall2(b.builder, b.lt_call_ty2, b.lt_arr_index, addr args[0], 2, "")
@@ -4556,26 +4631,6 @@ proc getAddress(e: Expr): Value =
     else:
       unreachable()
       nil
-  of EPostFix:
-    case e.pop:
-    of PostfixIncrement, PostfixDecrement:
-      var basep = getAddress(e.poperand)
-      if e.ty.spec == TYPOINTER:
-        var ty = wrap(e.poperand.ty.p)
-        var i = b.i32_1
-        if e.pop == PostfixDecrement:
-          i = constNeg(i)
-        var l = load(basep, wrap(e.poperand.ty))
-        var g = gep(ty, l, i)
-        store(basep, g)
-      else:
-        var a = e.poperand.ty.align
-        var ty = wrap(e.ty)
-        if e.pop == PostfixDecrement:
-          discard decl(basep, ty, a)
-        else:
-          discard incl(basep, ty, a)
-      basep
   of ESubscript:
     var ty: Type
     subscript(e, ty)
@@ -4601,9 +4656,27 @@ proc getAddress(e: Expr): Value =
 
 proc gen(e: Expr): Value =
   emitDebugLocation(e)
-  var expr_stmt = b.expr_stmt
-  b.expr_stmt = false
   case e.k:
+  of EPostDix:
+    case e.pop:
+    of PostfixIncrement, PostfixDecrement:
+      var p = getAddress(e.poperand)
+      var ty = wrap(e.ty)
+      var r = load(p, ty, e.poperand.ty.align)
+      var v: Value
+      if e.ty.spec == TYPOINTER:
+        ty = wrap(e.poperand.ty.p)
+        if e.pop == PostfixIncrement:
+          v = gep(ty, r, b.i32_1)
+        else:
+          v = gep(ty, r, b.i32_n1)
+      else:
+        if e.pop == PostfixIncrement:
+          v = buildAdd(b.builder, r, constInt(ty, 1), "")
+        else:
+          v = buildSub(b.builder, r, constInt(ty, 1), "")
+      store(p, v, e.poperand.ty.align)
+      r
   of EUndef:
     getUndef(wrap(e.ty))
   of EVLAGetSize:
@@ -4611,8 +4684,7 @@ proc gen(e: Expr): Value =
     var z = buildZExt(b.builder, s, b.types[DIi64].ty, "")
     buildMul(b.builder, z, constInt(b.types[DIi64].ty, getsizeof(e.vla.voidexpr.ty.arrtype)), "")
   of ArrToAddress:
-    var arr = getAddress(e.voidexpr)
-    buildBitCast(b.builder, arr, wrap(e.ty), "")
+    getAddress(e.voidexpr)
   of ESubscript:
     var ty: Type
     var v = subscript(e, ty)
@@ -4629,13 +4701,31 @@ proc gen(e: Expr): Value =
   of EBin:
     case e.bop:
     of Assign:
-      var v = gen(e.rhs)
+      var isviolate = bool(e.lhs.ty.tags and TYVOLATILE)
       let basep = getAddress(e.lhs)
-      store(basep, v, e.lhs.ty.align)
-      if expr_stmt:
-        nil
-      else:
-        load(basep, wrap(e.ty), e.lhs.ty.align)
+      var val = gen(e.rhs)
+      var s = buildStore(b.builder, val, basep)
+      var align = e.lhs.ty.align
+      if align != 0:
+        setAlignment(s, align.cuint)
+      if isviolate:
+        setVolatile(s, True)
+      if bool(e.lhs.ty.tags and TYATOMIC):
+        setOrdering(s, AtomicOrderingSequentiallyConsistent)
+      val
+    of AtomicrmwAdd, AtomicrmwSub, AtomicrmwXor, AtomicrmwOr, AtomicrmwAnd:
+      var aop = (
+        case e.bop:
+        of AtomicrmwAdd: AtomicRMWBinOpAdd
+        of AtomicrmwSub: AtomicRMWBinOpSub
+        of AtomicrmwXor: AtomicRMWBinOpXor
+        of AtomicrmwOr: AtomicRMWBinOpOr
+        of AtomicrmwAnd: AtomicRMWBinOpAnd
+        else: AtomicRMWBinOpXchg
+      )
+      var l = getAddress(e.lhs)
+      var r = gen(e.rhs)
+      buildAtomicRMW(b.builder, aop, l, r, AtomicOrderingSequentiallyConsistent, False)
     of SAdd:
       var l = gen(e.lhs)
       var r = gen(e.rhs)
@@ -4676,7 +4766,6 @@ proc gen(e: Expr): Value =
       # => a ? 1 : b
       gen_logical(e.rhs, e.lhs, isand=false)
     of Comma:
-      b.expr_stmt = true
       discard gen(e.lhs)
       gen(e.rhs)
     else:
@@ -4686,7 +4775,7 @@ proc gen(e: Expr): Value =
           if app.libtrace:
               var iftrue = addBlock()
               var ifend = addBlock()
-              condBr((if isFloating(e.ty): buildFCmp(b.builder, RealOEQ, rhs, constReal(b.types[DIfdouble].ty, 0.0), "") else: buildisNull(b.builder, rhs, "")), iftrue, ifend)
+              discard buildCondBr(b.builder, (if isFloating(e.ty): buildFCmp(b.builder, RealOEQ, rhs, constReal(b.types[DIfdouble].ty, 0.0), "") else: buildisNull(b.builder, rhs, "")), iftrue, ifend)
               setInsertPoint(iftrue)
               discard buildCall2(b.builder, b.lt_call_ty, (if isFloating(e.ty): b.lt_fdiv_zero else: b.lt_div_zero), nil, 0, "")
               discard buildUnreachable(b.builder)
@@ -4698,67 +4787,37 @@ proc gen(e: Expr): Value =
   of EFloatLit:
     gen_float(e.fval, e.ty.tags)
   of EVoid:
-    b.expr_stmt = true
     discard gen(e.voidexpr)
     nil
   of EUnary:
     case e.uop:
-    of Pos: gen(e.uoperand)
     of SNeg: buildNSWNeg(b.builder, gen(e.uoperand), "")
     of UNeg: buildNeg(b.builder, gen(e.uoperand), "")
     of FNeg: buildFNeg(b.builder, gen(e.uoperand), "")
     of Not: buildNot(b.builder, gen(e.uoperand), "")
     of AddressOf: getAddress(e.uoperand)
-    of PrefixIncrement, PrefixDecrement:
-      var i = b.i32_1
-      if e.uop == PrefixDecrement:
-        i = constNeg(i)
-      let basep = getAddress(e.uoperand)
-      if e.ty.spec == TYPOINTER:
-        var ty = wrap(e.ty.p)
-        var l = load(basep, wrap(e.uoperand.ty))
-        var g = gep(ty, l, i)
-        store(basep, g)
-        g
-      else:
-        var ty = wrap(e.ty)
-        var l = load(basep, ty)
-        i = constIntCast(i, ty, False)
-        var l2 = buildAdd(b.builder, l, i, "")
-        store(basep, l2)
-        if expr_stmt:
-          nil
-        else:
-          load(basep, ty)
     of Dereference:
       var g = gen(e.uoperand)
       var ty = wrap(e.ty)
-      discard buildCall2(b.builder, b.lt_call_ty3, b.lt_defef_nil, addr g, 1, "")
-      load(g, ty)
-    of LogicalNot: buildisNull(b.builder, gen(e.uoperand), "")
-  of EPostFix:
-    case e.pop:
-    of PostfixIncrement, PostfixDecrement:
-      var basep = getAddress(e.poperand)
-      if e.ty.spec == TYPOINTER:
-        var ty = wrap(e.poperand.ty.p)
-        var i = b.i32_1
-        if e.pop == PostfixDecrement:
-          i = constNot(i)
-        var l = load(basep, wrap(e.poperand.ty))
-        var g = gep(ty, l, i)
-        store(basep, g)
-        l
-      else:
-        var a = e.poperand.ty.align
-        var ty = wrap(e.ty)
-        if e.pop == PostfixDecrement:
-          decl(basep, ty, a)
-        else:
-          incl(basep, ty, a)
+      if app.libtrace:
+        discard buildCall2(b.builder, b.lt_call_ty3, b.lt_defef_nil, addr g, 1, "")
+      var r = load(g, ty)
+      var tags = e.uoperand.ty.p.tags
+      if bool(tags and TYVOLATILE):
+        setVolatile(r, True)
+      if bool(tags and TYATOMIC):
+        setOrdering(r, AtomicOrderingSequentiallyConsistent)
+      r
+    of LogicalNot:
+      buildisNull(b.builder, gen(e.uoperand), "")
   of EVar:
     var pvar = getVar(e.sval)
-    load(pvar, wrap(e.ty), e.ty.align)
+    var r = load(pvar, wrap(e.ty), e.ty.align)
+    if bool(e.ty.tags and TYVOLATILE):
+      setVolatile(r, True)
+    if bool(e.ty.tags and TYATOMIC):
+      setOrdering(r, AtomicOrderingSequentiallyConsistent)
+    r
   of ECondition:
     gen_condition(e.cond, e.cleft, e.cright)
   of ECast:
@@ -5765,10 +5824,6 @@ proc compound_statement(): Stmt
 
 proc compound_statement(params: seq[(string, CType)], lables: var HashSet[string]): Stmt
 
-proc postfix(e: Expr, op: PostfixOP, ty: CType): Expr = 
-    ## construct a postfix operator
-    Expr(k: EPostFix, pop: op, poperand: e, ty: ty, loc: e.loc)
-
 proc consume() =
     ## eat token from lexer and c preprocesser
     ##
@@ -6623,7 +6678,6 @@ proc declaration(): Stmt =
         if st.k == SFunction:
             return st
         noralizeType(st.var1type)
-        st.var1type.tags = st.var1type.tags or TYLVALUE
         putsymtype(st.var1name, st.var1type)
         result.vars.add((st.var1name, st.var1type, nil))
         if (st.var1type.tags and TYINLINE) != 0:
@@ -6633,7 +6687,6 @@ proc declaration(): Stmt =
                 type_error("variable '" & st.var1name & "' declared void")
                 return nil
             if st.var1type.spec == TYINCOMPLETE:
-                echo st.var1type
                 error_incomplete(st.var1type)
                 return nil
         if t.l.tok.tok == TAssign:
@@ -6760,6 +6813,8 @@ proc unary_expression(): Expr =
     of TMul:
         consume()
         var e = cast_expression()
+        if e == nil:
+          return nil
         if e.ty.spec != TYPOINTER:
             type_error("pointer expected")
             return nil
@@ -6789,8 +6844,11 @@ proc unary_expression(): Expr =
             return e
         if (e.ty.tags and TYLVALUE) == 0:
             type_error("cannot take the address of an rvalue")
-            inTheExpression(e)
             return nil
+        if e.ty.spec == TYBITFIELD:
+          type_error("cannot take address of bit-field")
+        if bool(e.ty.tags and TYREGISTER):
+          warning("take address of register variable")
         if (e.k == EUnary and e.uop == AddressOf) and e.ty.p.spec == TYFUNCTION:
             e.ty.tags = TYINVALID
             return e
@@ -6808,24 +6866,28 @@ proc unary_expression(): Expr =
         return result
     of TAdd:
         consume()
-        let e = unary_expression()
-        if e == nil:
+        result = unary_expression()
+        if result == nil:
             return nil
-        if not checkArithmetic(e.ty):
+        if not checkArithmetic(result.ty):
             type_error("arithmetic type expected")
             return nil
-        result = unary(e, Pos, e.ty)
         integer_promotions(result)
         return result
     of TAddAdd, TSubSub:
         consume()
-        let e = unary_expression()
+        var e = unary_expression()
         if e == nil:
             return nil
-        if not checkScalar(e.ty):
-            type_error("scalar expected")
+        if not assignable(e):
             return nil
-        return unary(e, if tok == TAddAdd: PrefixIncrement else: PrefixDecrement, e.ty)
+        var e2 = deepCopy(e)
+        var one = Expr(k: EIntLit, ival: 1, ty: (if e.ty.spec == TYPOINTER: tycache.i32 else: e.ty), loc: e.loc)
+        if tok == TAddAdd:
+          make_add(e, one)
+        else:
+          make_sub(e, one)
+        return binop(e2, Assign, e, e.ty)
     of Ksizeof:
         var loc = getLoc()
         consume()
@@ -7273,7 +7335,11 @@ proc primary_expression(): Expr =
                 var info = t.sema.scopes[i].typedefs.getOrDefault(t.l.tok.s, nil)
                 if info != nil:
                   info.tag = info.tag or INFO_USED
-                  ty = info.ty
+                  ty = deepCopy(info.ty)
+                  # 6.3.2.1 Lvalues, arrays, and function designators
+                  # If the lvalue has qualified type, the value has the unqualified version of the type of the lvalue; additionally, if the lvalue has atomic type, the value has the non-atomic version of the type of the lvalue; otherwise, the value has the type of the lvalue
+                  ty.tags = ty.tags and not (TYCONST or TYRESTRICT or TYVOLATILE or TYATOMIC or TYREGISTER or TYTHREAD_LOCAL or TYEXTERN or TYSTATIC or TYNORETURN or TYINLINE or TYPARAM)
+                  ty.tags = ty.tags or TYLVALUE
                   break
                 if t.sema.scopes[i].enums.hasKey(t.l.tok.s):
                   var val = t.sema.scopes[i].enums[t.l.tok.s]
@@ -7391,7 +7457,7 @@ proc postfix_expression(): Expr =
             return nil
         let op = if t.l.tok.tok == TAddAdd: PostfixIncrement else: PostfixDecrement
         consume()
-        return postfix(e, op, e.ty)
+        return Expr(k: EPostDix, poperand: e, pop: op, ty: e.ty, loc: e.loc)
     of TArrow, TDot: # member access
         let isarrow = t.l.tok.tok == TArrow
         consume()
@@ -7742,15 +7808,28 @@ proc assignment_expression(): Expr =
         consume()
         return conditional_expression(result)
     if t.l.tok.tok in {TAssign, TAsignAdd, TAsignSub, 
-    TAsignMul, TAsignDiv, TAsignRem, TAsignShl, 
-    TAsignShr, TAsignBitAnd, TAsignBitOr, TAsignBitXor}: 
+      TAsignMul, TAsignDiv, TAsignRem, TAsignShl, 
+      TAsignShr, TAsignBitAnd, TAsignBitOr, TAsignBitXor}: 
         if not assignable(result):
             return nil
         consume()
         var e = assignment_expression()
         if e == nil:
-            expectExpression()
             return nil
+        if bool(result.ty.tags and TYATOMIC):
+          case tok:
+          of TAsignAdd:
+            return binop(result, AtomicrmwAdd, e, e.ty)
+          of TAsignSub:
+            return binop(result, AtomicrmwSub, e, e.ty)
+          of TAsignBitOr:
+            return binop(result, AtomicrmwOr, e, e.ty)
+          of TAsignBitXor:
+            return binop(result, AtomicrmwXor, e, e.ty)
+          of TAsignBitAnd:
+            return binop(result, AtomicrmwAnd, e, e.ty)
+          else:
+            discard
         var lhs = deepCopy(result)
         return binop(lhs, Assign, castto(
             case tok:
@@ -7832,7 +7911,8 @@ proc compound_statement(): Stmt =
         if s == nil:
             leaveBlock()
             return nil
-        result.stmts.add(s)
+        if s.k != SSemicolon:
+          result.stmts.add(s)
     leaveBlock()
     consume()
     return result
@@ -7857,7 +7937,8 @@ proc compound_statement(params: seq[(string, CType)], lables: var HashSet[string
         if s == nil:
             leaveBlock()
             return nil
-        result.stmts.add(s)
+        if s.k != SSemicolon:
+          result.stmts.add(s)
     for (name, t) in t.sema.lables[^1].pairs():
         if t == LBL_FORWARD:
             type_error("use of undeclared label '" & name & "'")
@@ -7866,6 +7947,8 @@ proc compound_statement(params: seq[(string, CType)], lables: var HashSet[string
         else:
             assert t == LBL_OK
             lables.incl name
+    discard reachable(result, Reachable)
+    # TODO: return
     discard t.sema.lables.pop()
     leaveBlock()
     consume()
@@ -7974,6 +8057,18 @@ proc statament(): Stmt =
             if elsebody == nil:
                 expectStatement()
                 return nil
+        var i = evali(e)
+        if t.pp.eval_error == false:
+          if i == 0:
+            if elsebody != nil:
+              # if (0) else stmt2 stmt => stmt2
+              return elsebody
+            # if (0) stmt => ;
+            return Stmt(k: SSemicolon, loc: loc)
+          # if (1) stmt => stmt
+          # if (1) stmt else stmt2 => stmt
+          return s
+        t.pp.eval_error = false
         return Stmt(k: SIf, iftest: e, ifbody: s, elsebody: elsebody, loc: loc)
     elif t.l.tok.tok == Kwhile or t.l.tok.tok == Kswitch:
         let tok = t.l.tok.tok
@@ -8006,12 +8101,20 @@ proc statament(): Stmt =
         if s == nil:
             expectStatement()
             return nil
+        # while (1) stmt => loop stmt
+        # while (0) stmt => ;
+        var i = evali(e)
+        if t.pp.eval_error == false:
+          if i == 0:
+            return Stmt(k: SSemicolon, loc: loc)
+          return Stmt(k: SLoop, loop: s)
+        t.pp.eval_error = false
         return Stmt(k: SWhile, test: e, body: s, loc: loc)
     elif t.l.tok.tok == Kfor:
         # this are valid in C
         # for(int a;;)                                                                                                                                          
-        # {                                                                                                                                                  
-        #    int a;                                                                                                                                        
+        # {
+        #    int a;
         # }
         consume()
         enterBlock()
@@ -8092,11 +8195,19 @@ proc statament(): Stmt =
             return nil
         consume()
         checkSemicolon()
+        var i = evali(e)
+        # do stmt while (0); => stmt
+        # do stmt while (1); => loop stmt
+        if t.pp.eval_error == false:
+          if i == 0:
+            return s
+          return Stmt(k: SLoop, loop: s, loc: loc) 
+        t.pp.eval_error = false
         return Stmt(k: SDoWhile, test: e, body: s, loc: loc)
     elif t.l.tok.tok == TIdentifier:
         var val = t.l.tok.s
         consume()
-        if t.l.tok.tok == TColon: # # labeled-statement
+        if t.l.tok.tok == TColon: # labeled-statement
             consume()
             let s = statament()
             if s == nil:
@@ -8167,5 +8278,4 @@ if parseCLI():
                           disposeDIBuilder(b.di)
                       disposeBuilder(b.builder)
                       output()
-              
           llvm.shutdown()
