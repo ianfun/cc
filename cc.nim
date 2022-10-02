@@ -272,6 +272,11 @@ const
   KwStart = Kauto
   KwEnd = K_Thread_local
 
+const
+  CTX_NONE = 0'u8
+  CTX_HAS_CONTINUE = 0x1'u8
+  CTX_HAS_BREAK = 0x2'u8
+
 var
   gkeywordtable = initTable[string, Token](int(KwEnd) - int(KwStart) + 1)
 
@@ -1322,6 +1327,7 @@ type
     currentAlign: uint32 ## current align(bytes)
     type_error: bool ## type error
     lables: seq[Table[string, uint8]] ## lable scope
+    ctx: uint8
   Lexer {.final.} = object
     tok: TokenV
     line: uint32 ## current line
@@ -1483,14 +1489,14 @@ var t = Parser(
             eval_error: false,
             flags: PFNormal
         ),
-        sema: Sema(),
+        sema: Sema(ctx: CTX_NONE),
         w: consoleColoredWritter,
         l: Lexer(
             line: 1,
             col: 1,
             c: ' ',
             lastc: 256,
-            tok: TokenV(tok: TNul, tags: TVNormal)
+            tok: TokenV(tok: TNul, tags: TVNormal),
         ),
         parse_error: false,
         bad_error: false
@@ -1674,6 +1680,14 @@ template verbose(msg: untyped) =
 template note(msg: untyped) =
     if ord(app.verboseLevel) >= ord(VNote):
         write(msg, MNote)
+
+proc tryBreak() =
+  if (t.sema.ctx and CTX_HAS_BREAK) == 0:
+    type_error("connot break: no outer for/while/switch/do-while")
+
+proc tryContinue() =
+  if (t.sema.ctx and CTX_HAS_CONTINUE) == 0:
+    type_error("connot continue: no outer for/while/do-while")
 
 proc putToken() = 
     t.tokenq.add(t.l.tok)
@@ -3510,6 +3524,8 @@ const
 
 proc gen_str_ptr(val: string, is_constant = true): Value
 
+proc gen_str(val: string): (Value, Type)
+
 proc llvm_error(msg: string) =
   raw_message_line "LLVM ERROR: " & msg
 
@@ -3869,6 +3885,17 @@ proc gen_int(i: culonglong, tags: uint32): Value =
 
 proc gen_float(f: float, tag: uint32): Value =
   constReal(if (tag and TYFLOAT) != 0: b.types[DIffloat].ty else: b.types[DIfdouble].ty, f)
+
+proc gen_str(val: string): (Value, Type) =
+  var gstr = constStringInContext(b.ctx, cstring(val), len(val).cuint, False)
+  var ty = typeOfX(gstr)
+  var s = addGlobal(b.module, ty, ".str")
+  setLinkage(s, PrivateLinkage)
+  setInitializer(s, gstr)
+  setAlignment(s, 1)
+  setUnnamedAddr(s, 1)
+  setGlobalConstant(s, True)
+  return (s, ty)
 
 proc gen_str_ptr(val: string, is_constant: bool): Value =
   var gstr = constStringInContext(b.ctx, cstring(val), len(val).cuint, False)
@@ -4718,7 +4745,18 @@ proc getAddress(e: Expr): Value
 
 proc subscript(e: Expr, ty: var Type): Value =
     ty = wrap(e.left.ty.p)
-    var v = (if e.left.k == ArrToAddress and e.left.voidexpr.ty.spec == TYARRAY: getAddress(e.left.voidexpr) else: gen(e.left))
+    var v: Value
+    if e.left.k == ArrToAddress:
+      if e.left.voidexpr.ty.spec == TYARRAY:
+        v = getAddress(e.left.voidexpr)
+      else:
+        assert e.left.voidexpr.k == EString
+        var (str, strty) = gen_str(e.left.voidexpr.str)
+        var r = gen(e.right)
+        var indices = [b.i32_0, r]
+        return gep(strty, str, addr indices[0], 2)
+    else:
+      v = gen(e.left)
     var r = gen(e.right)
     if app.libtrace and e.left.k == ArrToAddress:
         var is_indexing_array = e.left.voidexpr.ty.spec == TYARRAY
@@ -4737,7 +4775,7 @@ proc subscript(e: Expr, ty: var Type): Value =
             discard buildUnreachable(b.builder)
             setInsertPoint(ifend)
     if e.left.k == ArrToAddress and e.left.voidexpr.ty.spec == TYARRAY:
-      var indices = [constInt(typeOfX(r), 0), r]
+      var indices = [b.i32_0, r]
       gep(wrap(e.left.voidexpr.ty), v, addr indices[0], 2)
     else:
       gep(ty, v, r)
@@ -5964,7 +6002,7 @@ proc static_assert(): Stmt
 
 proc translation_unit(): Stmt
 
-proc statament(): Stmt
+proc statement(): Stmt
 
 proc compound_statement(): Stmt
 
@@ -8044,7 +8082,7 @@ proc compound_statement(): Stmt =
         if istype(t.l.tok.tok):
             s = declaration()
         else:
-            s = statament()
+            s = statement()
         if s == nil:
             leaveBlock()
             return nil
@@ -8070,7 +8108,7 @@ proc compound_statement(params: seq[(string, CType)], lables: var HashSet[string
         if istype(t.l.tok.tok):
             s = declaration()
         else:
-            s = statament()
+            s = statement()
         if s == nil:
             leaveBlock()
             return nil
@@ -8091,7 +8129,7 @@ proc compound_statement(params: seq[(string, CType)], lables: var HashSet[string
     consume()
     return result
 
-proc statament(): Stmt =
+proc statement(): Stmt =
     ## parse a statement
     var loc = getLoc()
     if t.l.tok.tok == KAsm:
@@ -8113,7 +8151,7 @@ proc statament(): Stmt =
             expect(":")
             return nil
         consume()
-        let s = statament()
+        let s = statement()
         if s == nil:
             expectStatement()
             return nil
@@ -8124,7 +8162,7 @@ proc statament(): Stmt =
             expect(":")
             return nil
         consume()
-        let s = statament()
+        let s = statement()
         if s == nil:
             return nil
         return Stmt(k: SDefault, default_stmt: s, loc: loc)
@@ -8140,10 +8178,12 @@ proc statament(): Stmt =
         getLabel(location)
         return Stmt(k: SGoto, location: location, loc: loc)
     elif t.l.tok.tok == Kcontinue:
+        tryContinue()
         consume()
         checkSemicolon()
         return Stmt(k: SContinue, loc: loc)
     elif t.l.tok.tok == Kbreak:
+        tryBreak()
         consume()
         checkSemicolon()
         return Stmt(k: SBreak, loc: loc)
@@ -8183,14 +8223,14 @@ proc statament(): Stmt =
             expectRB()
             return nil
         consume()
-        let s = statament()
+        let s = statement()
         if s == nil:
             expectStatement()
             return nil
         var elsebody: Stmt = nil
         if t.l.tok.tok == Kelse:
             consume()
-            elsebody = statament()
+            elsebody = statement()
             if elsebody == nil:
                 expectStatement()
                 return nil
@@ -8224,20 +8264,25 @@ proc statament(): Stmt =
             expectRB()
             return nil
         consume()
+        var oldCtx = t.sema.ctx
         if tok == Kswitch:
             integer_promotions(e)
             var oldcase = t.sema.currentCase
             t.sema.currentCase = e.ty
-            let s = statament()
+            t.sema.ctx = oldCtx or CTX_HAS_BREAK
+            let s = statement()
             if s == nil:
                 expectStatement()
                 return nil
             t.sema.currentCase = oldcase
+            t.sema.ctx = oldCtx
             return Stmt(k: SSwitch, test: e, body: s, loc: loc)
-        let s = statament()
+        t.sema.ctx = oldCtx or CTX_HAS_BREAK or CTX_HAS_CONTINUE
+        let s = statement()
         if s == nil:
             expectStatement()
             return nil
+        t.sema.ctx = oldCtx
         # while (1) stmt => loop stmt
         # while (0) stmt => ;
         var i = evali(e)
@@ -8301,7 +8346,10 @@ proc statament(): Stmt =
                 expectRB()
                 return nil
         consume()
-        var s = statament()
+        var oldCtx = t.sema.ctx
+        t.sema.ctx = oldCtx or CTX_HAS_BREAK or CTX_HAS_CONTINUE
+        var s = statement()
+        t.sema.ctx = oldCtx
         if s == nil:
             expectStatement()
             return nil
@@ -8309,7 +8357,10 @@ proc statament(): Stmt =
         return Stmt(k: SFor, forinit: init, forcond: cond, forbody: s, forincl: forincl, loc: loc)
     elif t.l.tok.tok == Kdo:
         consume()
-        let s = statament()
+        var oldCtx = t.sema.ctx
+        t.sema.ctx = oldCtx or CTX_HAS_BREAK or CTX_HAS_CONTINUE
+        let s = statement()
+        t.sema.ctx = oldCtx
         if s == nil:
             expectStatement()
             return nil
@@ -8346,7 +8397,7 @@ proc statament(): Stmt =
         consume()
         if t.l.tok.tok == TColon: # labeled-statement
             consume()
-            let s = statament()
+            let s = statement()
             if s == nil:
                 expectStatement()
                 note("to add a empty statement, use:\n\tlabel: ;")

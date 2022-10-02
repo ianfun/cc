@@ -4,6 +4,8 @@ int (*f(void))(void){
 	return getchar;
 }
 
-int test(){
+int main(){
 	return f()();
 }
+
+int (*(*foo[10])(void))(void);
